@@ -1,0 +1,163 @@
+import {
+  Concept, GameDef, choicesFor, conceptsFor, distractorsFor, pickDistractors, questionId,
+  questionsFor,
+} from '../content/content';
+import { BALANCE, Balance, seriesLengthFor } from '../domain/balance';
+import { computeLevel } from '../domain/difficulty';
+import { Food, Rng } from '../domain/models';
+import { rewardsFor, starsFor } from '../domain/rewards';
+import { pickQuestions } from '../domain/selector';
+import { Progress } from './progress';
+
+export interface SeriesItem {
+  answer: Concept;
+  questionId: string;
+  level: number;
+  choices: Concept[];
+  isReview: boolean;
+}
+
+export interface SeriesResult {
+  gameId: string;
+  level: number;
+  total: number;
+  firstTrySuccesses: number;
+  stars: number;
+  rewards: Partial<Record<Food, number>>;
+}
+
+export type TapOutcome =
+  | { kind: 'ignored' }
+  | { kind: 'correct'; firstTry: boolean; streak: number; last: boolean }
+  | { kind: 'wrong'; hint: boolean };
+
+/**
+ * Déroulé d'une série (spécifications §5.1–5.3), sans dépendance à Phaser :
+ * la scène s'occupe des animations et de la voix.
+ */
+export class Series {
+  readonly level: number;
+  readonly items: SeriesItem[];
+  index = 0;
+  wrongAttempts = 0;
+  readonly disabled = new Set<string>();
+  firstTrySuccesses = 0;
+  private streak = 0;
+  private answered = 0;
+  result?: SeriesResult;
+
+  constructor(
+    readonly game: GameDef,
+    private progress: Progress,
+    private rng: Rng,
+    private b: Balance = BALANCE,
+  ) {
+    const category = game.category;
+    this.level = computeLevel({
+      experienceLevel: progress.dino.level,
+      age: progress.age,
+      gameAnswers: progress.answers({ gameId: game.id }),
+      categoryAnswers: progress.answers({ category }),
+      allAnswers: progress.answers(),
+      previousLevel: progress.gameLevel(game.id),
+    }, b);
+
+    const pool = conceptsFor(game.id);
+    const byId = new Map(pool.map((c) => [questionId(game.id, c), c]));
+    const selection = pickQuestions({
+      questions: questionsFor(game.id),
+      level: this.level,
+      count: seriesLengthFor(progress.age, b),
+      mastered: progress.mastered(game.id),
+      recent: progress.recentQuestions(game.id, b.recentSeriesExcluded),
+      toRetry: progress.toRetry(game.id, b.retryMaxAgeDays),
+    }, rng, b);
+
+    const positions: number[] = [];
+    this.items = selection.map((s) => {
+      const answer = byId.get(s.question.id)!;
+      const choices = pickDistractors(answer, pool, choicesFor(game, this.level) - 1,
+        distractorsFor(game, this.level), rng);
+      // Position de la bonne réponse : jamais 3 fois de suite la même.
+      let position = Math.floor(rng() * (choices.length + 1));
+      const n = positions.length;
+      if (n >= 2 && positions[n - 1] === position && positions[n - 2] === position) {
+        position = (position + 1) % (choices.length + 1);
+      }
+      positions.push(position);
+      choices.splice(position, 0, answer);
+      return { answer, questionId: s.question.id, level: s.question.level, choices, isReview: s.isReview };
+    });
+  }
+
+  get current(): SeriesItem { return this.items[this.index]; }
+  get hint(): boolean { return this.wrongAttempts >= this.b.hintAfterWrongAttempts; }
+  get finished(): boolean { return this.result !== undefined; }
+
+  tap(choice: Concept): TapOutcome {
+    if (this.finished || this.disabled.has(choice.id)) return { kind: 'ignored' };
+    if (choice.id !== this.current.answer.id) {
+      this.disabled.add(choice.id);
+      this.wrongAttempts++;
+      this.streak = 0;
+      return { kind: 'wrong', hint: this.hint };
+    }
+    const firstTry = this.wrongAttempts === 0;
+    if (firstTry) {
+      this.firstTrySuccesses++;
+      this.streak++;
+    } else {
+      this.streak = 0;
+    }
+    this.answered++;
+    this.progress.recordAnswer({
+      gameId: this.game.id,
+      category: this.game.category,
+      questionId: this.current.questionId,
+      level: this.current.level,
+      firstTrySuccess: firstTry,
+      at: Date.now(),
+    });
+    return { kind: 'correct', firstTry, streak: this.streak, last: this.index + 1 >= this.items.length };
+  }
+
+  /** Passe à la question suivante ; termine la série après la dernière. */
+  next() {
+    if (this.index + 1 >= this.items.length) {
+      this.finish(this.items.length);
+      return;
+    }
+    this.index++;
+    this.wrongAttempts = 0;
+    this.disabled.clear();
+  }
+
+  /** Retire la question courante sans la compter (démonstration du tutoriel). */
+  skipCurrent() {
+    if (this.items.length > 1) this.items.splice(this.index, 1);
+    this.wrongAttempts = 0;
+    this.disabled.clear();
+  }
+
+  /** Sortie anticipée : récompense au prorata après 3 réponses (spécifications §5.1). */
+  abandon() {
+    if (!this.finished && this.answered >= this.b.minQuestionsForReward) this.finish(this.answered);
+  }
+
+  private finish(answered: number) {
+    const score = answered === 0 ? 0 : this.firstTrySuccesses / answered;
+    const stars = starsFor(score, this.b);
+    const rewards = rewardsFor({
+      stars,
+      perfect: this.firstTrySuccesses === answered,
+      level: this.level,
+      firstSeriesOfDay: this.progress.isFirstSeriesToday(),
+    }, this.rng, this.b);
+    this.progress.recordSeries(this.game.id,
+      this.items.slice(0, answered).map((i) => i.questionId), this.level, rewards);
+    this.result = {
+      gameId: this.game.id, level: this.level, total: answered,
+      firstTrySuccesses: this.firstTrySuccesses, stars, rewards,
+    };
+  }
+}

@@ -52,7 +52,13 @@ donne au dinosaure, qui grandit au fil du temps.
 
 ## 2. Choix technologique
 
-### 2.1 Recommandation : **Flutter + Rive**
+> **Mise à jour (v0.2)** : le prototype jouable est développé en **Phaser 3 + TypeScript** (jeu web,
+> testable directement dans le navigateur du téléphone, voir `web/`). Voix : synthèse vocale du
+> navigateur via `easy-speech` ; dino animé avec les tweens Phaser ; illustrations SVG withicons
+> « Plush ». Une application native pourra ensuite empaqueter ce jeu web (Capacitor) ou suivre
+> l'option Flutter + Rive ci-dessous.
+
+### 2.1 Recommandation initiale : **Flutter + Rive**
 
 | Besoin | Solution retenue |
 |--------|------------------|

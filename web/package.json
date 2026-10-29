@@ -1,0 +1,27 @@
+{
+  "name": "dinolearn-web",
+  "private": true,
+  "version": "0.2.0",
+  "type": "module",
+  "scripts": {
+    "icons": "node scripts/build-icons.mjs",
+    "dev": "npm run icons && vite --host",
+    "build": "npm run icons && tsc --noEmit && vite build",
+    "preview": "vite preview --host",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "easy-speech": "^2.4.0",
+    "phaser": "^3.90.0",
+    "zzfx": "^1.4.0"
+  },
+  "devDependencies": {
+    "@iconify-json/circle-flags": "^1.2.12",
+    "@iconify-json/withicons-plush": "^1.2.0",
+    "@iconify/utils": "^3.1.7",
+    "typescript": "^5.9.3",
+    "vite": "^8.3.5",
+    "vitest": "^5.0.5"
+  }
+}

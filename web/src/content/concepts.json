@@ -1,0 +1,1354 @@
+{
+ "concepts": [
+  {
+   "id": "dog",
+   "icon": "dog",
+   "category": "animal",
+   "levels": {
+    "EN-1": 1,
+    "MO-1": 1
+   },
+   "fr": {
+    "article": "le",
+    "word": "chien"
+   },
+   "en": {
+    "word": "dog"
+   }
+  },
+  {
+   "id": "cat",
+   "icon": "cat",
+   "category": "animal",
+   "levels": {
+    "EN-1": 1,
+    "MO-1": 1
+   },
+   "fr": {
+    "article": "le",
+    "word": "chat"
+   },
+   "en": {
+    "word": "cat"
+   }
+  },
+  {
+   "id": "fish",
+   "icon": "fish",
+   "category": "animal",
+   "levels": {
+    "EN-1": 1,
+    "MO-1": 1
+   },
+   "fr": {
+    "article": "le",
+    "word": "poisson"
+   },
+   "en": {
+    "word": "fish"
+   }
+  },
+  {
+   "id": "bird",
+   "icon": "bird",
+   "category": "animal",
+   "levels": {
+    "EN-1": 1,
+    "MO-1": 1
+   },
+   "fr": {
+    "article": "l'",
+    "word": "oiseau"
+   },
+   "en": {
+    "word": "bird"
+   }
+  },
+  {
+   "id": "rabbit",
+   "icon": "rabbit",
+   "category": "animal",
+   "levels": {
+    "EN-1": 1,
+    "MO-1": 1
+   },
+   "fr": {
+    "article": "le",
+    "word": "lapin"
+   },
+   "en": {
+    "word": "rabbit"
+   }
+  },
+  {
+   "id": "turtle",
+   "icon": "turtle",
+   "category": "animal",
+   "levels": {
+    "EN-1": 1,
+    "MO-1": 1
+   },
+   "fr": {
+    "article": "la",
+    "word": "tortue"
+   },
+   "en": {
+    "word": "turtle"
+   }
+  },
+  {
+   "id": "frog",
+   "icon": "avatar-frog",
+   "category": "animal",
+   "levels": {
+    "EN-1": 1,
+    "MO-1": 1
+   },
+   "fr": {
+    "article": "la",
+    "word": "grenouille"
+   },
+   "en": {
+    "word": "frog"
+   }
+  },
+  {
+   "id": "owl",
+   "icon": "avatar-owl",
+   "category": "animal",
+   "levels": {
+    "EN-1": 1,
+    "MO-1": 1
+   },
+   "fr": {
+    "article": "le",
+    "word": "hibou"
+   },
+   "en": {
+    "word": "owl"
+   }
+  },
+  {
+   "id": "red",
+   "icon": "color:#E8414B",
+   "category": "color",
+   "levels": {
+    "EN-1": 2
+   },
+   "fr": {
+    "article": "",
+    "word": "rouge"
+   },
+   "en": {
+    "word": "red"
+   }
+  },
+  {
+   "id": "blue",
+   "icon": "color:#3B7DE9",
+   "category": "color",
+   "levels": {
+    "EN-1": 2
+   },
+   "fr": {
+    "article": "",
+    "word": "bleu"
+   },
+   "en": {
+    "word": "blue"
+   }
+  },
+  {
+   "id": "green",
+   "icon": "color:#3DBE5A",
+   "category": "color",
+   "levels": {
+    "EN-1": 2
+   },
+   "fr": {
+    "article": "",
+    "word": "vert"
+   },
+   "en": {
+    "word": "green"
+   }
+  },
+  {
+   "id": "yellow",
+   "icon": "color:#FFD02E",
+   "category": "color",
+   "levels": {
+    "EN-1": 2
+   },
+   "fr": {
+    "article": "",
+    "word": "jaune"
+   },
+   "en": {
+    "word": "yellow"
+   }
+  },
+  {
+   "id": "orange_color",
+   "icon": "color:#FF8A1F",
+   "category": "color",
+   "levels": {
+    "EN-1": 2
+   },
+   "fr": {
+    "article": "",
+    "word": "orange"
+   },
+   "en": {
+    "word": "orange"
+   }
+  },
+  {
+   "id": "purple",
+   "icon": "color:#9B5DE5",
+   "category": "color",
+   "levels": {
+    "EN-1": 2
+   },
+   "fr": {
+    "article": "",
+    "word": "violet"
+   },
+   "en": {
+    "word": "purple"
+   }
+  },
+  {
+   "id": "pink",
+   "icon": "color:#FF8FC7",
+   "category": "color",
+   "levels": {
+    "EN-1": 2
+   },
+   "fr": {
+    "article": "",
+    "word": "rose"
+   },
+   "en": {
+    "word": "pink"
+   }
+  },
+  {
+   "id": "black",
+   "icon": "color:#2B2B33",
+   "category": "color",
+   "levels": {
+    "EN-1": 2
+   },
+   "fr": {
+    "article": "",
+    "word": "noir"
+   },
+   "en": {
+    "word": "black"
+   }
+  },
+  {
+   "id": "white",
+   "icon": "color:#FFFFFF",
+   "category": "color",
+   "levels": {
+    "EN-1": 2
+   },
+   "fr": {
+    "article": "",
+    "word": "blanc"
+   },
+   "en": {
+    "word": "white"
+   }
+  },
+  {
+   "id": "brown",
+   "icon": "color:#8B5A2B",
+   "category": "color",
+   "levels": {
+    "EN-1": 2
+   },
+   "fr": {
+    "article": "",
+    "word": "marron"
+   },
+   "en": {
+    "word": "brown"
+   }
+  },
+  {
+   "id": "apple",
+   "icon": "apple",
+   "category": "food",
+   "levels": {
+    "EN-1": 3,
+    "MO-1": 2
+   },
+   "fr": {
+    "article": "la",
+    "word": "pomme"
+   },
+   "en": {
+    "word": "apple"
+   }
+  },
+  {
+   "id": "banana",
+   "icon": "banana",
+   "category": "food",
+   "levels": {
+    "EN-1": 3,
+    "MO-1": 2
+   },
+   "fr": {
+    "article": "la",
+    "word": "banane"
+   },
+   "en": {
+    "word": "banana"
+   }
+  },
+  {
+   "id": "cherry",
+   "icon": "cherry",
+   "category": "food",
+   "levels": {
+    "EN-1": 3,
+    "MO-1": 2
+   },
+   "fr": {
+    "article": "la",
+    "word": "cerise"
+   },
+   "en": {
+    "word": "cherry"
+   }
+  },
+  {
+   "id": "carrot",
+   "icon": "carrot",
+   "category": "food",
+   "levels": {
+    "EN-1": 3,
+    "MO-1": 2
+   },
+   "fr": {
+    "article": "la",
+    "word": "carotte"
+   },
+   "en": {
+    "word": "carrot"
+   }
+  },
+  {
+   "id": "pizza",
+   "icon": "pizza",
+   "category": "food",
+   "levels": {
+    "EN-1": 3,
+    "MO-1": 2
+   },
+   "fr": {
+    "article": "la",
+    "word": "pizza"
+   },
+   "en": {
+    "word": "pizza"
+   }
+  },
+  {
+   "id": "cake",
+   "icon": "cake",
+   "category": "food",
+   "levels": {
+    "EN-1": 3,
+    "MO-1": 2
+   },
+   "fr": {
+    "article": "le",
+    "word": "gâteau"
+   },
+   "en": {
+    "word": "cake"
+   }
+  },
+  {
+   "id": "ice_cream",
+   "icon": "ice-cream",
+   "category": "food",
+   "levels": {
+    "EN-1": 3,
+    "MO-1": 2
+   },
+   "fr": {
+    "article": "la",
+    "word": "glace"
+   },
+   "en": {
+    "word": "ice cream"
+   }
+  },
+  {
+   "id": "cookie",
+   "icon": "cookie",
+   "category": "food",
+   "levels": {
+    "EN-1": 3,
+    "MO-1": 2
+   },
+   "fr": {
+    "article": "le",
+    "word": "biscuit"
+   },
+   "en": {
+    "word": "cookie"
+   }
+  },
+  {
+   "id": "egg",
+   "icon": "egg",
+   "category": "food",
+   "levels": {
+    "EN-1": 3,
+    "MO-1": 2
+   },
+   "fr": {
+    "article": "l'",
+    "word": "œuf"
+   },
+   "en": {
+    "word": "egg"
+   }
+  },
+  {
+   "id": "bread",
+   "icon": "bread",
+   "category": "food",
+   "levels": {
+    "EN-1": 3,
+    "MO-1": 2
+   },
+   "fr": {
+    "article": "le",
+    "word": "pain"
+   },
+   "en": {
+    "word": "bread"
+   }
+  },
+  {
+   "id": "milk",
+   "icon": "milk",
+   "category": "food",
+   "levels": {
+    "EN-1": 3,
+    "MO-1": 2
+   },
+   "fr": {
+    "article": "le",
+    "word": "lait"
+   },
+   "en": {
+    "word": "milk"
+   }
+  },
+  {
+   "id": "donut",
+   "icon": "donut",
+   "category": "food",
+   "levels": {
+    "EN-1": 3,
+    "MO-1": 2
+   },
+   "fr": {
+    "article": "le",
+    "word": "beignet"
+   },
+   "en": {
+    "word": "donut"
+   }
+  },
+  {
+   "id": "burger",
+   "icon": "burger",
+   "category": "food",
+   "levels": {
+    "EN-1": 3,
+    "MO-1": 2
+   },
+   "fr": {
+    "article": "le",
+    "word": "hamburger"
+   },
+   "en": {
+    "word": "burger"
+   }
+  },
+  {
+   "id": "orange",
+   "icon": "mandarin-orange",
+   "category": "food",
+   "levels": {
+    "EN-1": 3,
+    "MO-1": 2
+   },
+   "fr": {
+    "article": "l'",
+    "word": "orange"
+   },
+   "en": {
+    "word": "orange"
+   }
+  },
+  {
+   "id": "mushroom",
+   "icon": "mushroom",
+   "category": "food",
+   "levels": {
+    "EN-1": 3,
+    "MO-1": 2
+   },
+   "fr": {
+    "article": "le",
+    "word": "champignon"
+   },
+   "en": {
+    "word": "mushroom"
+   }
+  },
+  {
+   "id": "lollipop",
+   "icon": "lollipop",
+   "category": "food",
+   "levels": {
+    "EN-1": 3,
+    "MO-1": 2
+   },
+   "fr": {
+    "article": "la",
+    "word": "sucette"
+   },
+   "en": {
+    "word": "lollipop"
+   }
+  },
+  {
+   "id": "candy",
+   "icon": "candy",
+   "category": "food",
+   "levels": {
+    "EN-1": 3,
+    "MO-1": 2
+   },
+   "fr": {
+    "article": "le",
+    "word": "bonbon"
+   },
+   "en": {
+    "word": "candy"
+   }
+  },
+  {
+   "id": "popcorn",
+   "icon": "popcorn",
+   "category": "food",
+   "levels": {
+    "EN-1": 3,
+    "MO-1": 2
+   },
+   "fr": {
+    "article": "le",
+    "word": "pop-corn"
+   },
+   "en": {
+    "word": "popcorn"
+   }
+  },
+  {
+   "id": "car",
+   "icon": "car",
+   "category": "vehicle",
+   "levels": {
+    "EN-1": 4,
+    "MO-1": 3
+   },
+   "fr": {
+    "article": "la",
+    "word": "voiture"
+   },
+   "en": {
+    "word": "car"
+   }
+  },
+  {
+   "id": "train",
+   "icon": "train",
+   "category": "vehicle",
+   "levels": {
+    "EN-1": 4,
+    "MO-1": 3
+   },
+   "fr": {
+    "article": "le",
+    "word": "train"
+   },
+   "en": {
+    "word": "train"
+   }
+  },
+  {
+   "id": "bus",
+   "icon": "bus",
+   "category": "vehicle",
+   "levels": {
+    "EN-1": 4,
+    "MO-1": 3
+   },
+   "fr": {
+    "article": "le",
+    "word": "bus"
+   },
+   "en": {
+    "word": "bus"
+   }
+  },
+  {
+   "id": "bike",
+   "icon": "bike",
+   "category": "vehicle",
+   "levels": {
+    "EN-1": 4,
+    "MO-1": 3
+   },
+   "fr": {
+    "article": "le",
+    "word": "vélo"
+   },
+   "en": {
+    "word": "bike"
+   }
+  },
+  {
+   "id": "plane",
+   "icon": "plane",
+   "category": "vehicle",
+   "levels": {
+    "EN-1": 4,
+    "MO-1": 3
+   },
+   "fr": {
+    "article": "l'",
+    "word": "avion"
+   },
+   "en": {
+    "word": "plane"
+   }
+  },
+  {
+   "id": "rocket",
+   "icon": "rocket",
+   "category": "vehicle",
+   "levels": {
+    "EN-1": 4,
+    "MO-1": 3
+   },
+   "fr": {
+    "article": "la",
+    "word": "fusée"
+   },
+   "en": {
+    "word": "rocket"
+   }
+  },
+  {
+   "id": "boat",
+   "icon": "ship",
+   "category": "vehicle",
+   "levels": {
+    "EN-1": 4,
+    "MO-1": 3
+   },
+   "fr": {
+    "article": "le",
+    "word": "bateau"
+   },
+   "en": {
+    "word": "boat"
+   }
+  },
+  {
+   "id": "helicopter",
+   "icon": "helicopter",
+   "category": "vehicle",
+   "levels": {
+    "EN-1": 4,
+    "MO-1": 3
+   },
+   "fr": {
+    "article": "l'",
+    "word": "hélicoptère"
+   },
+   "en": {
+    "word": "helicopter"
+   }
+  },
+  {
+   "id": "truck",
+   "icon": "truck",
+   "category": "vehicle",
+   "levels": {
+    "EN-1": 4,
+    "MO-1": 3
+   },
+   "fr": {
+    "article": "le",
+    "word": "camion"
+   },
+   "en": {
+    "word": "truck"
+   }
+  },
+  {
+   "id": "taxi",
+   "icon": "taxi",
+   "category": "vehicle",
+   "levels": {
+    "EN-1": 4,
+    "MO-1": 3
+   },
+   "fr": {
+    "article": "le",
+    "word": "taxi"
+   },
+   "en": {
+    "word": "taxi"
+   }
+  },
+  {
+   "id": "ambulance",
+   "icon": "ambulance",
+   "category": "vehicle",
+   "levels": {
+    "EN-1": 4,
+    "MO-1": 3
+   },
+   "fr": {
+    "article": "l'",
+    "word": "ambulance"
+   },
+   "en": {
+    "word": "ambulance"
+   }
+  },
+  {
+   "id": "motorbike",
+   "icon": "motorcycle",
+   "category": "vehicle",
+   "levels": {
+    "EN-1": 4,
+    "MO-1": 3
+   },
+   "fr": {
+    "article": "la",
+    "word": "moto"
+   },
+   "en": {
+    "word": "motorbike"
+   }
+  },
+  {
+   "id": "sailboat",
+   "icon": "sailboat",
+   "category": "vehicle",
+   "levels": {
+    "EN-1": 4,
+    "MO-1": 3
+   },
+   "fr": {
+    "article": "le",
+    "word": "voilier"
+   },
+   "en": {
+    "word": "sailboat"
+   }
+  },
+  {
+   "id": "kite",
+   "icon": "kite",
+   "category": "toy",
+   "levels": {
+    "EN-1": 4,
+    "MO-1": 3
+   },
+   "fr": {
+    "article": "le",
+    "word": "cerf-volant"
+   },
+   "en": {
+    "word": "kite"
+   }
+  },
+  {
+   "id": "balloon",
+   "icon": "balloon",
+   "category": "toy",
+   "levels": {
+    "EN-1": 4,
+    "MO-1": 3
+   },
+   "fr": {
+    "article": "le",
+    "word": "ballon"
+   },
+   "en": {
+    "word": "balloon"
+   }
+  },
+  {
+   "id": "teddy",
+   "icon": "teddy-bear",
+   "category": "toy",
+   "levels": {
+    "EN-1": 4,
+    "MO-1": 3
+   },
+   "fr": {
+    "article": "le",
+    "word": "nounours"
+   },
+   "en": {
+    "word": "teddy bear"
+   }
+  },
+  {
+   "id": "sun",
+   "icon": "sun",
+   "category": "nature",
+   "levels": {
+    "EN-1": 5,
+    "MO-1": 4
+   },
+   "fr": {
+    "article": "le",
+    "word": "soleil"
+   },
+   "en": {
+    "word": "sun"
+   }
+  },
+  {
+   "id": "moon",
+   "icon": "moon",
+   "category": "nature",
+   "levels": {
+    "EN-1": 5,
+    "MO-1": 4
+   },
+   "fr": {
+    "article": "la",
+    "word": "lune"
+   },
+   "en": {
+    "word": "moon"
+   }
+  },
+  {
+   "id": "cloud",
+   "icon": "cloud",
+   "category": "nature",
+   "levels": {
+    "EN-1": 5,
+    "MO-1": 4
+   },
+   "fr": {
+    "article": "le",
+    "word": "nuage"
+   },
+   "en": {
+    "word": "cloud"
+   }
+  },
+  {
+   "id": "rainbow",
+   "icon": "rainbow",
+   "category": "nature",
+   "levels": {
+    "EN-1": 5,
+    "MO-1": 4
+   },
+   "fr": {
+    "article": "l'",
+    "word": "arc-en-ciel"
+   },
+   "en": {
+    "word": "rainbow"
+   }
+  },
+  {
+   "id": "star",
+   "icon": "star",
+   "category": "nature",
+   "levels": {
+    "EN-1": 5,
+    "MO-1": 4
+   },
+   "fr": {
+    "article": "l'",
+    "word": "étoile"
+   },
+   "en": {
+    "word": "star"
+   }
+  },
+  {
+   "id": "tree",
+   "icon": "tree-deciduous",
+   "category": "nature",
+   "levels": {
+    "EN-1": 5,
+    "MO-1": 4
+   },
+   "fr": {
+    "article": "l'",
+    "word": "arbre"
+   },
+   "en": {
+    "word": "tree"
+   }
+  },
+  {
+   "id": "flower",
+   "icon": "flower",
+   "category": "nature",
+   "levels": {
+    "EN-1": 5,
+    "MO-1": 4
+   },
+   "fr": {
+    "article": "la",
+    "word": "fleur"
+   },
+   "en": {
+    "word": "flower"
+   }
+  },
+  {
+   "id": "leaf",
+   "icon": "leaf",
+   "category": "nature",
+   "levels": {
+    "EN-1": 5,
+    "MO-1": 4
+   },
+   "fr": {
+    "article": "la",
+    "word": "feuille"
+   },
+   "en": {
+    "word": "leaf"
+   }
+  },
+  {
+   "id": "snowman",
+   "icon": "snowman",
+   "category": "nature",
+   "levels": {
+    "EN-1": 5,
+    "MO-1": 4
+   },
+   "fr": {
+    "article": "le",
+    "word": "bonhomme de neige"
+   },
+   "en": {
+    "word": "snowman"
+   }
+  },
+  {
+   "id": "mountain",
+   "icon": "mountain",
+   "category": "nature",
+   "levels": {
+    "EN-1": 5,
+    "MO-1": 4
+   },
+   "fr": {
+    "article": "la",
+    "word": "montagne"
+   },
+   "en": {
+    "word": "mountain"
+   }
+  },
+  {
+   "id": "cactus",
+   "icon": "cactus",
+   "category": "nature",
+   "levels": {
+    "EN-1": 5,
+    "MO-1": 4
+   },
+   "fr": {
+    "article": "le",
+    "word": "cactus"
+   },
+   "en": {
+    "word": "cactus"
+   }
+  },
+  {
+   "id": "snowflake",
+   "icon": "snowflake",
+   "category": "nature",
+   "levels": {
+    "EN-1": 5,
+    "MO-1": 4
+   },
+   "fr": {
+    "article": "le",
+    "word": "flocon"
+   },
+   "en": {
+    "word": "snowflake"
+   }
+  },
+  {
+   "id": "tiger",
+   "icon": "avatar-tiger",
+   "category": "wild",
+   "levels": {
+    "EN-1": 6,
+    "MO-1": 5
+   },
+   "fr": {
+    "article": "le",
+    "word": "tigre"
+   },
+   "en": {
+    "word": "tiger"
+   }
+  },
+  {
+   "id": "unicorn",
+   "icon": "avatar-unicorn",
+   "category": "wild",
+   "levels": {
+    "EN-1": 6,
+    "MO-1": 5
+   },
+   "fr": {
+    "article": "la",
+    "word": "licorne"
+   },
+   "en": {
+    "word": "unicorn"
+   }
+  },
+  {
+   "id": "dragon",
+   "icon": "dragon-head",
+   "category": "wild",
+   "levels": {
+    "EN-1": 6,
+    "MO-1": 5
+   },
+   "fr": {
+    "article": "le",
+    "word": "dragon"
+   },
+   "en": {
+    "word": "dragon"
+   }
+  },
+  {
+   "id": "bee",
+   "icon": "bee",
+   "category": "wild",
+   "levels": {
+    "EN-1": 6,
+    "MO-1": 5
+   },
+   "fr": {
+    "article": "l'",
+    "word": "abeille"
+   },
+   "en": {
+    "word": "bee"
+   }
+  },
+  {
+   "id": "butterfly",
+   "icon": "butterfly",
+   "category": "wild",
+   "levels": {
+    "EN-1": 6,
+    "MO-1": 5
+   },
+   "fr": {
+    "article": "le",
+    "word": "papillon"
+   },
+   "en": {
+    "word": "butterfly"
+   }
+  },
+  {
+   "id": "spider",
+   "icon": "spider",
+   "category": "wild",
+   "levels": {
+    "EN-1": 6,
+    "MO-1": 5
+   },
+   "fr": {
+    "article": "l'",
+    "word": "araignée"
+   },
+   "en": {
+    "word": "spider"
+   }
+  },
+  {
+   "id": "book",
+   "icon": "book",
+   "category": "object",
+   "levels": {
+    "EN-1": 7,
+    "MO-1": 6
+   },
+   "fr": {
+    "article": "le",
+    "word": "livre"
+   },
+   "en": {
+    "word": "book"
+   }
+  },
+  {
+   "id": "umbrella",
+   "icon": "umbrella",
+   "category": "object",
+   "levels": {
+    "EN-1": 7,
+    "MO-1": 6
+   },
+   "fr": {
+    "article": "le",
+    "word": "parapluie"
+   },
+   "en": {
+    "word": "umbrella"
+   }
+  },
+  {
+   "id": "key",
+   "icon": "key",
+   "category": "object",
+   "levels": {
+    "EN-1": 7,
+    "MO-1": 6
+   },
+   "fr": {
+    "article": "la",
+    "word": "clé"
+   },
+   "en": {
+    "word": "key"
+   }
+  },
+  {
+   "id": "glasses",
+   "icon": "glasses",
+   "category": "object",
+   "levels": {
+    "EN-1": 7,
+    "MO-1": 6
+   },
+   "fr": {
+    "article": "les",
+    "word": "lunettes"
+   },
+   "en": {
+    "word": "glasses"
+   }
+  },
+  {
+   "id": "clock",
+   "icon": "alarm-clock",
+   "category": "object",
+   "levels": {
+    "EN-1": 7,
+    "MO-1": 6
+   },
+   "fr": {
+    "article": "le",
+    "word": "réveil"
+   },
+   "en": {
+    "word": "clock"
+   }
+  },
+  {
+   "id": "bed",
+   "icon": "bed",
+   "category": "object",
+   "levels": {
+    "EN-1": 7,
+    "MO-1": 6
+   },
+   "fr": {
+    "article": "le",
+    "word": "lit"
+   },
+   "en": {
+    "word": "bed"
+   }
+  },
+  {
+   "id": "lamp",
+   "icon": "lamp",
+   "category": "object",
+   "levels": {
+    "EN-1": 7,
+    "MO-1": 6
+   },
+   "fr": {
+    "article": "la",
+    "word": "lampe"
+   },
+   "en": {
+    "word": "lamp"
+   }
+  },
+  {
+   "id": "phone",
+   "icon": "smartphone",
+   "category": "object",
+   "levels": {
+    "EN-1": 7,
+    "MO-1": 6
+   },
+   "fr": {
+    "article": "le",
+    "word": "téléphone"
+   },
+   "en": {
+    "word": "phone"
+   }
+  },
+  {
+   "id": "camera",
+   "icon": "camera",
+   "category": "object",
+   "levels": {
+    "EN-1": 7,
+    "MO-1": 6
+   },
+   "fr": {
+    "article": "l'",
+    "word": "appareil photo"
+   },
+   "en": {
+    "word": "camera"
+   }
+  },
+  {
+   "id": "guitar",
+   "icon": "guitar",
+   "category": "object",
+   "levels": {
+    "EN-1": 7,
+    "MO-1": 6
+   },
+   "fr": {
+    "article": "la",
+    "word": "guitare"
+   },
+   "en": {
+    "word": "guitar"
+   }
+  },
+  {
+   "id": "piano",
+   "icon": "piano",
+   "category": "object",
+   "levels": {
+    "EN-1": 7,
+    "MO-1": 6
+   },
+   "fr": {
+    "article": "le",
+    "word": "piano"
+   },
+   "en": {
+    "word": "piano"
+   }
+  },
+  {
+   "id": "backpack",
+   "icon": "backpack",
+   "category": "object",
+   "levels": {
+    "EN-1": 7,
+    "MO-1": 6
+   },
+   "fr": {
+    "article": "le",
+    "word": "sac à dos"
+   },
+   "en": {
+    "word": "backpack"
+   }
+  },
+  {
+   "id": "gift",
+   "icon": "gift",
+   "category": "object",
+   "levels": {
+    "EN-1": 7,
+    "MO-1": 6
+   },
+   "fr": {
+    "article": "le",
+    "word": "cadeau"
+   },
+   "en": {
+    "word": "present"
+   }
+  },
+  {
+   "id": "crown",
+   "icon": "crown",
+   "category": "object",
+   "levels": {
+    "EN-1": 7,
+    "MO-1": 6
+   },
+   "fr": {
+    "article": "la",
+    "word": "couronne"
+   },
+   "en": {
+    "word": "crown"
+   }
+  },
+  {
+   "id": "tshirt",
+   "icon": "shirt",
+   "category": "object",
+   "levels": {
+    "EN-1": 7,
+    "MO-1": 6
+   },
+   "fr": {
+    "article": "le",
+    "word": "t-shirt"
+   },
+   "en": {
+    "word": "T-shirt"
+   }
+  }
+ ]
+}
