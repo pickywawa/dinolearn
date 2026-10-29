@@ -6,3 +6,4 @@ nourriture que l'enfant donne au dinosaure pour le faire grandir.
 
 - Technologie recommandée : **Flutter + Rive** (détails et justification dans les spécifications).
 - Spécifications complètes : [docs/SPECIFICATIONS.md](docs/SPECIFICATIONS.md)
+- Prototype Flutter (V0.1) : [app/](app/README.md)

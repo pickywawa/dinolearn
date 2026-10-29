@@ -1,0 +1,925 @@
+{
+ "version": 1,
+ "concepts": [
+  {
+   "id": "dog",
+   "image": "1f436",
+   "tags": [
+    "animal"
+   ],
+   "levels": {
+    "EN-1": 1
+   },
+   "similar": [
+    "cat",
+    "horse"
+   ],
+   "i18n": {
+    "fr": {
+     "article": "le",
+     "word": "chien"
+    },
+    "en": {
+     "word": "dog"
+    }
+   }
+  },
+  {
+   "id": "cat",
+   "image": "1f431",
+   "tags": [
+    "animal"
+   ],
+   "levels": {
+    "EN-1": 1
+   },
+   "similar": [
+    "dog",
+    "rabbit"
+   ],
+   "i18n": {
+    "fr": {
+     "article": "le",
+     "word": "chat"
+    },
+    "en": {
+     "word": "cat"
+    }
+   }
+  },
+  {
+   "id": "fish",
+   "image": "1f41f",
+   "tags": [
+    "animal"
+   ],
+   "levels": {
+    "EN-1": 1
+   },
+   "similar": [
+    "duck",
+    "frog"
+   ],
+   "i18n": {
+    "fr": {
+     "article": "le",
+     "word": "poisson"
+    },
+    "en": {
+     "word": "fish"
+    }
+   }
+  },
+  {
+   "id": "bird",
+   "image": "1f426",
+   "tags": [
+    "animal"
+   ],
+   "levels": {
+    "EN-1": 1
+   },
+   "similar": [
+    "duck",
+    "fish"
+   ],
+   "i18n": {
+    "fr": {
+     "article": "l'",
+     "word": "oiseau"
+    },
+    "en": {
+     "word": "bird"
+    }
+   }
+  },
+  {
+   "id": "cow",
+   "image": "1f42e",
+   "tags": [
+    "animal"
+   ],
+   "levels": {
+    "EN-1": 1
+   },
+   "similar": [
+    "pig",
+    "horse"
+   ],
+   "i18n": {
+    "fr": {
+     "article": "la",
+     "word": "vache"
+    },
+    "en": {
+     "word": "cow"
+    }
+   }
+  },
+  {
+   "id": "duck",
+   "image": "1f986",
+   "tags": [
+    "animal"
+   ],
+   "levels": {
+    "EN-1": 1
+   },
+   "similar": [
+    "bird",
+    "fish"
+   ],
+   "i18n": {
+    "fr": {
+     "article": "le",
+     "word": "canard"
+    },
+    "en": {
+     "word": "duck"
+    }
+   }
+  },
+  {
+   "id": "pig",
+   "image": "1f437",
+   "tags": [
+    "animal"
+   ],
+   "levels": {
+    "EN-1": 1
+   },
+   "similar": [
+    "cow",
+    "sheep"
+   ],
+   "i18n": {
+    "fr": {
+     "article": "le",
+     "word": "cochon"
+    },
+    "en": {
+     "word": "pig"
+    }
+   }
+  },
+  {
+   "id": "horse",
+   "image": "1f434",
+   "tags": [
+    "animal"
+   ],
+   "levels": {
+    "EN-1": 1
+   },
+   "similar": [
+    "cow",
+    "dog"
+   ],
+   "i18n": {
+    "fr": {
+     "article": "le",
+     "word": "cheval"
+    },
+    "en": {
+     "word": "horse"
+    }
+   }
+  },
+  {
+   "id": "rabbit",
+   "image": "1f430",
+   "tags": [
+    "animal"
+   ],
+   "levels": {
+    "EN-1": 1
+   },
+   "similar": [
+    "cat",
+    "sheep"
+   ],
+   "i18n": {
+    "fr": {
+     "article": "le",
+     "word": "lapin"
+    },
+    "en": {
+     "word": "rabbit"
+    }
+   }
+  },
+  {
+   "id": "sheep",
+   "image": "1f411",
+   "tags": [
+    "animal"
+   ],
+   "levels": {
+    "EN-1": 1
+   },
+   "similar": [
+    "pig",
+    "cow"
+   ],
+   "i18n": {
+    "fr": {
+     "article": "le",
+     "word": "mouton"
+    },
+    "en": {
+     "word": "sheep"
+    }
+   }
+  },
+  {
+   "id": "red",
+   "image": "1f534",
+   "tags": [
+    "color"
+   ],
+   "levels": {
+    "EN-1": 2
+   },
+   "similar": [
+    "orange_color",
+    "purple"
+   ],
+   "i18n": {
+    "fr": {
+     "article": "le",
+     "word": "rouge"
+    },
+    "en": {
+     "word": "red"
+    }
+   }
+  },
+  {
+   "id": "blue",
+   "image": "1f535",
+   "tags": [
+    "color"
+   ],
+   "levels": {
+    "EN-1": 2
+   },
+   "similar": [
+    "purple",
+    "green"
+   ],
+   "i18n": {
+    "fr": {
+     "article": "le",
+     "word": "bleu"
+    },
+    "en": {
+     "word": "blue"
+    }
+   }
+  },
+  {
+   "id": "green",
+   "image": "1f7e2",
+   "tags": [
+    "color"
+   ],
+   "levels": {
+    "EN-1": 2
+   },
+   "similar": [
+    "blue",
+    "yellow"
+   ],
+   "i18n": {
+    "fr": {
+     "article": "le",
+     "word": "vert"
+    },
+    "en": {
+     "word": "green"
+    }
+   }
+  },
+  {
+   "id": "yellow",
+   "image": "1f7e1",
+   "tags": [
+    "color"
+   ],
+   "levels": {
+    "EN-1": 2
+   },
+   "similar": [
+    "orange_color",
+    "green"
+   ],
+   "i18n": {
+    "fr": {
+     "article": "le",
+     "word": "jaune"
+    },
+    "en": {
+     "word": "yellow"
+    }
+   }
+  },
+  {
+   "id": "orange_color",
+   "image": "1f7e0",
+   "tags": [
+    "color"
+   ],
+   "levels": {
+    "EN-1": 2
+   },
+   "similar": [
+    "red",
+    "yellow"
+   ],
+   "i18n": {
+    "fr": {
+     "article": "le",
+     "word": "orange"
+    },
+    "en": {
+     "word": "orange"
+    }
+   }
+  },
+  {
+   "id": "purple",
+   "image": "1f7e3",
+   "tags": [
+    "color"
+   ],
+   "levels": {
+    "EN-1": 2
+   },
+   "similar": [
+    "blue",
+    "red"
+   ],
+   "i18n": {
+    "fr": {
+     "article": "le",
+     "word": "violet"
+    },
+    "en": {
+     "word": "purple"
+    }
+   }
+  },
+  {
+   "id": "brown",
+   "image": "1f7e4",
+   "tags": [
+    "color"
+   ],
+   "levels": {
+    "EN-1": 2
+   },
+   "similar": [
+    "black",
+    "orange_color"
+   ],
+   "i18n": {
+    "fr": {
+     "article": "le",
+     "word": "marron"
+    },
+    "en": {
+     "word": "brown"
+    }
+   }
+  },
+  {
+   "id": "black",
+   "image": "26ab",
+   "tags": [
+    "color"
+   ],
+   "levels": {
+    "EN-1": 2
+   },
+   "similar": [
+    "brown",
+    "white"
+   ],
+   "i18n": {
+    "fr": {
+     "article": "le",
+     "word": "noir"
+    },
+    "en": {
+     "word": "black"
+    }
+   }
+  },
+  {
+   "id": "white",
+   "image": "26aa",
+   "tags": [
+    "color"
+   ],
+   "levels": {
+    "EN-1": 2
+   },
+   "similar": [
+    "black",
+    "yellow"
+   ],
+   "i18n": {
+    "fr": {
+     "article": "le",
+     "word": "blanc"
+    },
+    "en": {
+     "word": "white"
+    }
+   }
+  },
+  {
+   "id": "apple",
+   "image": "1f34e",
+   "tags": [
+    "fruit"
+   ],
+   "levels": {
+    "EN-1": 3
+   },
+   "similar": [
+    "cherry",
+    "strawberry"
+   ],
+   "i18n": {
+    "fr": {
+     "article": "la",
+     "word": "pomme"
+    },
+    "en": {
+     "word": "apple"
+    }
+   }
+  },
+  {
+   "id": "banana",
+   "image": "1f34c",
+   "tags": [
+    "fruit"
+   ],
+   "levels": {
+    "EN-1": 3
+   },
+   "similar": [
+    "lemon",
+    "pear"
+   ],
+   "i18n": {
+    "fr": {
+     "article": "la",
+     "word": "banane"
+    },
+    "en": {
+     "word": "banana"
+    }
+   }
+  },
+  {
+   "id": "strawberry",
+   "image": "1f353",
+   "tags": [
+    "fruit"
+   ],
+   "levels": {
+    "EN-1": 3
+   },
+   "similar": [
+    "cherry",
+    "apple"
+   ],
+   "i18n": {
+    "fr": {
+     "article": "la",
+     "word": "fraise"
+    },
+    "en": {
+     "word": "strawberry"
+    }
+   }
+  },
+  {
+   "id": "grapes",
+   "image": "1f347",
+   "tags": [
+    "fruit"
+   ],
+   "levels": {
+    "EN-1": 3
+   },
+   "similar": [
+    "cherry",
+    "strawberry"
+   ],
+   "i18n": {
+    "fr": {
+     "article": "le",
+     "word": "raisin"
+    },
+    "en": {
+     "word": "grapes"
+    }
+   }
+  },
+  {
+   "id": "pear",
+   "image": "1f350",
+   "tags": [
+    "fruit"
+   ],
+   "levels": {
+    "EN-1": 3
+   },
+   "similar": [
+    "apple",
+    "lemon"
+   ],
+   "i18n": {
+    "fr": {
+     "article": "la",
+     "word": "poire"
+    },
+    "en": {
+     "word": "pear"
+    }
+   }
+  },
+  {
+   "id": "cherry",
+   "image": "1f352",
+   "tags": [
+    "fruit"
+   ],
+   "levels": {
+    "EN-1": 3
+   },
+   "similar": [
+    "strawberry",
+    "apple"
+   ],
+   "i18n": {
+    "fr": {
+     "article": "la",
+     "word": "cerise"
+    },
+    "en": {
+     "word": "cherry"
+    }
+   }
+  },
+  {
+   "id": "lemon",
+   "image": "1f34b",
+   "tags": [
+    "fruit"
+   ],
+   "levels": {
+    "EN-1": 3
+   },
+   "similar": [
+    "banana",
+    "pear"
+   ],
+   "i18n": {
+    "fr": {
+     "article": "le",
+     "word": "citron"
+    },
+    "en": {
+     "word": "lemon"
+    }
+   }
+  },
+  {
+   "id": "watermelon",
+   "image": "1f349",
+   "tags": [
+    "fruit"
+   ],
+   "levels": {
+    "EN-1": 3
+   },
+   "similar": [
+    "apple",
+    "strawberry"
+   ],
+   "i18n": {
+    "fr": {
+     "article": "la",
+     "word": "pastèque"
+    },
+    "en": {
+     "word": "watermelon"
+    }
+   }
+  },
+  {
+   "id": "pineapple",
+   "image": "1f34d",
+   "tags": [
+    "fruit"
+   ],
+   "levels": {
+    "EN-1": 3
+   },
+   "similar": [
+    "banana",
+    "lemon"
+   ],
+   "i18n": {
+    "fr": {
+     "article": "l'",
+     "word": "ananas"
+    },
+    "en": {
+     "word": "pineapple"
+    }
+   }
+  },
+  {
+   "id": "ball",
+   "image": "26bd",
+   "tags": [
+    "toy"
+   ],
+   "levels": {
+    "EN-1": 3
+   },
+   "similar": [
+    "balloon",
+    "kite"
+   ],
+   "i18n": {
+    "fr": {
+     "article": "le",
+     "word": "ballon"
+    },
+    "en": {
+     "word": "ball"
+    }
+   }
+  },
+  {
+   "id": "teddy",
+   "image": "1f9f8",
+   "tags": [
+    "toy"
+   ],
+   "levels": {
+    "EN-1": 3
+   },
+   "similar": [
+    "bear",
+    "ball"
+   ],
+   "i18n": {
+    "fr": {
+     "article": "l'",
+     "word": "ours en peluche"
+    },
+    "en": {
+     "word": "teddy bear"
+    }
+   }
+  },
+  {
+   "id": "balloon",
+   "image": "1f388",
+   "tags": [
+    "toy"
+   ],
+   "levels": {
+    "EN-1": 3
+   },
+   "similar": [
+    "ball",
+    "kite"
+   ],
+   "i18n": {
+    "fr": {
+     "article": "le",
+     "word": "ballon de baudruche"
+    },
+    "en": {
+     "word": "balloon"
+    }
+   }
+  },
+  {
+   "id": "kite",
+   "image": "1fa81",
+   "tags": [
+    "toy"
+   ],
+   "levels": {
+    "EN-1": 3
+   },
+   "similar": [
+    "balloon",
+    "ball"
+   ],
+   "i18n": {
+    "fr": {
+     "article": "le",
+     "word": "cerf-volant"
+    },
+    "en": {
+     "word": "kite"
+    }
+   }
+  },
+  {
+   "id": "car",
+   "image": "1f697",
+   "tags": [
+    "toy"
+   ],
+   "levels": {
+    "EN-1": 3
+   },
+   "similar": [
+    "train",
+    "ball"
+   ],
+   "i18n": {
+    "fr": {
+     "article": "la",
+     "word": "voiture"
+    },
+    "en": {
+     "word": "car"
+    }
+   }
+  },
+  {
+   "id": "train",
+   "image": "1f682",
+   "tags": [
+    "toy"
+   ],
+   "levels": {
+    "EN-1": 3
+   },
+   "similar": [
+    "car",
+    "kite"
+   ],
+   "i18n": {
+    "fr": {
+     "article": "le",
+     "word": "train"
+    },
+    "en": {
+     "word": "train"
+    }
+   }
+  },
+  {
+   "id": "lion",
+   "image": "1f981",
+   "tags": [
+    "wild"
+   ],
+   "levels": {
+    "EN-1": 3
+   },
+   "similar": [
+    "bear",
+    "monkey"
+   ],
+   "i18n": {
+    "fr": {
+     "article": "le",
+     "word": "lion"
+    },
+    "en": {
+     "word": "lion"
+    }
+   }
+  },
+  {
+   "id": "monkey",
+   "image": "1f435",
+   "tags": [
+    "wild"
+   ],
+   "levels": {
+    "EN-1": 3
+   },
+   "similar": [
+    "bear",
+    "lion"
+   ],
+   "i18n": {
+    "fr": {
+     "article": "le",
+     "word": "singe"
+    },
+    "en": {
+     "word": "monkey"
+    }
+   }
+  },
+  {
+   "id": "elephant",
+   "image": "1f418",
+   "tags": [
+    "wild"
+   ],
+   "levels": {
+    "EN-1": 3
+   },
+   "similar": [
+    "lion",
+    "bear"
+   ],
+   "i18n": {
+    "fr": {
+     "article": "l'",
+     "word": "éléphant"
+    },
+    "en": {
+     "word": "elephant"
+    }
+   }
+  },
+  {
+   "id": "bear",
+   "image": "1f43b",
+   "tags": [
+    "wild"
+   ],
+   "levels": {
+    "EN-1": 3
+   },
+   "similar": [
+    "teddy",
+    "lion"
+   ],
+   "i18n": {
+    "fr": {
+     "article": "l'",
+     "word": "ours"
+    },
+    "en": {
+     "word": "bear"
+    }
+   }
+  },
+  {
+   "id": "frog",
+   "image": "1f438",
+   "tags": [
+    "wild"
+   ],
+   "levels": {
+    "EN-1": 3
+   },
+   "similar": [
+    "turtle",
+    "fish"
+   ],
+   "i18n": {
+    "fr": {
+     "article": "la",
+     "word": "grenouille"
+    },
+    "en": {
+     "word": "frog"
+    }
+   }
+  },
+  {
+   "id": "turtle",
+   "image": "1f422",
+   "tags": [
+    "wild"
+   ],
+   "levels": {
+    "EN-1": 3
+   },
+   "similar": [
+    "frog",
+    "fish"
+   ],
+   "i18n": {
+    "fr": {
+     "article": "la",
+     "word": "tortue"
+    },
+    "en": {
+     "word": "turtle"
+    }
+   }
+  }
+ ]
+}

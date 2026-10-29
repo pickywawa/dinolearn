@@ -1,0 +1,17 @@
+{
+ "version": 1,
+ "games": [
+  {
+   "id": "EN-1",
+   "category": "foreign_language",
+   "template": "audio_to_image",
+   "icon": "1f442",
+   "intro_line": "game.listen_tap.intro",
+   "generator": {
+    "source": "concepts",
+    "choices_by_level": [2, 3, 4, 4, 4, 4, 4, 4, 4, 4],
+    "distractors_by_level": ["other_category", "other_category", "other_category", "same_category", "same_category", "same_category", "similar", "similar", "similar", "similar"]
+   }
+  }
+ ]
+}
