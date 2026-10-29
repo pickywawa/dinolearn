@@ -1,8 +1,13 @@
 name: Publier une release
 
+# Crée le tag v<version de web/package.json> et la release GitHub correspondante,
+# avec le jeu compilé en pièce jointe. Se lance quand les notes de version changent,
+# ou à la main (onglet Actions → « Run workflow »).
 on:
   push:
-    tags: ['v*']
+    branches: [main, claude/dinosaur-educational-game-fe9wof]
+    paths: ['web/RELEASE_NOTES.md', '.github/workflows/release.yml']
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -20,13 +25,18 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: web/package-lock.json
+      - name: Version
+        id: version
+        run: echo "tag=v$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
       - run: npm ci
       - run: npm test
       - run: npm run build
       - name: Archive du jeu compilé
-        run: cd dist && zip -r ../dinolearn-web-${{ github.ref_name }}.zip .
+        run: cd dist && zip -r ../dinolearn-web-${{ steps.version.outputs.tag }}.zip .
       - uses: softprops/action-gh-release@v2
         with:
-          name: DinoLearn ${{ github.ref_name }}
-          body_path: RELEASE_NOTES.md
-          files: web/dinolearn-web-${{ github.ref_name }}.zip
+          tag_name: ${{ steps.version.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          name: DinoLearn ${{ steps.version.outputs.tag }}
+          body_path: web/RELEASE_NOTES.md
+          files: web/dinolearn-web-${{ steps.version.outputs.tag }}.zip
