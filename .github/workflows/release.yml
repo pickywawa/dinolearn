@@ -1,0 +1,32 @@
+name: Publier une release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - name: Archive du jeu compilé
+        run: cd dist && zip -r ../dinolearn-web-${{ github.ref_name }}.zip .
+      - uses: softprops/action-gh-release@v2
+        with:
+          name: DinoLearn ${{ github.ref_name }}
+          body_path: RELEASE_NOTES.md
+          files: web/dinolearn-web-${{ github.ref_name }}.zip
