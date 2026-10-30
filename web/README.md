@@ -13,15 +13,23 @@ Jeu jouable directement dans le navigateur d'un téléphone ou d'une tablette (p
   le touche), ptérodactyle qui fait un looping, diplodocus au loin, bébé T-rex qui sort de derrière
   la colline, papillons, palmier et fougères. Le dino salue, bâille, rugit, regarde autour de lui,
   saute, fait une pirouette pour un sans-faute.
-- **10 jeux**, 20 niveaux de difficulté : 1–10 maternelle, 11–20 niveau CP (dino niveaux 21 à 40,
-  avec 6 images, des leurres piégeux et des nombres jusqu'à 100) :
+- **15 jeux**, 20 niveaux de difficulté : 1–10 maternelle, 11–20 niveau CP (dino niveaux 21 à 40,
+  avec 6 images, des leurres piégeux et des nombres jusqu'à 100). Certains jeux n'apparaissent qu'à
+  partir d'un âge : anglais, calcul, sons et syllabes dès 5 ans ; suites, nombres et tailles dès 4 ans.
   - **Anglais — Écoute et touche** : le mot est dit deux fois par une voix britannique (2 images, 4 au CP) ;
+  - **Anglais — Numbers** : les nombres en anglais, de « one » à « ninety-nine » (pièges thirteen / thirty) ;
   - **Monde — Montre-moi** : « Montre-moi le hérisson ! » ;
   - **Monde — Devinettes** : des cris d'animaux aux énigmes à plusieurs indices (près de 200 devinettes) ;
   - **Monde — Les ombres** : à qui est cette ombre ?
+  - **Monde — Ça va ensemble** : la clé et le cadenas, l'abeille et le miel, le phare et le bateau… ;
+  - **Monde — Le plus grand** : en vrai, qui est le plus grand (ou le plus petit) ? Les images ont toutes
+    la même taille ;
   - **Français — Les sons** : qu'est-ce qui rime avec « bateau » ? qu'est-ce qui commence comme « chapeau » ?
+  - **Français — Les syllabes** : on tape dans les mains (« pa-pi-llon : trois ») ; au CP, quel mot a
+    trois syllabes ?
   - **Logique — L'intrus** : une seule image n'est pas de la même famille (mots ambigus exclus) ;
   - **Logique — Combien ?** : compter de 1 à 20, avec d'autres fruits mélangés aux niveaux difficiles ;
+  - **Logique — Les nombres** : « Touche le nombre soixante-douze » (pièges 27 / 72) ;
   - **Logique — La suite** : suites de fruits (AB… ABCCB), puis de nombres (2, 4, 6… ; 100, 90, 80…) ;
   - **Logique — Le plus, le moins** : des tas de fruits, puis des nombres écrits (24 ou 42 ?) ;
   - **Logique — Calcul** : additions et soustractions en images, puis écrites, compléments à 10,

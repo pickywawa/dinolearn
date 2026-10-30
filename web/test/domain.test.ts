@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { CONCEPTS, conceptById, conceptsFor, frWithArticle, pickDistractors } from '../src/content/content';
-import { GAMES, gameById } from '../src/content/games';
+import { GAMES, gameById, gamesForAge } from '../src/content/games';
+import { PAIRS, SIZES, enNumber } from '../src/content/extra';
 import { frNumber } from '../src/content/numbers';
 import { RIDDLES } from '../src/content/riddles';
 import { ONSETS, RHYMES } from '../src/content/sounds';
@@ -133,7 +134,9 @@ describe('contenus', () => {
     const expectedCount = (gameId: string, id: string, level: number) => {
       const expert = id.endsWith(':x');
       if (gameId === 'EN-1') return expert ? 4 : 2;
-      if (['MO-1', 'MO-3', 'LO-1'].includes(gameId) && expert) return 6;
+      if (gameId === 'EN-2') return Number(id.split(':')[1]) <= 10 ? 3 : 4;
+      if (['MO-1', 'MO-3', 'LO-1', 'MO-4', 'LO-6'].includes(gameId) && expert) return 6;
+      if (gameId === 'MO-5' && Number(id.split(':')[1]) >= 16) return 6;
       if (gameId === 'MO-2' && level >= 15) return 6;
       if (gameId === 'FR-1' && level >= 17) return 6;
       return 4;
@@ -266,6 +269,48 @@ describe('contenus', () => {
         expect(family.get(d.id), ref.id).not.toBe(family.get(x));
       });
     }
+  });
+
+  it('le plus grand : la réponse est nettement plus grande (ou plus petite) que les autres, en vrai', () => {
+    const game = gameById('MO-5');
+    for (const ref of game.questions) {
+      const q = game.build(ref, ref.level, mulberry32(ref.level * 31 + ref.id.length));
+      const size = SIZES[q.answer.id];
+      const others = q.distractors.map((d) => SIZES[d.id]);
+      if (ref.id.endsWith('big')) expect(Math.max(...others) * 1.5, ref.id).toBeLessThanOrEqual(size);
+      else expect(Math.min(...others), ref.id).toBeGreaterThanOrEqual(size * 1.5);
+    }
+  });
+
+  it('ça va ensemble : la réponse est le partenaire, sans leurre qui irait aussi', () => {
+    const game = gameById('MO-4');
+    for (const ref of game.questions) {
+      const [, a, b] = ref.id.split(':');
+      for (let seed = 0; seed < 5; seed++) {
+        const q = game.build(ref, ref.level, mulberry32(seed));
+        expect(q.answer.id).toBe(b);
+        expect(q.show).toEqual({ kind: 'image', image: a });
+        const banned = PAIRS.filter(([x, y]) => x === a || y === a || x === b).flatMap(([x, y, , , extra]) => [x, y, ...(extra ?? [])]);
+        q.distractors.forEach((d) => expect(banned, ref.id).not.toContain(d.id));
+      }
+    }
+  });
+
+  it('syllabes, nombres en anglais et jeux selon l\'âge', () => {
+    const q = gameById('FR-2').build({ id: 'FR-2:elephant', level: 7 }, 7, mulberry32(1));
+    expect(q.answer.count).toBe(3);
+    const rev = gameById('FR-2').build({ id: 'FR-2:hippo:x', level: 18 }, 18, mulberry32(1));
+    expect(rev.answer.id).toBe('hippo');
+    expect(rev.show).toEqual({ kind: 'numbers', items: [4] });
+    expect([1, 13, 21, 30, 99, 100].map(enNumber)).toEqual(['one', 'thirteen', 'twenty-one', 'thirty', 'ninety-nine', 'one hundred']);
+    const thirteen = gameById('EN-2').build({ id: 'EN-2:13', level: 8 }, 8, mulberry32(1));
+    expect(thirteen.distractors.map((d) => d.number)).toContain(30);
+    const at3 = gamesForAge(3).map((g) => g.id);
+    expect(at3).not.toContain('EN-1');
+    expect(at3).not.toContain('LO-5');
+    expect(at3).toContain('MO-1');
+    expect(gamesForAge(5).map((g) => g.id)).toContain('LO-5');
+    expect(gamesForAge(7)).toHaveLength(GAMES.length);
   });
 
   it('nombres en lettres', () => {

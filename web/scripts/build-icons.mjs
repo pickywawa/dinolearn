@@ -60,7 +60,12 @@ write('ui-basket', noto, 'basket');
 write('shadow', noto, 'busts-in-silhouette');
 write('sequence', noto, 'repeat-button');
 write('most', noto, 'balance-scale');
-write('calc', noto, 'input-numbers');
+write('calc', noto, 'heavy-plus-sign');
+write('numbers', noto, 'input-numbers');
+write('together', noto, 'handshake');
+write('bigger', noto, 'straight-ruler');
+write('en-numbers', noto, 'keycap-10');
+write('syllables', noto, 'clapping-hands');
 for (const icon of UI_ICONS) write(`ui-${icon}`, plush, icon);
 for (const flag of FLAGS) write(`flag-${flag}`, flags, flag);
 

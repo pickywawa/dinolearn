@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { app } from '../core/app';
 import { Sfx } from '../core/sfx';
-import { GAMES } from '../content/games';
+import { gamesForAge } from '../content/games';
 import { BALANCE } from '../domain/balance';
 import { Dino } from '../dino/Dino';
 import { Bubble } from '../ui/Bubble';
@@ -97,7 +97,7 @@ export class HomeScene extends BaseScene {
     const button = this.add.container(x, y);
     button.add(this.add.circle(0, r * 0.08, r, 0x000000, 0.18));
     button.add(this.add.circle(0, 0, r, 0xffffff).setStrokeStyle(r * 0.08, 0x8e4ec6));
-    GAMES.slice(0, 4).forEach((game, i) => {
+    gamesForAge(app.progress.age).slice(0, 4).forEach((game, i) => {
       const icon = this.add.image((i % 2 - 0.5) * r * 0.9, (Math.floor(i / 2) - 0.5) * r * 0.9, game.icon);
       icon.setScale((r * 0.75) / icon.width);
       button.add(icon);

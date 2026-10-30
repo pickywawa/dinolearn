@@ -1,4 +1,5 @@
-import { GAMES } from '../content/games';
+import { app } from '../core/app';
+import { gamesForAge } from '../content/games';
 import { Dino } from '../dino/Dino';
 import { Bubble } from '../ui/Bubble';
 import { Guide } from '../ui/Guide';
@@ -33,14 +34,12 @@ export class ChooseScene extends BaseScene {
     makeTickable(this.dino);
     this.guide = new Guide(this, u * 0.15);
 
-    // 10 jeux : 4 + 3 + 3 bulles (portrait), ou 5 de chaque côté du dino (paysage).
-    const r = u * (portrait ? 0.1 : 0.1);
-    const positions = portrait
-      ? [[0.14, 0.17], [0.38, 0.17], [0.62, 0.17], [0.86, 0.17], [0.2, 0.3], [0.5, 0.3], [0.8, 0.3],
-        [0.2, 0.43], [0.5, 0.43], [0.8, 0.43]]
-      : [[0.07, 0.24], [0.2, 0.24], [0.07, 0.52], [0.2, 0.52], [0.135, 0.8],
-        [0.8, 0.24], [0.93, 0.24], [0.8, 0.52], [0.93, 0.52], [0.865, 0.8]];
-    this.bubbles = GAMES.map((game, i) => ({
+    // Seuls les jeux de l'âge de l'enfant sont proposés (l'anglais et le calcul à partir de 5 ans…).
+    const games = gamesForAge(app.progress.age);
+    const { positions, rowStep } = bubbleGrid(games.length, portrait);
+    // Rayon : aussi grand que possible sans que les bulles se touchent.
+    const r = Math.min(u * 0.12, H * rowStep * 0.42, W * (portrait ? 0.13 : 0.06));
+    this.bubbles = games.map((game, i) => ({
       bubble: new Bubble(this, W * positions[i][0], H * positions[i][1], r, game.color, game.icon,
         () => this.play(game.id)),
       line: game.homeLine,
@@ -82,4 +81,33 @@ export class ChooseScene extends BaseScene {
     this.dino.react('happy');
     goTo(this, 'Game', { gameId });
   }
+}
+
+/**
+ * Positions des bulles (fractions de l'écran) : 3 par ligne au-dessus du dino
+ * en portrait ; en paysage, 2 colonnes de chaque côté du dino.
+ */
+function bubbleGrid(n: number, portrait: boolean): { positions: [number, number][]; rowStep: number } {
+  if (portrait) {
+    const rows = Math.ceil(n / 3);
+    const step = Math.min(0.13, 0.5 / rows);
+    const positions = Array.from({ length: n }, (_, i): [number, number] => {
+      const row = Math.floor(i / 3);
+      const inRow = Math.min(3, n - row * 3);
+      return [0.5 + ((i % 3) - (inRow - 1) / 2) * 0.3, 0.15 + row * step];
+    });
+    return { positions, rowStep: step };
+  }
+  const perSide = Math.ceil(n / 2);
+  const rows = Math.ceil(perSide / 2);
+  const step = Math.min(0.28, 0.72 / rows);
+  const positions = Array.from({ length: n }, (_, i): [number, number] => {
+    const right = i >= perSide;
+    const k = right ? i - perSide : i;
+    const row = Math.floor(k / 2);
+    const col = k % 2;
+    const x = right ? 0.8 + col * 0.13 : 0.07 + col * 0.13;
+    return [x, 0.2 + row * step];
+  });
+  return { positions, rowStep: step };
 }

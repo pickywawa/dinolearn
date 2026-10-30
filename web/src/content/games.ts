@@ -2,6 +2,7 @@ import { QuestionRef, Rng, mulberry32, shuffle } from '../domain/models';
 import {
   CONCEPTS, Concept, DistractorStrategy, Speech, conceptById, conceptsFor, frWithArticle, pickDistractors,
 } from './content';
+import { PAIRS, SIZES, SYLLABLES, enNumber } from './extra';
 import { frNumber } from './numbers';
 import { RIDDLES } from './riddles';
 import { ONSETS, RHYMES } from './sounds';
@@ -52,6 +53,8 @@ export interface GameDef {
   id: string;
   /** Catégorie de la spécification (île) : sert aussi au calcul de difficulté. */
   category: 'foreign_language' | 'world' | 'logic' | 'french';
+  /** Âge minimum de l'enfant pour que le jeu soit proposé (3 par défaut). */
+  minAge?: number;
   /** Image de la bulle du jeu. */
   icon: string;
   /** Couleur de la bulle et du décor. */
@@ -66,6 +69,8 @@ export interface GameDef {
 }
 
 const conceptChoice = (c: Concept): Choice => ({ id: c.id, image: c.id });
+/** Une formulation au hasard, pour que les consignes changent un peu. */
+const oneOf = <T>(rng: Rng, variants: T[]): T => variants[Math.floor(rng() * variants.length)];
 const idOf = (ref: QuestionRef) => ref.id.split(':')[1];
 
 /** Leurres selon le niveau : autre famille → même famille → même sous-famille. */
@@ -133,6 +138,7 @@ const numberChoice = (n: number): Choice => ({ id: `n${n}`, number: n });
 const listenTap: GameDef = {
   id: 'EN-1',
   category: 'foreign_language',
+  minAge: 5,
   icon: 'flag-gb',
   color: 0x3b7de9,
   introLine: 'intro.EN-1',
@@ -177,8 +183,14 @@ const showMe: GameDef = {
       distractors: isExpert(ref)
         ? pickDistractors(answer, conceptsFor('MO-1'), 5, 'same_category', rng).map(conceptChoice)
         : pickDistractors(answer, conceptsFor('MO-1'), 3, strategyFor(level, 1, 2), rng).map(conceptChoice),
-      prompt: [{ text: `Montre-moi ${frWithArticle(answer)} !`, lang: 'fr' }],
-      reinforce: [{ text: `Oui, ${frWithArticle(answer)} !`, lang: 'fr' }],
+      prompt: [{
+        text: oneOf(rng, [
+          `Montre-moi ${frWithArticle(answer)} !`, `Où est ${frWithArticle(answer)} ?`, `Touche ${frWithArticle(answer)} !`,
+          `Tu peux trouver ${frWithArticle(answer)} ?`, `Cherche ${frWithArticle(answer)} !`,
+        ]),
+        lang: 'fr',
+      }],
+      reinforce: [{ text: oneOf(rng, [`Oui, ${frWithArticle(answer)} !`, `C'est bien ${frWithArticle(answer)} !`]), lang: 'fr' }],
       hints: conceptHints(answer),
     };
   },
@@ -237,7 +249,12 @@ const riddles: GameDef = {
       answer: conceptChoice(answer),
       // Niveau CP : 6 images dès le niveau 15.
       distractors: pickDistractors(answer, pool, level >= 15 ? 5 : 3, strategyFor(level, 3, 7), rng).map(conceptChoice),
-      prompt: [{ text: text.startsWith('Qui ') ? text : `Devinette ! ${text}`, lang: 'fr' }],
+      prompt: [{
+        text: text.startsWith('Qui ')
+          ? text
+          : `${oneOf(rng, ['Devinette !', 'Écoute bien ma devinette.', 'Une devinette pour toi !', 'Devine !'])} ${text}`,
+        lang: 'fr',
+      }],
       reinforce: [{ text: `C'est ${frWithArticle(answer)} !`, lang: 'fr' }],
       hints: [{ text: `Indice : c'est ${CATEGORY_HINTS[answer.category] ?? 'quelque chose'}.`, lang: 'fr' }],
     };
@@ -335,7 +352,14 @@ const oddOneOut: GameDef = {
     return {
       answer: conceptChoice(odd),
       distractors: members.map(conceptChoice),
-      prompt: [{ text: 'Trouve l\'intrus ! Lequel n\'est pas de la même famille ?', lang: 'fr' }],
+      prompt: [{
+        text: oneOf(rng, [
+          'Trouve l\'intrus ! Lequel n\'est pas de la même famille ?',
+          'Un intrus se cache ici. Lequel n\'est pas comme les autres ?',
+          'Laquelle de ces images n\'est pas de la même famille ?',
+        ]),
+        lang: 'fr',
+      }],
       reinforce: [{ text: `Oui, ${frWithArticle(odd)} ! Les autres sont ${FAMILY_NAMES[category]}.`, lang: 'fr' }],
       hints: [{
         text: `Indice : ${isExpert(ref) ? 'cinq' : 'trois'} images sont ${FAMILY_NAMES[category]}. Cherche celle qui n'en est pas.`,
@@ -400,7 +424,7 @@ const counting: GameDef = {
       prompt: [{
         text: groups.length > 1
           ? `Combien y a-t-il ${ofPlural} ? Attention, compte seulement les ${plural} !`
-          : `Combien y a-t-il ${ofPlural} ? Compte bien !`,
+          : oneOf(rng, [`Combien y a-t-il ${ofPlural} ? Compte bien !`, `Compte les ${plural}. Combien y en a-t-il ?`]),
         lang: 'fr',
       }],
       reinforce: [{
@@ -437,7 +461,11 @@ const shadows: GameDef = {
         ? pickDistractors(answer, conceptsFor('MO-1'), 5, 'same_category', rng).map(conceptChoice)
         : pickDistractors(answer, conceptsFor('MO-1'), 3, strategyFor(level, 3, 6), rng).map(conceptChoice),
       show: { kind: 'silhouette', image: answer.id },
-      prompt: [{ text: 'À qui est cette ombre ? Touche la bonne image !', lang: 'fr' }],
+      prompt: [{
+        text: oneOf(rng, ['À qui est cette ombre ? Touche la bonne image !', 'Qui se cache derrière cette ombre ?',
+          'Regarde cette ombre. C\'est qui ?']),
+        lang: 'fr',
+      }],
       reinforce: [{ text: `Oui, c'est ${frWithArticle(answer)} !`, lang: 'fr' }],
       hints: conceptHints(answer),
     };
@@ -502,6 +530,7 @@ function buildNumberSequence(rule: string, variant: number, rng: Rng): BuiltQues
 const sequence: GameDef = {
   id: 'LO-3',
   category: 'logic',
+  minAge: 4,
   icon: 'sequence',
   color: 0xd9467a,
   introLine: 'intro.LO-3',
@@ -531,7 +560,7 @@ const sequence: GameDef = {
       answer: choice(answer),
       distractors: distractors.map(choice),
       show: { kind: 'sequence', images: [...seq.slice(0, length).map((f) => `food-${f}`), null] },
-      prompt: [{ text: 'Regarde bien la suite. Quel fruit vient après ?', lang: 'fr' }],
+      prompt: [{ text: oneOf(rng, ['Regarde bien la suite. Quel fruit vient après ?', 'Quel fruit continue la suite ?']), lang: 'fr' }],
       reinforce: [{ text: `Oui ! ${seq.slice(Math.max(0, length - 5)).map((f) => FRUIT_NAMES[f]).join(', ')} !`, lang: 'fr' }],
       hints: [{ text: `Indice : la suite recommence toujours pareil. ${seq.slice(0, pattern.length).map((f) => FRUIT_NAMES[f]).join(', ')}…`, lang: 'fr' }],
     };
@@ -672,6 +701,7 @@ function calcQuestions(): QuestionRef[] {
 const calc: GameDef = {
   id: 'LO-5',
   category: 'logic',
+  minAge: 5,
   icon: 'calc',
   color: 0xc2410c,
   introLine: 'intro.LO-5',
@@ -727,7 +757,7 @@ const calc: GameDef = {
       answer: numberChoice(answer),
       distractors: nearNumbers(answer, 3, rng, [plus ? Math.abs(a - b) : a + b], 0).map(numberChoice),
       show: { kind: 'sum', a, b, op: plus ? '+' : '-' },
-      prompt: [{ text: `Combien font ${words} ?`, lang: 'fr' }],
+      prompt: [{ text: oneOf(rng, [`Combien font ${words} ?`, `${words}, ça fait combien ?`]), lang: 'fr' }],
       reinforce,
       hints: [{
         text: plus
@@ -770,6 +800,7 @@ function soundQuestions(): QuestionRef[] {
 const sounds: GameDef = {
   id: 'FR-1',
   category: 'french',
+  minAge: 5,
   icon: 'flag-fr',
   color: 0xd93a4a,
   introLine: 'intro.FR-1',
@@ -816,7 +847,269 @@ const sounds: GameDef = {
   },
 };
 
-export const GAMES: GameDef[] = [listenTap, showMe, riddles, shadows, sounds, oddOneOut, counting, sequence, most, calc];
+// ---- Monde : « Ça va ensemble » ----
+
+/** Tout ce qui va avec une image, dans une paire quelconque (avec les exclusions de cette paire). */
+const partnersOf = (id: string) => PAIRS.flatMap(([a, b, , , extra]) =>
+  (a === id || b === id ? [a, b, ...(extra ?? [])] : []));
+
+const together: GameDef = {
+  id: 'MO-4',
+  category: 'world',
+  icon: 'together',
+  color: 0x0d8a8a,
+  introLine: 'intro.MO-4',
+  homeLine: 'home.MO-4',
+  shortLine: 'short.MO-4',
+  // Variante CP (`:x`) : 6 images, leurres de la même famille que la réponse.
+  questions: PAIRS.flatMap(([a, b, level]) => [
+    { id: `MO-4:${a}:${b}`, level },
+    { id: `MO-4:${a}:${b}:x`, level: Math.min(20, level + 10) },
+  ]),
+  build(ref, level, rng) {
+    const [, aId, bId] = ref.id.split(':');
+    const a = conceptById(aId);
+    const b = conceptById(bId);
+    const [, , , why, extra] = PAIRS.find(([pa, pb]) => pa === aId && pb === bId)!;
+    // Jamais de leurre qui pourrait aussi aller avec l'image (« cat:fruit » : toute une sous-famille).
+    const banned = new Set([aId, bId, ...partnersOf(aId), ...partnersOf(bId)]);
+    const bannedCategories = new Set((extra ?? []).filter((e) => e.startsWith('cat:')).map((e) => e.slice(4)));
+    const pool = CONCEPTS.filter((c) => c.group !== 'color' && !banned.has(c.id) && !bannedCategories.has(c.category));
+    const expert = isExpert(ref);
+    return {
+      answer: conceptChoice(b),
+      distractors: pickDistractors(b, pool, expert ? 5 : 3, expert ? 'same_group' : strategyFor(level, 6, 12), rng)
+        .map(conceptChoice),
+      show: { kind: 'image', image: a.id },
+      prompt: [{
+        text: oneOf(rng, [
+          `Qu'est-ce qui va avec ${frWithArticle(a)} ?`,
+          `Regarde : ${frWithArticle(a)}. Qu'est-ce qui va avec ?`,
+          `Trouve ce qui va bien avec ${frWithArticle(a)} !`,
+        ]),
+        lang: 'fr',
+      }],
+      reinforce: [{ text: `Oui ! ${why}`, lang: 'fr' }],
+      hints: [{ text: `Indice : à quoi sert ${frWithArticle(a)} ? Qu'est-ce qu'on fait avec ?`, lang: 'fr' }],
+    };
+  },
+};
+
+// ---- Monde : « Le plus grand » (tailles réelles) ----
+
+const sized = CONCEPTS.filter((c) => SIZES[c.id] !== undefined);
+
+/** Écart minimum de taille entre la réponse et les autres, selon le niveau. */
+const sizeRatio = (level: number) =>
+  level <= 1 ? 20 : level <= 3 ? 10 : level <= 6 ? 5 : level <= 9 ? 3 : level <= 13 ? 2 : 1.5;
+
+const bigger: GameDef = {
+  id: 'MO-5',
+  category: 'world',
+  minAge: 4,
+  icon: 'bigger',
+  color: 0x7a5af8,
+  introLine: 'intro.MO-5',
+  homeLine: 'home.MO-5',
+  shortLine: 'short.MO-5',
+  questions: Array.from({ length: 20 }, (_, l) => Array.from({ length: 8 }, (_, i) => ({
+    id: `MO-5:${l + 1}:${i}:${l + 1 >= 3 && i % 2 === 1 ? 'small' : 'big'}`, level: l + 1,
+  }))).flat(),
+  build(ref, _level, rng) {
+    const [, levelStr, , mode] = ref.id.split(':');
+    const level = Number(levelStr);
+    const ratio = sizeRatio(level);
+    const count = level >= 16 ? 5 : 3;
+    const big = mode === 'big';
+    for (let attempt = 0; ; attempt++) {
+      const answer = sized[Math.floor(rng() * sized.length)];
+      const size = SIZES[answer.id];
+      // Niveau CP : seulement des animaux, ou seulement des objets.
+      const sameKind = (c: Concept) => level < 11 || (c.group === 'animal') === (answer.group === 'animal');
+      // Plus le niveau est haut, plus les autres sont proches de la réponse (mais toujours nettement différents).
+      const spread = level >= 7 ? ratio * 6 : Infinity;
+      const others = shuffle(sized.filter((c) => c.id !== answer.id && sameKind(c) && (big
+        ? SIZES[c.id] * ratio <= size && SIZES[c.id] * spread >= size
+        : SIZES[c.id] >= size * ratio && SIZES[c.id] <= size * spread)), rng);
+      const seen = new Set([answer.fr.word]);
+      const picked = others.filter((c) => !seen.has(c.fr.word) && seen.add(c.fr.word)).slice(0, count);
+      if (picked.length < count && attempt < 200) continue;
+      const what = big ? 'le plus grand' : 'le plus petit';
+      return {
+        answer: conceptChoice(answer),
+        distractors: picked.map(conceptChoice),
+        prompt: [{
+          text: oneOf(rng, [`En vrai, lequel est ${what} ?`, `Qui est ${what}, en vrai ?`, `Touche ${what}, dans la vraie vie !`]),
+          lang: 'fr',
+        }],
+        reinforce: [{ text: `Oui ! En vrai, ${frWithArticle(answer)}, c'est ${what} !`, lang: 'fr' }],
+        hints: [{
+          text: 'Indice : sur les images, ils ont tous la même taille. Imagine-les en vrai, à côté de toi !',
+          lang: 'fr',
+        }],
+      };
+    }
+  },
+};
+
+// ---- Logique : « Les nombres » (reconnaître un nombre écrit) ----
+
+const numberLevel = (n: number) =>
+  n <= 3 ? 1 : n <= 5 ? 2 : n <= 7 ? 3 : n <= 10 ? 4 : n <= 12 ? 5 : n <= 16 ? 6 : n <= 20 ? 7 : n <= 29 ? 8
+    : n <= 39 ? 9 : n <= 49 ? 10 : n <= 59 ? 11 : n <= 69 ? 12 : n <= 76 ? 14 : n <= 79 ? 15 : n <= 84 ? 16
+      : n <= 89 ? 17 : n <= 94 ? 18 : n <= 99 ? 19 : 20;
+
+/** Leurres d'un nombre : chiffres inversés (24/42), ±10, ±1… */
+function numberLookalikes(n: number, count: number, rng: Rng, max: number): number[] {
+  const tens = Math.floor(n / 10);
+  const units = n % 10;
+  const also = [n + 10, n - 10];
+  if (n >= 10 && units !== 0 && units !== tens) also.unshift(units * 10 + tens);
+  return nearNumbers(n, count, rng, also.filter((k) => k >= 1 && k <= max), 1);
+}
+
+const numbers: GameDef = {
+  id: 'LO-6',
+  category: 'logic',
+  minAge: 4,
+  icon: 'numbers',
+  color: 0x2563eb,
+  introLine: 'intro.LO-6',
+  homeLine: 'home.LO-6',
+  shortLine: 'short.LO-6',
+  // Variante CP (`:x`) : 6 cartes, avec les chiffres inversés.
+  questions: Array.from({ length: 100 }, (_, i) => i + 1).flatMap((n) => [
+    { id: `LO-6:${n}`, level: numberLevel(n) },
+    ...(n >= 12 ? [{ id: `LO-6:${n}:x`, level: Math.min(20, numberLevel(n) + 4) }] : []),
+  ]),
+  build(ref, _level, rng) {
+    const n = Number(idOf(ref));
+    const expert = isExpert(ref);
+    const max = n <= 10 ? 10 : n <= 20 ? 20 : 100;
+    const said = frNumber(n);
+    return {
+      answer: numberChoice(n),
+      distractors: numberLookalikes(n, expert ? 5 : 3, rng, max).map(numberChoice),
+      prompt: [{
+        text: oneOf(rng, [`Touche le nombre ${said} !`, `Où est le nombre ${said} ?`, `Trouve ${said} !`]),
+        lang: 'fr',
+      }],
+      reinforce: [{ text: `Oui ! Ça, c'est ${said} !`, lang: 'fr' }],
+      hints: [{
+        text: n >= 10
+          ? 'Indice : regarde bien le premier chiffre, puis le deuxième.'
+          : `Indice : compte sur tes doigts jusqu'à ${said}, et cherche ce chiffre.`,
+        lang: 'fr',
+      }],
+    };
+  },
+};
+
+// ---- Anglais : « Numbers » (les nombres en anglais) ----
+
+const enNumberLevel = (n: number) =>
+  n <= 3 ? 1 : n <= 5 ? 2 : n <= 7 ? 3 : n <= 10 ? 4 : n <= 12 ? 6 : n <= 15 ? 8 : n <= 19 ? 10
+    : n % 10 === 0 ? 12 + Math.min(2, Math.floor(n / 40)) : n <= 29 ? 15 : 16 + (n % 5);
+
+const englishNumbers: GameDef = {
+  id: 'EN-2',
+  category: 'foreign_language',
+  minAge: 5,
+  icon: 'en-numbers',
+  color: 0x1d4ed8,
+  introLine: 'intro.EN-2',
+  homeLine: 'home.EN-2',
+  shortLine: 'short.EN-2',
+  // 1 à 20, les dizaines, puis des nombres choisis jusqu'à 99 ; « thirteen » / « thirty » se ressemblent !
+  questions: [
+    ...Array.from({ length: 20 }, (_, i) => i + 1),
+    30, 40, 50, 60, 70, 80, 90, 100, 21, 25, 28, 34, 37, 43, 46, 52, 58, 61, 64, 69, 72, 75, 83, 86, 91, 97, 99,
+  ].map((n) => ({ id: `EN-2:${n}`, level: enNumberLevel(n) })),
+  build(ref, _level, rng) {
+    const n = Number(idOf(ref));
+    const word: Speech = { text: enNumber(n), lang: 'en', slow: true, pauseAfter: 600 };
+    // Les « -teen » et les « -ty » se ressemblent : 13 et 30, 14 et 40…
+    const twin = n >= 13 && n <= 19 ? (n - 10) * 10 : n >= 30 && n <= 90 && n % 10 === 0 ? n / 10 + 10 : undefined;
+    const easy = enNumberLevel(n) <= 4;
+    const choice = (k: number): Choice => (n <= 10 ? { id: `n${k}`, count: k } : numberChoice(k));
+    return {
+      answer: choice(n),
+      distractors: nearNumbers(n, easy ? 2 : 3, rng, twin ? [twin] : [], 1).map(choice),
+      prompt: [word, { ...word, pauseAfter: undefined }],
+      reinforce: [{ text: enNumber(n), lang: 'en', slow: true }, { text: `${frNumber(n)} !`, lang: 'fr' }],
+      hints: [{ text: `Indice : en français, on dit ${frNumber(n)}.`, lang: 'fr' }],
+    };
+  },
+};
+
+// ---- Français : « Les syllabes » ----
+
+const syllablesOf = new Map(Object.entries(SYLLABLES).flatMap(([k, ids]) => ids.map((id) => [id, Number(k)] as const)));
+const SYLLABLE_WORDS = ['', 'une', 'deux', 'trois', 'quatre'];
+
+const syllables: GameDef = {
+  id: 'FR-2',
+  category: 'french',
+  minAge: 5,
+  icon: 'syllables',
+  color: 0xb4236b,
+  introLine: 'intro.FR-2',
+  homeLine: 'home.FR-2',
+  shortLine: 'short.FR-2',
+  // Combien de syllabes dans ce mot ? Puis au niveau CP (`:x`) : quel mot a 3 syllabes ?
+  questions: Object.entries(SYLLABLES).flatMap(([k, ids]) => ids.flatMap((id, i) => {
+    const count = Number(k);
+    const level = [0, 1 + (i % 3), 3 + (i % 4), 7 + (i % 5), 12 + (i % 4)][count];
+    return [
+      { id: `FR-2:${id}`, level },
+      { id: `FR-2:${id}:x`, level: [0, 12, 13 + (i % 2), 15 + (i % 3), 18 + (i % 3)][count] },
+    ];
+  })),
+  build(ref, _level, rng) {
+    const target = conceptById(idOf(ref));
+    const count = syllablesOf.get(target.id)!;
+    const name = target.fr.word;
+    if (!isExpert(ref)) {
+      const card = (k: number): Choice => ({ id: `n${k}`, count: k });
+      return {
+        answer: card(count),
+        distractors: [1, 2, 3, 4].filter((k) => k !== count).map(card),
+        show: { kind: 'image', image: target.id },
+        prompt: [{
+          text: oneOf(rng, [
+            `${name} ! Combien de syllabes ? Tape dans tes mains !`,
+            `Tape dans tes mains en disant : ${name}. Combien de fois as-tu tapé ?`,
+          ]),
+          lang: 'fr',
+        }],
+        reinforce: [{ text: `Oui ! ${name} : ${SYLLABLE_WORDS[count]} syllabe${count > 1 ? 's' : ''} !`, lang: 'fr' }],
+        hints: [{ text: `Indice : dis ${name} tout doucement, et tape une fois pour chaque morceau.`, lang: 'fr' }],
+      };
+    }
+    // Variante CP : une image par nombre de syllabes, trouver celle qui en a `count`.
+    const others = [1, 2, 3, 4].filter((k) => k !== count).map((k) => {
+      const ids = SYLLABLES[k];
+      return conceptById(ids[Math.floor(rng() * ids.length)]);
+    });
+    const label = `${SYLLABLE_WORDS[count]} syllabe${count > 1 ? 's' : ''}`;
+    return {
+      answer: conceptChoice(target),
+      distractors: others.map(conceptChoice),
+      show: { kind: 'numbers', items: [count] },
+      prompt: [{ text: `Quel mot a ${label} ? Tape dans tes mains pour chaque image !`, lang: 'fr' }],
+      reinforce: [{ text: `Oui ! ${name} : ${label} !`, lang: 'fr' }],
+      hints: [{ text: 'Indice : dis le nom de chaque image en tapant dans tes mains, et compte les tapes.', lang: 'fr' }],
+    };
+  },
+};
+
+export const GAMES: GameDef[] = [
+  listenTap, englishNumbers, showMe, riddles, shadows, together, bigger, sounds, syllables,
+  oddOneOut, counting, numbers, sequence, most, calc,
+];
+
+/** Jeux proposés à un enfant de cet âge. */
+export const gamesForAge = (age: number): GameDef[] => GAMES.filter((g) => age >= (g.minAge ?? 3));
 
 export const gameById = (id: string): GameDef => {
   const game = GAMES.find((g) => g.id === id);

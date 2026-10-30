@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { app } from '../core/app';
-import { Choice, GAMES, Show, gameById } from '../content/games';
+import { Choice, Show, gameById, gamesForAge } from '../content/games';
 import { Series } from '../core/series';
 import { Sfx } from '../core/sfx';
 import { BALANCE } from '../domain/balance';
@@ -47,7 +47,7 @@ export class GameScene extends BaseScene {
   create(data: { gameId?: string; mixed?: boolean }) {
     this.initBase();
     this.mixed = !!data.mixed || !data.gameId;
-    const games = this.mixed ? GAMES : [gameById(data.gameId!)];
+    const games = this.mixed ? gamesForAge(app.progress.age) : [gameById(data.gameId!)];
     const tint = Phaser.Display.Color.IntegerToColor(this.mixed ? 0x9fd8ff : games[0].color);
     const light = Phaser.Display.Color.Interpolate.ColorWithColor(tint, new Phaser.Display.Color(255, 255, 255), 100, 75);
     drawScenery(this, Phaser.Display.Color.GetColor(light.r, light.g, light.b), 0xf4fbff, 0);
@@ -130,6 +130,10 @@ export class GameScene extends BaseScene {
     this.hintsGiven = 0;
     const item = this.series.current;
     this.run(async () => {
+      // Petites annonces : la moitié, la dernière question (pas à chaque fois).
+      const { index, items } = this.series;
+      if (index > 0 && index === items.length - 1) await this.say('last_question');
+      else if (index > 0 && index === Math.floor(items.length / 2) && app.rng() < 0.6) await this.say('halfway');
       // Mode mélangé : le dino annonce le jeu quand il change.
       if (this.mixed && this.series.gameChanged) await this.say(item.game.shortLine);
       await app.voice.say(item.prompt);
@@ -238,9 +242,11 @@ export class GameScene extends BaseScene {
     Sfx.play('correct');
     this.celebrateCard(card);
     this.updateSteps(true);
-    this.dino.react(outcome.streak === 3 ? 'cheer' : 'happy');
+    this.dino.react(outcome.streak === 3 || outcome.streak === 5 ? 'cheer' : 'happy');
     this.run(async () => {
       if (outcome.streak === 3) await this.say('streak');
+      else if (outcome.streak === 5) await this.say('streak5');
+      else if (!outcome.firstTry) await this.say('correct_after_try');
       else if (app.rng() < 0.35) await this.say('correct');
       await this.reinforce();
       if (!this.alive) return;
