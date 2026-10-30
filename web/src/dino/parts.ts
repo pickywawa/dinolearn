@@ -11,6 +11,21 @@ const SPIKE = '#ff9f43';
 const CHEEK = '#ff8fa3';
 const W = 8; // épaisseur du contour
 
+/** L'œuf à pois (écran de départ). */
+const EGG = `
+      <path d="M110 10 C170 10 210 110 210 170 C210 230 166 262 110 262 C54 262 10 230 10 170 C10 110 50 10 110 10 Z"
+        fill="#fff8e7" stroke="${OUTLINE}" stroke-width="${W}"/>
+      <circle cx="70" cy="110" r="18" fill="#7bd45a" stroke="${OUTLINE}" stroke-width="5"/>
+      <circle cx="146" cy="80" r="12" fill="#ff9f43" stroke="${OUTLINE}" stroke-width="5"/>
+      <circle cx="150" cy="180" r="22" fill="#7bd45a" stroke="${OUTLINE}" stroke-width="5"/>
+      <circle cx="80" cy="210" r="12" fill="#ff8fa3" stroke="${OUTLINE}" stroke-width="5"/>
+      <ellipse cx="72" cy="60" rx="20" ry="10" fill="#fff" transform="rotate(-40 72 60)"/>`;
+
+/** Ligne de cassure de l'œuf (coordonnées de l'image 220 × 270), de gauche à droite. */
+export const EGG_ZIGZAG: [number, number][] = [
+  [0, 140], [22, 124], [44, 150], [66, 126], [88, 152], [110, 128], [132, 154], [154, 126], [176, 150], [198, 124], [220, 142],
+];
+
 const svg = (w: number, h: number, body: string) =>
   `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">${body}</svg>`;
 
@@ -183,15 +198,20 @@ export const DINO_PARTS: DinoPart[] = [
     key: 'egg',
     width: 220,
     height: 270,
-    svg: svg(220, 270, `
-      <path d="M110 10 C170 10 210 110 210 170 C210 230 166 262 110 262 C54 262 10 230 10 170 C10 110 50 10 110 10 Z"
-        fill="#fff8e7" stroke="${OUTLINE}" stroke-width="${W}"/>
-      <circle cx="70" cy="110" r="18" fill="#7bd45a" stroke="${OUTLINE}" stroke-width="5"/>
-      <circle cx="146" cy="80" r="12" fill="#ff9f43" stroke="${OUTLINE}" stroke-width="5"/>
-      <circle cx="150" cy="180" r="22" fill="#7bd45a" stroke="${OUTLINE}" stroke-width="5"/>
-      <circle cx="80" cy="210" r="12" fill="#ff8fa3" stroke="${OUTLINE}" stroke-width="5"/>
-      <ellipse cx="72" cy="60" rx="20" ry="10" fill="#fff" transform="rotate(-40 72 60)"/>`),
+    svg: svg(220, 270, EGG),
   },
+  // Les deux moitiés de la coquille, coupées en zigzag (éclosion).
+  ...(['top', 'bottom'] as const).map((half) => ({
+    key: `egg-${half}`,
+    width: 220,
+    height: 270,
+    svg: svg(220, 270, `<defs><clipPath id="c"><polygon points="${half === 'top'
+      ? `0,0 220,0 ${[...EGG_ZIGZAG].reverse().map(([x, y]) => `${x},${y}`).join(' ')}`
+      : `${EGG_ZIGZAG.map(([x, y]) => `${x},${y}`).join(' ')} 220,270 0,270`}"/></clipPath></defs>
+      <g clip-path="url(#c)">${EGG}</g>
+      <polyline points="${EGG_ZIGZAG.map(([x, y]) => `${x},${y}`).join(' ')}" fill="none" stroke="${OUTLINE}" stroke-width="5"
+        stroke-linejoin="round" clip-path="url(#c)"/>`),
+  })),
   {
     key: 'volcano',
     width: 420,

@@ -178,3 +178,31 @@ describe('jeux à voix haute', () => {
     });
   }
 });
+
+describe('présentation à voix haute', () => {
+  it('le prénom : reconnu parmi les prénoms connus, avec ses majuscules', async () => {
+    const { FIRST_NAMES } = await import('../src/content/names');
+    const { findName, nameGrammar } = await import('../src/domain/speech');
+    expect(findName({ text: 'je m\'appelle léa' }, FIRST_NAMES)).toBe('Léa');
+    expect(findName({ text: 'pierre-louis' }, FIRST_NAMES)).toBe('Pierre-Louis');
+    expect(findName({ text: 'euh [unk]' }, FIRST_NAMES)).toBeUndefined();
+    expect(findName({ text: 'emma', words: [{ word: 'emma', conf: 0.3 }] }, FIRST_NAMES)).toBeUndefined();
+    expect(new Set(FIRST_NAMES).size).toBe(FIRST_NAMES.length);
+    const grammar = nameGrammar(FIRST_NAMES, new Set(['léa', 'je', 'm\'appelle']));
+    expect(grammar).toEqual(['léa', 'je', 'm\'appelle', '[unk]']);
+  });
+
+  it('l\'âge : en lettres ou en chiffres', async () => {
+    const { findAge } = await import('../src/domain/speech');
+    expect(findAge({ text: 'j\'ai cinq ans' })).toBe(5);
+    expect(findAge({ text: '6' })).toBe(6);
+    expect(findAge({ text: 'euh' })).toBeUndefined();
+  });
+
+  it('le prénom dans les répliques, et sans prénom la phrase reste correcte', async () => {
+    const { withName } = await import('../src/core/lines');
+    expect(withName('Bravo, {name} !', 'Léa')).toBe('Bravo, Léa !');
+    expect(withName('Bravo, {name} !', '')).toBe('Bravo !');
+    expect(withName('Et toi, {name}, tu as quel âge ?', '')).toBe('Et toi, tu as quel âge ?');
+  });
+});

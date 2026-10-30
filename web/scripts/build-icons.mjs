@@ -21,7 +21,7 @@ const FRUITS = [
   'watermelon', 'peach', 'pineapple', 'kiwi-fruit', 'mango', 'blueberries', 'melon',
   'green-apple', 'coconut',
 ];
-const DECOR = ['palm-tree', 'sauropod', 't-rex', 'herb', 'butterfly'];
+const DECOR = ['palm-tree', 'sauropod', 't-rex', 'herb', 'butterfly', 'fly', 'bird', 'sun', 'rainbow'];
 const FLAGS = [
   'gb', 'fr', 'be', 'ch', 'ca', 'lu', 'it', 'ie', 'nl', 'de', 'es', 'us', 'jp', 'br', 'cn', 'mx', 'at', 'ro', 'pe', 'dk',
   'ru', 'td', 'li', 'in', 'sn', 'lb', 'to', 'au', 'eg', 'gr', 'ma', 'pt',
@@ -73,6 +73,7 @@ write('syllables', noto, 'clapping-hands');
 write('read', noto, 'open-book');
 write('letters', noto, 'input-latin-uppercase');
 write('ui-parents', noto, 'locked');
+write('ui-lock', noto, 'locked-with-key');
 write('read-picture', noto, 'eyes');
 write('missing-word', noto, 'speech-balloon');
 write('missing-word-read', noto, 'memo');

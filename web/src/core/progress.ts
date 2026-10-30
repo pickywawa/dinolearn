@@ -79,6 +79,8 @@ export interface Settings {
   voice: boolean;
   /** Packs de reconnaissance vocale téléchargés (« fr », « en »). */
   voicePacks: string[];
+  /** Prénom de l'enfant (le dino l'appelle par son prénom). */
+  childName: string;
 }
 
 const KEY = 'dinolearn.progress.v1';
@@ -97,7 +99,7 @@ const empty = (): Data => ({
   feedLog: {},
   seriesPlayed: 0,
   seenTutorial: false,
-  settings: { disabledGames: [], dailyMinutes: 0, sfx: true, music: true, nightTime: '', country: 'fr', voice: false, voicePacks: [] },
+  settings: { disabledGames: [], dailyMinutes: 0, sfx: true, music: true, nightTime: '', country: 'fr', voice: false, voicePacks: [], childName: '' },
   playLog: {},
   bonusLog: {},
   collection: { owned: [], worn: [], pending: 0 },

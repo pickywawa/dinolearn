@@ -54,5 +54,8 @@ export function playableGames(): GameDef[] {
   return enabled.length > 0 ? enabled : forAge;
 }
 
+// Le dino appelle l'enfant par son prénom.
+app.voice.lines.name = progress.settings.childName;
+
 // La musique se fait toute petite quand le dino parle.
 app.voice.onTalk((talking) => Music.duck(talking));

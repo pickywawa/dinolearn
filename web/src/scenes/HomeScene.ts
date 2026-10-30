@@ -3,26 +3,29 @@ import { app } from '../core/app';
 import { Sfx } from '../core/sfx';
 import { playableGames } from '../core/app';
 import { chooseGifts } from '../ui/gifts';
-import { Music } from '../core/music';
 import { openParents } from '../ui/parents';
 import { askParentCode, createParentCode, firstLaunchSetup, unlockNight, unlockPlayTime } from '../ui/pin';
 import { Dino } from '../dino/Dino';
 import { Bubble } from '../ui/Bubble';
 import { Guide } from '../ui/Guide';
+import { buzzingFlies } from '../ui/flies';
+import { Planet } from '../ui/Planet';
 import { drawPrehistoric } from '../ui/prehistoric';
+import { drawSkyLife } from '../ui/sky';
 import { drawNightSky, drawScenery, goTo, growthFactor, isPortrait, makeTickable, unit } from '../ui/scenery';
 import { BaseScene } from './BaseScene';
 
 /**
- * Accueil : un gros bouton vert au centre lance une série tout mélangée
- * (chaque question vient d'un jeu au hasard, choix par défaut). Un petit bouton ouvre le choix des jeux. En haut : le gâteau
- * (âge), l'étoile du niveau du dino et le cadenas de l'espace parents (appui long, puis glisser vers le haut).
+ * Accueil : la planète Terre qui tourne, au centre, lance une série tout mélangée
+ * (chaque question vient d'un jeu au hasard, choix par défaut). Un petit bouton ouvre le choix des jeux.
+ * À gauche : le gâteau (âge) et le cadenas de l'espace parents (code parent) ; à droite, l'étoile du niveau.
+ * Dans le ciel passent des météorites, des oiseaux, le soleil ou la pluie ; des mouches viennent embêter le dino.
  * Quand le temps de jeu du jour fixé par les parents est atteint, le dino va se coucher.
  */
 export class HomeScene extends BaseScene {
   private dino!: Dino;
   private guide!: Guide;
-  private play!: Bubble;
+  private play!: Planet;
   private choose!: Phaser.GameObjects.Container;
   private dinoBase = 0;
   private gift?: Bubble;
@@ -40,6 +43,7 @@ export class HomeScene extends BaseScene {
     else drawScenery(this);
     if (night) drawNightSky(this);
     drawPrehistoric(this);
+    drawSkyLife(this, night);
     const { width: W, height: H } = this.scale;
     const u = unit(this);
     const portrait = isPortrait(this);
@@ -48,12 +52,12 @@ export class HomeScene extends BaseScene {
     this.dino = new Dino(this, portrait ? W / 2 : W * 0.68, H * (portrait ? 0.92 : 0.96),
       this.dinoBase * growthFactor(app.progress.dino.level));
     makeTickable(this.dino);
+    if (!night) buzzingFlies(this, this.dino);
     this.guide = new Guide(this, u * 0.15);
 
-    // Gros bouton : un jeu au hasard.
-    const big = portrait ? { x: W / 2, y: H * 0.34, r: u * 0.22 } : { x: W * 0.3, y: H * 0.46, r: u * 0.22 };
-    this.play = new Bubble(this, big.x, big.y, big.r, 0x43b649, 'ui-play', () => this.playRandom(), 0.55);
-    this.tweens.add({ targets: this.play, scale: 1.06, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    // La planète : un jeu au hasard (le tour du monde des jeux).
+    const big = portrait ? { x: W / 2, y: H * 0.34, r: u * 0.2 } : { x: W * 0.3, y: H * 0.46, r: u * 0.2 };
+    this.play = new Planet(this, big.x, big.y, big.r, () => this.playRandom());
 
     // Petit bouton : choisir son jeu (mosaïque des jeux).
     const small = portrait ? { x: W * 0.14, y: H * 0.56 } : { x: W * 0.08, y: H * 0.82 };
@@ -61,9 +65,9 @@ export class HomeScene extends BaseScene {
 
     const ar = u * 0.06;
     new Bubble(this, ar * 1.4, ar * 1.4, ar, 0xffd6e7, 'ui-cake', () => goTo(this, 'Age'), 0.7).setAlpha(0.85);
-    this.musicButton(ar * 1.4, ar * 3.9, ar);
+    // Le cadenas des parents (sous le gâteau) : il demande le code parent.
+    new Bubble(this, ar * 1.4, ar * 3.9, ar, 0xfff3c4, 'ui-lock', () => this.openParentSpace(), 0.7).setAlpha(0.9);
     this.drawLevelBadge(W - u * 0.13, u * 0.11, u);
-    this.parentGate(W - u * 0.13, u * 0.27, u);
 
     // En haut : le dressing du dino, et le cadeau à ouvrir quand il a grandi.
     this.wardrobe = new Bubble(this, W / 2, u * 0.1, u * 0.065, 0xffe9f3, 'ui-wardrobe', () => {
@@ -104,7 +108,7 @@ export class HomeScene extends BaseScene {
       await this.wait(350);
       if (data?.hatched) {
         this.dino.react('cheer');
-        await this.say('hello');
+        await this.say('welcome_first');
       } else if (night) {
         // Le soir : le dino bâille et propose une dernière série.
         this.dino.react('yawn');
@@ -177,18 +181,6 @@ export class HomeScene extends BaseScene {
       await this.say('random.go');
       goTo(this, 'Game', { mixed: true });
     });
-  }
-
-  /** Bouton de la musique : note de musique (allumée) ou haut-parleur barré (coupée). */
-  private musicButton(x: number, y: number, r: number) {
-    const button = new Bubble(this, x, y, r, 0xe0f2fe, Music.isEnabled ? 'ui-music' : 'ui-music-off', () => {
-      const on = !Music.isEnabled;
-      Music.setEnabled(on);
-      app.progress.updateSettings({ music: on });
-      Music.unlock();
-      button.setIcon(on ? 'ui-music' : 'ui-music-off');
-    }, 0.65);
-    button.setAlpha(0.85);
   }
 
   /** Étoile avec le niveau du dino (réglable dans l'espace parents). */
@@ -272,67 +264,7 @@ export class HomeScene extends BaseScene {
     this.time.addEvent({ delay: 9000, loop: true, callback: () => this.dino.react('yawn') });
   }
 
-  /**
-   * Cadenas de l'espace parents : il faut rester appuyé dessus, puis glisser
-   * vers le haut sans lâcher. Un petit texte explique le geste aux adultes.
-   */
-  private parentGate(x: number, y: number, u: number) {
-    const { width: W } = this.scale;
-    const lock = this.add.image(x, y, 'ui-parents').setAlpha(0.75);
-    lock.setScale((u * 0.075) / lock.width).setInteractive({ useHandCursor: true });
-    const info = this.add.text(W - u * 0.03, y + u * 0.08, '', {
-      fontFamily: 'Arial, sans-serif', fontSize: `${Math.round(u * 0.036)}px`, color: '#ffffff',
-      backgroundColor: '#2d3354cc', padding: { x: 14, y: 10 }, align: 'right',
-      wordWrap: { width: W * 0.6 },
-    }).setOrigin(1, 0).setDepth(50).setVisible(false);
-    const arrow = this.add.text(x, y - u * 0.08, '↑', {
-      fontFamily: 'Arial, sans-serif', fontSize: `${Math.round(u * 0.07)}px`, color: '#2d3354', fontStyle: 'bold',
-    }).setOrigin(0.5).setDepth(50).setVisible(false);
-    let startY = 0;
-    let pressed = false;
-    let armed = false;
-    let opened = false;
-    let hold: Phaser.Time.TimerEvent | undefined;
-    let hide: Phaser.Time.TimerEvent | undefined;
-    const say = (text: string, ms?: number) => {
-      hide?.remove();
-      info.setText(text).setVisible(true);
-      if (ms) hide = this.time.delayedCall(ms, () => info.setVisible(false));
-    };
-
-    lock.on('pointerdown', (p: Phaser.Input.Pointer) => {
-      pressed = true;
-      armed = false;
-      startY = p.y;
-      say('Espace parents : reste appuyé…');
-      hold = this.time.delayedCall(700, () => {
-        if (!pressed) return;
-        armed = true;
-        say('Maintenant, glisse vers le haut sans lâcher ↑');
-        arrow.setVisible(true).setY(y - u * 0.06).setAlpha(1);
-        this.tweens.add({ targets: arrow, y: y - u * 0.16, alpha: 0.2, duration: 600, repeat: -1 });
-      });
-    });
-    this.input.on('pointermove', (p: Phaser.Input.Pointer) => {
-      if (!armed || opened || !p.isDown || startY - p.y < u * 0.1) return;
-      opened = true;
-      this.openParentSpace();
-    });
-    this.input.on('pointerup', () => {
-      if (!pressed) return;
-      pressed = false;
-      hold?.remove();
-      this.tweens.killTweensOf(arrow);
-      arrow.setVisible(false);
-      if (opened) return;
-      say(armed
-        ? 'Glisse vers le haut sans lâcher le doigt.'
-        : 'Espace parents : reste appuyé sur le cadenas, puis glisse vers le haut.', 3500);
-      armed = false;
-    });
-  }
-
-  /** Le geste est fait : il faut encore le code parent. */
+  /** Le cadenas : le code parent ouvre l'espace parents. */
   private openParentSpace() {
     this.clearIdle();
     this.guide.hide();

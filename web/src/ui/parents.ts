@@ -137,9 +137,19 @@ export function openParents(onClose: () => void) {
     const answers = p.answers();
     const last100 = answers.slice(0, 100);
     const rate = last100.length ? last100.filter((a) => a.firstTrySuccess).length / last100.length : 0;
+    const name = el('input', { type: 'text', maxlength: '30', placeholder: 'Prénom', 'aria-label': 'Prénom de l\'enfant',
+      style: 'font:inherit;padding:10px;border:1px solid #d1d5db;border-radius:10px;min-height:44px;width:100%;box-sizing:border-box' }) as HTMLInputElement;
+    name.value = p.settings.childName;
+    name.addEventListener('change', () => {
+      const childName = name.value.trim().replace(/\s+/g, ' ');
+      p.updateSettings({ childName });
+      app.voice.lines.name = childName;
+    });
     return el('section', {},
       el('h2', {}, 'Enfant'),
-      el('p', { class: 'help' }, 'L\'âge choisit les jeux proposés (anglais, calcul et lecture dès 5 ans) et le niveau de départ.'),
+      el('p', { class: 'help' }, 'Le dino appelle l\'enfant par son prénom. L\'âge choisit les jeux proposés (anglais, calcul et '
+        + 'lecture dès 5 ans) et le niveau de départ.'),
+      el('div', { style: 'margin-bottom:12px' }, name),
       ages,
       el('div', { class: 'stat', style: 'margin-top:12px' },
         el('div', {}, el('b', {}, String(p.seriesPlayed)), 'séries jouées'),

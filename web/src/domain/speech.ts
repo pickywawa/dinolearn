@@ -124,3 +124,38 @@ export function judge(heard: Heard, target: SayTarget): Verdict {
     .find((o) => find(words, o.words) >= 0 && confident(o.words, MIN_CONF_WRONG));
   return other ? { kind: 'wrong', heard: withoutArticle(other.phrase, lang) } : { kind: 'unheard' };
 }
+
+// ---- Présentation : le prénom et l'âge de l'enfant ----
+
+const AGE_WORDS: Record<string, number> = {
+  deux: 2, trois: 3, quatre: 4, cinq: 5, six: 6, sept: 7, huit: 8, neuf: 9,
+  2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 9,
+};
+/** Mots autour du prénom ou de l'âge (« je m'appelle Léa », « j'ai cinq ans »). */
+const INTRO_FILLERS = ['je', 'm\'appelle', 'moi', 'c\'est', 'suis', 'j\'ai', 'ans', 'an', 'euh'];
+
+/** Grammaire de l'âge : les nombres de deux à neuf. */
+export const AGE_GRAMMAR = [...Object.keys(AGE_WORDS).filter((w) => !/\d/.test(w)), ...INTRO_FILLERS, '[unk]'];
+
+/** Âge entendu (« cinq », « j'ai six ans »), ou undefined. */
+export function findAge(heard: Heard): number | undefined {
+  for (const word of normalize(heard.text).split(' ')) {
+    if (AGE_WORDS[word] !== undefined) return AGE_WORDS[word];
+  }
+  return undefined;
+}
+
+/** Grammaire du prénom : les prénoms connus du modèle, et les petits mots autour. */
+export function nameGrammar(names: string[], vocab?: Set<string>): string[] {
+  const known = (w: string) => !vocab || vocab.has(w);
+  return [...new Set([...names, ...INTRO_FILLERS])].filter(known).concat('[unk]');
+}
+
+/** Prénom entendu, avec ses majuscules (« Léa », « Pierre-Louis »), ou undefined si rien de sûr. */
+export function findName(heard: Heard, names: string[]): string | undefined {
+  const list = new Set(names);
+  const word = heard.words?.length
+    ? heard.words.find((w) => list.has(normalize(w.word)) && w.conf >= MIN_CONF_WRONG)?.word
+    : normalize(heard.text).split(' ').find((w) => list.has(w));
+  return word ? normalize(word).replace(/(^|-)(\p{L})/gu, (_, sep: string, c: string) => sep + c.toUpperCase()) : undefined;
+}

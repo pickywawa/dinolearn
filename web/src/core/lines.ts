@@ -10,22 +10,23 @@ export const LINES: Record<string, string[]> = {
     'Bonjour ! Je suis Dino, ton copain dinosaure !',
   ],
   welcome_back: [
-    'Te revoilà ! Youpi !',
-    'Coucou ! J\'avais hâte de te voir !',
+    'Te revoilà, {name} ! Youpi !',
+    'Coucou, {name} ! J\'avais hâte de te voir !',
     'Ah, te voilà ! On s\'amuse ?',
     'Salut, champion ! Je t\'attendais !',
     'Hourra, mon copain est là !',
     'Bonjour ! J\'ai rêvé de fruits toute la nuit !',
   ],
   'home.play': [
-    'Touche le gros bouton vert : je te pose des questions de tous les jeux !',
-    'On joue ? Touche le gros bouton vert !',
-    'Le gros bouton vert, c\'est pour jouer ! Vas-y, touche-le !',
-    'Prêt pour l\'aventure ? Touche le gros bouton vert !',
+    'Touche la planète Terre : on part faire le tour du monde des jeux !',
+    'On joue ? Touche la planète !',
+    'La planète qui tourne, c\'est pour jouer ! Vas-y, touche-la !',
+    'Prêt pour l\'aventure, {name} ? Touche la planète !',
   ],
   'home.categories': ['Et pour choisir ton jeu, touche le petit bouton.'],
   'random.go': [
     'Surprise ! C\'est parti !',
+    'Décollage ! On fait le tour du monde !',
     'Allez, on joue !',
     'Youpi, on joue !',
     'En route pour l\'aventure !',
@@ -300,9 +301,9 @@ export const LINES: Record<string, string[]> = {
     'Regarde ce panier de fruits ! Touche le panier pour me les donner !',
     'Miam ! Donne-moi le panier : touche-le !',
   ],
-  'end.feed_again': ['J\'ai faim ! Touche le panier de fruits !'],
   'end.nothing': ['Pas de fruit cette fois. On rejoue pour en gagner ?'],
-  'end.again': ['Touche le gros bouton vert pour rejouer !', 'On rejoue ? Touche le bouton vert !'],
+  'end.again': ['Touche le bouton vert pour rejouer !', 'On rejoue ? Touche le bouton vert !'],
+  'fly.caught': ['Slurp ! Une mouche !', 'Miam, croustillante !', 'Hop, attrapée !', 'Bzzz… plus de mouche !'],
   'fruit.won': ['Un fruit pour moi !', 'Miam, un fruit !'],
   eating: [
     'Miam miam !',
@@ -440,15 +441,63 @@ export const LINES: Record<string, string[]> = {
   'voice.give_up': ['Le micro ne m\'entend pas bien. Pour la suite, on joue avec le doigt !'],
   'voice.loading': ['Attends, je débouche mes oreilles…', 'Une seconde, je prépare mes oreilles !'],
   'voice.no_mic': ['Oh, je n\'arrive pas à t\'entendre. On joue avec le doigt !'],
+  // ---- L'œuf et la présentation (premier lancement) ----
+  'egg.1': ['Toc toc ! Il y a quelqu\'un ?', 'Oh ! Ça bouge là-dedans !'],
+  'egg.2': ['Encore ! Aide-moi à sortir !', 'Continue, la coquille craque !'],
+  'egg.3': ['Presque ! Encore un petit coup !', 'Allez, encore une fois !'],
+  'egg.hatched': ['Coucou !', 'Ouf ! Me voilà !'],
+  'hello.1': ['Bonjour ! Je viens de sortir de mon œuf ! Je m\'appelle Dino, et je suis un bébé dinosaure.'],
+  'hello.2': ['Je suis encore tout petit… et le monde est si grand ! J\'ai plein de choses à découvrir.'],
+  'hello.3': ['Tu veux bien être mon ami, et m\'aider à grandir ?'],
+  'hello.4': ['Ensemble, on va jouer à plein de jeux : les animaux, les couleurs, les lettres, les nombres, et même l\'anglais !'],
+  'hello.5': ['À chaque bonne réponse, tu gagnes un fruit.'],
+  'hello.6': ['Et après, tu me donnes les fruits à manger. Miam ! Plus je mange, plus je grandis !'],
+  'hello.7': ['Quand je grandis, tu gagnes des cadeaux pour m\'habiller : des chapeaux, des lunettes, et même des capes de super-héros !'],
+  'hello.8': ['Mon rêve, c\'est de devenir le plus grand dinosaure du monde ! Avec toi, je suis sûr qu\'on va y arriver !'],
+  'hello.name': ['Mais d\'abord, dis-moi : comment tu t\'appelles ? Touche le micro, et dis ton prénom bien fort !'],
+  'hello.name_again': ['Je n\'ai pas bien entendu. Touche le micro, et redis-moi ton prénom !'],
+  'hello.name_ok': ['Enchanté, {name} ! Quel joli prénom !', 'Bonjour, {name} ! J\'adore ton prénom !'],
+  'hello.name_later': ['Tu me diras ton prénom plus tard : ton papa ou ta maman va l\'écrire pour moi !'],
+  'hello.age': ['Et toi, {name}, tu as quel âge ? Touche le micro, et dis-le moi !'],
+  'hello.age_again': ['Je n\'ai pas bien entendu. Tu as quel âge ? Touche le micro !'],
+  'hello.age_cakes': ['Alors touche le gâteau avec ton âge !'],
+  'hello.mic_allow': ['Si un message apparaît sur l\'écran, demande à un grand de toucher « Autoriser » !'],
+  'hello.parent': [
+    'Maintenant, va donner le téléphone à ton papa ou à ta maman ! Ils vont choisir un code secret, rien que pour moi.',
+  ],
+  welcome_first: ['Voilà ma maison, {name} ! On va bien s\'amuser !', 'Bienvenue chez moi, {name} !'],
+  // ---- Le repas ----
+  burp: ['Oups ! Pardon !', 'Hihi… excusez-moi !', 'Oh ! Ça m\'a échappé ! Pardon !', 'Pardon… c\'était trop bon !'],
+  fart: ['Oups… pardon !', 'Hihi, c\'est pas moi !', 'Oh là là… c\'est les fruits ! Pardon !',
+    'Pardon ! Mon ventre fait des bruits rigolos !'],
+  'hunger.growl': ['Oh, tu entends ? Mon ventre gargouille ! Donne-moi le panier !', 'Grrr… c\'est mon ventre qui a faim !'],
+  'hunger.look': ['Mmmh… ces fruits ont l\'air délicieux… Touche le panier !', 'Je ne pense qu\'à ces fruits… Tu me les donnes ?'],
+  'hunger.beg': ['S\'il te plaît, s\'il te plaît ! Donne-moi le panier !', 'Allez, {name}, s\'il te plaît ! J\'ai faim !'],
+  'hunger.gape': ['Regarde, j\'ouvre grand la bouche : aaaah ! Mets les fruits dedans !'],
+  'hunger.sad': ['J\'ai trop faim… je vais tomber dans les pommes ! Touche le panier !', 'Mon ventre est tout vide… Tu me donnes à manger ?'],
 };
 
 /** Choisit une variante sans répéter les dernières (spécifications §3.4). */
+/**
+ * Met le prénom de l'enfant dans une réplique (« Bravo, {name} ! ») ; sans
+ * prénom connu, la virgule et le prénom disparaissent (« Bravo ! »).
+ */
+export function withName(line: string, name: string): string {
+  return line.replace(/(,\s*)?\{name\}/g, (match) => (name ? match.replace('{name}', name) : ''));
+}
+
 export class LinePicker {
   private history = new Map<string, number[]>();
+  /** Prénom de l'enfant (réglé par l'application). */
+  name = '';
 
   constructor(private rng: Rng, private lines = LINES) {}
 
   pick(group: string): string {
+    return withName(this.pickRaw(group), this.name);
+  }
+
+  private pickRaw(group: string): string {
     const variants = this.lines[group];
     if (!variants?.length) return '';
     const history = this.history.get(group) ?? [];

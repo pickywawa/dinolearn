@@ -6,7 +6,8 @@ import { PART_RESOLUTION } from './parts';
 
 export type DinoReaction =
   | 'happy' | 'cheer' | 'dance' | 'oops' | 'think' | 'eat' | 'levelUp' | 'tickle'
-  | 'wave' | 'spin' | 'yawn' | 'roar' | 'lookAround' | 'hop';
+  | 'wave' | 'spin' | 'yawn' | 'roar' | 'lookAround' | 'hop'
+  | 'burp' | 'fart' | 'growl' | 'beg' | 'gape';
 
 /** Petites animations jouées au hasard quand le dino attend. */
 const IDLE_FUN: DinoReaction[] = ['wave', 'yawn', 'roar', 'lookAround', 'hop', 'spin'];
@@ -343,7 +344,98 @@ export class Dino extends Phaser.GameObjects.Container {
         // Trois petits sauts sur place.
         t.add({ targets: this.rig, y: -35, duration: 160, yoyo: true, repeat: 2, ease: 'Quad.easeOut' });
         break;
+      case 'burp': {
+        // Rot : la tête part en avant, la bouche en « o », une bulle s'envole.
+        this.flashMouth('dino-mouth-o', 800);
+        t.add({ targets: this.head, angle: -10, y: -270, duration: 160, yoyo: true, hold: 350, ease: 'Back.easeOut' });
+        t.add({ targets: this.rig, scaleY: 1.05, duration: 160, yoyo: true });
+        const bubble = this.scene.add.circle(10, -300, 18, 0xbfe6ff, 0.7).setStrokeStyle(4, 0xffffff);
+        this.add(bubble);
+        t.add({ targets: bubble, y: -460, x: 60, scale: 2.2, duration: 900, ease: 'Sine.easeOut',
+          onComplete: () => t.add({ targets: bubble, scale: 3, alpha: 0, duration: 120, onComplete: () => bubble.destroy() }) });
+        this.scene.time.delayedCall(900, () => this.react('oops'));
+        break;
+      }
+      case 'fart': {
+        // Prout : petit saut surpris, nuages verts derrière la queue, yeux fermés (gêné).
+        this.setEyes('closed');
+        this.scene.time.delayedCall(1100, () => this.setEyes('open'));
+        this.flashMouth('dino-mouth-small', 1100);
+        t.add({ targets: this.rig, y: -45, duration: 150, yoyo: true, ease: 'Quad.easeOut' });
+        t.add({ targets: this.tail, angle: 30, duration: 120, yoyo: true, repeat: 1 });
+        for (let i = 0; i < 4; i++) {
+          const puff = this.scene.add.circle(150 + i * 12, -60 - i * 6, 26, 0xa5d36b, 0.75);
+          this.addAt(puff, 0);
+          t.add({ targets: puff, x: 230 + i * 30, y: -80 - i * 25, scale: 2.4, alpha: 0, duration: 1300, delay: i * 120,
+            onComplete: () => puff.destroy() });
+        }
+        break;
+      }
+      case 'growl':
+        // Ventre qui gargouille : le corps tremble, il se tient le ventre.
+        this.flashMouth('dino-mouth-small', 900);
+        t.add({ targets: this.body_, scaleX: S * 1.06, duration: 90, yoyo: true, repeat: 5 });
+        t.add({ targets: [this.armL, this.armR], angle: 0, duration: 200, yoyo: true, hold: 600 });
+        t.add({ targets: this.head, angle: 8, duration: 250, yoyo: true, hold: 400 });
+        break;
+      case 'beg':
+        // « S'il te plaît ! » : petits sauts, bras en l'air, yeux tout contents.
+        happyFor(1200);
+        armsUp(180, 3);
+        t.add({ targets: this.rig, y: -25, duration: 140, yoyo: true, repeat: 3, ease: 'Quad.easeOut' });
+        break;
+      case 'gape':
+        // Grande bouche ouverte : « Aaaah ! »
+        this.flashMouth('dino-mouth-wide', 1600);
+        t.add({ targets: this.head, angle: -14, duration: 300, yoyo: true, hold: 1000, ease: 'Sine.easeInOut' });
+        break;
     }
+  }
+
+  /** Vrai si le dino est libre (ne parle pas, ne mange pas, ne fait pas une grimace). */
+  get free() { return !this.busy && !app.voice.talking; }
+
+  /**
+   * Coup de langue : la langue rose part de la bouche jusqu'à la cible (une
+   * mouche), l'attrape, et revient. La cible est emportée puis détruite.
+   */
+  catchWithTongue(target: Phaser.GameObjects.Image): Promise<void> {
+    const scene = this.scene;
+    const tongue = scene.add.graphics().setDepth(this.depth + 1);
+    const from = this.mouthWorldPoint();
+    const to = new Phaser.Math.Vector2(target.x, target.y);
+    const width = Math.max(6, 34 * this.scale);
+    this.busy = true;
+    this.mouth.setTexture('dino-mouth-wide');
+    this.lookAt(to.x, to.y, 400);
+    Sfx.play('slurp');
+    const drawTo = (t: number) => {
+      const x = from.x + (to.x - from.x) * t;
+      const y = from.y + (to.y - from.y) * t;
+      tongue.clear().lineStyle(width, 0xff6f91, 1).lineBetween(from.x, from.y, x, y)
+        .fillStyle(0xff6f91, 1).fillCircle(x, y, width * 0.8);
+      return { x, y };
+    };
+    return new Promise((resolve) => {
+      scene.tweens.addCounter({
+        from: 0, to: 1, duration: 140, ease: 'Quad.easeOut', onUpdate: (tw) => drawTo(tw.getValue() ?? 0),
+        onComplete: () => scene.tweens.addCounter({
+          from: 1, to: 0, duration: 220, ease: 'Quad.easeIn',
+          onUpdate: (tw) => {
+            const tip = drawTo(tw.getValue() ?? 0);
+            target.setPosition(tip.x, tip.y);
+          },
+          onComplete: () => {
+            tongue.destroy();
+            target.destroy();
+            this.busy = false;
+            Sfx.play('chomp');
+            this.react('eat');
+            resolve();
+          },
+        }),
+      });
+    });
   }
 
   /** Une petite animation au hasard, quand le dino attend (si il ne parle pas). */

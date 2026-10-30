@@ -7,6 +7,7 @@ import { BootScene } from './scenes/BootScene';
 import { ChooseScene } from './scenes/ChooseScene';
 import { EndScene } from './scenes/EndScene';
 import { GameScene } from './scenes/GameScene';
+import { HelloScene } from './scenes/HelloScene';
 import { HomeScene } from './scenes/HomeScene';
 import { StartScene } from './scenes/StartScene';
 import { TraceScene } from './scenes/TraceScene';
@@ -33,7 +34,7 @@ const game = new Phaser.Game({
   ...size,
   scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
   input: { activePointers: 2 },
-  scene: [BootScene, StartScene, AgeScene, HomeScene, ChooseScene, GameScene, EndScene, WardrobeScene, TraceScene],
+  scene: [BootScene, StartScene, HelloScene, AgeScene, HomeScene, ChooseScene, GameScene, EndScene, WardrobeScene, TraceScene],
 });
 
 // Rotation de l'écran : on adapte la taille logique et on relance la scène active.

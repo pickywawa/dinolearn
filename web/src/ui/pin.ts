@@ -12,7 +12,17 @@ const CSS = `
 .pin { position: fixed; inset: 0; z-index: 1100; display: flex; align-items: center; justify-content: center;
   padding: 16px; background: rgba(30, 34, 53, .72); font: 16px/1.45 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
 .pin .card { width: 100%; max-width: 380px; background: #fff; color: #1f2937; border-radius: 18px; padding: 20px;
-  box-shadow: 0 10px 40px rgba(0,0,0,.3); text-align: center; }
+  box-shadow: 0 10px 40px rgba(0,0,0,.3); text-align: center; max-height: calc(100dvh - 32px); overflow-y: auto; }
+.pin .form { text-align: left; display: grid; gap: 12px; margin-bottom: 4px; }
+.pin .form label { display: grid; gap: 4px; font-weight: 600; font-size: 15px; }
+.pin .form input[type=text], .pin .form select { font: inherit; font-weight: 400; padding: 10px; border: 1px solid #d1d5db;
+  border-radius: 10px; min-height: 44px; }
+.pin .form .ages { display: flex; gap: 6px; }
+.pin .form .ages button { flex: 1; min-height: 44px; font-size: 17px; }
+.pin .form .ages button.on { background: #2d3354; color: #fff; }
+.pin .form .check { display: flex; gap: 10px; align-items: flex-start; font-weight: 400; }
+.pin .form .check input { width: 22px; height: 22px; margin-top: 2px; flex: none; }
+.pin .form small { color: #6b7280; font-weight: 400; }
 .pin h2 { margin: 0 0 6px; font-size: 20px; }
 .pin p { margin: 0 0 14px; color: #4b5563; font-size: 15px; }
 .pin .dots { display: flex; justify-content: center; gap: 14px; margin: 8px 0 6px; }
@@ -226,21 +236,105 @@ export async function askParentCode(title: string, help: string): Promise<boolea
 
 const DAILY = [0, 15, 30, 45, 60, 90];
 
-/** Premier lancement : le parent crée son code, puis choisit le temps de jeu par jour. */
-export async function firstLaunchSetup() {
-  await createParentCode(
-    'Bienvenue, parent !',
-    'Choisissez un code à 4 chiffres. Il ouvre l\'espace parents et débloque le jeu quand le temps du jour est fini. '
-      + 'Ne le donnez pas à l\'enfant !',
-  );
-  const index = await choose('Temps de jeu par jour', 'Quand le temps est atteint, le jeu se bloque jusqu\'au '
-    + 'lendemain ; votre code permet de le débloquer. Modifiable à tout moment dans l\'espace parents.',
-  DAILY.map((m) => (m === 0 ? 'Illimité' : `${m} minutes`)));
-  app.progress.updateSettings({ dailyMinutes: DAILY[index ?? 0] });
-  await chooseCountry();
+/** Ce que l'enfant a dit au dino pendant la présentation (le parent peut le corriger). */
+export interface ChildIntro {
+  name?: string;
+  age?: number;
+  /** Le micro a fonctionné (pack français prêt et micro autorisé). */
+  voice?: boolean;
 }
 
-const COUNTRY_CHOICES: [string, string][] = [
+/**
+ * Premier lancement : le parent vérifie le prénom et l'âge (déjà remplis si
+ * l'enfant les a dits au dino), choisit le pays, le temps de jeu et le micro,
+ * puis crée son code.
+ */
+export async function firstLaunchSetup(intro: ChildIntro = {}) {
+  await new Promise<void>((resolve) => {
+    const { root, card } = mount();
+    const h = document.createElement('h2');
+    h.textContent = 'Bienvenue, parent !';
+    const p = document.createElement('p');
+    p.textContent = intro.name || intro.age
+      ? 'Voici ce que votre enfant a dit au dino. Vous pouvez le corriger.'
+      : 'Quelques réglages pour commencer (modifiables dans l\'espace parents).';
+    const form = document.createElement('div');
+    form.className = 'form';
+    const field = (label: string, control: HTMLElement, help?: string) => {
+      const l = document.createElement('label');
+      l.append(label, control);
+      if (help) {
+        const small = document.createElement('small');
+        small.textContent = help;
+        l.append(small);
+      }
+      form.append(l);
+    };
+
+    const name = document.createElement('input');
+    name.type = 'text';
+    name.autocomplete = 'off';
+    name.maxLength = 30;
+    name.value = intro.name ?? app.progress.settings.childName;
+    name.placeholder = 'Prénom';
+    field('Prénom de l\'enfant', name, 'Le dino l\'appellera par son prénom.');
+
+    let age = intro.age ?? (app.progress.ageChosen ? app.progress.age : 4);
+    const ages = document.createElement('div');
+    ages.className = 'ages';
+    for (let a = 3; a <= 7; a++) {
+      const b = button(`${a} ans`, a === age ? 'on' : '');
+      b.addEventListener('click', () => {
+        age = a;
+        ages.querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b));
+      });
+      ages.append(b);
+    }
+    field('Âge', ages, 'Il choisit les jeux proposés (lecture, calcul et anglais dès 5 ans) et le niveau de départ.');
+
+    const country = document.createElement('select');
+    for (const [code, label] of COUNTRY_CHOICES) country.append(new Option(label, code, false, code === app.progress.settings.country));
+    field('Pays', country, 'Pour le jeu « Mon pays » (drapeau, capitale, spécialités…).');
+
+    const daily = document.createElement('select');
+    for (const m of DAILY) daily.append(new Option(m === 0 ? 'Illimité' : `${m} minutes`, String(m), false, m === app.progress.settings.dailyMinutes));
+    field('Temps de jeu par jour', daily, 'Ensuite, le dino va se coucher ; votre code permet de jouer plus.');
+
+    const mic = document.createElement('input');
+    mic.type = 'checkbox';
+    mic.checked = !!intro.voice;
+    const check = document.createElement('label');
+    check.className = 'check';
+    const text = document.createElement('span');
+    text.innerHTML = '<b>Autoriser le micro</b> (jeux à voix haute)<br><small>Tout reste sur cet appareil : la voix n\'est ni '
+      + 'enregistrée, ni envoyée.</small>';
+    check.append(mic, text);
+    form.append(check);
+
+    const go = button('Choisir mon code parent', 'primary');
+    go.style.width = '100%';
+    go.style.marginTop = '8px';
+    go.addEventListener('click', () => {
+      const childName = name.value.trim().replace(/\s+/g, ' ');
+      app.progress.age = age;
+      app.progress.updateSettings({
+        childName, country: country.value, dailyMinutes: Number(daily.value), voice: mic.checked,
+      });
+      app.voice.lines.name = childName;
+      setCountry(country.value);
+      root.remove();
+      resolve();
+    });
+    card.append(h, p, form, go);
+  });
+  await createParentCode(
+    'Votre code parent',
+    'Choisissez un code à 4 chiffres. Il ouvre l\'espace parents (cadenas de l\'accueil) et débloque le jeu quand le '
+      + 'temps du jour est fini. Ne le donnez pas à l\'enfant !',
+  );
+}
+
+export const COUNTRY_CHOICES: [string, string][] = [
   ['fr', 'France'], ['be', 'Belgique'], ['ch', 'Suisse'], ['ca', 'Canada'], ['lu', 'Luxembourg'], ['other', 'Autre pays'],
 ];
 
