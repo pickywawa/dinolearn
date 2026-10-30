@@ -1,5 +1,5 @@
 import { Speech } from '../content/content';
-import { Choice, GameDef, Show } from '../content/games';
+import { BuiltQuestion, Choice, GameDef, Show } from '../content/games';
 import { BALANCE, Balance, seriesLengthFor } from '../domain/balance';
 import { computeLevel } from '../domain/difficulty';
 import { Food, Rng } from '../domain/models';
@@ -18,6 +18,10 @@ export interface SeriesItem {
   prompt: Speech[];
   reinforce: Speech[];
   hints: Speech[];
+  /** Jeux à voix haute (voir BuiltQuestion). */
+  say?: BuiltQuestion['say'];
+  fallback?: BuiltQuestion['fallback'];
+  repeatAfterMe?: Speech[];
   isReview: boolean;
   /** Question ratée un autre jour, reposée pour la réviser. */
   due: boolean;
@@ -106,6 +110,7 @@ export class Series {
       return {
         game, questionId: question.id, level: question.level, answer: q.answer, choices, show: q.show,
         prompt: q.prompt, reinforce: q.reinforce, hints: q.hints ?? [], isReview, due: !!due, fruit: fruits[i],
+        say: q.say, fallback: q.fallback, repeatAfterMe: q.repeatAfterMe,
       };
     });
   }

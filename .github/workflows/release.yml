@@ -29,6 +29,8 @@ jobs:
         id: version
         run: echo "tag=v$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
       - run: npm ci
+      # Les tests vérifient que les images existent.
+      - run: npm run icons
       - run: npm test
       - run: npm run build
       - name: Archive du jeu compilé

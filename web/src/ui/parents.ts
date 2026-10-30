@@ -7,6 +7,8 @@ import { baseLevel } from '../domain/difficulty';
 import { mulberry32 } from '../domain/models';
 import { COUNTRIES } from '../content/countries';
 import { chooseCountry, createParentCode } from './pin';
+import { VOICE_PACKS, askMicPermission, ears, packInstalled, voiceSupported } from '../core/ears';
+import { SpeechLang } from '../domain/speech';
 
 /**
  * Espace parents : une page HTML classique posée sur le jeu (lisible et
@@ -26,6 +28,12 @@ const TITLES: Record<string, string> = {
   'MO-6': 'Monde — Mon pays', 'TR-1': 'Écriture — Trace les formes', 'TR-2': 'Écriture — Trace les lettres et les chiffres',
   'FR-5': 'Français — Lis et touche l\'image', 'FR-6': 'Français — La phrase à trou (images)',
   'FR-7': 'Français — La phrase à trou (mots écrits)',
+  'VO-1': 'Voix haute — Comment ça s\'appelle ?', 'VO-2': 'Voix haute — Say it in English!',
+  'VO-3': 'Voix haute — Lis à voix haute', 'VO-4': 'Voix haute — Devinettes : les animaux',
+  'VO-5': 'Voix haute — Devinettes : les métiers', 'VO-6': 'Voix haute — Devinettes : le sport',
+  'VO-7': 'Voix haute — Devinettes : l\'espace', 'VO-8': 'Voix haute — Les saisons et la météo',
+  'VO-9': 'Voix haute — Les formes et les couleurs', 'VO-10': 'Voix haute — Pays et peuples du monde',
+  'VO-11': 'Voix haute — Mon pays', 'VO-12': 'Voix haute — Devinettes : la nature',
 };
 export const gameTitle = (g: GameDef) => TITLES[g.id] ?? g.id;
 
@@ -109,8 +117,8 @@ export function openParents(onClose: () => void) {
 
   const render = () => {
     main.replaceChildren(
-      childSection(), levelSection(), timeSection(), codeSection(), countrySection(), gamesSection(), failuresSection(), soundSection(),
-      dataSection(),
+      childSection(), levelSection(), timeSection(), codeSection(), countrySection(), voiceSection(), gamesSection(), failuresSection(),
+      soundSection(), dataSection(),
     );
   };
 
@@ -241,15 +249,18 @@ export function openParents(onClose: () => void) {
         p.setGameLevel(game.id, v ? Number(v) : null);
       });
 
+      const needsVoice = game.voice && !(p.settings.voice && p.settings.voicePacks.includes(game.voice));
       const meta = tooYoung
         ? `À partir de ${game.minAge} ans`
-        : [
+        : needsVoice
+          ? `Jeu à voix haute : autorisez le micro et téléchargez le pack ${VOICE_PACKS[game.voice!].name.toLowerCase()} (section « Micro »).`
+          : [
           answers.length ? `${answers.length} réponses` : 'Pas encore joué',
           rate !== undefined ? `${percent(rate)} du 1er coup` : '',
           `${mastered} / ${game.questions.length} questions réussies`,
           lastAt ? `dernière partie le ${new Date(lastAt).toLocaleDateString('fr-FR')}` : '',
         ].filter(Boolean).join(' · ');
-      list.append(el('div', { class: `game${tooYoung || !enabled ? ' off' : ''}` },
+      list.append(el('div', { class: `game${tooYoung || !enabled || needsVoice ? ' off' : ''}` },
         el('div', { class: 'top' },
           el('span', { class: 'name' }, gameTitle(game)),
           el('label', { class: 'switch' }, toggle, el('span')),
@@ -330,6 +341,85 @@ export function openParents(onClose: () => void) {
         + 'dans les réglages d\'accessibilité (synthèse vocale).'),
       test,
     );
+  }
+
+  // ---- Micro : jeux à voix haute ----
+  function voiceSection() {
+    const section = el('section', {},
+      el('h2', {}, 'Micro (jeux à voix haute)'),
+      el('p', { class: 'help' }, 'Dans les jeux à voix haute, l\'enfant répond en parlant : il nomme les images, dit les mots '
+        + 'en anglais, lit à voix haute, répond aux devinettes. Tout reste sur cet appareil : la voix n\'est ni enregistrée, '
+        + 'ni envoyée. Le micro ne s\'allume que quand l\'enfant touche le gros bouton micro.'),
+    );
+    if (!voiceSupported()) {
+      section.append(el('p', {}, 'Ce navigateur ne permet pas d\'utiliser le micro dans le jeu.'));
+      return section;
+    }
+    const toggle = el('input', { type: 'checkbox', 'aria-label': 'Autoriser le micro' }) as HTMLInputElement;
+    toggle.checked = p.settings.voice;
+    const status = el('p', { class: 'help', style: 'margin-top:8px' });
+    toggle.addEventListener('change', async () => {
+      if (!toggle.checked) {
+        p.updateSettings({ voice: false });
+        render();
+        return;
+      }
+      // La question du navigateur s'affiche maintenant, pendant que le parent est là.
+      status.textContent = 'Autorisez le micro dans la fenêtre du navigateur…';
+      if (await askMicPermission()) {
+        p.updateSettings({ voice: true });
+      } else {
+        alert('Le micro est bloqué. Autorisez-le dans les réglages du navigateur (cadenas à côté de l\'adresse), puis réessayez.');
+      }
+      render();
+    });
+    section.append(el('div', { class: 'row', style: 'justify-content:space-between' },
+      el('span', {}, 'Autoriser le micro'),
+      el('label', { class: 'switch' }, toggle, el('span')),
+    ), status);
+    if (!p.settings.voice) return section;
+
+    section.append(el('p', { class: 'help', style: 'margin-top:12px' }, 'Packs de reconnaissance vocale (facultatifs, un par '
+      + 'langue) : à télécharger une seule fois, de préférence en Wi-Fi. Le pack français sert aux jeux en français, le pack '
+      + 'anglais à « Say it in English! ».'));
+    for (const lang of Object.keys(VOICE_PACKS) as SpeechLang[]) {
+      const pack = VOICE_PACKS[lang];
+      const installed = p.settings.voicePacks.includes(lang);
+      const state = el('span', { class: 'meta' }, installed ? 'Installé ✓' : `≈ ${pack.sizeMb} Mo`);
+      const button = el('button', { class: installed ? '' : 'primary' }, installed ? 'Vérifier' : 'Télécharger');
+      button.addEventListener('click', async () => {
+        button.setAttribute('disabled', '');
+        state.textContent = installed ? 'Vérification…' : 'Téléchargement et installation… (une à trois minutes)';
+        try {
+          if (installed && await packInstalled(lang)) {
+            state.textContent = 'Installé ✓ (le pack est bien sur cet appareil)';
+            button.removeAttribute('disabled');
+            return;
+          }
+          await ears.install(lang);
+          p.updateSettings({ voicePacks: [...new Set([...p.settings.voicePacks, lang])] });
+          render();
+        } catch (e) {
+          console.warn(e);
+          p.updateSettings({ voicePacks: p.settings.voicePacks.filter((l) => l !== lang) });
+          state.textContent = 'Le téléchargement a échoué. Vérifiez la connexion, puis réessayez.';
+          button.removeAttribute('disabled');
+        }
+      });
+      section.append(el('div', { class: 'row', style: 'justify-content:space-between;margin-top:8px' },
+        el('span', {}, el('b', {}, `Pack ${pack.name.toLowerCase()} `), state), button));
+    }
+    if (p.settings.voicePacks.length) {
+      const remove = el('button', { class: 'danger', style: 'margin-top:12px' }, 'Supprimer les packs');
+      remove.addEventListener('click', async () => {
+        if (!confirm('Supprimer les packs de reconnaissance vocale de cet appareil ? Les jeux à voix haute ne seront plus proposés.')) return;
+        await ears.removeAll();
+        p.updateSettings({ voicePacks: [] });
+        render();
+      });
+      section.append(remove);
+    }
+    return section;
   }
 
   // ---- Pays ----

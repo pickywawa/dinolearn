@@ -75,6 +75,10 @@ export interface Settings {
   country: string;
   /** Code parent à 4 chiffres (espace parents, déblocage du temps de jeu). */
   pin?: string;
+  /** Micro autorisé par les parents (jeux à voix haute, reconnaissance sur l'appareil). */
+  voice: boolean;
+  /** Packs de reconnaissance vocale téléchargés (« fr », « en »). */
+  voicePacks: string[];
 }
 
 const KEY = 'dinolearn.progress.v1';
@@ -93,7 +97,7 @@ const empty = (): Data => ({
   feedLog: {},
   seriesPlayed: 0,
   seenTutorial: false,
-  settings: { disabledGames: [], dailyMinutes: 0, sfx: true, music: true, nightTime: '', country: 'fr' },
+  settings: { disabledGames: [], dailyMinutes: 0, sfx: true, music: true, nightTime: '', country: 'fr', voice: false, voicePacks: [] },
   playLog: {},
   bonusLog: {},
   collection: { owned: [], worn: [], pending: 0 },

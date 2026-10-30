@@ -13,7 +13,7 @@ Jeu jouable directement dans le navigateur d'un téléphone ou d'une tablette (p
   le touche), ptérodactyle qui fait un looping, diplodocus au loin, bébé T-rex qui sort de derrière
   la colline, papillons, palmier et fougères. Le dino salue, bâille, rugit, regarde autour de lui,
   saute, fait une pirouette pour un sans-faute.
-- **26 jeux**, 20 niveaux de difficulté : 1–10 maternelle, 11–20 niveau CP (dino niveaux 21 à 40,
+- **38 jeux** (dont 12 à voix haute), 20 niveaux de difficulté : 1–10 maternelle, 11–20 niveau CP (dino niveaux 21 à 40,
   avec 6 images, des leurres piégeux et des nombres jusqu'à 100). Certains jeux n'apparaissent qu'à
   partir d'un âge : anglais, calcul, lecture, sons et syllabes dès 5 ans ; suites, nombres et tailles dès 4 ans.
   - **Anglais — Écoute et touche** : le mot est dit deux fois par une voix britannique (2 images, 4 au CP) ;
@@ -55,6 +55,20 @@ Jeu jouable directement dans le navigateur d'un téléphone ou d'une tablette (p
   - **Logique — Le plus, le moins** : des tas de fruits, puis des nombres écrits (24 ou 42 ?) ;
   - **Logique — Calcul** : additions et soustractions en images, puis écrites, compléments à 10,
     passage de la dizaine.
+- **12 jeux à voix haute** (micro autorisé dans l'espace parents) : l'enfant répond en parlant, en touchant
+  un gros bouton micro. La reconnaissance vocale ([Vosk](https://alphacephei.com/vosk/) en WebAssembly) se fait
+  **entièrement sur l'appareil** : rien n'est enregistré ni envoyé. Elle ne choisit qu'entre quelques mots
+  (la bonne réponse, les mauvaises réponses plausibles, « bruit »), ce qui la rend fiable même avec une voix
+  d'enfant. Un « pas entendu » ne compte jamais comme une erreur ; après deux essais, les cartes reviennent
+  et l'enfant répond au doigt. Les jeux sont rangés derrière une bulle micro dans le choix des jeux :
+  - **Comment ça s'appelle ?** (dès 3 ans) : l'image s'affiche, l'enfant dit son nom ; après une erreur, le
+    dino le dit et l'enfant répète ;
+  - **Say it in English!** : dire le mot en anglais (« Répète après moi : dog ») ;
+  - **Lis à voix haute** : lire un mot écrit (CAPITALES, minuscules, attaché) ;
+  - **Devinettes à voix haute**, par thème : les animaux, les métiers, le sport, l'espace, les saisons et la
+    météo, les formes et les couleurs, les pays et les peuples du monde (habitants, langues), mon pays
+    (capitale, habitants, langues, spécialités, fête nationale, voisins), la nature.
+  Un pack de reconnaissance par langue (≈ 40 Mo), facultatif, se télécharge depuis l'espace parents.
 - **Révision espacée** : une question ratée revient le lendemain, puis 3 jours plus tard, puis une
   semaine plus tard (le dino dit « Celle-là, on l'a déjà vue ensemble ! ») ; réussie les trois fois,
   elle est acquise. L'espace parents montre quand chaque question reviendra.
@@ -95,6 +109,7 @@ Jeu jouable directement dans le navigateur d'un téléphone ou d'une tablette (p
 |--------|--------------|
 | Moteur de jeu, animations (tweens, particules) | [Phaser 3](https://phaser.io) |
 | Voix (synthèse vocale du navigateur, compatible iOS/Android) | [easy-speech](https://github.com/leaonline/easy-speech) — voix du dino naturelle, à peine plus aiguë (pitch 1.2) ; la bouche ne bouge que pendant le son, mot par mot |
+| Reconnaissance vocale sur l'appareil (jeux à voix haute) | [vosk-browser](https://github.com/ccoreilly/vosk-browser) (Apache 2.0) et les petits modèles [Vosk](https://alphacephei.com/vosk/models) français et anglais (Apache 2.0) |
 | Effets sonores générés (aucun fichier audio) | [ZzFX](https://github.com/KilledByAPixel/ZzFX) |
 | Illustrations SVG (questions, fruits, décor) | [Noto](https://github.com/googlefonts/noto-emoji) (Google, Apache 2.0) via Iconify |
 | Monuments (tour Eiffel, statue de la Liberté, pyramide) | [OpenMoji](https://openmoji.org) (HfG Schwäbisch Gmünd, CC BY-SA 4.0) via Iconify |
@@ -115,7 +130,12 @@ npm install
 npm run dev        # serveur local, accessible depuis le téléphone sur le même Wi-Fi (adresse « Network »)
 npm test           # tests du domaine et du déroulé de série
 npm run build      # version de production dans dist/
+npm run voice-packs  # (facultatif) packs de reconnaissance vocale dans public/voice/ (≈ 80 Mo, non versionnés)
 ```
+
+Les packs de reconnaissance vocale ne sont pas dans le dépôt : le déploiement GitHub Pages les
+télécharge (modèles officiels Vosk) et les sert à côté du jeu. Sans eux, les jeux à voix haute se
+jouent au doigt.
 
 L'âge (3 à 7 ans) se choisit au premier lancement et se change avec le petit gâteau de l'accueil ;
 il règle la difficulté de départ et la longueur des séries (`?age=6` dans l'adresse fonctionne aussi).
@@ -128,3 +148,6 @@ chaque push. À activer une fois : *Settings → Pages → Source : GitHub Actio
 - La voix dépend des voix installées sur l'appareil (excellente sur iPhone et Android récents ;
   sans voix française, le jeu continue mais le dino est muet).
 - Sur iPhone, désactiver le mode silencieux si on n'entend rien.
+- Jeux à voix haute : la reconnaissance est moins sûre avec les plus petits (prononciation encore
+  approximative) et dans le bruit ; le jeu passe alors aux cartes. L'archive des releases ne contient
+  pas les packs vocaux (`npm run voice-packs` pour un autre hébergement).

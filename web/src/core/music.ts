@@ -20,6 +20,7 @@ class BackgroundMusic {
   private step = 0;
   private enabled = true;
   private ducked = false;
+  private hushed = false;
 
   /** Au premier toucher (les navigateurs interdisent le son avant). */
   unlock() {
@@ -52,7 +53,13 @@ class BackgroundMusic {
     this.fadeTo(this.timer ? this.level() : 0, 0.3);
   }
 
-  private level() { return VOLUME * (this.ducked ? 0.35 : 1); }
+  /** Silence complet pendant que le dino écoute l'enfant (le micro entendrait la musique). */
+  hush(on: boolean) {
+    this.hushed = on;
+    this.fadeTo(this.timer ? this.level() : 0, 0.2);
+  }
+
+  private level() { return this.hushed ? 0 : VOLUME * (this.ducked ? 0.35 : 1); }
 
   private fadeTo(value: number, seconds: number) {
     if (!this.ctx || !this.master) return;

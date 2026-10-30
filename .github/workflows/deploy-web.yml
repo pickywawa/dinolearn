@@ -29,6 +29,14 @@ jobs:
           cache: npm
           cache-dependency-path: web/package-lock.json
       - run: npm ci
+      # Packs de reconnaissance vocale (jeux à voix haute), servis à côté du jeu : téléchargés une fois, puis en cache.
+      - uses: actions/cache@v4
+        with:
+          path: web/public/voice
+          key: voice-packs-v1-${{ hashFiles('web/scripts/voice-packs.mjs') }}
+      - run: npm run voice-packs
+      # Les tests vérifient que les images existent (et le vocabulaire des packs).
+      - run: npm run icons
       - run: npm test
       - run: npm run build
       - uses: actions/upload-pages-artifact@v3

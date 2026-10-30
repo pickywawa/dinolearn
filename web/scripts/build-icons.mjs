@@ -24,7 +24,7 @@ const FRUITS = [
 const DECOR = ['palm-tree', 'sauropod', 't-rex', 'herb', 'butterfly'];
 const FLAGS = [
   'gb', 'fr', 'be', 'ch', 'ca', 'lu', 'it', 'ie', 'nl', 'de', 'es', 'us', 'jp', 'br', 'cn', 'mx', 'at', 'ro', 'pe', 'dk',
-  'ru', 'td', 'li', 'in', 'sn', 'lb', 'to',
+  'ru', 'td', 'li', 'in', 'sn', 'lb', 'to', 'au', 'eg', 'gr', 'ma', 'pt',
 ];
 
 function write(name, set, icon) {
@@ -123,3 +123,8 @@ for (const icon of UI_ICONS) write(`ui-${icon}`, plush, icon);
 for (const flag of FLAGS) write(`flag-${flag}`, flags, flag);
 
 console.log(`${concepts.length} concepts, ${FRUITS.length + 1} aliments, ${UI_ICONS.length} icônes → public/img/`);
+// Jeux à voix haute : bulles, et images `or-<nom Noto>` des devinettes (relevées dans le code des contenus).
+write('vo-micro', noto, 'studio-microphone');
+write('vo-name', noto, 'speaking-head');
+const oralSources = ['oral.ts', 'voiceGames.ts'].map((f) => readFileSync(new URL(`../src/content/${f}`, import.meta.url), 'utf8'));
+for (const icon of new Set(oralSources.join('\n').match(/(?<='or-)[a-z0-9-]+(?=')/g))) write(`or-${icon}`, noto, icon);

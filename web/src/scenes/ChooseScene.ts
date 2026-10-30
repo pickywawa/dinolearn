@@ -9,19 +9,22 @@ import { BaseScene } from './BaseScene';
 /**
  * Choix d'un jeu (ouvert par le petit bouton de l'accueil) : une bulle par
  * jeu. Le dino présente chaque bulle en la montrant ; seule la bulle survolée
- * par la main est entourée.
+ * par la main est entourée. Les jeux à voix haute sont rangés derrière une
+ * bulle micro (si les parents ont autorisé le micro).
  */
 export class ChooseScene extends BaseScene {
   private dino!: Dino;
   private guide!: Guide;
   private bubbles: { bubble: Bubble; line: string }[] = [];
+  private voice = false;
 
   constructor() {
     super('Choose');
   }
 
-  create() {
+  create(data: { voice?: boolean } = {}) {
     this.initBase();
+    this.voice = !!data.voice;
     // Temps de jeu fini : retour à l'accueil (bloqué par le code parent).
     if (app.progress.timeIsUp() || app.progress.isSleeping()) {
       goTo(this, 'Home');
@@ -33,20 +36,24 @@ export class ChooseScene extends BaseScene {
     const u = unit(this);
     const portrait = isPortrait(this);
 
-    homeButton(this, () => goTo(this, 'Home'));
+    homeButton(this, () => (this.voice ? goTo(this, 'Choose') : goTo(this, 'Home')));
     this.dino = new Dino(this, W / 2, H * (portrait ? 0.92 : 0.96), u * (portrait ? 0.5 : 0.55));
     makeTickable(this.dino);
     this.guide = new Guide(this, u * 0.15);
 
     // Seuls les jeux de l'âge de l'enfant sont proposés (l'anglais et le calcul à partir de 5 ans…).
-    const games = playableGames();
-    const { positions, rowStep } = bubbleGrid(games.length, portrait);
+    const playable = playableGames();
+    const games = playable.filter((g) => !!g.voice === this.voice);
+    const entries = games.map((game) => ({ color: game.color, icon: game.icon, line: game.homeLine, go: () => this.play(game.id) }));
+    if (!this.voice && playable.some((g) => g.voice)) {
+      entries.push({ color: 0xe5484d, icon: 'vo-micro', line: 'home.voice', go: () => this.openVoice() });
+    }
+    const { positions, rowStep } = bubbleGrid(entries.length, portrait);
     // Rayon : aussi grand que possible sans que les bulles se touchent.
     const r = Math.min(u * 0.12, H * rowStep * 0.42, W * (portrait ? 0.105 : 0.06));
-    this.bubbles = games.map((game, i) => ({
-      bubble: new Bubble(this, W * positions[i][0], H * positions[i][1], r, game.color, game.icon,
-        () => this.play(game.id)),
-      line: game.homeLine,
+    this.bubbles = entries.map((entry, i) => ({
+      bubble: new Bubble(this, W * positions[i][0], H * positions[i][1], r, entry.color, entry.icon, entry.go),
+      line: entry.line,
     }));
 
     this.run(async () => {
@@ -57,7 +64,7 @@ export class ChooseScene extends BaseScene {
 
   /** Le dino présente chaque jeu en le montrant ; la bulle n'est entourée que pendant ce temps. */
   private async presentGames() {
-    await this.say('home.choose');
+    await this.say(this.voice ? 'home.voice_choose' : 'home.choose');
     for (const { bubble, line } of this.bubbles) {
       bubble.highlight(true);
       this.dino.pointAt(bubble.x, bubble.y);
@@ -77,6 +84,13 @@ export class ChooseScene extends BaseScene {
     }, true);
     await this.say('home.choose');
     this.armIdle([[14000, () => this.run(() => this.reminder())]]);
+  }
+
+  private openVoice() {
+    this.clearIdle();
+    this.guide.hide();
+    this.dino.react('happy');
+    goTo(this, 'Choose', { voice: true });
   }
 
   private play(gameId: string) {

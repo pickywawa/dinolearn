@@ -156,6 +156,8 @@ describe('contenus', () => {
       return 4;
     };
     for (const game of GAMES) {
+      // Jeux à voix haute : vérifiés à part (test/voice.test.ts).
+      if (game.voice) continue;
       // « Mon pays » : une quinzaine de questions sur le pays de l'enfant.
       expect(game.questions.length).toBeGreaterThan(game.id === 'MO-6' ? 10 : 40);
       // Chaque niveau de 1 à 20 a des questions.

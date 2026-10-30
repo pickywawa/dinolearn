@@ -1,15 +1,17 @@
 import { QuestionRef, Rng, mulberry32, shuffle } from '../domain/models';
+import { SayTarget, SpeechLang } from '../domain/speech';
 import {
-  CONCEPTS, Concept, DistractorStrategy, Speech, conceptById, conceptsFor, frWithArticle, pickDistractors,
+  CATEGORY_HINTS, CONCEPTS, Concept, DistractorStrategy, Speech, conceptById, conceptsFor, frWithArticle, pickDistractors,
 } from './content';
 import { PAIRS, SIZES, SYLLABLES, enNumber } from './extra';
 import { frNumber } from './numbers';
 import { LETTER_LEVELS, LETTER_NAMES, LOOKALIKE_LETTERS, READ_WORDS, SYLLABLES_TO_READ } from './reading';
-import { RIDDLES } from './riddles';
+import { RIDDLES, excludedFor } from './riddles';
 import { BANKNOTES, CELEBRATIONS, COUNTRIES, Country, FAR_FLAGS, FOREIGN_FOODS, OTHER_ANIMALS, currentCountry } from './countries';
 import { SENTENCES } from './sentences';
 import { LETTER_MODELS, SHAPE_MODELS, TRACE_MODES, TraceMode, TraceModel, traceModel } from './tracing';
 import { ONSETS, RHYMES } from './sounds';
+import { VOICE_GAMES } from './voiceGames';
 
 /** Une réponse possible : une image, un nombre (carte à points) ou un tas d'objets. */
 export interface Choice {
@@ -73,6 +75,12 @@ export interface BuiltQuestion {
   reinforce: Speech[];
   /** Indices donnés quand c'est difficile (après une erreur, ou si l'enfant hésite). */
   hints?: Speech[];
+  /** Jeu à voix haute : ce que l'enfant doit dire. Les cartes servent si le micro ne l'entend pas. */
+  say?: SayTarget;
+  /** Jeu à voix haute, quand on passe aux cartes : autre consigne, et `show` caché s'il donne la réponse. */
+  fallback?: { prompt?: Speech[]; hideShow?: boolean };
+  /** Jeu à voix haute : le dino dit la réponse et l'enfant la répète (après une erreur). */
+  repeatAfterMe?: Speech[];
 }
 
 export interface GameDef {
@@ -83,6 +91,8 @@ export interface GameDef {
   trace?: boolean;
   /** Âge minimum de l'enfant pour que le jeu soit proposé (3 par défaut). */
   minAge?: number;
+  /** Jeu à voix haute : langue du pack de reconnaissance vocale nécessaire. */
+  voice?: SpeechLang;
   /** Image de la bulle du jeu. */
   icon: string;
   /** Couleur de la bulle et du décor. */
@@ -104,16 +114,6 @@ const idOf = (ref: QuestionRef) => ref.id.split(':')[1];
 /** Leurres selon le niveau : autre famille → même famille → même sous-famille. */
 const strategyFor = (level: number, sameGroupFrom: number, sameCategoryFrom: number): DistractorStrategy =>
   level >= sameCategoryFrom ? 'same_category' : level >= sameGroupFrom ? 'same_group' : 'other_group';
-
-/** Indice de famille, au singulier (« c'est un animal de la ferme »). */
-const CATEGORY_HINTS: Record<string, string> = {
-  farm: 'un animal de la ferme', sea: 'un animal de la mer', bird: 'un oiseau', bug: 'une petite bête',
-  wild: 'un animal sauvage', forest: 'un animal de la forêt', fruit: 'un fruit', veg: 'un légume',
-  meal: 'quelque chose qui se mange', vehicle: 'un véhicule', toy: 'un jouet', home: 'un objet de la maison',
-  clothes: 'quelque chose qu\'on porte', tool: 'un outil', kitchen: 'un objet de tous les jours',
-  music: 'un instrument de musique', sky: 'quelque chose qu\'on voit dans le ciel', plant: 'une plante',
-  body: 'une partie du corps', landscape: 'un endroit', color: 'une couleur', element: 'quelque chose de la nature',
-};
 
 const riddleText = new Map(RIDDLES.map(([id, , text]) => [id, text]));
 /** Concept d'une devinette (`whale~2` : deuxième devinette de la baleine). */
@@ -227,37 +227,6 @@ const showMe: GameDef = {
 // ---- Monde : « Devinettes » ----
 
 const riddlePool = CONCEPTS.filter((c) => c.group !== 'color');
-
-/**
- * Leurres interdits parce qu'ils répondraient aussi à la devinette
- * (« je brille la nuit » : la lune, mais aussi l'étoile). `cat:` = toute une sous-famille.
- */
-const RIDDLE_EXCLUDE: Record<string, string[]> = {
-  moon: ['star'], sun: ['star'], mouth: ['tooth'], tooth: ['mouth', 'tongue'], bat: ['owl'], owl: ['bat'], hat: ['cap'],
-  fish: ['cat:sea'], bird: ['cat:bird'], plane: ['helicopter', 'rocket'], helicopter: ['plane', 'rocket'],
-  wolf: ['dog', 'fox'], horse: ['zebra'], zebra: ['horse'], eye: ['glasses'], glasses: ['eye'],
-  socks: ['shoe'], cow: ['goat', 'ox'], guitar: ['violin'], drum: ['piano'], snail: ['turtle'], turtle: ['snail'],
-  fire: ['fire_engine', 'volcano'], volcano: ['fire', 'mountain'], milk: ['cheese', 'bottle'],
-  honey: ['bee'], bee: ['honey'], potato: ['fries'], fries: ['potato'], candle: ['cake', 'fire'],
-  window: ['mirror', 'glasses'], mirror: ['window', 'glasses'], seal: ['penguin', 'polar_bear'],
-  polar_bear: ['bear', 'seal', 'penguin'], bone: ['dog', 'tooth'], worm: ['snake', 'snail'], snake: ['worm'],
-  mosquito: ['bee', 'spider'], jellyfish: ['octopus'], lightning: ['rain', 'cloud'], comet: ['star', 'rocket'],
-  rocket: ['satellite', 'comet'], satellite: ['rocket'], parachute: ['plane', 'helicopter', 'balloon'],
-  axe: ['saw'], saw: ['axe'], octopus: ['squid', 'jellyfish'], kangaroo: ['koala'], clock: ['bell', 'hourglass'],
-  hourglass: ['clock'], snowman: ['snowflake'], bread: ['croissant', 'cake', 'sandwich'], dolphin: ['whale', 'seal'],
-  whale: ['dolphin'], compass: ['clock'], magnet: ['key'],
-  feather: ['bird', 'leaf'], koala: ['monkey', 'sloth'], sloth: ['koala', 'monkey'],
-  mammoth: ['elephant'], elephant: ['mammoth'], scorpion: ['crab', 'spider'], oyster: ['crab'],
-  lock: ['key', 'door'], key: ['lock', 'door'], bell: ['clock'], light_bulb: ['lamp', 'flashlight', 'candle'],
-  lamp: ['light_bulb', 'flashlight'], tongue: ['mouth'], rooster: ['hen', 'bird', 'turkey'],
-  hen: ['rooster', 'turkey'], turkey: ['hen', 'rooster'], donkey: ['horse'], onion: ['garlic'],
-  bucket: ['bottle'], brain: ['eye'], tornado: ['cloud'], paintbrush: ['pencil', 'crayon'],
-};
-
-const excludedFor = (answer: Concept) => {
-  const rules = RIDDLE_EXCLUDE[answer.id] ?? [];
-  return (c: Concept) => rules.some((r) => (r.startsWith('cat:') ? c.category === r.slice(4) : c.id === r));
-};
 
 const riddles: GameDef = {
   id: 'MO-2',
@@ -1836,7 +1805,7 @@ const myCountry: GameDef = {
 export const GAMES: GameDef[] = [
   listenTap, englishNumbers, showMe, riddles, shadows, together, bigger, myCountry, missingWord, missingWordRead, sounds,
   syllables, readWord, readPicture, letters, oddOneOut, shapesGame, counting, numbers, sequence, most, calc,
-  clockGame, moneyGame, traceShapes, traceLetters,
+  clockGame, moneyGame, traceShapes, traceLetters, ...VOICE_GAMES,
 ];
 
 /** Jeux proposés à un enfant de cet âge. */

@@ -26,11 +26,16 @@ export interface Country {
   currency?: [string, string];
   /** Un monument ou un paysage célèbre : [image, question, réponse, leurres]. */
   landmark?: [string, string, string, string[]];
+  /** Les habitants (« les Français », puis le féminin) : jeu à voix haute. */
+  people: string[];
+  /** Langues parlées dans le pays. */
+  languages: string[];
 }
 
 export const COUNTRIES: Country[] = [
   {
     code: 'fr', name: 'la France', of: 'de la France', in: 'en France',
+    people: ['les Français', 'Françaises'], languages: ['le français'],
     flagTraps: ['nl', 'ru', 'it', 'ie', 'lu'], neighbours: ['be', 'ch', 'de', 'it', 'es', 'lu'],
     capital: 'Paris', cities: ['Lyon', 'Marseille', 'Nice', 'Bordeaux', 'Lille'],
     symbols: [['rooster', 'le coq']],
@@ -41,6 +46,7 @@ export const COUNTRIES: Country[] = [
   },
   {
     code: 'be', name: 'la Belgique', of: 'de la Belgique', in: 'en Belgique',
+    people: ['les Belges'], languages: ['le français', 'néerlandais', 'flamand', 'allemand'],
     flagTraps: ['de', 'ro', 'td', 'fr'], neighbours: ['fr', 'nl', 'de', 'lu'],
     capital: 'Bruxelles', cities: ['Anvers', 'Liège', 'Gand', 'Namur', 'Bruges'],
     symbols: [['lion', 'le lion']],
@@ -49,6 +55,7 @@ export const COUNTRIES: Country[] = [
   },
   {
     code: 'ch', name: 'la Suisse', of: 'de la Suisse', in: 'en Suisse',
+    people: ['les Suisses', 'Suissesses'], languages: ['le français', 'allemand', 'italien', 'romanche'],
     flagTraps: ['dk', 'at', 'to', 'gb'], neighbours: ['fr', 'de', 'it', 'at', 'li'],
     capital: 'Berne', cities: ['Zurich', 'Genève', 'Bâle', 'Lausanne', 'Lugano'],
     symbols: [['cow', 'la vache']],
@@ -59,6 +66,7 @@ export const COUNTRIES: Country[] = [
   },
   {
     code: 'ca', name: 'le Canada', of: 'du Canada', in: 'au Canada',
+    people: ['les Canadiens', 'Canadiennes'], languages: ['le français', 'anglais'],
     flagTraps: ['pe', 'at', 'lb', 'dk'], neighbours: ['us'],
     capital: 'Ottawa', cities: ['Montréal', 'Toronto', 'Québec', 'Vancouver', 'Calgary'],
     symbols: [['cty-maple-leaf', 'la feuille d\'érable'], ['beaver', 'le castor']],
@@ -69,6 +77,7 @@ export const COUNTRIES: Country[] = [
   },
   {
     code: 'lu', name: 'le Luxembourg', of: 'du Luxembourg', in: 'au Luxembourg',
+    people: ['les Luxembourgeois', 'Luxembourgeoises'], languages: ['le luxembourgeois', 'français', 'allemand'],
     flagTraps: ['nl', 'fr', 'ru', 'ro'], neighbours: ['fr', 'be', 'de'],
     capital: 'Luxembourg', cities: ['Esch', 'Diekirch', 'Ettelbruck', 'Echternach', 'Wiltz'],
     symbols: [['lion', 'le lion rouge']],
