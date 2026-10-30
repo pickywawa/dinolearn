@@ -41,6 +41,8 @@ export class EndScene extends BaseScene {
 
   create(data: EndData) {
     this.initBase();
+    // Le soir, cette série était la dernière.
+    app.progress.markNightSeries();
     drawScenery(this, 0xffe9a8, 0xfff8e6);
     const r = data.result;
     const { width: W, height: H } = this.scale;
@@ -210,9 +212,15 @@ export class EndScene extends BaseScene {
     await this.showAgain();
   }
 
-  /** Le dino montre le bouton vert pour rejouer. */
+  /** Le dino montre le bouton vert pour rejouer (le soir : il dit bonne nuit et va se coucher). */
   private async showAgain() {
     this.clearIdle();
+    if (app.progress.isSleeping()) {
+      this.dino.react('yawn');
+      await this.say('night.goodnight');
+      goTo(this, 'Home');
+      return;
+    }
     this.again.setVisible(true).setScale(0);
     this.tweens.add({ targets: this.again, scale: 1, duration: 350, ease: 'Back.easeOut' });
     this.again.highlight(true);

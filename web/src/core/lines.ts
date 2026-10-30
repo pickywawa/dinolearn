@@ -53,6 +53,8 @@ export const LINES: Record<string, string[]> = {
   'home.FR-6': ['La bulle : trouve le mot qui manque !'],
   'home.FR-7': ['La feuille : complète la phrase avec le bon mot écrit !'],
   'home.LO-7': ['La palette : les formes et les couleurs !'],
+  'home.LO-8': ['Le réveil : quelle heure est-il ?'],
+  'home.LO-9': ['Le billet : on compte les sous !'],
   'intro.MIX': [
     'On mélange tous les jeux ! Écoute bien chaque question.',
     'Surprise : une question de chaque jeu ! Écoute bien.',
@@ -80,6 +82,8 @@ export const LINES: Record<string, string[]> = {
   'short.FR-6': ['Le mot qui manque !', 'Une phrase à trou !'],
   'short.FR-7': ['Complète la phrase !'],
   'short.LO-7': ['Les formes !', 'Formes et couleurs !'],
+  'short.LO-8': ['Quelle heure est-il ?', 'L\'heure !'],
+  'short.LO-9': ['On compte les sous !', 'La monnaie !'],
   'home.level': ['L\'étoile, c\'est mon niveau !'],
   'home.age': ['Le gâteau, c\'est pour changer ton âge.'],
   'age.ask': ['Quel âge as-tu ? Touche le gâteau avec ton âge !'],
@@ -179,6 +183,14 @@ export const LINES: Record<string, string[]> = {
   'intro.LO-7': [
     'On joue avec les formes et les couleurs ! Écoute bien, et touche la bonne forme.',
     'Ronds, carrés, triangles… et plein de couleurs ! Trouve celle que je dis.',
+  ],
+  'intro.LO-8': [
+    'Regarde bien les horloges ! La petite aiguille montre l\'heure, la grande les minutes.',
+    'Tic-tac ! Trouve l\'horloge qui montre l\'heure que je dis.',
+  ],
+  'intro.LO-9': [
+    'On joue à la marchande ! Compte les pièces, et trouve la bonne somme.',
+    'Des pièces et des billets ! Trouve la carte où il y a ce que je dis.',
   ],
   tutorial: ['Regarde, je te montre ! On touche la bonne image, comme ça !'],
   tutorial_your_turn: ['À toi maintenant !'],
@@ -307,6 +319,15 @@ export const LINES: Record<string, string[]> = {
   'wardrobe.empty': ['Mon armoire est vide ! Quand je grandis, tu gagnes un objet pour moi.'],
   'home.wardrobe': ['Le chapeau, c\'est pour m\'habiller !'],
   'gift.waiting': ['J\'ai grandi ! Touche le cadeau pour choisir un objet pour moi !'],
+  'night.last': [
+    'Oh là là, il commence à être tard… On fait une dernière série, et après, dodo ?',
+    'Ouaaah… j\'ai sommeil. Allez, une toute dernière série !',
+  ],
+  'night.goodnight': [
+    'C\'était la dernière série ! Merci pour cette belle journée. Bonne nuit !',
+    'Bravo ! Maintenant, je vais faire de beaux rêves. Bonne nuit, à demain !',
+  ],
+  'night.sleep': ['Chut… je dors. Zzz… À demain !'],
   bedtime: [
     'On a bien joué aujourd\'hui ! Maintenant, je vais faire dodo. On rejoue demain ?',
     'C\'est l\'heure de me reposer ! À demain, mon copain !',

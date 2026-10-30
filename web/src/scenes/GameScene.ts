@@ -562,6 +562,10 @@ export class GameScene extends BaseScene {
       container.add(this.numberFace(choice.count, size));
     } else if (choice.repeat) {
       container.add(this.pileFace(choice.repeat.image, choice.repeat.count, size));
+    } else if (choice.clock) {
+      container.add(this.clockFace(choice.clock.h, choice.clock.m, size));
+    } else if (choice.money) {
+      container.add(this.moneyFace(choice.money, size));
     } else if (choice.shape) {
       container.add(this.shapeFace(choice.shape, size));
     } else if (choice.text) {
@@ -599,6 +603,93 @@ export class GameScene extends BaseScene {
       dots.fillStyle(0xe5484d, 1).fillCircle(x, y, r);
     }
     return [digit, dots];
+  }
+
+  /** Horloge à aiguilles : petite aiguille épaisse pour l'heure, grande et fine pour les minutes. */
+  private clockFace(h: number, m: number, size: number): Phaser.GameObjects.GameObject[] {
+    const r = size * 0.42;
+    const g = this.add.graphics();
+    g.fillStyle(0xfffdf5, 1).fillCircle(0, 0, r).lineStyle(size * 0.03, 0x1e88e5, 1).strokeCircle(0, 0, r);
+    for (let i = 0; i < 60; i++) {
+      const a = (i * Math.PI) / 30;
+      const inner = i % 5 === 0 ? r * 0.86 : r * 0.92;
+      g.lineStyle(i % 5 === 0 ? size * 0.012 : size * 0.005, 0x2d3354, 0.7)
+        .lineBetween(Math.sin(a) * inner, -Math.cos(a) * inner, Math.sin(a) * r * 0.97, -Math.cos(a) * r * 0.97);
+    }
+    const numbers = Array.from({ length: 12 }, (_, i) => {
+      const a = ((i + 1) * Math.PI) / 6;
+      return this.add.text(Math.sin(a) * r * 0.72, -Math.cos(a) * r * 0.72, String(i + 1), {
+        fontFamily: 'Andika, Arial, sans-serif', fontSize: `${Math.round(size * 0.075)}px`, color: '#2d3354', fontStyle: 'bold',
+      }).setOrigin(0.5);
+    });
+    const hands = this.add.graphics();
+    const hourAngle = (((h % 12) + m / 60) * Math.PI) / 6;
+    const minuteAngle = (m * Math.PI) / 30;
+    hands.lineStyle(size * 0.04, 0x2d3354, 1)
+      .lineBetween(0, 0, Math.sin(hourAngle) * r * 0.48, -Math.cos(hourAngle) * r * 0.48);
+    hands.lineStyle(size * 0.022, 0xe5484d, 1)
+      .lineBetween(0, 0, Math.sin(minuteAngle) * r * 0.78, -Math.cos(minuteAngle) * r * 0.78);
+    hands.fillStyle(0x2d3354, 1).fillCircle(0, 0, size * 0.03);
+    return [g, ...numbers, hands];
+  }
+
+  /**
+   * Pièces et billets en euros, dessinés : billets en haut (deux par ligne),
+   * pièces en dessous ; tout rétrécit s'il y en a beaucoup.
+   */
+  private moneyFace(items: number[], size: number): Phaser.GameObjects.GameObject[] {
+    const objects: Phaser.GameObjects.GameObject[] = [];
+    const g = this.add.graphics();
+    objects.push(g);
+    const label = (x: number, y: number, text: string, px: number) => {
+      objects.push(this.add.text(x, y, text, {
+        fontFamily: 'Andika, Arial, sans-serif', fontSize: `${Math.round(px)}px`, color: '#2d3354', fontStyle: 'bold',
+      }).setOrigin(0.5));
+    };
+    const bills = items.filter((c) => c >= 500);
+    const coins = items.filter((c) => c < 500);
+    const coinsPerRow = coins.length <= 4 ? coins.length : 3;
+    const billRows = Math.ceil(bills.length / 2);
+    const coinRows = coinsPerRow ? Math.ceil(coins.length / coinsPerRow) : 0;
+    const billRow = 0.25;
+    const coinRow = 0.23;
+    const height = billRows * billRow + coinRows * coinRow;
+    // Échelle : tout tient dans 90 % de la carte.
+    const k = size * Math.min(1, 0.9 / height);
+    let y = (-height / 2) * k;
+
+    const billColors: Record<number, number> = { 500: 0x9aa9a3, 1000: 0xe2867a, 2000: 0x6f9fdc };
+    const bw = 0.4 * k;
+    const bh = 0.21 * k;
+    for (let row = 0; row < billRows; row++) {
+      const inRow = bills.slice(row * 2, row * 2 + 2);
+      const cy = y + (billRow * k) / 2;
+      inRow.forEach((c, i) => {
+        const x = (i - (inRow.length - 1) / 2) * bw * 1.1;
+        g.fillStyle(billColors[c], 1).fillRoundedRect(x - bw / 2, cy - bh / 2, bw, bh, 0.02 * k)
+          .lineStyle(0.008 * k, 0x2d3354, 0.8).strokeRoundedRect(x - bw / 2, cy - bh / 2, bw, bh, 0.02 * k);
+        label(x, cy, `${c / 100} €`, 0.08 * k);
+      });
+      y += billRow * k;
+    }
+
+    // Les vraies pièces n'ont pas toutes la même taille : 2 € la plus grande, 1 centime la plus petite.
+    const radius: Record<number, number> = { 1: 0.072, 2: 0.08, 5: 0.088, 10: 0.083, 20: 0.09, 50: 0.098, 100: 0.095, 200: 0.104 };
+    coins.forEach((c, i) => {
+      const row = Math.floor(i / coinsPerRow);
+      const inRow = Math.min(coinsPerRow, coins.length - row * coinsPerRow);
+      const x = ((i % coinsPerRow) - (inRow - 1) / 2) * coinRow * k;
+      const cy = y + (row + 0.5) * coinRow * k;
+      const r = (radius[c] ?? 0.085) * k;
+      const copper = 0xc8794a;
+      const gold = 0xe2b33c;
+      const silver = 0xc9ccd3;
+      const [outer, inner] = c === 100 ? [gold, silver] : c === 200 ? [silver, gold] : c >= 10 ? [gold, gold] : [copper, copper];
+      g.fillStyle(outer, 1).fillCircle(x, cy, r).lineStyle(0.007 * k, 0x2d3354, 0.8).strokeCircle(x, cy, r);
+      if (inner !== outer) g.fillStyle(inner, 1).fillCircle(x, cy, r * 0.68);
+      label(x, cy, c >= 100 ? `${c / 100}€` : `${c}c`, r * 0.85);
+    });
+    return objects;
   }
 
   /** Forme colorée, grande ou petite. */

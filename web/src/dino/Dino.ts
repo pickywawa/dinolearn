@@ -103,6 +103,23 @@ export class Dino extends Phaser.GameObjects.Container {
     }
   }
 
+  /** Le dino s'endort : yeux fermés et petits « z » qui s'envolent. */
+  sleep() {
+    this.setEyes('closed');
+    this.mouth.setTexture('dino-mouth-smile');
+    this.scene.time.addEvent({
+      delay: 1400, loop: true, callback: () => {
+        if (!this.active) return;
+        const z = this.scene.add.text(70, -470, 'z', {
+          fontFamily: 'Arial Rounded MT Bold, Arial, sans-serif', fontSize: '64px', color: '#ffffff', fontStyle: 'bold',
+          stroke: '#2d3354', strokeThickness: 8,
+        }).setOrigin(0.5);
+        this.add(z);
+        this.scene.tweens.add({ targets: z, x: 150, y: -620, alpha: 0, scale: 1.6, duration: 2200, onComplete: () => z.destroy() });
+      },
+    });
+  }
+
   /** Hauteur affichée en pixels. */
   setHeight(height: number) {
     this.setScale(height / Dino.HEIGHT);

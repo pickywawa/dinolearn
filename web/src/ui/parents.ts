@@ -1,5 +1,6 @@
 import { GAMES, GameDef } from '../content/games';
 import { app } from '../core/app';
+import { Music } from '../core/music';
 import { Sfx } from '../core/sfx';
 import { BALANCE } from '../domain/balance';
 import { baseLevel } from '../domain/difficulty';
@@ -20,6 +21,7 @@ const TITLES: Record<string, string> = {
   'FR-3': 'Français — Lis le mot', 'FR-4': 'Français — Les lettres', 'LO-1': 'Logique — L\'intrus',
   'LO-2': 'Logique — Combien ?', 'LO-3': 'Logique — La suite', 'LO-4': 'Logique — Le plus, le moins',
   'LO-5': 'Logique — Calcul', 'LO-6': 'Logique — Les nombres', 'LO-7': 'Logique — Formes et couleurs',
+  'LO-8': 'Logique — L\'heure', 'LO-9': 'Logique — La monnaie',
   'FR-5': 'Français — Lis et touche l\'image', 'FR-6': 'Français — La phrase à trou (images)',
   'FR-7': 'Français — La phrase à trou (mots écrits)',
 };
@@ -178,6 +180,15 @@ export function openParents(onClose: () => void) {
       });
       choices.append(b);
     }
+    const nights = el('div', { class: 'row', style: 'margin-top:12px' });
+    for (const t of ['', '18:30', '19:00', '19:30', '20:00', '20:30', '21:00']) {
+      const b = el('button', { class: p.settings.nightTime === t ? 'on' : '' }, t ? t.replace(':', ' h ') : 'Pas de mode nuit');
+      b.addEventListener('click', () => {
+        p.updateSettings({ nightTime: t });
+        render();
+      });
+      nights.append(b);
+    }
     const week = p.playWeek();
     const max = Math.max(...week.map((d) => d.ms), 60_000);
     const days = ['dim', 'lun', 'mar', 'mer', 'jeu', 'ven', 'sam'];
@@ -192,6 +203,10 @@ export function openParents(onClose: () => void) {
         + 'lendemain : le dino va se coucher. Avec votre code, vous pouvez ajouter 15 ou 30 minutes, ou débloquer la journée.'),
       choices,
       chart,
+      el('h2', { style: 'margin-top:16px' }, 'Heure du coucher (mode nuit)'),
+      el('p', { class: 'help' }, 'Après cette heure, le ciel devient nuit et le dino bâille : il propose une dernière série, '
+        + 'puis il va dormir jusqu\'au matin. Votre code permet de jouer encore ce soir.'),
+      nights,
     );
   }
 
@@ -285,6 +300,13 @@ export function openParents(onClose: () => void) {
       p.updateSettings({ sfx: on });
       Sfx.enabled = on;
     });
+    const music = el('input', { type: 'checkbox', 'aria-label': 'Musique de fond' });
+    (music as HTMLInputElement).checked = p.settings.music;
+    music.addEventListener('change', () => {
+      const on = (music as HTMLInputElement).checked;
+      p.updateSettings({ music: on });
+      Music.setEnabled(on);
+    });
     const voices = app.voice.voiceNames();
     const test = el('button', {}, 'Tester la voix');
     test.addEventListener('click', () => {
@@ -295,6 +317,10 @@ export function openParents(onClose: () => void) {
       el('div', { class: 'row', style: 'justify-content:space-between' },
         el('span', {}, 'Bruitages (bonnes réponses, erreurs, miam…)'),
         el('label', { class: 'switch' }, sfx, el('span')),
+      ),
+      el('div', { class: 'row', style: 'justify-content:space-between;margin-top:12px' },
+        el('span', {}, 'Musique de fond douce (l\'enfant peut aussi la couper depuis l\'accueil)'),
+        el('label', { class: 'switch' }, music, el('span')),
       ),
       el('p', { class: 'help', style: 'margin-top:12px' },
         `Voix française : ${voices.fr ?? 'aucune trouvée'} · Voix anglaise : ${voices.en ?? 'aucune trouvée'}. `

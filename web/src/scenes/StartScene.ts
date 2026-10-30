@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { app } from '../core/app';
+import { Music } from '../core/music';
 import { Sfx } from '../core/sfx';
 import { Dino } from '../dino/Dino';
 import { Guide } from '../ui/Guide';
@@ -47,6 +48,7 @@ export class StartScene extends BaseScene {
       // Dans le geste lui-même : débloque l'audio (navigateurs mobiles).
       app.voice.unlock();
       Sfx.unlock();
+      Music.unlock();
       app.awake = true;
       guide.hide();
       Sfx.play('boing');

@@ -25,6 +25,21 @@ export function drawScenery(scene: Phaser.Scene, skyTop = 0x9fd8ff, skyBottom = 
   }
 }
 
+/** Ciel de nuit : la lune et des étoiles qui scintillent (à dessiner après `drawScenery`). */
+export function drawNightSky(scene: Phaser.Scene) {
+  const { width: W, height: H } = scene.scale;
+  const u = Math.min(W, H);
+  for (let i = 0; i < 40; i++) {
+    const star = scene.add.circle(Phaser.Math.Between(0, W), Phaser.Math.Between(0, H * 0.6),
+      Phaser.Math.FloatBetween(1.5, 4), 0xfff7c2).setDepth(-11.5);
+    scene.tweens.add({ targets: star, alpha: 0.2, duration: Phaser.Math.Between(700, 1800), yoyo: true, repeat: -1,
+      delay: Phaser.Math.Between(0, 1500) });
+  }
+  const moon = scene.add.image(W * 0.28, H * 0.17, 'ui-moon').setDepth(-11.5);
+  moon.setScale((u * 0.18) / moon.width);
+  scene.tweens.add({ targets: moon, angle: { from: -6, to: 6 }, duration: 4000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+}
+
 /** Le dino grandit avec son niveau (1 à 40) : facteur de taille d'affichage. */
 export const growthFactor = (level: number) => 0.8 + Math.min(40, level) * 0.01;
 

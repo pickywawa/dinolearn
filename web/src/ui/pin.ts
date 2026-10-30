@@ -238,6 +238,15 @@ export async function firstLaunchSetup() {
   app.progress.updateSettings({ dailyMinutes: DAILY[index ?? 0] });
 }
 
+/** Mode nuit : un parent peut laisser jouer encore ce soir avec son code. */
+export async function unlockNight(): Promise<boolean> {
+  if (!await askParentCode('Le dino dort', 'C\'est l\'heure du coucher. Tapez le code parent pour jouer encore ce soir.')) {
+    return false;
+  }
+  app.progress.unlockNight();
+  return true;
+}
+
 /** Le temps est fini : un parent peut ajouter du temps avec son code. Vrai si débloqué. */
 export async function unlockPlayTime(): Promise<boolean> {
   if (!await askParentCode('Temps de jeu terminé', 'Tapez le code parent pour ajouter du temps de jeu aujourd\'hui.')) {

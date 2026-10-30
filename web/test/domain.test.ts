@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { CONCEPTS, conceptById, conceptsFor, frWithArticle, pickDistractors } from '../src/content/content';
-import { GAMES, gameById, gamesForAge } from '../src/content/games';
+import { GAMES, gameById, gamesForAge, sayMoney, sayTime } from '../src/content/games';
 import { PAIRS, SIZES, enNumber } from '../src/content/extra';
 import { frNumber } from '../src/content/numbers';
 import { ITEMS, giftChoices, sameSlot } from '../src/content/items';
@@ -143,6 +143,8 @@ describe('contenus', () => {
       if (gameId === 'FR-6') return refLevel <= 2 ? 3 : refLevel >= 16 ? 6 : 4;
       if (gameId === 'FR-7') return refLevel >= 16 ? 6 : 4;
       if (gameId === 'LO-7') return refLevel <= 2 ? 3 : refLevel >= 18 ? 6 : 4;
+      if (gameId === 'LO-8') return refLevel <= 2 ? 3 : refLevel >= 17 ? 6 : 4;
+      if (gameId === 'LO-9') return refLevel <= 2 ? 3 : refLevel >= 17 ? 6 : 4;
       if (gameId === 'MO-2' && level >= 15) return 6;
       if (gameId === 'FR-1' && level >= 17) return 6;
       return 4;
@@ -382,6 +384,29 @@ describe('contenus', () => {
     }
   });
 
+  it('l\'heure et la monnaie : une seule bonne carte', () => {
+    expect([[3, 0], [3, 30], [3, 15], [2, 45], [12, 0], [1, 20]].map(([h, m]) => sayTime(h, m))).toEqual([
+      'trois heures', 'trois heures et demie', 'trois heures et quart', 'trois heures moins le quart', 'midi',
+      'une heure vingt']);
+    expect(sayTime(3, 30, true)).toBe('quinze heures trente');
+    for (const ref of gameById('LO-8').questions) {
+      const q = gameById('LO-8').build(ref, ref.level, mulberry32(ref.id.length * 7 + ref.level));
+      const all = [q.answer, ...q.distractors].map((c) => `${c.clock!.h}:${c.clock!.m}`);
+      expect(new Set(all).size, ref.id).toBe(all.length);
+    }
+    expect([250, 100, 50, 1, 2000, 120].map(sayMoney)).toEqual(
+      ['deux euros cinquante', 'un euro', 'cinquante centimes', 'un centime', 'vingt euros', 'un euro vingt']);
+    for (const ref of gameById('LO-9').questions) {
+      const q = gameById('LO-9').build(ref, ref.level, mulberry32(ref.id.length * 3 + ref.level));
+      const sum = (coins: number[]) => coins.reduce((a, b) => a + b, 0);
+      const target = Number(q.answer.id.slice(2));
+      expect(sum(q.answer.money!), ref.id).toBe(target);
+      expect(q.prompt[0].text, ref.id).toContain(sayMoney(target));
+      q.distractors.forEach((d) => expect(sum(d.money!), ref.id).not.toBe(target));
+      [q.answer, ...q.distractors].forEach((c) => expect(c.money!.length, ref.id).toBeLessThanOrEqual(8));
+    }
+  });
+
   it('nombres en lettres', () => {
     expect([1, 17, 21, 71, 80, 91, 100].map(frNumber)).toEqual(
       ['un', 'dix-sept', 'vingt et un', 'soixante et onze', 'quatre-vingts', 'quatre-vingt-onze', 'cent']);
@@ -572,7 +597,7 @@ describe('espace parents', () => {
 
     // Réglages conservés après rechargement et après « tout recommencer ».
     const reloaded = new Progress(store);
-    expect(reloaded.settings).toEqual({ disabledGames: ['EN-1'], dailyMinutes: 20, sfx: false });
+    expect(reloaded.settings).toMatchObject({ disabledGames: ['EN-1'], dailyMinutes: 20, sfx: false, music: true });
     reloaded.reset();
     expect(reloaded.settings.dailyMinutes).toBe(20);
     expect(reloaded.answers()).toHaveLength(0);
@@ -628,5 +653,34 @@ describe('code parent et collection', () => {
     p.takeOff('sunglasses');
     expect(p.collection.worn).toEqual(['top-hat']);
     expect(giftChoices(ITEMS.map((i) => i.id), mulberry32(1))).toHaveLength(0);
+  });
+});
+
+describe('mode nuit', () => {
+  it('le soir, une dernière série, puis dodo jusqu\'au matin (sauf code parent)', () => {
+    const p = new Progress(new MemoryStore());
+    const at = (d: number, h: number, m = 0) => new Date(2026, 9, d, h, m);
+    expect(p.isNight(at(30, 22))).toBe(false);
+    p.updateSettings({ nightTime: '19:30' });
+    expect(p.isNight(at(30, 19, 10))).toBe(false);
+    expect(p.isNight(at(30, 19, 30))).toBe(true);
+    expect(p.isNight(at(31, 5))).toBe(true);
+    expect(p.isNight(at(31, 7))).toBe(false);
+    // Série de l'après-midi : rien.
+    p.markNightSeries(at(30, 17));
+    expect(p.isSleeping(at(30, 20))).toBe(false);
+    // Dernière série du soir : le dino dort, même après minuit, jusqu'à 6 h.
+    p.markNightSeries(at(30, 20));
+    expect(p.isSleeping(at(30, 21))).toBe(true);
+    expect(p.isSleeping(at(31, 2))).toBe(true);
+    expect(p.isSleeping(at(31, 8))).toBe(false);
+    // Le soir suivant, une nouvelle dernière série.
+    expect(p.isSleeping(at(31, 20))).toBe(false);
+    // Un parent débloque : on peut rejouer ce soir.
+    p.markNightSeries(at(31, 20));
+    p.unlockNight(at(31, 20, 30));
+    expect(p.isSleeping(at(31, 21))).toBe(false);
+    p.markNightSeries(at(31, 21));
+    expect(p.isSleeping(at(31, 21, 30))).toBe(false);
   });
 });

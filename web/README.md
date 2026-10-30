@@ -13,7 +13,7 @@ Jeu jouable directement dans le navigateur d'un téléphone ou d'une tablette (p
   le touche), ptérodactyle qui fait un looping, diplodocus au loin, bébé T-rex qui sort de derrière
   la colline, papillons, palmier et fougères. Le dino salue, bâille, rugit, regarde autour de lui,
   saute, fait une pirouette pour un sans-faute.
-- **21 jeux**, 20 niveaux de difficulté : 1–10 maternelle, 11–20 niveau CP (dino niveaux 21 à 40,
+- **23 jeux**, 20 niveaux de difficulté : 1–10 maternelle, 11–20 niveau CP (dino niveaux 21 à 40,
   avec 6 images, des leurres piégeux et des nombres jusqu'à 100). Certains jeux n'apparaissent qu'à
   partir d'un âge : anglais, calcul, lecture, sons et syllabes dès 5 ans ; suites, nombres et tailles dès 4 ans.
   - **Anglais — Écoute et touche** : le mot est dit deux fois par une voix britannique (2 images, 4 au CP) ;
@@ -38,6 +38,10 @@ Jeu jouable directement dans le navigateur d'un téléphone ou d'une tablette (p
   - **Logique — L'intrus** : une seule image n'est pas de la même famille (mots ambigus exclus) ;
   - **Logique — Formes et couleurs** : « le triangle bleu », puis les pièges (même forme, autre
     couleur), les tailles (« le petit cœur rouge ») et « le carré qui n'est pas bleu » ;
+  - **Logique — L'heure** : plusieurs réveils à aiguilles, touche celui qui montre « trois heures et
+    demie » (heures pile, demies, quarts, minutes de 5 en 5, puis « quinze heures trente ») ;
+  - **Logique — La monnaie** : des cartes de pièces et billets en euros, trouve celle qui fait la somme
+    dite par le dino (de 1 € à 30 €, puis centimes et sommes mêlées) ;
   - **Logique — Combien ?** : compter de 1 à 20, avec d'autres fruits mélangés aux niveaux difficiles ;
   - **Logique — Les nombres** : « Touche le nombre soixante-douze » (pièges 27 / 72) ;
   - **Logique — La suite** : suites de fruits (AB… ABCCB), puis de nombres (2, 4, 6… ; 100, 90, 80…) ;
@@ -51,6 +55,11 @@ Jeu jouable directement dans le navigateur d'un téléphone ou d'une tablette (p
   lui en ce moment (« Indice : c'est un animal de la ferme », « Indice : qui fait meuh ? »).
 - **Toucher le dino** pendant un jeu lui fait répéter la question.
 - **Niveau du dino** affiché sur l'accueil (étoile).
+- **Mode nuit** : après l'heure du coucher choisie par les parents, le ciel devient nuit, le dino bâille
+  et propose une dernière série, puis il dit bonne nuit et dort jusqu'au matin (le code parent permet de
+  jouer encore).
+- **Musique de fond** douce, créée par le jeu (aucun fichier), qui se fait discrète quand le dino parle ;
+  bouton note de musique sur l'accueil et réglage dans l'espace parents.
 - **Code parent** : créé au premier lancement (le dino demande à l'enfant d'aller chercher un parent),
   il protège l'espace parents et débloque le jeu quand le temps du jour est fini (+15 min, +30 min ou
   illimité aujourd'hui). « Code oublié ? » : nouveau code après une question pour adulte.

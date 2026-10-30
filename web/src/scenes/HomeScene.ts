@@ -3,13 +3,14 @@ import { app } from '../core/app';
 import { Sfx } from '../core/sfx';
 import { playableGames } from '../core/app';
 import { chooseGifts } from '../ui/gifts';
+import { Music } from '../core/music';
 import { openParents } from '../ui/parents';
-import { askParentCode, createParentCode, firstLaunchSetup, unlockPlayTime } from '../ui/pin';
+import { askParentCode, createParentCode, firstLaunchSetup, unlockNight, unlockPlayTime } from '../ui/pin';
 import { Dino } from '../dino/Dino';
 import { Bubble } from '../ui/Bubble';
 import { Guide } from '../ui/Guide';
 import { drawPrehistoric } from '../ui/prehistoric';
-import { drawScenery, goTo, growthFactor, isPortrait, makeTickable, unit } from '../ui/scenery';
+import { drawNightSky, drawScenery, goTo, growthFactor, isPortrait, makeTickable, unit } from '../ui/scenery';
 import { BaseScene } from './BaseScene';
 
 /**
@@ -33,7 +34,11 @@ export class HomeScene extends BaseScene {
 
   create(data: { hatched?: boolean }) {
     this.initBase();
-    drawScenery(this);
+    // Après l'heure du coucher : ciel de nuit.
+    const night = app.progress.isNight();
+    if (night) drawScenery(this, 0x18214a, 0x52609e, 1);
+    else drawScenery(this);
+    if (night) drawNightSky(this);
     drawPrehistoric(this);
     const { width: W, height: H } = this.scale;
     const u = unit(this);
@@ -56,6 +61,7 @@ export class HomeScene extends BaseScene {
 
     const ar = u * 0.06;
     new Bubble(this, ar * 1.4, ar * 1.4, ar, 0xffd6e7, 'ui-cake', () => goTo(this, 'Age'), 0.7).setAlpha(0.85);
+    this.musicButton(ar * 1.4, ar * 3.9, ar);
     this.drawLevelBadge(W - u * 0.13, u * 0.11, u);
     this.parentGate(W - u * 0.13, u * 0.27, u);
 
@@ -88,11 +94,21 @@ export class HomeScene extends BaseScene {
       return;
     }
 
+    // Mode nuit : la dernière série est jouée, le dino dort.
+    if (app.progress.isSleeping()) {
+      this.sleeping();
+      return;
+    }
+
     this.run(async () => {
       await this.wait(350);
       if (data?.hatched) {
         this.dino.react('cheer');
         await this.say('hello');
+      } else if (night) {
+        // Le soir : le dino bâille et propose une dernière série.
+        this.dino.react('yawn');
+        await this.say('night.last');
       } else {
         this.dino.react('wave');
         await this.say('welcome_back');
@@ -163,6 +179,18 @@ export class HomeScene extends BaseScene {
     });
   }
 
+  /** Bouton de la musique : note de musique (allumée) ou haut-parleur barré (coupée). */
+  private musicButton(x: number, y: number, r: number) {
+    const button = new Bubble(this, x, y, r, 0xe0f2fe, Music.isEnabled ? 'ui-music' : 'ui-music-off', () => {
+      const on = !Music.isEnabled;
+      Music.setEnabled(on);
+      app.progress.updateSettings({ music: on });
+      Music.unlock();
+      button.setIcon(on ? 'ui-music' : 'ui-music-off');
+    }, 0.65);
+    button.setAlpha(0.85);
+  }
+
   /** Étoile avec le niveau du dino (réglable dans l'espace parents). */
   private drawLevelBadge(x: number, y: number, u: number) {
     const star = this.add.image(x, y, 'ui-star');
@@ -189,6 +217,27 @@ export class HomeScene extends BaseScene {
       await this.say('parent_code_done');
       this.scene.restart(data);
     });
+  }
+
+  /** Mode nuit : le dino dort jusqu'au matin ; un parent peut débloquer avec son code. */
+  private sleeping() {
+    const u = unit(this);
+    this.hideButtons();
+    this.dino.sleep();
+    const unlock = new Bubble(this, this.play.x, this.play.y, u * 0.11, 0xffffff, 'ui-parents', () => {
+      this.run(async () => {
+        app.voice.stop();
+        this.input.enabled = false;
+        const ok = await unlockNight();
+        this.input.enabled = true;
+        if (ok) this.scene.restart({});
+      });
+    }, 0.6).setAlpha(0.8);
+    this.add.text(unlock.x, unlock.y + u * 0.17, 'Chut… le dino dort.\nUn parent peut débloquer avec son code.', {
+      fontFamily: 'Arial, sans-serif', fontSize: `${Math.round(u * 0.036)}px`, color: '#ffffff', align: 'center',
+      backgroundColor: '#2d3354cc', padding: { x: 14, y: 10 },
+    }).setOrigin(0.5, 0);
+    this.time.delayedCall(500, () => this.run(() => this.say('night.sleep')));
   }
 
   private hideButtons() {

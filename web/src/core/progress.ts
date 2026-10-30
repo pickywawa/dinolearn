@@ -36,6 +36,8 @@ interface Data {
   bonusLog: Record<string, number>;
   /** Objets du dino. */
   collection: Collection;
+  /** Mode nuit du soir en cours : dernière série jouée (`done`) ou débloqué par un parent. */
+  night?: { day: string; state: 'done' | 'unlocked' };
 }
 
 export interface Collection {
@@ -65,6 +67,10 @@ export interface Settings {
   dailyMinutes: number;
   /** Bruitages. */
   sfx: boolean;
+  /** Musique de fond. */
+  music: boolean;
+  /** Heure du coucher (« 19:30 ») : le soir, mode nuit ; '' = pas de mode nuit. */
+  nightTime: string;
   /** Code parent à 4 chiffres (espace parents, déblocage du temps de jeu). */
   pin?: string;
 }
@@ -85,7 +91,7 @@ const empty = (): Data => ({
   feedLog: {},
   seriesPlayed: 0,
   seenTutorial: false,
-  settings: { disabledGames: [], dailyMinutes: 0, sfx: true },
+  settings: { disabledGames: [], dailyMinutes: 0, sfx: true, music: true, nightTime: '' },
   playLog: {},
   bonusLog: {},
   collection: { owned: [], worn: [], pending: 0 },
@@ -240,6 +246,45 @@ export class Progress {
 
   /** Le code parent est-il le bon ? */
   checkPin(pin: string) { return !!this.data.settings.pin && this.data.settings.pin === pin; }
+
+  // ---- Mode nuit ----
+
+  /** Le soir après l'heure du coucher choisie par les parents (et jusqu'à 6 h du matin). */
+  isNight(now = new Date()) {
+    const time = this.data.settings.nightTime;
+    if (!time) return false;
+    const [h, m] = time.split(':').map(Number);
+    const minutes = now.getHours() * 60 + now.getMinutes();
+    return minutes >= h * 60 + m || now.getHours() < 6;
+  }
+
+  /** La soirée en cours (avant 6 h, c'est encore la soirée de la veille). */
+  private evening(now: Date) {
+    const d = new Date(now);
+    if (d.getHours() < 6) d.setDate(d.getDate() - 1);
+    return dayKey(d);
+  }
+
+  /** La dernière série du soir est jouée : le dino dort jusqu'au matin. */
+  isSleeping(now = new Date()) {
+    const n = this.data.night;
+    return this.isNight(now) && !!n && n.day === this.evening(now) && n.state === 'done';
+  }
+
+  /** À la fin d'une série, le soir : c'était la dernière. */
+  markNightSeries(now = new Date()) {
+    if (!this.isNight(now)) return;
+    const n = this.data.night;
+    if (n && n.day === this.evening(now) && n.state === 'unlocked') return;
+    this.data.night = { day: this.evening(now), state: 'done' };
+    this.save();
+  }
+
+  /** Un parent laisse jouer encore ce soir. */
+  unlockNight(now = new Date()) {
+    this.data.night = { day: this.evening(now), state: 'unlocked' };
+    this.save();
+  }
 
   // ---- Collection d'objets ----
 

@@ -24,6 +24,10 @@ export interface Choice {
   text?: { value: string; script: Script };
   /** Forme colorée (jeu « Formes et couleurs »). */
   shape?: ShapeCard;
+  /** Horloge à aiguilles (jeu « L'heure »). */
+  clock?: { h: number; m: number };
+  /** Pièces et billets, en centimes (jeu « La monnaie »). */
+  money?: number[];
 }
 
 export interface ShapeCard {
@@ -1488,9 +1492,186 @@ const shapesGame: GameDef = {
   },
 };
 
+// ---- Logique : « L'heure » (horloges à aiguilles) ----
+
+const hourName = (h: number) => (h === 1 ? 'une heure' : h === 12 ? 'midi' : `${frNumber(h)} heures`);
+
+/** L'heure dite comme à l'école : « trois heures et demie », « quatre heures moins le quart »… */
+export function sayTime(h: number, m: number, afternoon = false): string {
+  if (afternoon) {
+    const hh = h === 12 ? 12 : h + 12;
+    return `${frNumber(hh)} heures${m ? ` ${frNumber(m)}` : ''}`;
+  }
+  if (m === 0) return hourName(h);
+  if (m === 15) return `${hourName(h)} et quart`;
+  if (m === 30) return `${hourName(h)} et demie`;
+  if (m === 45) return `${hourName((h % 12) + 1)} moins le quart`;
+  return `${hourName(h)} ${frNumber(m)}`;
+}
+
+function buildClock(level: number, variant: number, rng: Rng): BuiltQuestion {
+  const pick = <T>(list: T[]) => list[Math.floor(rng() * list.length)];
+  const minutes = level <= 4 ? [0] : level <= 8 ? [0, 30] : level <= 12 ? [0, 15, 30, 45]
+    : Array.from({ length: 12 }, (_, i) => i * 5);
+  const h = 1 + Math.floor(rng() * 12);
+  // Aux niveaux des demies et des quarts, la moitié des questions en ont une.
+  const m = level >= 5 && level <= 12 && variant % 2 === 1 ? pick(minutes.filter((x) => x !== 0)) : pick(minutes);
+  const afternoon = level >= 18 && variant % 2 === 0;
+  const count = level <= 2 ? 2 : level >= 17 ? 5 : 3;
+  const key = (a: number, b: number) => `${a}:${b}`;
+  const seen = new Set([key(h, m)]);
+  const others: { h: number; m: number }[] = [];
+  const add = (a: number, b: number) => {
+    const hh = ((a - 1 + 12) % 12) + 1;
+    if (others.length < count && !seen.has(key(hh, b))) {
+      seen.add(key(hh, b));
+      others.push({ h: hh, m: b });
+    }
+  };
+  if (level <= 3) {
+    // Faciles : des heures très différentes.
+    for (const d of shuffle([3, 4, 5, 6, 7, 8, 9], rng)) add(h + d, m);
+  } else {
+    if (level >= 9) {
+      // Pièges : aiguilles inversées, même heure autres minutes, heure d'à côté.
+      add(m === 0 ? 12 : m / 5, (h % 12) * 5);
+      add(h, pick(minutes.filter((x) => x !== m)));
+      add(h + 1, m);
+    }
+    for (const d of shuffle([1, -1, 2, -2], rng)) add(h + d, m);
+    if (minutes.length > 1) add(h, pick(minutes.filter((x) => x !== m)));
+  }
+  for (let guard = 0; others.length < count && guard < 50; guard++) add(1 + Math.floor(rng() * 12), pick(minutes));
+  const said = sayTime(h, m, afternoon);
+  const choice = (c: { h: number; m: number }): Choice => ({ id: `c:${c.h}:${c.m}`, clock: c });
+  return {
+    answer: choice({ h, m }),
+    distractors: others.map(choice),
+    prompt: [{ text: oneOf(rng, [`Touche l'horloge qui montre ${said} !`, `Où est-il ${said} ?`]), lang: 'fr' }],
+    reinforce: [{ text: `Oui ! Il est ${said} !`, lang: 'fr' }],
+    hints: [{
+      text: afternoon
+        ? `Indice : ${frNumber(h + 12)} heures, c'est l'après-midi. Sur l'horloge, la petite aiguille montre le ${frNumber(h)}.`
+        : level <= 8
+          ? 'Indice : la petite aiguille montre l\'heure, la grande aiguille montre les minutes.'
+          : 'Indice : regarde d\'abord la petite aiguille pour l\'heure, puis la grande pour les minutes.',
+      lang: 'fr',
+    }],
+  };
+}
+
+const clockGame: GameDef = {
+  id: 'LO-8',
+  category: 'logic',
+  minAge: 5,
+  icon: 'clock',
+  color: 0x1e88e5,
+  introLine: 'intro.LO-8',
+  homeLine: 'home.LO-8',
+  shortLine: 'short.LO-8',
+  questions: Array.from({ length: 20 }, (_, l) =>
+    Array.from({ length: 8 }, (_, i) => ({ id: `LO-8:${l + 1}:${i}`, level: l + 1 }))).flat(),
+  build(ref, _level, rng) {
+    return buildClock(ref.level, Number(ref.id.split(':')[2]), rng);
+  },
+};
+
+// ---- Logique : « La monnaie » (pièces et billets en euros) ----
+
+/** Par niveau : [pièces et billets possibles (centimes), somme min, somme max, pas, nombre de cartes]. */
+const MONEY_LEVELS: [number[], number, number, number, number][] = [
+  [[100, 200], 100, 300, 100, 3], [[100, 200], 100, 400, 100, 3], [[100, 200], 200, 500, 100, 4],
+  [[100, 200, 500], 300, 700, 100, 4], [[100, 200, 500], 500, 1000, 100, 4],
+  [[100, 200, 500, 1000], 600, 1500, 100, 4], [[100, 200, 500, 1000], 1000, 2000, 100, 4],
+  [[500, 1000, 2000], 1500, 4000, 500, 4], [[100, 200, 500, 1000, 2000], 1000, 3000, 100, 4],
+  [[10, 20, 50], 30, 100, 10, 4], [[10, 20, 50, 100], 50, 200, 10, 4], [[10, 20, 50, 100], 100, 300, 10, 4],
+  [[10, 20, 50, 100, 200], 150, 400, 10, 4], [[5, 10, 20, 50, 100], 50, 200, 5, 4],
+  [[1, 2, 5, 10, 20, 50], 10, 100, 1, 4], [[10, 20, 50, 100, 200, 500], 300, 800, 10, 4],
+  [[10, 20, 50, 100, 200, 500, 1000], 500, 1500, 10, 6], [[10, 20, 50, 100, 200, 500, 1000], 500, 2000, 10, 6],
+  [[1, 2, 5, 10, 20, 50, 100, 200], 100, 500, 1, 6], [[10, 20, 50, 100, 200, 500, 1000, 2000], 1000, 3000, 10, 6],
+];
+
+/** Une somme dite en euros : « deux euros cinquante », « cinquante centimes ». */
+export function sayMoney(cents: number): string {
+  const euros = Math.floor(cents / 100);
+  const rest = cents % 100;
+  const e = euros === 1 ? 'un euro' : `${frNumber(euros)} euros`;
+  if (euros && rest) return `${e} ${frNumber(rest)}`;
+  if (euros) return e;
+  return rest === 1 ? 'un centime' : `${frNumber(rest)} centimes`;
+}
+
+/** Des pièces et billets qui font `total` (7 au plus), un peu au hasard pour varier. */
+function makeChange(total: number, denoms: number[], rng: Rng): number[] | undefined {
+  const sorted = [...denoms].sort((a, b) => b - a);
+  for (let attempt = 0; attempt < 30; attempt++) {
+    const parts: number[] = [];
+    let rest = total;
+    while (rest > 0 && parts.length < 8) {
+      const fits = sorted.filter((d) => d <= rest);
+      if (!fits.length) break;
+      parts.push(rng() < 0.65 ? fits[0] : fits[Math.floor(rng() * fits.length)]);
+      rest -= parts[parts.length - 1];
+    }
+    if (rest === 0 && parts.length <= 7) return parts.sort((a, b) => b - a);
+  }
+  return undefined;
+}
+
+function buildMoney(level: number, rng: Rng): BuiltQuestion {
+  const [denoms, min, max, step, cards] = MONEY_LEVELS[level - 1];
+  const amount = () => min + step * Math.floor(rng() * ((max - min) / step + 1));
+  let target = amount();
+  let answer = makeChange(target, denoms, rng);
+  while (!answer) {
+    target = amount();
+    answer = makeChange(target, denoms, rng);
+  }
+  // Leurres : des sommes toutes proches (un pas de plus ou de moins, puis deux…).
+  const totals: number[] = [];
+  for (const k of shuffle([1, -1, 2, -2, 3, -3, 4, 5], rng)) {
+    const t = target + k * step;
+    if (t > 0 && !totals.includes(t) && totals.length < cards - 1) totals.push(t);
+  }
+  const card = (coins: number[], total: number): Choice => ({ id: `m:${total}`, money: coins });
+  const distractors = totals.map((t) => makeChange(t, denoms, rng) ?? makeChange(t, [...denoms, 1, 2, 5, 10], rng)!)
+    .map((coins, i) => card(coins, totals[i]));
+  const said = sayMoney(target);
+  return {
+    answer: card(answer, target),
+    distractors,
+    prompt: [{
+      text: oneOf(rng, [`Touche la carte où il y a ${said} !`, `Où y a-t-il exactement ${said} ?`]),
+      lang: 'fr',
+    }],
+    reinforce: [{ text: `Oui ! Ça fait bien ${said} !`, lang: 'fr' }],
+    hints: [{
+      text: 'Indice : compte d\'abord les billets et les grosses pièces, puis ajoute les petites.',
+      lang: 'fr',
+    }],
+  };
+}
+
+const moneyGame: GameDef = {
+  id: 'LO-9',
+  category: 'logic',
+  minAge: 5,
+  icon: 'money',
+  color: 0xb45309,
+  introLine: 'intro.LO-9',
+  homeLine: 'home.LO-9',
+  shortLine: 'short.LO-9',
+  questions: Array.from({ length: 20 }, (_, l) =>
+    Array.from({ length: 8 }, (_, i) => ({ id: `LO-9:${l + 1}:${i}`, level: l + 1 }))).flat(),
+  build(ref, _level, rng) {
+    return buildMoney(ref.level, rng);
+  },
+};
+
 export const GAMES: GameDef[] = [
   listenTap, englishNumbers, showMe, riddles, shadows, together, bigger, missingWord, missingWordRead, sounds,
   syllables, readWord, readPicture, letters, oddOneOut, shapesGame, counting, numbers, sequence, most, calc,
+  clockGame, moneyGame,
 ];
 
 /** Jeux proposés à un enfant de cet âge. */

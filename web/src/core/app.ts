@@ -1,5 +1,6 @@
 import { GameDef, gamesForAge } from '../content/games';
 import { LinePicker } from './lines';
+import { Music } from './music';
 import { Sfx } from './sfx';
 import { KeyValueStore, MemoryStore, Progress } from './progress';
 import { Voice } from './voice';
@@ -23,6 +24,7 @@ const ageParam = Number(new URLSearchParams(location.search).get('age'));
 if (ageParam >= 3 && ageParam <= 7) progress.age = ageParam;
 
 Sfx.enabled = progress.settings.sfx;
+Music.setEnabled(progress.settings.music);
 
 /** Services partagés par toutes les scènes. */
 export const app = {
@@ -39,3 +41,6 @@ export function playableGames(): GameDef[] {
   const enabled = forAge.filter((g) => !progress.settings.disabledGames.includes(g.id));
   return enabled.length > 0 ? enabled : forAge;
 }
+
+// La musique se fait toute petite quand le dino parle.
+app.voice.onTalk((talking) => Music.duck(talking));

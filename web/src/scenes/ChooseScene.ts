@@ -23,7 +23,7 @@ export class ChooseScene extends BaseScene {
   create() {
     this.initBase();
     // Temps de jeu fini : retour à l'accueil (bloqué par le code parent).
-    if (app.progress.timeIsUp()) {
+    if (app.progress.timeIsUp() || app.progress.isSleeping()) {
       goTo(this, 'Home');
       return;
     }

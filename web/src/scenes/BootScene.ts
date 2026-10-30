@@ -5,7 +5,7 @@ import { ITEMS, itemTexture } from '../content/items';
 
 export const UI_IMAGES = [
   'ui-play', 'ui-home', 'ui-star', 'ui-sparkles', 'ui-globe', 'ui-cloud', 'ui-cake', 'flag-gb',
-  'decor-palm-tree', 'decor-sauropod', 'decor-t-rex', 'decor-butterfly', 'riddle', 'oddoneout', 'counting', 'shadow', 'sequence', 'most', 'calc', 'flag-fr', 'numbers', 'together', 'bigger', 'en-numbers', 'syllables', 'read', 'letters', 'ui-parents', 'read-picture', 'missing-word', 'missing-word-read', 'shapes', 'ui-basket',
+  'decor-palm-tree', 'decor-sauropod', 'decor-t-rex', 'decor-butterfly', 'riddle', 'oddoneout', 'counting', 'shadow', 'sequence', 'most', 'calc', 'flag-fr', 'numbers', 'together', 'bigger', 'en-numbers', 'syllables', 'read', 'letters', 'ui-parents', 'read-picture', 'missing-word', 'missing-word-read', 'shapes', 'clock', 'money', 'ui-music', 'ui-music-off', 'ui-moon', 'ui-basket',
   ...[...FRUITS, 'cake'].map((f) => `food-${f}`),
   'ui-wardrobe', 'ui-gift', ...ITEMS.map((i) => itemTexture(i.id)),
 ];
