@@ -5,10 +5,10 @@ import { vibrate } from '../core/haptics';
 import { Music } from '../core/music';
 import { Sfx } from '../core/sfx';
 import { Dino } from '../dino/Dino';
-import { EGG_ZIGZAG, PART_RESOLUTION } from '../dino/parts';
+import { DINO_COLORS, EGG_ZIGZAG, PART_RESOLUTION } from '../dino/parts';
 import { Guide } from '../ui/Guide';
 import { drawPrehistoric } from '../ui/prehistoric';
-import { drawScenery, goTo, unit } from '../ui/scenery';
+import { ageSize, drawScenery, goTo, unit } from '../ui/scenery';
 import { BaseScene } from './BaseScene';
 
 /** Nombre de touchers pour faire éclore l'œuf. */
@@ -22,9 +22,11 @@ const CRACKS: [number, number][][][] = [
 ];
 
 /**
- * Premier écran. Au tout premier lancement : un œuf qui tremble ; chaque toucher
- * le fissure (le téléphone vibre), et au quatrième il éclot : le bébé dino sort
- * et se présente. Les fois suivantes : le dino endormi, à réveiller.
+ * Premier écran. Au premier lancement (et pour chaque nouvel enfant) : un œuf
+ * qui tremble ; chaque toucher le fissure (le téléphone vibre), et au quatrième
+ * il éclot : un bébé dino d'une couleur au hasard parmi 10 sort et se présente
+ * (puis, au tout premier lancement, demande le prénom et l'âge, et un parent).
+ * Les fois suivantes : le dino endormi, à réveiller.
  * Le premier toucher débloque aussi le son et la voix (obligatoire sur iOS).
  */
 export class StartScene extends BaseScene {
@@ -40,8 +42,9 @@ export class StartScene extends BaseScene {
     drawPrehistoric(this);
     const u = unit(this);
     this.guide = new Guide(this, u * 0.2);
-    // Premier lancement (pas encore de code parent) : l'œuf à faire éclore.
-    if (!app.progress.settings.pin) this.egg();
+    // Premier lancement (pas encore d'enfant) ou nouvel enfant : l'œuf à faire éclore.
+    const setup = !app.profiles.pin || app.profiles.count === 0;
+    if (setup || !app.progress.hatched) this.egg(setup);
     else this.sleepingDino();
   }
 
@@ -57,7 +60,7 @@ export class StartScene extends BaseScene {
   private sleepingDino() {
     const { width: W, height: H } = this.scale;
     const u = unit(this);
-    const dino = new Dino(this, W / 2, H * 0.78, u * 0.6);
+    const dino = new Dino(this, W / 2, H * 0.78, u * 0.6 * ageSize(app.progress.age));
     const zzz = this.add.text(W / 2 + u * 0.15, H * 0.4, 'z z z', {
       fontFamily: 'sans-serif', fontSize: `${Math.round(u * 0.07)}px`, color: '#ffffff', fontStyle: 'bold',
     });
@@ -68,13 +71,20 @@ export class StartScene extends BaseScene {
       this.wake();
       this.guide.hide();
       Sfx.play('boing');
-      goTo(this, app.progress.ageChosen ? 'Home' : 'Age');
+      goTo(this, 'Home');
     });
   }
 
-  private egg() {
+  private egg(setup: boolean) {
     const { width: W, height: H } = this.scale;
     const u = unit(this);
+    // Le nouvel enfant voit son prénom au-dessus de son œuf.
+    if (!setup && app.progress.name) {
+      this.add.text(W / 2, H * 0.3, app.progress.name, {
+        fontFamily: 'Andika, Arial, sans-serif', fontSize: `${Math.round(u * 0.09)}px`, color: '#ffffff', fontStyle: 'bold',
+        stroke: '#2d3354', strokeThickness: Math.round(u * 0.014),
+      }).setOrigin(0.5);
+    }
     const egg = this.add.container(W / 2, H * 0.6);
     const shell = this.add.image(0, 0, 'egg').setScale(1 / PART_RESOLUTION);
     const cracks = this.add.graphics();
@@ -100,7 +110,7 @@ export class StartScene extends BaseScene {
     zone.on('pointerdown', () => {
       if (hatching) return;
       // Le dino demandera son prénom à l'enfant : le pack de reconnaissance (français) se télécharge pendant ce temps.
-      if (taps === 0 && voiceSupported()) void ears.load('fr').catch(() => undefined);
+      if (setup && taps === 0 && voiceSupported()) void ears.load('fr').catch(() => undefined);
       this.wake();
       this.guide.hide();
       taps++;
@@ -120,7 +130,7 @@ export class StartScene extends BaseScene {
       hatching = true;
       this.clearIdle();
       zone.disableInteractive();
-      this.run(() => this.hatch(egg, shadow, scale));
+      this.run(() => this.hatch(egg, shadow, scale, setup));
     });
   }
 
@@ -148,9 +158,16 @@ export class StartScene extends BaseScene {
   }
 
   /** La coquille s'ouvre en deux, le bébé dino sort, puis il se présente. */
-  private async hatch(egg: Phaser.GameObjects.Container, shadow: Phaser.GameObjects.Ellipse, scale: number) {
+  private async hatch(egg: Phaser.GameObjects.Container, shadow: Phaser.GameObjects.Ellipse, scale: number, setup: boolean) {
     const { width: W, height: H } = this.scale;
     const u = unit(this);
+    // Une couleur que les frères et sœurs n'ont pas (si possible).
+    const taken = new Set(app.profiles.ids.filter((id) => id !== app.profiles.activeId)
+      .map((id) => app.profiles.progressOf(id)).filter((c) => c.hatched).map((c) => c.color));
+    const free = DINO_COLORS.map((_, i) => i).filter((i) => !taken.has(i));
+    const pool = free.length ? free : DINO_COLORS.map((_, i) => i);
+    const color = pool[Math.floor(app.rng() * pool.length)];
+    app.progress.hatch(color);
     // Ça craque de partout : le téléphone vibre avant que l'œuf s'ouvre…
     Sfx.play('crack');
     vibrate([120, 60, 120, 60, 120]);
@@ -164,10 +181,11 @@ export class StartScene extends BaseScene {
     const bottom = half('egg-bottom');
     egg.destroy();
     this.chips(W / 2, H * 0.58, 12);
-    const dino = new Dino(this, W / 2, H * 0.6 + u * 0.12, u * 0.45).setDepth(2).setScale(0);
+    const height = u * 0.45 * ageSize(app.progress.age);
+    const dino = new Dino(this, W / 2, H * 0.6 + u * 0.12, height, color).setDepth(2).setScale(0);
     this.tweens.add({ targets: top, y: top.y - u * 0.45, x: top.x + u * 0.25, angle: 200, alpha: 0, duration: 1200, ease: 'Quad.easeOut' });
     this.tweens.add({ targets: bottom, y: bottom.y + u * 0.05, duration: 300, ease: 'Bounce.easeOut' });
-    this.tweens.add({ targets: dino, scale: (u * 0.45) / Dino.HEIGHT, duration: 700, delay: 200, ease: 'Back.easeOut' });
+    this.tweens.add({ targets: dino, scale: height / Dino.HEIGHT, duration: 700, delay: 200, ease: 'Back.easeOut' });
     const p = this.add.particles(W / 2, H * 0.5, 'ui-sparkles', {
       speed: { min: 150, max: 380 }, scale: { start: 0.3, end: 0 }, lifespan: 900, emitting: false,
     }).setDepth(4);
@@ -176,6 +194,6 @@ export class StartScene extends BaseScene {
     dino.react('cheer');
     this.tweens.add({ targets: [bottom, shadow], alpha: 0, duration: 800, delay: 600 });
     await this.say('egg.hatched');
-    goTo(this, 'Hello');
+    goTo(this, 'Hello', { setup });
   }
 }

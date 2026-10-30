@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { app } from '../core/app';
 import { Sfx } from '../core/sfx';
 import { itemById, itemTexture } from '../content/items';
-import { PART_RESOLUTION } from './parts';
+import { PART_RESOLUTION, colorSuffix } from './parts';
 
 export type DinoReaction =
   | 'happy' | 'cheer' | 'dance' | 'oops' | 'think' | 'eat' | 'levelUp' | 'tickle'
@@ -43,7 +43,8 @@ export class Dino extends Phaser.GameObjects.Container {
 
   static readonly HEIGHT = 500;
 
-  constructor(scene: Phaser.Scene, x: number, y: number, height: number) {
+  /** `color` : couleur du dino (0 à 9), par défaut celle de l'enfant qui joue. */
+  constructor(scene: Phaser.Scene, x: number, y: number, height: number, color = app.progress.color) {
     super(scene, x, y);
     this.rig = scene.add.container(0, 0);
     this.add(this.rig);
@@ -51,16 +52,17 @@ export class Dino extends Phaser.GameObjects.Container {
     const img = (key: string, px: number, py: number, ox = 0.5, oy = 0.5) =>
       scene.add.image(px, py, key).setOrigin(ox, oy).setScale(S);
 
-    this.tail = img('dino-tail', 80, -120, 0.08, 0.72);
-    const legL = img('dino-leg', -62, -36);
-    const legR = img('dino-leg', 62, -36).setFlipX(true);
-    this.body_ = img('dino-body', 0, -135);
+    const c = colorSuffix(color);
+    this.tail = img(`dino-tail${c}`, 80, -120, 0.08, 0.72);
+    const legL = img(`dino-leg${c}`, -62, -36);
+    const legR = img(`dino-leg${c}`, 62, -36).setFlipX(true);
+    this.body_ = img(`dino-body${c}`, 0, -135);
     this.belly = scene.add.graphics();
-    this.armL = img('dino-arm', -96, -190, 0.4, 0.12);
-    this.armR = img('dino-arm', 96, -190, 0.4, 0.12).setFlipX(true);
+    this.armL = img(`dino-arm${c}`, -96, -190, 0.4, 0.12);
+    this.armR = img(`dino-arm${c}`, 96, -190, 0.4, 0.12).setFlipX(true);
 
     this.head = scene.add.container(0, -250);
-    const headImg = img('dino-head', 0, 0, 0.5, 0.85);
+    const headImg = img(`dino-head${c}`, 0, 0, 0.5, 0.85);
     this.eyes = [img('dino-eye', -52, -112), img('dino-eye', 52, -112)];
     this.mouth = img('dino-mouth-smile', 0, -40, 0.5, 0.3);
     this.head.add([headImg, ...this.eyes, this.mouth]);

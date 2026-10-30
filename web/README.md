@@ -1,134 +1,165 @@
 # DinoLearn — version web (Phaser 3 + TypeScript)
 
-Jeu jouable directement dans le navigateur d'un téléphone ou d'une tablette (portrait ou paysage).
+Jeu éducatif pour les enfants de 3 à 7 ans qui ne savent pas encore lire, jouable directement dans
+le navigateur d'un téléphone ou d'une tablette (portrait ou paysage). Tout passe par la voix et les
+images, autour d'un dino qui parle, guide, encourage et grandit quand on le nourrit.
 
-## Ce que contient cette version
-- **Le dino guide tout** : il présente chaque bulle en la montrant du bras, une main animée tapote
-  l'endroit à toucher, les boutons à toucher pulsent. Relances automatiques en cas d'inactivité.
-- **Menus réduits au minimum** : un œuf à toucher (débloque le son), le choix de l'âge (un gâteau
-  par âge, avec ses bougies), puis l'accueil : un **gros bouton vert** lance une série **tout
-  mélangée** (chaque question vient d'un jeu au hasard), un **petit bouton** (mosaïque) ouvre le
-  choix d'un jeu précis. Aucun texte.
-- **Décor préhistorique animé et interactif** : volcan qui fume et entre en éruption (aussi quand on
-  le touche), ptérodactyle qui fait un looping, diplodocus au loin, bébé T-rex qui sort de derrière
-  la colline, papillons, palmier et fougères. Le dino salue, bâille, rugit, regarde autour de lui,
-  saute, fait une pirouette pour un sans-faute.
-- **38 jeux** (dont 12 à voix haute), 20 niveaux de difficulté : 1–10 maternelle, 11–20 niveau CP (dino niveaux 21 à 40,
-  avec 6 images, des leurres piégeux et des nombres jusqu'à 100). Certains jeux n'apparaissent qu'à
-  partir d'un âge : anglais, calcul, lecture, sons et syllabes dès 5 ans ; suites, nombres et tailles dès 4 ans.
-  - **Anglais — Écoute et touche** : le mot est dit deux fois par une voix britannique (2 images, 4 au CP) ;
-  - **Anglais — Numbers** : les nombres en anglais, de « one » à « ninety-nine » (pièges thirteen / thirty) ;
-  - **Monde — Montre-moi** : « Montre-moi le hérisson ! » ;
-  - **Monde — Devinettes** : des cris d'animaux aux énigmes à plusieurs indices (près de 200 devinettes) ;
-  - **Monde — Les ombres** : à qui est cette ombre ?
-  - **Monde — Ça va ensemble** : la clé et le cadenas, l'abeille et le miel, le phare et le bateau… ;
-  - **Monde — Le plus grand** : en vrai, qui est le plus grand (ou le plus petit) ? Les images ont toutes
-    la même taille ;
-  - **Français — Les sons** : qu'est-ce qui rime avec « bateau » ? qu'est-ce qui commence comme « chapeau » ?
-  - **Français — Les syllabes** : on tape dans les mains (« pa-pi-llon : trois ») ; au CP, quel mot a
-    trois syllabes ?
-  - **Français — Lis le mot** : « Trouve le mot MAMAN » ; 70 mots, en CAPITALES puis en écriture
-    attachée (police scolaire Playwrite France Moderne), avec des leurres de plus en plus ressemblants ;
-  - **Français — Les lettres** : les lettres (capitales, minuscules, attaché ; pièges b/d/p/q), puis les
-    syllabes (MA, LI… puis CHOU, MOI, PAN) ;
-  - **Français — Lis et touche l'image** : le mot est écrit sans être dit (CAPITALES puis attaché),
-    il faut le lire pour trouver son image ;
-  - **Français — La phrase à trou** : « Le soir, je dors dans mon… » → l'image du lit (dès 3 ans) ;
-    variante dès 5 ans : la phrase est aussi écrite et on choisit le mot écrit ;
-  - **Monde — Mon pays** (dès 5 ans) : le pays choisi par les parents (France, Belgique, Suisse, Canada,
-    Luxembourg) : drapeau (puis drapeaux qui se ressemblent), symboles, spécialités, fête nationale, monnaie,
-    monument (tour Eiffel…), l'Hexagone, la capitale (écrite, à lire), les pays voisins ;
-  - **Écriture — Trace les formes / les lettres et les chiffres** : avec le doigt, sur des pointillés
-    (départ numéroté), puis sur des points légers, puis tout seul à côté d'un modèle. Le tracé est
-    corrigé avec tolérance (couverture du modèle, précision, pas de gribouillis ; le sens ne compte pas) ;
-    après deux essais, le dino montre comment faire ;
-  - **Logique — L'intrus** : une seule image n'est pas de la même famille (mots ambigus exclus) ;
-  - **Logique — Formes et couleurs** : « le triangle bleu », puis les pièges (même forme, autre
-    couleur), les tailles (« le petit cœur rouge ») et « le carré qui n'est pas bleu » ;
-  - **Logique — L'heure** : plusieurs réveils à aiguilles, touche celui qui montre « trois heures et
-    demie » (heures pile, demies, quarts, minutes de 5 en 5, puis « quinze heures trente ») ;
-  - **Logique — La monnaie** : des cartes de pièces et billets en euros, trouve celle qui fait la somme
-    dite par le dino (de 1 € à 30 €, puis centimes et sommes mêlées) ;
-  - **Logique — Combien ?** : compter de 1 à 20, avec d'autres fruits mélangés aux niveaux difficiles ;
-  - **Logique — Les nombres** : « Touche le nombre soixante-douze » (pièges 27 / 72) ;
-  - **Logique — La suite** : suites de fruits (AB… ABCCB), puis de nombres (2, 4, 6… ; 100, 90, 80…) ;
-  - **Logique — Le plus, le moins** : des tas de fruits, puis des nombres écrits (24 ou 42 ?) ;
-  - **Logique — Calcul** : additions et soustractions en images, puis écrites, compléments à 10,
-    passage de la dizaine.
-- **12 jeux à voix haute** (micro autorisé dans l'espace parents) : l'enfant répond en parlant, en touchant
-  un gros bouton micro. La reconnaissance vocale ([Vosk](https://alphacephei.com/vosk/) en WebAssembly) se fait
-  **entièrement sur l'appareil** : rien n'est enregistré ni envoyé. Elle ne choisit qu'entre quelques mots
-  (la bonne réponse, les mauvaises réponses plausibles, « bruit »), ce qui la rend fiable même avec une voix
-  d'enfant. Un « pas entendu » ne compte jamais comme une erreur ; après deux essais, les cartes reviennent
-  et l'enfant répond au doigt. Les jeux sont rangés derrière une bulle micro dans le choix des jeux :
-  - **Comment ça s'appelle ?** (dès 3 ans) : l'image s'affiche, l'enfant dit son nom ; après une erreur, le
-    dino le dit et l'enfant répète ;
-  - **Say it in English!** : dire le mot en anglais (« Répète après moi : dog ») ;
-  - **Lis à voix haute** : lire un mot écrit (CAPITALES, minuscules, attaché) ;
-  - **Devinettes à voix haute**, par thème : les animaux, les métiers, le sport, l'espace, les saisons et la
-    météo, les formes et les couleurs, les pays et les peuples du monde (habitants, langues), mon pays
-    (capitale, habitants, langues, spécialités, fête nationale, voisins), la nature.
-  Un pack de reconnaissance par langue (≈ 40 Mo), facultatif, se télécharge depuis l'espace parents.
-- **Révision espacée** : une question ratée revient le lendemain, puis 3 jours plus tard, puis une
-  semaine plus tard (le dino dit « Celle-là, on l'a déjà vue ensemble ! ») ; réussie les trois fois,
-  elle est acquise. L'espace parents montre quand chaque question reviendra.
+En ligne : https://pickywawa.github.io/dinolearn/
+
+## Pour l'enfant
+- **Le dino guide tout** : il présente chaque bouton en le montrant du bras, une main animée tapote
+  l'endroit à toucher, les boutons à toucher pulsent, et il relance l'enfant s'il hésite. Toucher le
+  dino pendant un jeu lui fait répéter la question. Il appelle l'enfant par son prénom.
+- **Menus réduits au minimum, sans texte** : un œuf à faire éclore, puis l'accueil :
+  - la **planète Terre**, qui tourne doucement avec ses volcans qui fument, lance une série **tout
+    mélangée** (chaque question vient d'un jeu au hasard) ;
+  - un **petit bouton** (mosaïque) ouvre le choix d'un jeu précis (les jeux à voix haute sont derrière
+    une bulle micro) ;
+  - le **chapeau** ouvre le dressing du dino, le **cadeau** apparaît quand un objet est à choisir ;
+  - avec plusieurs enfants, la **tête du dino** de l'enfant suivant passe la main.
+- **L'éclosion** : l'œuf tremble ; il faut le toucher 4 fois pour le faire éclore : il se fissure un
+  peu plus à chaque toucher (le téléphone vibre), puis la coquille s'ouvre en deux (vibrations) et un
+  dino d'une couleur au hasard parmi 10 en sort, plus ou moins grand selon l'âge de l'enfant.
+- **La présentation** : le bébé dino se présente et explique comment l'enfant va l'aider (jouer, gagner
+  des fruits, le nourrir pour qu'il grandisse, l'habiller ; « Mon rêve, c'est de devenir le plus grand
+  dinosaure du monde ! »). Au premier lancement, il demande ensuite à l'enfant **son prénom et son âge,
+  à voix haute** (gros bouton micro ; sans micro, l'âge se choisit avec des gâteaux), puis de donner le
+  téléphone à un parent : la fiche de l'enfant est **déjà remplie**, le parent corrige si besoin et
+  crée son code.
+- **Un dino vivant** : il respire, cligne des yeux, parle (la bouche suit la voix, mot par mot),
+  salue, bâille, rugit, saute, danse, fait une pirouette pour un sans-faute.
+- **Décor préhistorique interactif** : volcan qui fume et entre en éruption quand on le touche,
+  ptérodactyle qui fait un looping, diplodocus qui rugit, bébé T-rex, papillons, fougères. Dans le ciel
+  de l'accueil passent des météorites et des oiseaux ; parfois le soleil se montre, ou un nuage apporte
+  la pluie, suivie d'un arc-en-ciel. Le soir, ciel de nuit avec la lune et des étoiles filantes.
+- **Les mouches** : de temps en temps, une mouche vient tourner autour du dino ; si elle passe tout
+  près de sa bouche, il l'attrape d'un coup de langue (« Slurp ! »). On peut aussi la chasser du doigt.
+- **Séries** de 6 à 10 questions. Une barre de fruits montre l'avancée ; chaque fruit est gagné si la
+  réponse est trouvée du premier coup (+ un gâteau pour un sans-faute).
+- **Fin de série** : les fruits tombent dans un panier, l'enfant le donne au dino qui mange tout ; il
+  grandit (niveaux 1 à 40) et, à chaque niveau, l'enfant choisit **un cadeau parmi 4 objets**. Après
+  un bon repas, il rote ou il pète (le téléphone vibre) et s'excuse (« Oups, pardon ! »). S'il attend
+  trop son panier, il réclame, chaque fois autrement : ventre qui gargouille, il lorgne les fruits,
+  supplie, ouvre grand la bouche…
+- **Collection et dressing** : 23 objets (chapeaux, casquette, couronne, lunettes, nœud papillon,
+  écharpe, capes, ailes, ballon, baguette magique…), portés partout. Dans le dressing, le dino est en
+  gros plan : on fait glisser un objet sur lui pour le lui mettre (un chapeau remplace la casquette),
+  on touche un objet porté pour l'enlever.
 - **Indices** : après une erreur, quand l'enfant hésite, ou tout de suite si le jeu est difficile pour
-  lui en ce moment (« Indice : c'est un animal de la ferme », « Indice : qui fait meuh ? »).
-- **Toucher le dino** pendant un jeu lui fait répéter la question.
-- **Niveau du dino** affiché sur l'accueil (étoile).
-- **Mode nuit** : après l'heure du coucher choisie par les parents, le ciel devient nuit, le dino bâille
-  et propose une dernière série, puis il dit bonne nuit et dort jusqu'au matin (le code parent permet de
-  jouer encore).
-- **Musique de fond** douce, créée par le jeu (aucun fichier), qui se fait discrète quand le dino parle ;
-  bouton note de musique sur l'accueil et réglage dans l'espace parents.
-- **Code parent** : créé au premier lancement (le dino demande à l'enfant d'aller chercher un parent),
-  avec le temps de jeu et le pays de l'enfant ; il protège l'espace parents et débloque le jeu quand le temps du jour est fini (+15 min, +30 min ou
-  illimité aujourd'hui). « Code oublié ? » : nouveau code après une question pour adulte.
-- **Collection** : à chaque niveau gagné, l'enfant choisit un cadeau parmi 4 objets (23 : chapeaux,
-  casquette, couronne, lunettes, nœud papillon, écharpe, capes, ailes, ballon, baguette magique…). Le dino
-  les porte partout. Le chapeau en haut de l'accueil ouvre le dressing : le dino en gros plan, on fait
-  glisser un objet sur lui pour le lui mettre (un chapeau remplace la casquette…), on touche un objet
-  porté pour l'enlever.
-- **Espace parents** : rester appuyé sur le cadenas de l'accueil, puis glisser vers le haut (un texte
-  explique le geste), puis taper le code parent. On y règle l'âge, le niveau du dino (1 à 40) et le niveau de chaque jeu, on
-  active ou désactive des jeux, on fixe un temps de jeu par jour (le dino va ensuite se coucher), on
-  suit la progression par jeu, le temps de jeu de la semaine et les questions à retravailler, on coupe
-  les bruitages, on teste la voix et on peut tout recommencer. Tout reste sur l'appareil.
-- **Tutoriel** à la première partie : le dino fait la première question à la place de l'enfant.
-- **Série** de 6 à 10 questions. La barre de progression montre un fruit différent par question,
-  gagné si la réponse est trouvée du premier coup (+ un gâteau pour un sans-faute). Indice après
-  2 erreurs (la bonne carte brille et le dino la montre).
-- **Fin de série** : les fruits gagnés tombent dans un panier ; l'enfant touche (ou glisse) le
-  panier vers le dino, qui mange tous les fruits ; la jauge sur son ventre se remplit et il grandit.
-  Il peut manger l'équivalent d'une dizaine de séries par jour ; au-delà, les fruits sont gardés.
-- **Logique du domaine** des spécifications §5–7 (difficulté adaptative, questions maîtrisées
-  jamais reposées, révision, XP, plafond quotidien) dans `src/domain/`, testée avec Vitest.
+  lui en ce moment ; après deux erreurs, la bonne carte brille et le dino la montre.
+- **Musique de fond** douce, créée par le jeu, qui se fait discrète quand le dino parle.
 
-## Bibliothèques
+## Les 38 jeux
+Chaque jeu a 20 niveaux : 1–10 maternelle, 11–20 niveau CP (6 images, leurres piégeux, nombres
+jusqu'à 100). La difficulté s'adapte toute seule ; certains jeux n'apparaissent qu'à partir d'un âge.
+
+| Catégorie | Jeu | Dès | En bref |
+|---|---|---|---|
+| Anglais | Écoute et touche | 5 ans | le mot anglais, dit deux fois par une voix britannique ; 2 images, puis 4 |
+| Anglais | Numbers | 5 ans | les nombres de « one » à « ninety-nine » (pièges thirteen / thirty) |
+| Monde | Montre-moi | 3 ans | « Montre-moi le hérisson ! » (250 mots) |
+| Monde | Devinettes | 3 ans | des cris d'animaux aux énigmes à plusieurs indices (près de 200) |
+| Monde | Les ombres | 3 ans | à qui est cette ombre ? |
+| Monde | Ça va ensemble | 3 ans | la clé et le cadenas, l'abeille et le miel, le phare et le bateau… |
+| Monde | Le plus grand | 4 ans | en vrai, qui est le plus grand (ou le plus petit) ? |
+| Monde | Mon pays | 5 ans | le pays de l'enfant : drapeau, symboles, spécialités, fête nationale, monnaie, monument, capitale, voisins |
+| Français | La phrase à trou | 3 ans | « Le soir, je dors dans mon… » → l'image du lit |
+| Français | La phrase à trou (mots écrits) | 5 ans | la même chose, en choisissant le mot écrit |
+| Français | Les sons | 5 ans | qu'est-ce qui rime avec « bateau » ? qui commence comme « chapeau » ? |
+| Français | Les syllabes | 5 ans | on tape dans les mains (« pa-pi-llon : trois ») |
+| Français | Lis le mot | 5 ans | « Trouve le mot MAMAN » : 70 mots en CAPITALES puis en écriture attachée |
+| Français | Lis et touche l'image | 5 ans | le mot est écrit sans être dit : il faut le lire |
+| Français | Les lettres | 5 ans | lettres (capitales, minuscules, attaché ; pièges b/d/p/q), puis syllabes |
+| Écriture | Trace les formes | 3 ans | sur des pointillés, puis des points légers, puis tout seul |
+| Écriture | Trace les lettres et les chiffres | 4 ans | les 26 capitales et les 10 chiffres, de la même façon |
+| Logique | L'intrus | 3 ans | une seule image n'est pas de la même famille |
+| Logique | Formes et couleurs | 3 ans | « le triangle bleu », « le petit cœur rouge », « le carré qui n'est pas bleu » |
+| Logique | Combien ? | 3 ans | compter de 1 à 20, avec des fruits intrus |
+| Logique | Le plus, le moins | 3 ans | des tas de fruits, puis des nombres écrits (24 ou 42 ?) |
+| Logique | La suite | 4 ans | suites de fruits, puis de nombres (2, 4, 6… ; 100, 90, 80…) |
+| Logique | Les nombres | 4 ans | « Touche le nombre soixante-douze » (pièges 27 / 72) |
+| Logique | Calcul | 5 ans | additions et soustractions en images, puis écrites, compléments à 10 |
+| Logique | L'heure | 5 ans | trouve le réveil qui montre « trois heures et demie », puis « quinze heures trente » |
+| Logique | La monnaie | 5 ans | trouve les pièces et billets qui font « deux euros cinquante » |
+| Voix haute | Comment ça s'appelle ? | 3 ans | l'image s'affiche, l'enfant dit son nom (après une erreur, il répète après le dino) |
+| Voix haute | Say it in English! | 5 ans | dire le mot en anglais (« Répète après moi : dog ») |
+| Voix haute | Lis à voix haute | 5 ans | lire un mot écrit (capitales, minuscules, attaché) |
+| Voix haute | Devinettes à voix haute (9 thèmes) | 5 ans | animaux, métiers, sport, espace, saisons et météo, formes et couleurs, pays et peuples, mon pays, nature |
+
+**Jeux à voix haute** : l'enfant touche un gros bouton micro et répond en parlant. La reconnaissance
+vocale ([Vosk](https://alphacephei.com/vosk/) en WebAssembly) se fait **entièrement sur l'appareil** :
+rien n'est enregistré ni envoyé, et le micro ne s'allume que pendant l'écoute. Elle ne choisit
+qu'entre quelques mots (la bonne réponse, les mauvaises réponses plausibles, un « bruit »), ce qui la
+rend fiable même avec une voix d'enfant. Un « pas entendu » ne compte jamais comme une erreur ; après
+deux essais, les cartes reviennent et l'enfant répond au doigt. Un pack de reconnaissance par langue
+(≈ 40 Mo, français et anglais) se télécharge une fois ; le français commence à se télécharger dès
+l'éclosion du premier œuf, pour que l'enfant puisse dire son prénom au dino.
+
+**Correction des tracés** (`src/domain/trace.ts`) : le modèle et le tracé sont découpés en points
+tous les 1 % ; il faut couvrir 93 % du modèle, que 90 % du tracé soit près du modèle (à moins d'un
+doigt environ) et ne pas gribouiller (pas plus de 2,5 fois la longueur du modèle). Sans pointillés,
+le dessin est recadré sur le modèle (même centre, même taille). Le sens et l'ordre des traits ne
+comptent pas. Après deux essais, la main du dino montre le tracé.
+
+## Progression
+- **Difficulté adaptative** : selon l'âge, le niveau du dino et la réussite sur les 100 dernières
+  réponses (± 1 niveau par série) ; les questions réussies ne sont jamais reposées.
+- **Révision espacée** : une question ratée revient le lendemain, puis 3 jours plus tard, puis une
+  semaine plus tard (« Celle-là, on l'a déjà vue ensemble ! ») ; réussie les trois fois, elle est
+  acquise.
+- Le dino peut manger l'équivalent d'une dizaine de séries par jour ; au-delà, les fruits sont gardés.
+
+## Pour les parents
+- **Premier lancement** : après l'éclosion et la présentation, le dino demande à l'enfant d'aller
+  chercher un parent, qui vérifie la **fiche de l'enfant** déjà remplie (prénom, âge, pays, temps de
+  jeu par jour, heure du coucher, micro) puis crée un **code à 4 chiffres**.
+- **Espace parents** : toucher le cadenas en haut à gauche de l'accueil, puis taper le code. Un onglet
+  par enfant :
+  - modifier la fiche, **ajouter un enfant** (il ouvrira son œuf en sortant) ou en supprimer un ;
+  - **alterner les séries** entre les enfants (« Bravo Léa ! Maintenant, c'est au tour de Tom ! ») ;
+  - niveau du dino (1 à 40) et niveau de départ de chaque jeu (ou automatique), jeux activés ;
+  - temps de jeu par jour et graphique de la semaine, heure du coucher ;
+  - suivi par jeu (réponses, réussite, questions acquises) et questions à réviser avec leur date ;
+  - micro (jeux à voix haute) et packs de reconnaissance vocale ;
+  - bruitages (et vibrations), musique, test de la voix, changement du code, tout recommencer.
+- **Temps de jeu** : une fois atteint, l'enfant finit sa série puis le jeu se bloque ; le code ajoute
+  15 ou 30 minutes ou débloque la journée.
+- **Mode nuit** : après l'heure du coucher, le dino bâille, propose une dernière série, dit bonne nuit
+  et dort jusqu'au matin (le code permet de jouer encore).
+- « **Code oublié ?** » : nouveau code après une question pour adulte.
+- Tout est enregistré **uniquement sur l'appareil** ; aucune donnée n'est envoyée.
+
+## Bibliothèques et crédits
 | Besoin | Bibliothèque |
 |--------|--------------|
 | Moteur de jeu, animations (tweens, particules) | [Phaser 3](https://phaser.io) |
-| Voix (synthèse vocale du navigateur, compatible iOS/Android) | [easy-speech](https://github.com/leaonline/easy-speech) — voix du dino naturelle, à peine plus aiguë (pitch 1.2) ; la bouche ne bouge que pendant le son, mot par mot |
-| Reconnaissance vocale sur l'appareil (jeux à voix haute) | [vosk-browser](https://github.com/ccoreilly/vosk-browser) (Apache 2.0) et les petits modèles [Vosk](https://alphacephei.com/vosk/models) français et anglais (Apache 2.0) |
-| Effets sonores générés (aucun fichier audio) | [ZzFX](https://github.com/KilledByAPixel/ZzFX) |
-| Illustrations SVG (questions, fruits, décor) | [Noto](https://github.com/googlefonts/noto-emoji) (Google, Apache 2.0) via Iconify |
+| Voix (synthèse vocale du navigateur, iOS/Android) | [easy-speech](https://github.com/leaonline/easy-speech) |
+| Reconnaissance vocale sur l'appareil | [vosk-browser](https://github.com/ccoreilly/vosk-browser) et les petits modèles [Vosk](https://alphacephei.com/vosk/models) français et anglais (Apache 2.0) |
+| Effets sonores générés (aucun fichier audio) | [ZzFX](https://github.com/KilledByAPixel/ZzFX) ; musique générée avec Web Audio |
+| Illustrations (questions, fruits, objets, décor) | [Noto](https://github.com/googlefonts/noto-emoji) (Google, Apache 2.0) via Iconify |
 | Monuments (tour Eiffel, statue de la Liberté, pyramide) | [OpenMoji](https://openmoji.org) (HfG Schwäbisch Gmünd, CC BY-SA 4.0) via Iconify |
 | Drapeaux | [circle-flags](https://github.com/HatScripts/circle-flags) (MIT) via Iconify |
-| Boutons, drapeaux | [withicons « Plush »](https://github.com/withevergrow/withicons) (MIT), [circle-flags](https://github.com/HatScripts/circle-flags) (MIT) |
+| Boutons | [withicons « Plush »](https://github.com/withevergrow/withicons) (MIT) via Iconify |
+| Polices de lecture | [Andika](https://software.sil.org/andika/) (SIL, OFL) ; [Playwrite France Moderne](https://github.com/TypeTogether/Playwrite) (TypeTogether, OFL) pour l'écriture attachée |
 
-Le dinosaure et le décor (volcan, fougères, ptérodactyle) sont dessinés en SVG (`src/dino/parts.ts`)
-et animés avec les tweens et particules de Phaser : respiration, clignements, bouche qui suit la voix,
-bras qui pointe, sauts, danse, mastication.
+Le dinosaure (10 couleurs) et le décor sont dessinés en SVG (`src/dino/parts.ts`) et animés avec
+Phaser. Les images ne sont **pas** dans le code JavaScript : `npm run icons` extrait chaque
+illustration utilisée vers `public/img/`, et le jeu les charge à la demande.
 
-Les images ne sont **pas** dans le code JavaScript : `npm run icons` extrait chaque illustration
-utilisée vers `public/img/` et le jeu les charge à la demande, série par série.
+## Organisation du code
+- `src/domain/` : logique pure et testée (difficulté, sélection et révision des questions,
+  récompenses, croissance du dino, correction des tracés).
+- `src/content/` : contenus des jeux (mots, devinettes, phrases, pays, modèles de tracé…) et
+  construction des questions.
+- `src/core/` : profils des enfants, progression, voix, répliques, sons, musique.
+- `src/scenes/` et `src/ui/` : écrans Phaser, espace parents et clavier du code (HTML).
 
 ## Lancer
 ```bash
 cd web
 npm install
 npm run dev        # serveur local, accessible depuis le téléphone sur le même Wi-Fi (adresse « Network »)
-npm test           # tests du domaine et du déroulé de série
+npm run icons && npm test   # tests (Vitest) ; ils vérifient aussi que les images existent
 npm run build      # version de production dans dist/
 npm run voice-packs  # (facultatif) packs de reconnaissance vocale dans public/voice/ (≈ 80 Mo, non versionnés)
 ```
@@ -137,17 +168,19 @@ Les packs de reconnaissance vocale ne sont pas dans le dépôt : le déploiement
 télécharge (modèles officiels Vosk) et les sert à côté du jeu. Sans eux, les jeux à voix haute se
 jouent au doigt.
 
-L'âge (3 à 7 ans) se choisit au premier lancement et se change avec le petit gâteau de l'accueil ;
-il règle la difficulté de départ et la longueur des séries (`?age=6` dans l'adresse fonctionne aussi).
-
 ## Mise en ligne
-Le workflow `.github/workflows/deploy-web.yml` publie automatiquement le jeu sur **GitHub Pages** à
-chaque push. À activer une fois : *Settings → Pages → Source : GitHub Actions*.
+- `.github/workflows/deploy-web.yml` publie le jeu sur **GitHub Pages** à chaque push, avec les packs
+  de reconnaissance vocale (à activer une fois : *Settings → Pages → Source : GitHub Actions*).
+- `.github/workflows/release.yml` crée la release (tag `v<version>` et archive du jeu) quand
+  `web/RELEASE_NOTES.md` change.
 
 ## Limites connues
 - La voix dépend des voix installées sur l'appareil (excellente sur iPhone et Android récents ;
-  sans voix française, le jeu continue mais le dino est muet).
+  sans voix française, le jeu continue mais le dino est muet). Certaines vues web intégrées (dont
+  l'aperçu dans l'appli Claude) n'ont pas de synthèse vocale.
 - Sur iPhone, désactiver le mode silencieux si on n'entend rien.
-- Jeux à voix haute : la reconnaissance est moins sûre avec les plus petits (prononciation encore
-  approximative) et dans le bruit ; le jeu passe alors aux cartes. L'archive des releases ne contient
-  pas les packs vocaux (`npm run voice-packs` pour un autre hébergement).
+- Les profils restent sur l'appareil : changer de téléphone recommence la partie.
+- La vibration ne marche pas sur iPhone (Safari ne la propose pas aux pages web).
+- Jeux à voix haute : la reconnaissance est moins sûre avec les plus petits et dans le bruit ; le jeu
+  passe alors aux cartes. L'archive des releases ne contient pas les packs vocaux
+  (`npm run voice-packs` pour un autre hébergement).

@@ -7,12 +7,13 @@ import { Sfx } from '../core/sfx';
 import { foodImage, FRUITS } from '../domain/models';
 import { AGE_GRAMMAR, Heard, findAge, findName, nameGrammar } from '../domain/speech';
 import { Dino } from '../dino/Dino';
+import { DINO_COLORS } from '../dino/parts';
 import { Guide } from '../ui/Guide';
 import { MicButton } from '../ui/MicButton';
 import { firstLaunchSetup } from '../ui/pin';
 import { drawPrehistoric } from '../ui/prehistoric';
-import { drawScenery, goTo, isPortrait, unit } from '../ui/scenery';
-import { makeCake } from './AgeScene';
+import { ageSize, drawScenery, goTo, isPortrait, unit } from '../ui/scenery';
+import { makeCake } from '../ui/cake';
 import { BaseScene } from './BaseScene';
 
 /**
@@ -35,13 +36,17 @@ export class HelloScene extends BaseScene {
     super('Hello');
   }
 
-  create() {
+  /** Premier lancement : après la présentation, prénom, âge, puis un parent. Sinon (nouvel enfant), juste la présentation. */
+  private setup = true;
+
+  create(data: { setup?: boolean } = {}) {
     this.initBase();
+    this.setup = data.setup ?? true;
     drawScenery(this, 0xf6b26b, 0xffe6c2);
     drawPrehistoric(this);
     const { width: W, height: H } = this.scale;
     const u = unit(this);
-    this.dino = new Dino(this, W / 2, H * (isPortrait(this) ? 0.86 : 0.94), u * 0.42);
+    this.dino = new Dino(this, W / 2, H * (isPortrait(this) ? 0.86 : 0.94), u * 0.42 * ageSize(app.progress.age));
     this.guide = new Guide(this, u * 0.15);
     this.shown = [];
     this.voiceWorks = false;
@@ -55,6 +60,11 @@ export class HelloScene extends BaseScene {
   private async script() {
     await this.wait(300);
     await this.present();
+    // Nouvel enfant : sa fiche est déjà remplie par les parents.
+    if (!this.setup) {
+      goTo(this, 'Home', { hatched: true });
+      return;
+    }
     const name = await this.askName();
     const age = await this.askAge();
     // Au tour des parents.
@@ -62,8 +72,8 @@ export class HelloScene extends BaseScene {
     await this.say('hello.parent');
     this.input.enabled = false;
     await firstLaunchSetup({ name, age, voice: this.voiceWorks });
-    // Le pack français déjà téléchargé sert aux jeux à voix haute (si le parent a gardé le micro).
-    if (app.progress.settings.voice && await packInstalled('fr')) {
+    // Le pack français déjà téléchargé sert aux jeux à voix haute.
+    if (await packInstalled('fr')) {
       app.progress.updateSettings({ voicePacks: [...new Set([...app.progress.settings.voicePacks, 'fr'])] });
     }
     if (!this.alive) return;
@@ -80,7 +90,8 @@ export class HelloScene extends BaseScene {
     const u = unit(this);
     const baseScale = this.dino.scale;
     this.dino.react('wave');
-    await this.say('hello.1');
+    await app.voice.say([{ text: app.voice.lines.pick('hello.1').replace('{color}', DINO_COLORS[app.progress.color].name), lang: 'fr' }]);
+    if (!this.alive) return;
     this.dino.react('lookAround');
     await this.say('hello.2');
     this.dino.react('happy');
@@ -241,7 +252,7 @@ export class HelloScene extends BaseScene {
       }
       const name = findName(heard, FIRST_NAMES);
       if (name) {
-        app.voice.lines.name = name;
+        app.progress.name = name;
         this.dino.react('cheer');
         await this.say('hello.name_ok');
         return name;

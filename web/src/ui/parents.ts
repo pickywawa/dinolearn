@@ -1,19 +1,19 @@
 import { GAMES, GameDef } from '../content/games';
-import { app } from '../core/app';
+import { app, applyChildSettings, switchChild } from '../core/app';
+import { DINO_COLORS } from '../dino/parts';
 import { Music } from '../core/music';
 import { Sfx } from '../core/sfx';
 import { BALANCE } from '../domain/balance';
 import { baseLevel } from '../domain/difficulty';
 import { mulberry32 } from '../domain/models';
 import { COUNTRIES } from '../content/countries';
-import { chooseCountry, createParentCode } from './pin';
+import { childForm, createParentCode } from './pin';
 import { VOICE_PACKS, askMicPermission, ears, packInstalled, voiceSupported } from '../core/ears';
 import { SpeechLang } from '../domain/speech';
 
 /**
  * Espace parents : une page HTML classique posée sur le jeu (lisible et
- * défilable), ouverte depuis l'accueil par un appui long puis un glissé vers
- * le haut. On y règle l'âge, le niveau du dino et de chaque jeu, les jeux
+ * défilable), ouverte depuis le cadenas de l'accueil avec le code parent. On y règle l'âge, le niveau du dino et de chaque jeu, les jeux
  * proposés et le temps de jeu, et on suit la progression.
  */
 
@@ -100,7 +100,10 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Record<string,
 
 /** Ouvre l'espace parents ; `onClose` relance l'accueil pour appliquer les réglages. */
 export function openParents(onClose: () => void) {
-  const p = app.progress;
+  // Enfant affiché (onglets en haut) ; un enfant ajouté devra ouvrir son œuf en sortant.
+  let selected = app.profiles.activeId;
+  let p = app.profiles.progressOf(selected);
+  let added: string | undefined;
   if (!document.getElementById('parents-css')) {
     document.head.append(el('style', { id: 'parents-css' }, CSS));
   }
@@ -108,6 +111,8 @@ export function openParents(onClose: () => void) {
   const close = el('button', { class: 'primary' }, 'Retour au jeu');
   close.addEventListener('click', () => {
     root.remove();
+    if (added) switchChild(added);
+    else applyChildSettings();
     onClose();
   });
   root.append(el('header', {}, el('h1', {}, 'Espace parents'), close));
@@ -117,46 +122,90 @@ export function openParents(onClose: () => void) {
 
   const render = () => {
     main.replaceChildren(
-      childSection(), levelSection(), timeSection(), codeSection(), countrySection(), voiceSection(), gamesSection(), failuresSection(),
+      childrenSection(), levelSection(), timeSection(), codeSection(), voiceSection(), gamesSection(), failuresSection(),
       soundSection(), dataSection(),
     );
   };
 
   // ---- Enfant : âge ----
-  function childSection() {
-    const ages = el('div', { class: 'row' });
-    for (let age = 3; age <= 7; age++) {
-      const b = el('button', { class: p.age === age ? 'on' : '' }, `${age} ans`);
-      b.addEventListener('click', () => {
-        p.age = age;
-        p.clearGameLevels();
-        render();
-      });
-      ages.append(b);
+  const select = (id: string) => {
+    selected = id;
+    p = app.profiles.progressOf(id);
+    render();
+  };
+
+  /** Onglets des enfants, fiche de l'enfant choisi, ajout et suppression, alternance. */
+  function childrenSection() {
+    const tabs = el('div', { class: 'row' });
+    for (const id of app.profiles.ids) {
+      const child = app.profiles.progressOf(id);
+      const b = el('button', { class: id === selected ? 'on' : '' }, child.name || 'Sans prénom');
+      b.addEventListener('click', () => select(id));
+      tabs.append(b);
     }
+    const add = el('button', { class: 'primary' }, '+ Ajouter un enfant');
+    add.addEventListener('click', async () => {
+      const child = await childForm('Nouvel enfant', 'En quittant l\'espace parents, le nouvel enfant touchera son œuf '
+        + 'pour faire éclore son propre dino.', undefined, 'Annuler');
+      if (!child) return;
+      added = app.profiles.add(child);
+      select(added);
+    });
+    tabs.append(add);
+
+    const edit = el('button', {}, 'Modifier la fiche');
+    edit.addEventListener('click', async () => {
+      const s = p.settings;
+      const child = await childForm(`Fiche de ${p.name || 'l\'enfant'}`, 'Prénom, âge et réglages.', {
+        name: p.name, age: p.age, country: s.country, dailyMinutes: s.dailyMinutes, nightTime: s.nightTime,
+      }, 'Annuler');
+      if (!child) return;
+      if (child.age !== p.age) p.clearGameLevels();
+      p.name = child.name;
+      p.age = child.age;
+      p.updateSettings({ country: child.country, dailyMinutes: child.dailyMinutes, nightTime: child.nightTime });
+      render();
+    });
+    const actions = el('div', { class: 'row', style: 'margin-top:12px' }, edit);
+    if (app.profiles.count > 1) {
+      const remove = el('button', { class: 'danger' }, `Supprimer ${p.name || 'cet enfant'}`);
+      remove.addEventListener('click', () => {
+        if (!confirm(`Supprimer ${p.name || 'cet enfant'}, son dino et toute sa progression ? C'est définitif.`)) return;
+        app.profiles.remove(selected);
+        if (added === selected) added = undefined;
+        select(app.profiles.activeId);
+      });
+      actions.append(remove);
+    }
+    const country = COUNTRIES.find((c) => c.code === p.settings.country);
+    const dino = p.hatched ? `dino ${DINO_COLORS[p.color].name}` : 'œuf pas encore éclos';
     const answers = p.answers();
     const last100 = answers.slice(0, 100);
     const rate = last100.length ? last100.filter((a) => a.firstTrySuccess).length / last100.length : 0;
-    const name = el('input', { type: 'text', maxlength: '30', placeholder: 'Prénom', 'aria-label': 'Prénom de l\'enfant',
-      style: 'font:inherit;padding:10px;border:1px solid #d1d5db;border-radius:10px;min-height:44px;width:100%;box-sizing:border-box' }) as HTMLInputElement;
-    name.value = p.settings.childName;
-    name.addEventListener('change', () => {
-      const childName = name.value.trim().replace(/\s+/g, ' ');
-      p.updateSettings({ childName });
-      app.voice.lines.name = childName;
-    });
+
+    const alternate = el('input', { type: 'checkbox', 'aria-label': 'Alterner les séries entre les enfants' });
+    (alternate as HTMLInputElement).checked = app.profiles.alternate;
+    alternate.addEventListener('change', () => app.profiles.setAlternate((alternate as HTMLInputElement).checked));
+
     return el('section', {},
-      el('h2', {}, 'Enfant'),
-      el('p', { class: 'help' }, 'Le dino appelle l\'enfant par son prénom. L\'âge choisit les jeux proposés (anglais, calcul et '
-        + 'lecture dès 5 ans) et le niveau de départ.'),
-      el('div', { style: 'margin-bottom:12px' }, name),
-      ages,
+      el('h2', {}, 'Enfants'),
+      el('p', { class: 'help' }, 'Chaque enfant a son dino, sa progression et ses réglages. Les réglages ci-dessous '
+        + 'concernent l\'enfant choisi.'),
+      tabs,
+      el('p', { style: 'margin:14px 0 0' }, el('b', {}, p.name || 'Sans prénom'),
+        ` · ${p.age} ans · ${country ? country.name.replace(/^(la|le) /, '') : 'autre pays'} · ${dino}`),
+      actions,
       el('div', { class: 'stat', style: 'margin-top:12px' },
         el('div', {}, el('b', {}, String(p.seriesPlayed)), 'séries jouées'),
         el('div', {}, el('b', {}, String(answers.length)), 'réponses'),
         el('div', {}, el('b', {}, last100.length ? percent(rate) : '—'), 'réussite du 1er coup (100 dernières)'),
         el('div', {}, el('b', {}, `${minutes(p.playMsToday())} min`), 'de jeu aujourd\'hui'),
       ),
+      app.profiles.count > 1
+        ? el('div', { class: 'row', style: 'justify-content:space-between;margin-top:14px' },
+          el('span', {}, 'Alterner les séries : après chaque série, c\'est au tour de l\'enfant suivant'),
+          el('label', { class: 'switch' }, alternate, el('span')))
+        : '',
     );
   }
 
@@ -407,11 +456,18 @@ export function openParents(onClose: () => void) {
             return;
           }
           await ears.install(lang);
-          p.updateSettings({ voicePacks: [...new Set([...p.settings.voicePacks, lang])] });
+          // Le pack est sur l'appareil : il sert à tous les enfants.
+          for (const id of app.profiles.ids) {
+            const child = app.profiles.progressOf(id);
+            child.updateSettings({ voicePacks: [...new Set([...child.settings.voicePacks, lang])] });
+          }
           render();
         } catch (e) {
           console.warn(e);
-          p.updateSettings({ voicePacks: p.settings.voicePacks.filter((l) => l !== lang) });
+          for (const id of app.profiles.ids) {
+            const child = app.profiles.progressOf(id);
+            child.updateSettings({ voicePacks: child.settings.voicePacks.filter((l) => l !== lang) });
+          }
           state.textContent = 'Le téléchargement a échoué. Vérifiez la connexion, puis réessayez.';
           button.removeAttribute('disabled');
         }
@@ -424,29 +480,12 @@ export function openParents(onClose: () => void) {
       remove.addEventListener('click', async () => {
         if (!confirm('Supprimer les packs de reconnaissance vocale de cet appareil ? Les jeux à voix haute ne seront plus proposés.')) return;
         await ears.removeAll();
-        p.updateSettings({ voicePacks: [] });
+        for (const id of app.profiles.ids) app.profiles.progressOf(id).updateSettings({ voicePacks: [] });
         render();
       });
       section.append(remove);
     }
     return section;
-  }
-
-  // ---- Pays ----
-  function countrySection() {
-    const current = COUNTRIES.find((c) => c.code === p.settings.country);
-    const change = el('button', {}, 'Changer de pays');
-    change.addEventListener('click', async () => {
-      if (await chooseCountry('Annuler')) render();
-    });
-    return el('section', {},
-      el('h2', {}, 'Pays de l\'enfant'),
-      el('p', { class: 'help' }, current
-        ? `Pays : ${current.name.replace(/^(la|le) /, '')}. Le jeu « Mon pays » pose des questions dessus : drapeau, `
-          + 'symboles, spécialités, fête nationale, capitale, pays voisins…'
-        : 'Autre pays : le jeu « Mon pays » n\'est pas proposé.'),
-      change,
-    );
   }
 
   // ---- Code parent ----

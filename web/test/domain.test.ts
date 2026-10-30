@@ -11,6 +11,7 @@ import { SENTENCES } from '../src/content/sentences';
 import { ONSETS, RHYMES } from '../src/content/sounds';
 import { LINES, LinePicker } from '../src/core/lines';
 import { MemoryStore, Progress } from '../src/core/progress';
+import { NewChild, Profiles } from '../src/core/profiles';
 import { Series } from '../src/core/series';
 import { BALANCE } from '../src/domain/balance';
 import { adjustment, baseLevel, computeLevel } from '../src/domain/difficulty';
@@ -626,10 +627,7 @@ describe('code parent et collection', () => {
   it('le code débloque du temps de jeu pour la journée', () => {
     const p = new Progress(new MemoryStore());
     const day = new Date(2026, 9, 30, 10);
-    expect(p.checkPin('1234')).toBe(false);
-    p.updateSettings({ pin: '1234', dailyMinutes: 15 });
-    expect(p.checkPin('1234')).toBe(true);
-    expect(p.checkPin('0000')).toBe(false);
+    p.updateSettings({ dailyMinutes: 15 });
     p.addPlayTime(16 * 60_000, day);
     expect(p.timeIsUp(day)).toBe(true);
     p.unlockToday(15, day);
@@ -756,5 +754,62 @@ describe('mon pays', () => {
     const flag = game.build({ id: 'MO-6:fr:flag', level: 1 }, 1, mulberry32(1));
     expect(flag.answer.image).toBe('flag-fr');
     expect(flag.prompt[0].text).toBe('Quel est le drapeau de la France ?');
+  });
+});
+
+describe('enfants', () => {
+  const child = (name: string, age = 5): NewChild => ({ name, age, country: 'be', dailyMinutes: 30, nightTime: '19:30' });
+
+  it('chaque enfant a sa progression, ses réglages et son dino ; le code est commun', () => {
+    const store = new MemoryStore();
+    const profiles = new Profiles(store);
+    expect(profiles.count).toBe(0);
+    profiles.setPin('2468');
+    const lea = profiles.add(child('Léa', 4));
+    const tom = profiles.add(child('Tom', 7));
+    expect(profiles.activeId).toBe(lea);
+    const p = profiles.progressOf(tom);
+    expect([p.name, p.age, p.settings.country, p.settings.dailyMinutes, p.settings.nightTime]).toEqual(['Tom', 7, 'be', 30, '19:30']);
+    expect(p.hatched).toBe(false);
+    p.hatch(3);
+    profiles.progressOf(lea).recordAnswer({ gameId: 'MO-1', category: 'world', questionId: 'MO-1:cat', level: 1, firstTrySuccess: true, at: 1 });
+    // Rechargement : tout est retrouvé, chacun chez soi.
+    const again = new Profiles(store);
+    expect(again.checkPin('2468')).toBe(true);
+    expect(again.checkPin('1111')).toBe(false);
+    expect(again.ids).toEqual([lea, tom]);
+    expect(again.progressOf(tom).color).toBe(3);
+    expect(again.progressOf(lea).answers()).toHaveLength(1);
+    expect(again.progressOf(tom).answers()).toHaveLength(0);
+    // Alternance : l'enfant suivant, puis on revient au premier.
+    again.setAlternate(true);
+    expect(again.nextId()).toBe(tom);
+    again.setActive(tom);
+    expect(again.nextId()).toBe(lea);
+    // Suppression (jamais le dernier enfant).
+    again.remove(tom);
+    expect(again.ids).toEqual([lea]);
+    expect(again.activeId).toBe(lea);
+    again.remove(lea);
+    expect(again.count).toBe(1);
+  });
+
+  it('une partie d\'avant les profils devient le premier enfant, avec son code et son dino', () => {
+    const store = new MemoryStore();
+    store.setItem('dinolearn.progress.v1', JSON.stringify({ age: 6, seriesPlayed: 4, settings: { pin: '1357' } }));
+    const profiles = new Profiles(store);
+    expect(profiles.ids).toEqual(['c1']);
+    expect(profiles.checkPin('1357')).toBe(true);
+    expect(profiles.active.age).toBe(6);
+    expect(profiles.active.hatched).toBe(true);
+    expect(profiles.active.name).toBe('');
+  });
+
+  it('le prénom de l\'enfant dans les répliques', () => {
+    const lines = new LinePicker(() => 0, { hi: ['Coucou {name} !'], bravo: ['Bravo, {name} !'] });
+    expect(lines.pick('hi')).toBe('Coucou !');
+    lines.name = () => 'Léa';
+    expect(lines.pick('hi')).toBe('Coucou Léa !');
+    expect(lines.pick('bravo')).toBe('Bravo, Léa !');
   });
 });

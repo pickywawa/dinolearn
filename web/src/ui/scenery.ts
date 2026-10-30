@@ -41,7 +41,11 @@ export function drawNightSky(scene: Phaser.Scene) {
 }
 
 /** Le dino grandit avec son niveau (1 à 40) : facteur de taille d'affichage. */
-export const growthFactor = (level: number) => 0.8 + Math.min(40, level) * 0.01;
+export const growthFactor = (level: number, age = app.progress.age) =>
+  (0.8 + Math.min(40, level) * 0.01) * ageSize(age);
+
+/** Taille du dino à l'éclosion selon l'âge de l'enfant : un peu plus grand pour les plus grands. */
+export const ageSize = (age: number) => 0.85 + (Math.min(7, Math.max(3, age)) - 3) * 0.05;
 
 export const isPortrait = (scene: Phaser.Scene) => scene.scale.height >= scene.scale.width;
 
