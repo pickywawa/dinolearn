@@ -1,8 +1,8 @@
 import Phaser from 'phaser';
 import { app } from '../core/app';
 import { Sfx } from '../core/sfx';
-import { gamesForAge } from '../content/games';
-import { BALANCE } from '../domain/balance';
+import { playableGames } from '../core/app';
+import { openParents } from '../ui/parents';
 import { Dino } from '../dino/Dino';
 import { Bubble } from '../ui/Bubble';
 import { Guide } from '../ui/Guide';
@@ -13,7 +13,8 @@ import { BaseScene } from './BaseScene';
 /**
  * Accueil : un gros bouton vert au centre lance une série tout mélangée
  * (chaque question vient d'un jeu au hasard, choix par défaut). Un petit bouton ouvre le choix des jeux. En haut : le gâteau
- * (âge) et l'étoile du niveau du dino (− et + pour tester).
+ * (âge), l'étoile du niveau du dino et le cadenas de l'espace parents (appui long, puis glisser vers le haut).
+ * Quand le temps de jeu du jour fixé par les parents est atteint, le dino va se coucher.
  */
 export class HomeScene extends BaseScene {
   private dino!: Dino;
@@ -21,7 +22,6 @@ export class HomeScene extends BaseScene {
   private play!: Bubble;
   private choose!: Phaser.GameObjects.Container;
   private dinoBase = 0;
-  private levelText!: Phaser.GameObjects.Text;
 
   constructor() {
     super('Home');
@@ -53,6 +53,12 @@ export class HomeScene extends BaseScene {
     const ar = u * 0.06;
     new Bubble(this, ar * 1.4, ar * 1.4, ar, 0xffd6e7, 'ui-cake', () => goTo(this, 'Age'), 0.7).setAlpha(0.85);
     this.drawLevelBadge(W - u * 0.13, u * 0.11, u);
+    this.parentGate(W - u * 0.13, u * 0.27, u);
+
+    if (app.progress.timeIsUp()) {
+      this.bedtime();
+      return;
+    }
 
     this.run(async () => {
       await this.wait(350);
@@ -97,7 +103,7 @@ export class HomeScene extends BaseScene {
     const button = this.add.container(x, y);
     button.add(this.add.circle(0, r * 0.08, r, 0x000000, 0.18));
     button.add(this.add.circle(0, 0, r, 0xffffff).setStrokeStyle(r * 0.08, 0x8e4ec6));
-    gamesForAge(app.progress.age).slice(0, 4).forEach((game, i) => {
+    playableGames().slice(0, 4).forEach((game, i) => {
       const icon = this.add.image((i % 2 - 0.5) * r * 0.9, (Math.floor(i / 2) - 0.5) * r * 0.9, game.icon);
       icon.setScale((r * 0.75) / icon.width);
       button.add(icon);
@@ -122,7 +128,7 @@ export class HomeScene extends BaseScene {
     });
   }
 
-  /** Étoile avec le niveau du dino ; − et + changent le niveau (pour tester). */
+  /** Étoile avec le niveau du dino (réglable dans l'espace parents). */
   private drawLevelBadge(x: number, y: number, u: number) {
     const star = this.add.image(x, y, 'ui-star');
     star.setScale((u * 0.16) / star.width).setInteractive();
@@ -130,32 +136,89 @@ export class HomeScene extends BaseScene {
       this.dino.react('happy');
       this.run(() => this.say('home.level'));
     });
-    this.levelText = this.add.text(x, y + u * 0.01, '', {
+    this.add.text(x, y + u * 0.01, String(app.progress.dino.level), {
       fontFamily: 'Arial Rounded MT Bold, Arial, sans-serif', fontSize: `${Math.round(u * 0.055)}px`,
       color: '#ffffff', fontStyle: 'bold', stroke: '#2d3354', strokeThickness: Math.round(u * 0.012),
     }).setOrigin(0.5);
-    const small = u * 0.032;
-    const button = (dx: number, label: string, delta: number) => {
-      const b = this.add.circle(x + dx, y + u * 0.11, small, 0xffffff).setStrokeStyle(3, 0x2d3354).setInteractive();
-      this.add.text(b.x, b.y, label, {
-        fontFamily: 'Arial, sans-serif', fontSize: `${Math.round(small * 1.4)}px`, color: '#2d3354', fontStyle: 'bold',
-      }).setOrigin(0.5);
-      b.on('pointerup', () => this.changeLevel(delta));
-    };
-    button(-u * 0.05, '−', -1);
-    button(u * 0.05, '+', 1);
-    this.levelText.setText(String(app.progress.dino.level));
   }
 
-  private changeLevel(delta: number) {
-    const level = app.progress.dino.level + delta;
-    if (level < 1 || level > BALANCE.dinoMaxLevel) return;
-    app.progress.setDinoLevel(level);
-    Sfx.play(delta > 0 ? 'levelUp' : 'pop');
-    if (delta > 0) this.dino.react('levelUp');
-    this.tweens.add({
-      targets: this.dino, scale: (this.dinoBase * growthFactor(level)) / Dino.HEIGHT, duration: 400, ease: 'Back.easeOut',
+  /** Temps de jeu atteint : plus de bouton de jeu, le dino bâille et va dormir. */
+  private bedtime() {
+    this.play.setVisible(false);
+    this.choose.setVisible(false);
+    const sleep = () => this.run(async () => {
+      this.dino.react('yawn');
+      await this.say('bedtime');
     });
-    this.levelText.setText(String(level));
+    this.time.delayedCall(400, sleep);
+    this.time.addEvent({ delay: 9000, loop: true, callback: () => this.dino.react('yawn') });
+  }
+
+  /**
+   * Cadenas de l'espace parents : il faut rester appuyé dessus, puis glisser
+   * vers le haut sans lâcher. Un petit texte explique le geste aux adultes.
+   */
+  private parentGate(x: number, y: number, u: number) {
+    const { width: W } = this.scale;
+    const lock = this.add.image(x, y, 'ui-parents').setAlpha(0.75);
+    lock.setScale((u * 0.075) / lock.width).setInteractive({ useHandCursor: true });
+    const info = this.add.text(W - u * 0.03, y + u * 0.08, '', {
+      fontFamily: 'Arial, sans-serif', fontSize: `${Math.round(u * 0.036)}px`, color: '#ffffff',
+      backgroundColor: '#2d3354cc', padding: { x: 14, y: 10 }, align: 'right',
+      wordWrap: { width: W * 0.6 },
+    }).setOrigin(1, 0).setDepth(50).setVisible(false);
+    const arrow = this.add.text(x, y - u * 0.08, '↑', {
+      fontFamily: 'Arial, sans-serif', fontSize: `${Math.round(u * 0.07)}px`, color: '#2d3354', fontStyle: 'bold',
+    }).setOrigin(0.5).setDepth(50).setVisible(false);
+    let startY = 0;
+    let pressed = false;
+    let armed = false;
+    let opened = false;
+    let hold: Phaser.Time.TimerEvent | undefined;
+    let hide: Phaser.Time.TimerEvent | undefined;
+    const say = (text: string, ms?: number) => {
+      hide?.remove();
+      info.setText(text).setVisible(true);
+      if (ms) hide = this.time.delayedCall(ms, () => info.setVisible(false));
+    };
+
+    lock.on('pointerdown', (p: Phaser.Input.Pointer) => {
+      pressed = true;
+      armed = false;
+      startY = p.y;
+      say('Espace parents : reste appuyé…');
+      hold = this.time.delayedCall(700, () => {
+        if (!pressed) return;
+        armed = true;
+        say('Maintenant, glisse vers le haut sans lâcher ↑');
+        arrow.setVisible(true).setY(y - u * 0.06).setAlpha(1);
+        this.tweens.add({ targets: arrow, y: y - u * 0.16, alpha: 0.2, duration: 600, repeat: -1 });
+      });
+    });
+    this.input.on('pointermove', (p: Phaser.Input.Pointer) => {
+      if (!armed || opened || !p.isDown || startY - p.y < u * 0.1) return;
+      opened = true;
+      this.openParentSpace();
+    });
+    this.input.on('pointerup', () => {
+      if (!pressed) return;
+      pressed = false;
+      hold?.remove();
+      this.tweens.killTweensOf(arrow);
+      arrow.setVisible(false);
+      if (opened) return;
+      say(armed
+        ? 'Glisse vers le haut sans lâcher le doigt.'
+        : 'Espace parents : reste appuyé sur le cadenas, puis glisse vers le haut.', 3500);
+      armed = false;
+    });
+  }
+
+  private openParentSpace() {
+    this.clearIdle();
+    this.guide.hide();
+    app.voice.stop();
+    this.input.enabled = false;
+    openParents(() => this.scene.restart({}));
   }
 }

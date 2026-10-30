@@ -1,5 +1,4 @@
-import { app } from '../core/app';
-import { gamesForAge } from '../content/games';
+import { playableGames } from '../core/app';
 import { Dino } from '../dino/Dino';
 import { Bubble } from '../ui/Bubble';
 import { Guide } from '../ui/Guide';
@@ -35,7 +34,7 @@ export class ChooseScene extends BaseScene {
     this.guide = new Guide(this, u * 0.15);
 
     // Seuls les jeux de l'âge de l'enfant sont proposés (l'anglais et le calcul à partir de 5 ans…).
-    const games = gamesForAge(app.progress.age);
+    const games = playableGames();
     const { positions, rowStep } = bubbleGrid(games.length, portrait);
     // Rayon : aussi grand que possible sans que les bulles se touchent.
     const r = Math.min(u * 0.12, H * rowStep * 0.42, W * (portrait ? 0.13 : 0.06));

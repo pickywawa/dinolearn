@@ -27,6 +27,19 @@ interface Data {
   seriesPlayed: number;
   lastSeriesDay?: string;
   seenTutorial: boolean;
+  /** Réglages de l'espace parents. */
+  settings: Settings;
+  /** Temps de jeu (ms) du jour, par jour. */
+  playLog: Record<string, number>;
+}
+
+export interface Settings {
+  /** Jeux désactivés par les parents. */
+  disabledGames: string[];
+  /** Temps de jeu maximum par jour, en minutes (0 = illimité). */
+  dailyMinutes: number;
+  /** Bruitages. */
+  sfx: boolean;
 }
 
 const KEY = 'dinolearn.progress.v1';
@@ -45,6 +58,8 @@ const empty = (): Data => ({
   feedLog: {},
   seriesPlayed: 0,
   seenTutorial: false,
+  settings: { disabledGames: [], dailyMinutes: 0, sfx: true },
+  playLog: {},
 });
 
 export const dayKey = (d = new Date()) =>
@@ -62,6 +77,7 @@ export class Progress {
       parsed = {};
     }
     this.data = { ...empty(), ...parsed };
+    this.data.settings = { ...empty().settings, ...parsed.settings };
   }
 
   private save() {
@@ -112,6 +128,66 @@ export class Progress {
 
   gameLevel(gameId: string): number | undefined { return this.data.gameLevels[gameId]; }
 
+  /** Règle le niveau de difficulté d'un jeu (espace parents) ; il évolue ensuite selon les réussites. */
+  setGameLevel(gameId: string, level: number | null) {
+    if (level === null) delete this.data.gameLevels[gameId];
+    else this.data.gameLevels[gameId] = Math.max(1, Math.min(BALANCE.maxLevel, level));
+    this.save();
+  }
+
+  /** Tous les jeux repartent du niveau calculé (après un changement d'âge ou de niveau du dino). */
+  clearGameLevels() {
+    this.data.gameLevels = {};
+    this.save();
+  }
+
+  get settings(): Readonly<Settings> { return this.data.settings; }
+
+  updateSettings(change: Partial<Settings>) {
+    this.data.settings = { ...this.data.settings, ...change };
+    this.save();
+  }
+
+  /** Dernière réponse donnée dans ce jeu (date), pour le suivi des parents. */
+  lastPlayed(gameId: string): number | undefined {
+    return this.data.answers.find((a) => a.gameId === gameId)?.at;
+  }
+
+  /** Questions ratées récemment et pas encore réussies, de la plus récente à la plus ancienne. */
+  recentFailures(limit: number): { gameId: string; questionId: string; at: number }[] {
+    return Object.entries(this.data.failedAt)
+      .flatMap(([gameId, ids]) => Object.entries(ids).map(([questionId, at]) => ({ gameId, questionId, at })))
+      .sort((a, b) => b.at - a.at)
+      .slice(0, limit);
+  }
+
+  playMsToday(now = new Date()) { return this.data.playLog[dayKey(now)] ?? 0; }
+
+  addPlayTime(ms: number, now = new Date()) {
+    const day = dayKey(now);
+    // On ne garde que les 30 derniers jours.
+    const days = Object.keys(this.data.playLog).sort().slice(-29).filter((d) => d !== day);
+    const log: Record<string, number> = Object.fromEntries(days.map((d) => [d, this.data.playLog[d]]));
+    log[day] = (this.data.playLog[day] ?? 0) + ms;
+    this.data.playLog = log;
+    this.save();
+  }
+
+  /** Temps de jeu des 7 derniers jours (ms), du plus ancien à aujourd'hui. */
+  playWeek(now = new Date()): { day: string; ms: number }[] {
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(now);
+      d.setDate(d.getDate() - (6 - i));
+      return { day: dayKey(d), ms: this.data.playLog[dayKey(d)] ?? 0 };
+    });
+  }
+
+  /** Vrai si le temps de jeu du jour fixé par les parents est atteint. */
+  timeIsUp(now = new Date()) {
+    const max = this.data.settings.dailyMinutes;
+    return max > 0 && this.playMsToday(now) >= max * 60_000;
+  }
+
   xpEatenToday(now = new Date()) { return this.data.feedLog[dayKey(now)] ?? 0; }
 
   isFirstSeriesToday(now = new Date()) { return this.data.lastSeriesDay !== dayKey(now); }
@@ -146,8 +222,8 @@ export class Progress {
   }
 
   reset() {
-    const { age, ageChosen } = this.data;
-    this.data = { ...empty(), age, ageChosen };
+    const { age, ageChosen, settings } = this.data;
+    this.data = { ...empty(), age, ageChosen, settings };
     this.save();
   }
 }

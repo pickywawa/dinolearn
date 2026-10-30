@@ -68,6 +68,7 @@ write('en-numbers', noto, 'keycap-10');
 write('syllables', noto, 'clapping-hands');
 write('read', noto, 'open-book');
 write('letters', noto, 'input-latin-uppercase');
+write('ui-parents', noto, 'locked');
 for (const icon of UI_ICONS) write(`ui-${icon}`, plush, icon);
 for (const flag of FLAGS) write(`flag-${flag}`, flags, flag);
 

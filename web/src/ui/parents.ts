@@ -1,0 +1,311 @@
+import { GAMES, GameDef } from '../content/games';
+import { app } from '../core/app';
+import { Sfx } from '../core/sfx';
+import { BALANCE } from '../domain/balance';
+import { baseLevel } from '../domain/difficulty';
+import { mulberry32 } from '../domain/models';
+
+/**
+ * Espace parents : une page HTML classique posée sur le jeu (lisible et
+ * défilable), ouverte depuis l'accueil par un appui long puis un glissé vers
+ * le haut. On y règle l'âge, le niveau du dino et de chaque jeu, les jeux
+ * proposés et le temps de jeu, et on suit la progression.
+ */
+
+const TITLES: Record<string, string> = {
+  'EN-1': 'Anglais — Écoute et touche', 'EN-2': 'Anglais — Numbers', 'MO-1': 'Monde — Montre-moi',
+  'MO-2': 'Monde — Devinettes', 'MO-3': 'Monde — Les ombres', 'MO-4': 'Monde — Ça va ensemble',
+  'MO-5': 'Monde — Le plus grand', 'FR-1': 'Français — Les sons', 'FR-2': 'Français — Les syllabes',
+  'FR-3': 'Français — Lis le mot', 'FR-4': 'Français — Les lettres', 'LO-1': 'Logique — L\'intrus',
+  'LO-2': 'Logique — Combien ?', 'LO-3': 'Logique — La suite', 'LO-4': 'Logique — Le plus, le moins',
+  'LO-5': 'Logique — Calcul', 'LO-6': 'Logique — Les nombres',
+};
+export const gameTitle = (g: GameDef) => TITLES[g.id] ?? g.id;
+
+const DAILY_CHOICES = [0, 10, 20, 30, 45, 60, 90];
+
+const CSS = `
+.parents { position: fixed; inset: 0; z-index: 1000; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  background: #f4f6fb; color: #1f2937; font: 16px/1.45 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+.parents * { box-sizing: border-box; }
+.parents header { position: sticky; top: 0; z-index: 1; display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; padding: 14px 16px; background: #2d3354; color: #fff; }
+.parents header h1 { margin: 0; font-size: 20px; }
+.parents main { max-width: 760px; margin: 0 auto; padding: 16px 16px 48px; }
+.parents section { background: #fff; border-radius: 14px; padding: 16px; margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+.parents h2 { margin: 0 0 4px; font-size: 18px; }
+.parents .help { margin: 0 0 12px; color: #6b7280; font-size: 14px; }
+.parents button { font: inherit; border: 0; border-radius: 10px; padding: 10px 14px; cursor: pointer;
+  background: #e5e7eb; color: #1f2937; min-height: 44px; }
+.parents button.primary { background: #43b649; color: #fff; font-weight: 600; }
+.parents button.danger { background: #fee2e2; color: #b91c1c; }
+.parents button.on { background: #2d3354; color: #fff; }
+.parents .row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.parents .stat { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+.parents .stat div { background: #f4f6fb; border-radius: 10px; padding: 10px; }
+.parents .stat b { display: block; font-size: 22px; }
+.parents input[type=range] { width: 100%; height: 36px; accent-color: #43b649; }
+.parents .level { display: flex; align-items: center; gap: 12px; }
+.parents .level output { min-width: 48px; text-align: center; font-size: 26px; font-weight: 700; }
+.parents .game { border-top: 1px solid #e5e7eb; padding: 12px 0; }
+.parents .game:first-of-type { border-top: 0; }
+.parents .game.off { opacity: .55; }
+.parents .game .top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.parents .game .name { font-weight: 600; }
+.parents .game .meta { color: #6b7280; font-size: 14px; }
+.parents .game select { font: inherit; padding: 8px; border-radius: 8px; border: 1px solid #d1d5db; min-height: 40px; }
+.parents .bar { height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; margin-top: 6px; }
+.parents .bar span { display: block; height: 100%; background: #43b649; }
+.parents .switch { position: relative; width: 52px; height: 32px; flex: none; }
+.parents .switch input { opacity: 0; width: 0; height: 0; }
+.parents .switch span { position: absolute; inset: 0; background: #d1d5db; border-radius: 16px; transition: .2s; }
+.parents .switch span::after { content: ''; position: absolute; left: 3px; top: 3px; width: 26px; height: 26px;
+  background: #fff; border-radius: 50%; transition: .2s; }
+.parents .switch input:checked + span { background: #43b649; }
+.parents .switch input:checked + span::after { transform: translateX(20px); }
+.parents .week { display: flex; align-items: flex-end; gap: 6px; height: 110px; margin-top: 8px; }
+.parents .week div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+  height: 100%; font-size: 12px; color: #6b7280; }
+.parents .week i { display: block; width: 100%; background: #8e4ec6; border-radius: 6px 6px 0 0; min-height: 2px; }
+.parents ul.fails { margin: 0; padding-left: 18px; }
+.parents ul.fails li { margin: 6px 0; }
+.parents ul.fails small { color: #6b7280; }
+`;
+
+const minutes = (ms: number) => Math.round(ms / 60_000);
+const percent = (x: number) => `${Math.round(x * 100)} %`;
+
+function el<K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Record<string, string> = {}, ...children: (Node | string)[]) {
+  const node = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, v);
+  node.append(...children);
+  return node;
+}
+
+/** Ouvre l'espace parents ; `onClose` relance l'accueil pour appliquer les réglages. */
+export function openParents(onClose: () => void) {
+  const p = app.progress;
+  if (!document.getElementById('parents-css')) {
+    document.head.append(el('style', { id: 'parents-css' }, CSS));
+  }
+  const root = el('div', { class: 'parents', role: 'dialog', 'aria-label': 'Espace parents' });
+  const close = el('button', { class: 'primary' }, 'Retour au jeu');
+  close.addEventListener('click', () => {
+    root.remove();
+    onClose();
+  });
+  root.append(el('header', {}, el('h1', {}, 'Espace parents'), close));
+  const main = el('main');
+  root.append(main);
+  document.body.append(root);
+
+  const render = () => {
+    main.replaceChildren(
+      childSection(), levelSection(), timeSection(), gamesSection(), failuresSection(), soundSection(), dataSection(),
+    );
+  };
+
+  // ---- Enfant : âge ----
+  function childSection() {
+    const ages = el('div', { class: 'row' });
+    for (let age = 3; age <= 7; age++) {
+      const b = el('button', { class: p.age === age ? 'on' : '' }, `${age} ans`);
+      b.addEventListener('click', () => {
+        p.age = age;
+        p.clearGameLevels();
+        render();
+      });
+      ages.append(b);
+    }
+    const answers = p.answers();
+    const last100 = answers.slice(0, 100);
+    const rate = last100.length ? last100.filter((a) => a.firstTrySuccess).length / last100.length : 0;
+    return el('section', {},
+      el('h2', {}, 'Enfant'),
+      el('p', { class: 'help' }, 'L\'âge choisit les jeux proposés (anglais, calcul et lecture dès 5 ans) et le niveau de départ.'),
+      ages,
+      el('div', { class: 'stat', style: 'margin-top:12px' },
+        el('div', {}, el('b', {}, String(p.seriesPlayed)), 'séries jouées'),
+        el('div', {}, el('b', {}, String(answers.length)), 'réponses'),
+        el('div', {}, el('b', {}, last100.length ? percent(rate) : '—'), 'réussite du 1er coup (100 dernières)'),
+        el('div', {}, el('b', {}, `${minutes(p.playMsToday())} min`), 'de jeu aujourd\'hui'),
+      ),
+    );
+  }
+
+  // ---- Niveau du dino ----
+  function levelSection() {
+    const range = el('input', { type: 'range', min: '1', max: String(BALANCE.dinoMaxLevel), value: String(p.dino.level) });
+    const out = el('output', {}, String(p.dino.level));
+    const diff = el('p', { class: 'help' });
+    const describe = (level: number) => {
+      const base = baseLevel(level, p.age);
+      diff.textContent = `Difficulté de départ des jeux : ${base} sur 20 (${base > 10 ? 'niveau CP' : 'maternelle'}). `
+        + 'Elle s\'ajuste ensuite toute seule selon les réussites.';
+    };
+    describe(p.dino.level);
+    range.addEventListener('input', () => {
+      out.textContent = range.value;
+      describe(Number(range.value));
+    });
+    range.addEventListener('change', () => {
+      p.setDinoLevel(Number(range.value));
+      p.clearGameLevels();
+      render();
+    });
+    return el('section', {},
+      el('h2', {}, 'Niveau du dino'),
+      el('p', { class: 'help' }, `Le dino grandit quand l'enfant le nourrit (niveau 1 à ${BALANCE.dinoMaxLevel}). `
+        + 'Vous pouvez le régler pour adapter la difficulté : les niveaux 21 à 40 correspondent au CP.'),
+      el('div', { class: 'level' }, range, out),
+      diff,
+    );
+  }
+
+  // ---- Temps de jeu ----
+  function timeSection() {
+    const choices = el('div', { class: 'row' });
+    for (const m of DAILY_CHOICES) {
+      const b = el('button', { class: p.settings.dailyMinutes === m ? 'on' : '' }, m === 0 ? 'Illimité' : `${m} min`);
+      b.addEventListener('click', () => {
+        p.updateSettings({ dailyMinutes: m });
+        render();
+      });
+      choices.append(b);
+    }
+    const week = p.playWeek();
+    const max = Math.max(...week.map((d) => d.ms), 60_000);
+    const days = ['dim', 'lun', 'mar', 'mer', 'jeu', 'ven', 'sam'];
+    const chart = el('div', { class: 'week', 'aria-label': 'Temps de jeu des 7 derniers jours' },
+      ...week.map(({ day, ms }) => el('div', { title: `${minutes(ms)} min` },
+        `${minutes(ms)}′`,
+        el('i', { style: `height:${Math.round((ms / max) * 80)}%` }),
+        days[new Date(`${day}T12:00:00`).getDay()])));
+    return el('section', {},
+      el('h2', {}, 'Temps de jeu par jour'),
+      el('p', { class: 'help' }, 'Quand le temps est atteint, l\'enfant finit sa série, puis le dino va se coucher jusqu\'au lendemain.'),
+      choices,
+      chart,
+    );
+  }
+
+  // ---- Jeux : activés, niveau, suivi ----
+  function gamesSection() {
+    const list = el('div');
+    for (const game of GAMES) {
+      const tooYoung = p.age < (game.minAge ?? 3);
+      const enabled = !p.settings.disabledGames.includes(game.id);
+      const answers = p.answers({ gameId: game.id });
+      const last = answers.slice(0, 100);
+      const rate = last.length ? last.filter((a) => a.firstTrySuccess).length / last.length : undefined;
+      const mastered = p.mastered(game.id).size;
+      const lastAt = p.lastPlayed(game.id);
+
+      const toggle = el('input', { type: 'checkbox', 'aria-label': `Activer ${gameTitle(game)}` });
+      (toggle as HTMLInputElement).checked = enabled;
+      toggle.addEventListener('change', () => {
+        const others = p.settings.disabledGames.filter((id) => id !== game.id);
+        p.updateSettings({ disabledGames: (toggle as HTMLInputElement).checked ? others : [...others, game.id] });
+        render();
+      });
+
+      const level = el('select', { 'aria-label': `Niveau de ${gameTitle(game)}` });
+      level.append(el('option', { value: '' }, 'Niveau auto'));
+      for (let l = 1; l <= BALANCE.maxLevel; l++) level.append(el('option', { value: String(l) }, `Niveau ${l}`));
+      (level as HTMLSelectElement).value = String(p.gameLevel(game.id) ?? '');
+      level.addEventListener('change', () => {
+        const v = (level as HTMLSelectElement).value;
+        p.setGameLevel(game.id, v ? Number(v) : null);
+      });
+
+      const meta = tooYoung
+        ? `À partir de ${game.minAge} ans`
+        : [
+          answers.length ? `${answers.length} réponses` : 'Pas encore joué',
+          rate !== undefined ? `${percent(rate)} du 1er coup` : '',
+          `${mastered} / ${game.questions.length} questions réussies`,
+          lastAt ? `dernière partie le ${new Date(lastAt).toLocaleDateString('fr-FR')}` : '',
+        ].filter(Boolean).join(' · ');
+      list.append(el('div', { class: `game${tooYoung || !enabled ? ' off' : ''}` },
+        el('div', { class: 'top' },
+          el('span', { class: 'name' }, gameTitle(game)),
+          el('label', { class: 'switch' }, toggle, el('span')),
+        ),
+        el('div', { class: 'meta' }, meta),
+        el('div', { class: 'bar' }, el('span', { style: `width:${(mastered / game.questions.length) * 100}%` })),
+        tooYoung ? '' : el('div', { class: 'row', style: 'margin-top:8px' }, level),
+      ));
+    }
+    return el('section', {},
+      el('h2', {}, 'Jeux'),
+      el('p', { class: 'help' }, 'Désactivez un jeu pour qu\'il ne soit plus proposé. Le niveau (1 à 20, 11 à 20 = CP) '
+        + 'est le point de départ de la prochaine série ; « auto » le calcule d\'après l\'âge, le dino et les réussites.'),
+      list,
+    );
+  }
+
+  // ---- À retravailler ----
+  function failuresSection() {
+    const fails = p.recentFailures(12);
+    const rng = mulberry32(1);
+    const items = fails.map(({ gameId, questionId }) => {
+      const game = GAMES.find((g) => g.id === gameId);
+      const ref = game?.questions.find((q) => q.id === questionId);
+      if (!game || !ref) return undefined;
+      const q = game.build(ref, ref.level, rng);
+      const text = q.prompt.map((s) => s.text).join(' ');
+      return el('li', {}, text, ' ', el('small', {}, `— ${gameTitle(game)}, niveau ${ref.level}`));
+    }).filter((x): x is HTMLLIElement => x !== undefined);
+    return el('section', {},
+      el('h2', {}, 'À retravailler'),
+      el('p', { class: 'help' }, 'Les dernières questions ratées du premier coup. Le jeu les repose dans les jours qui suivent.'),
+      items.length ? el('ul', { class: 'fails' }, ...items) : el('p', {}, 'Rien pour l\'instant. Bravo !'),
+    );
+  }
+
+  // ---- Son et voix ----
+  function soundSection() {
+    const sfx = el('input', { type: 'checkbox', 'aria-label': 'Bruitages' });
+    (sfx as HTMLInputElement).checked = p.settings.sfx;
+    sfx.addEventListener('change', () => {
+      const on = (sfx as HTMLInputElement).checked;
+      p.updateSettings({ sfx: on });
+      Sfx.enabled = on;
+    });
+    const voices = app.voice.voiceNames();
+    const test = el('button', {}, 'Tester la voix');
+    test.addEventListener('click', () => {
+      void app.voice.say([{ text: 'Bonjour ! Je suis Dino.', lang: 'fr' }, { text: 'Hello!', lang: 'en', slow: true }]);
+    });
+    return el('section', {},
+      el('h2', {}, 'Son et voix'),
+      el('div', { class: 'row', style: 'justify-content:space-between' },
+        el('span', {}, 'Bruitages (bonnes réponses, erreurs, miam…)'),
+        el('label', { class: 'switch' }, sfx, el('span')),
+      ),
+      el('p', { class: 'help', style: 'margin-top:12px' },
+        `Voix française : ${voices.fr ?? 'aucune trouvée'} · Voix anglaise : ${voices.en ?? 'aucune trouvée'}. `
+        + 'Les voix viennent du téléphone : pour une voix plus naturelle, installez une voix « améliorée » ou « premium » '
+        + 'dans les réglages d\'accessibilité (synthèse vocale).'),
+      test,
+    );
+  }
+
+  // ---- Données ----
+  function dataSection() {
+    const reset = el('button', { class: 'danger' }, 'Tout recommencer');
+    reset.addEventListener('click', () => {
+      if (!confirm('Effacer toute la progression (niveau du dino, réponses, fruits) ? Les réglages sont conservés.')) return;
+      p.reset();
+      render();
+    });
+    return el('section', {},
+      el('h2', {}, 'Données'),
+      el('p', { class: 'help' }, 'Tout est enregistré uniquement sur cet appareil. Aucune donnée n\'est envoyée.'),
+      reset,
+    );
+  }
+
+  render();
+}

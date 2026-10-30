@@ -459,3 +459,47 @@ describe('série', () => {
     expect(b.leftovers).toEqual([{ food: 'banana', xp: 2 }]);
   });
 });
+
+describe('espace parents', () => {
+  it('temps de jeu, limite quotidienne, réglages et niveaux par jeu', () => {
+    const store = new MemoryStore();
+    const p = new Progress(store);
+    const day = new Date(2026, 9, 30, 10);
+    expect(p.timeIsUp(day)).toBe(false);
+    p.updateSettings({ dailyMinutes: 20 });
+    p.addPlayTime(15 * 60_000, day);
+    expect(p.timeIsUp(day)).toBe(false);
+    p.addPlayTime(5 * 60_000, day);
+    expect(p.timeIsUp(day)).toBe(true);
+    // Le lendemain, on peut rejouer.
+    expect(p.timeIsUp(new Date(2026, 9, 31, 10))).toBe(false);
+    expect(p.playWeek(day)[6]).toEqual({ day: '2026-10-30', ms: 20 * 60_000 });
+
+    p.updateSettings({ disabledGames: ['EN-1'], sfx: false });
+    p.setGameLevel('LO-5', 14);
+    expect(p.gameLevel('LO-5')).toBe(14);
+    p.setGameLevel('LO-5', 99);
+    expect(p.gameLevel('LO-5')).toBe(20);
+    p.setGameLevel('LO-5', null);
+    expect(p.gameLevel('LO-5')).toBeUndefined();
+
+    p.recordAnswer({ gameId: 'MO-1', category: 'world', questionId: 'MO-1:cat', level: 1, firstTrySuccess: false, at: 5 });
+    expect(p.recentFailures(5)).toEqual([{ gameId: 'MO-1', questionId: 'MO-1:cat', at: 5 }]);
+
+    // Réglages conservés après rechargement et après « tout recommencer ».
+    const reloaded = new Progress(store);
+    expect(reloaded.settings).toEqual({ disabledGames: ['EN-1'], dailyMinutes: 20, sfx: false });
+    reloaded.reset();
+    expect(reloaded.settings.dailyMinutes).toBe(20);
+    expect(reloaded.answers()).toHaveLength(0);
+  });
+
+  it('le niveau réglé par les parents sert de point de départ à la série', () => {
+    const p = new Progress(new MemoryStore());
+    p.age = 5;
+    p.setGameLevel('LO-6', 15);
+    const series = new Series(gameById('LO-6'), p, mulberry32(3));
+    expect(series.level).toBeGreaterThanOrEqual(14);
+    expect(series.level).toBeLessThanOrEqual(16);
+  });
+});

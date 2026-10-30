@@ -19,7 +19,10 @@ const SOUNDS = {
 export type SoundName = keyof typeof SOUNDS;
 
 export const Sfx = {
+  /** Coupé depuis l'espace parents. */
+  enabled: true,
   play(name: SoundName) {
+    if (!Sfx.enabled) return;
     try {
       zzfx(...SOUNDS[name]);
     } catch {

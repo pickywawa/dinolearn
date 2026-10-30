@@ -41,7 +41,12 @@ Jeu jouable directement dans le navigateur d'un téléphone ou d'une tablette (p
 - **Indices** : après une erreur, quand l'enfant hésite, ou tout de suite si le jeu est difficile pour
   lui en ce moment (« Indice : c'est un animal de la ferme », « Indice : qui fait meuh ? »).
 - **Toucher le dino** pendant un jeu lui fait répéter la question.
-- **Niveau du dino** affiché sur l'accueil (étoile), réglable avec − et + pour tester.
+- **Niveau du dino** affiché sur l'accueil (étoile).
+- **Espace parents** : rester appuyé sur le cadenas de l'accueil, puis glisser vers le haut (un texte
+  explique le geste). On y règle l'âge, le niveau du dino (1 à 40) et le niveau de chaque jeu, on
+  active ou désactive des jeux, on fixe un temps de jeu par jour (le dino va ensuite se coucher), on
+  suit la progression par jeu, le temps de jeu de la semaine et les questions à retravailler, on coupe
+  les bruitages, on teste la voix et on peut tout recommencer. Tout reste sur l'appareil.
 - **Tutoriel** à la première partie : le dino fait la première question à la place de l'enfant.
 - **Série** de 6 à 10 questions. La barre de progression montre un fruit différent par question,
   gagné si la réponse est trouvée du premier coup (+ un gâteau pour un sans-faute). Indice après

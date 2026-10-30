@@ -54,7 +54,9 @@ export class EndScene extends BaseScene {
     this.dino.setBellyFill(growthProgress(app.progress.dino));
     this.guide = new Guide(this, u * 0.16);
     this.again = new Bubble(this, W - u * 0.15, u * 0.15, u * 0.11, 0x43b649, 'ui-play', () => {
-      goTo(this, 'Game', data.mixed ? { mixed: true } : { gameId: r.gameId });
+      // Temps de jeu du jour atteint : retour à l'accueil, où le dino va se coucher.
+      if (app.progress.timeIsUp()) goTo(this, 'Home');
+      else goTo(this, 'Game', data.mixed ? { mixed: true } : { gameId: r.gameId });
     });
     this.again.setVisible(false);
 

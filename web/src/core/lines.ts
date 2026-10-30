@@ -265,6 +265,10 @@ export const LINES: Record<string, string[]> = {
     'Hihi ! Encore !',
   ],
   start: ['Touche-moi pour me réveiller !'],
+  bedtime: [
+    'On a bien joué aujourd\'hui ! Maintenant, je vais faire dodo. On rejoue demain ?',
+    'C\'est l\'heure de me reposer ! À demain, mon copain !',
+  ],
   streak5: [
     'Cinq d\'affilée ! Tu es un génie !',
     'Cinq de suite ! Je n\'en reviens pas !',

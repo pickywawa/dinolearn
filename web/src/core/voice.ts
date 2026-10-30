@@ -59,6 +59,11 @@ export class Voice {
     }
   }
 
+  /** Voix choisies (pour l'espace parents). */
+  voiceNames(): { fr?: string; en?: string } {
+    return { fr: this.voices.fr?.name, en: this.voices.en?.name };
+  }
+
   onTalk(fn: TalkListener) { this.talkListeners.add(fn); return () => this.talkListeners.delete(fn); }
   onBoundary(fn: BoundaryListener) { this.boundaryListeners.add(fn); return () => this.boundaryListeners.delete(fn); }
 
