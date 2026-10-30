@@ -4,6 +4,9 @@ import { QuestionRef, Rng, shuffle } from '../domain/models';
 export interface Concept {
   id: string;
   icon: string;
+  /** Grande famille : animal, food, object, nature, body, place, color. */
+  group: string;
+  /** Sous-famille : farm, sea, bird, fruit, vehicle, music… */
   category: string;
   levels: Partial<Record<string, number>>;
   fr: { article: string; word: string };
@@ -19,7 +22,19 @@ export function frWithArticle(c: Concept): string {
   return article.endsWith("'") ? `${article}${word}` : `${article} ${word}`;
 }
 
-export type DistractorStrategy = 'other_category' | 'same_category';
+/**
+ * Choix des mauvaises réponses, du plus facile au plus difficile :
+ * autre famille (un chien parmi des fruits), même famille (parmi des animaux),
+ * même sous-famille (parmi des animaux de la mer).
+ */
+export type DistractorStrategy = 'other_group' | 'same_group' | 'same_category';
+
+/** 4 réponses à chaque question ; les leurres se rapprochent avec le niveau. */
+const CHOICES = [4, 4, 4, 4, 4, 4, 4, 4, 4, 4];
+const DISTRACTORS: DistractorStrategy[] = [
+  'other_group', 'same_group', 'same_group', 'same_group', 'same_category',
+  'same_category', 'same_category', 'same_category', 'same_category', 'same_category',
+];
 
 /** Un morceau de parole : texte et langue. */
 export interface Speech {
@@ -51,11 +66,8 @@ export const GAMES: GameDef[] = [
     icon: 'flag-gb',
     color: 0x3b7de9,
     introLine: 'intro.EN-1',
-    choicesByLevel: [2, 3, 3, 4, 4, 4, 4, 4, 4, 4],
-    distractorsByLevel: [
-      'other_category', 'other_category', 'other_category', 'other_category', 'same_category',
-      'same_category', 'same_category', 'same_category', 'same_category', 'same_category',
-    ],
+    choicesByLevel: CHOICES,
+    distractorsByLevel: DISTRACTORS,
     prompt: (c, level) => [{ text: c.en.word, lang: 'en', slow: level <= 3 }],
     reinforce: (c) => [
       { text: c.en.word, lang: 'en' },
@@ -68,11 +80,8 @@ export const GAMES: GameDef[] = [
     icon: 'ui-globe',
     color: 0x30a46c,
     introLine: 'intro.MO-1',
-    choicesByLevel: [2, 3, 3, 4, 4, 4, 4, 4, 4, 4],
-    distractorsByLevel: [
-      'other_category', 'other_category', 'other_category', 'same_category', 'same_category',
-      'same_category', 'same_category', 'same_category', 'same_category', 'same_category',
-    ],
+    choicesByLevel: CHOICES,
+    distractorsByLevel: DISTRACTORS,
     prompt: (c) => [{ text: `Montre-moi ${frWithArticle(c)} !`, lang: 'fr' }],
     reinforce: (c) => [{ text: `Oui, ${frWithArticle(c)} !`, lang: 'fr' }],
   },
@@ -104,9 +113,14 @@ export function pickDistractors(
   rng: Rng,
 ): Concept[] {
   const others = shuffle(pool.filter((c) => c.id !== answer.id), rng);
-  const same = others.filter((c) => c.category === answer.category);
-  const other = others.filter((c) => c.category !== answer.category);
-  const ordered = strategy === 'same_category' ? [...same, ...other] : [...other, ...same];
+  const sameCategory = others.filter((c) => c.category === answer.category);
+  const sameGroup = others.filter((c) => c.group === answer.group && c.category !== answer.category);
+  const otherGroup = others.filter((c) => c.group !== answer.group);
+  const ordered = {
+    other_group: [...otherGroup, ...sameGroup, ...sameCategory],
+    same_group: [...shuffle([...sameGroup, ...sameCategory], rng), ...otherGroup],
+    same_category: [...sameCategory, ...sameGroup, ...otherGroup],
+  }[strategy];
   const seen = new Set([answer.en.word, answer.fr.word]);
   const result: Concept[] = [];
   for (const c of ordered) {

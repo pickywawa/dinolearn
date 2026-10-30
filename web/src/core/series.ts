@@ -5,7 +5,7 @@ import {
 import { BALANCE, Balance, seriesLengthFor } from '../domain/balance';
 import { computeLevel } from '../domain/difficulty';
 import { Food, Rng } from '../domain/models';
-import { rewardsFor, starsFor } from '../domain/rewards';
+import { seriesFruits, starsFor } from '../domain/rewards';
 import { pickQuestions } from '../domain/selector';
 import { Progress } from './progress';
 
@@ -15,6 +15,10 @@ export interface SeriesItem {
   level: number;
   choices: Concept[];
   isReview: boolean;
+  /** Fruit de la barre de progression, gagné si la réponse est trouvée du premier coup. */
+  fruit: Food;
+  /** undefined : pas encore répondu. */
+  firstTry?: boolean;
 }
 
 export interface SeriesResult {
@@ -23,7 +27,8 @@ export interface SeriesResult {
   total: number;
   firstTrySuccesses: number;
   stars: number;
-  rewards: Partial<Record<Food, number>>;
+  /** Fruits gagnés (+ gâteau si sans-faute), à donner au dino. */
+  earned: Food[];
 }
 
 export type TapOutcome =
@@ -49,7 +54,7 @@ export class Series {
   constructor(
     readonly game: GameDef,
     private progress: Progress,
-    private rng: Rng,
+    rng: Rng,
     private b: Balance = BALANCE,
   ) {
     const category = game.category;
@@ -74,7 +79,8 @@ export class Series {
     }, rng, b);
 
     const positions: number[] = [];
-    this.items = selection.map((s) => {
+    const fruits = seriesFruits(selection.length, rng);
+    this.items = selection.map((s, i) => {
       const answer = byId.get(s.question.id)!;
       const choices = pickDistractors(answer, pool, choicesFor(game, this.level) - 1,
         distractorsFor(game, this.level), rng);
@@ -86,7 +92,10 @@ export class Series {
       }
       positions.push(position);
       choices.splice(position, 0, answer);
-      return { answer, questionId: s.question.id, level: s.question.level, choices, isReview: s.isReview };
+      return {
+        answer, questionId: s.question.id, level: s.question.level, choices, isReview: s.isReview,
+        fruit: fruits[i],
+      };
     });
   }
 
@@ -110,6 +119,7 @@ export class Series {
       this.streak = 0;
     }
     this.answered++;
+    this.current.firstTry = firstTry;
     this.progress.recordAnswer({
       gameId: this.game.id,
       category: this.game.category,
@@ -147,17 +157,13 @@ export class Series {
   private finish(answered: number) {
     const score = answered === 0 ? 0 : this.firstTrySuccesses / answered;
     const stars = starsFor(score, this.b);
-    const rewards = rewardsFor({
-      stars,
-      perfect: this.firstTrySuccesses === answered,
-      level: this.level,
-      firstSeriesOfDay: this.progress.isFirstSeriesToday(),
-    }, this.rng, this.b);
-    this.progress.recordSeries(this.game.id,
-      this.items.slice(0, answered).map((i) => i.questionId), this.level, rewards);
+    const answeredItems = this.items.slice(0, answered);
+    const earned: Food[] = answeredItems.filter((i) => i.firstTry).map((i) => i.fruit);
+    if (answered === this.items.length && this.firstTrySuccesses === answered) earned.push('cake');
+    this.progress.recordSeries(this.game.id, answeredItems.map((i) => i.questionId), this.level);
     this.result = {
       gameId: this.game.id, level: this.level, total: answered,
-      firstTrySuccesses: this.firstTrySuccesses, stars, rewards,
+      firstTrySuccesses: this.firstTrySuccesses, stars, earned,
     };
   }
 }

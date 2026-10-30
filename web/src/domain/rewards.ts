@@ -1,27 +1,17 @@
 import { BALANCE, Balance } from './balance';
-import { Food, Rng } from './models';
+import { Food, FRUITS, Rng, shuffle } from './models';
 
-/** Étoiles et aliments gagnés à la fin d'une série (spécifications §5.3, §5.4). */
+/** Étoiles d'une série (spécifications §5.3). */
 export function starsFor(score: number, b: Balance = BALANCE): number {
   return b.starsThresholds.filter((t) => score >= t).length;
 }
 
-export function rewardsFor(
-  opts: { stars: number; perfect: boolean; level: number; firstSeriesOfDay: boolean },
-  rng: Rng,
-  b: Balance = BALANCE,
-): Partial<Record<Food, number>> {
-  const rewards: Partial<Record<Food, number>> = {};
-  const add = (food: Food) => (rewards[food] = (rewards[food] ?? 0) + 1);
-  const { stars, perfect, level, firstSeriesOfDay } = opts;
+/** Fruits tous différents pour les `count` questions d'une série. */
+export function seriesFruits(count: number, rng: Rng): Food[] {
+  return shuffle([...FRUITS], rng).slice(0, count);
+}
 
-  add('leaf');
-  if (stars >= 1) add('apple');
-  if (stars >= 2) add('cherry');
-  if (stars >= 3) add('watermelon');
-  if (perfect && level >= b.goldenFruitMinLevel && rng() < b.goldenFruitChance) add('cake');
-  if (stars >= 2 && level >= 4 && level <= 7) add('apple');
-  if (stars >= 2 && level >= 8) add('cherry');
-  if (firstSeriesOfDay) add('leaf');
-  return rewards;
+/** Valeur nutritive (XP) d'un aliment : les niveaux difficiles nourrissent plus. */
+export function foodXp(food: Food, level: number, b: Balance = BALANCE): number {
+  return food === 'cake' ? b.cakeXp : b.fruitXp + Math.floor(level / 4);
 }

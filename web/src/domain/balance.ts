@@ -2,14 +2,15 @@
 export const BALANCE = {
   seriesLengthByAge: { 3: 6, 4: 6, 5: 8, 6: 10, 7: 10 } as Record<number, number>,
   starsThresholds: [0.4, 0.7, 0.9],
-  goldenFruitChance: 0.3,
-  goldenFruitMinLevel: 5,
+  /** XP d'un fruit (+1 tous les 4 niveaux de difficulté) et du gâteau du sans-faute. */
+  fruitXp: 2,
+  cakeXp: 6,
   dailyXpCap: 40,
   dinoMaxLevel: 20,
   xpA: 10,
   xpB: 8,
   xpExp: 1.3,
-  ageLevelOffset: { 3: 0, 4: 0, 5: 1, 6: 2, 7: 3 } as Record<number, number>,
+  ageLevelOffset: { 3: 0, 4: 1, 5: 2, 6: 3, 7: 4 } as Record<number, number>,
   successWindow: 100,
   successWindowMin: 20,
   /** [taux minimum, ajustement], par taux décroissant. */

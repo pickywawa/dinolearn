@@ -14,6 +14,37 @@ const W = 8; // épaisseur du contour
 const svg = (w: number, h: number, body: string) =>
   `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">${body}</svg>`;
 
+/** Fougère : trois frondes qui partent du sol, chacune garnie de folioles pointues. */
+function fern(): string {
+  const [bx, by] = [120, 255];
+  const tips = [[18, 70], [120, 8], [222, 70]];
+  let body = '';
+  for (const [tx, ty] of tips) {
+    const angle = Math.atan2(ty - by, tx - bx);
+    body += `<path d="M${bx} ${by} L${tx} ${ty}" stroke="#3f8f2f" stroke-width="8" stroke-linecap="round"/>`;
+    for (let i = 2; i < 12; i++) {
+      const t = i / 12;
+      const x = bx + (tx - bx) * t;
+      const y = by + (ty - by) * t;
+      const len = 40 * (1 - t * 0.7);
+      for (const side of [-1, 1]) {
+        // Foliole : feuille pointue, inclinée vers le bout de la fronde.
+        const a = angle + side * 1.0;
+        const ex = x + Math.cos(a) * len;
+        const ey = y + Math.sin(a) * len;
+        const nx = -Math.sin(a) * len * 0.22;
+        const ny = Math.cos(a) * len * 0.22;
+        const mx = (x + ex) / 2;
+        const my = (y + ey) / 2;
+        body += `<path d="M${x.toFixed(1)} ${y.toFixed(1)} Q${(mx + nx).toFixed(1)} ${(my + ny).toFixed(1)} ${ex.toFixed(1)} ${ey.toFixed(1)}
+          Q${(mx - nx).toFixed(1)} ${(my - ny).toFixed(1)} ${x.toFixed(1)} ${y.toFixed(1)} Z"
+          fill="${side < 0 ? '#5cb23f' : '#72c94f'}" stroke="${OUTLINE}" stroke-width="2.5" stroke-linejoin="round"/>`;
+      }
+    }
+  }
+  return body;
+}
+
 export interface DinoPart {
   key: string;
   width: number;
@@ -161,6 +192,44 @@ export const DINO_PARTS: DinoPart[] = [
       <circle cx="80" cy="210" r="12" fill="#ff8fa3" stroke="${OUTLINE}" stroke-width="5"/>
       <ellipse cx="72" cy="60" rx="20" ry="10" fill="#fff" transform="rotate(-40 72 60)"/>`),
   },
+  {
+    key: 'volcano',
+    width: 420,
+    height: 300,
+    svg: svg(420, 300, `
+      <path d="M10 292 L150 70 C162 54 182 50 196 58 L214 66 C228 52 250 52 262 68 L410 292 Z"
+        fill="#8a6a55" stroke="${OUTLINE}" stroke-width="${W}" stroke-linejoin="round"/>
+      <path d="M150 70 C162 54 182 50 196 58 L214 66 C228 52 250 52 262 68 L250 92 C236 84 222 86 210 96 C196 84 176 84 160 92 Z"
+        fill="#ff7a2f" stroke="${OUTLINE}" stroke-width="6" stroke-linejoin="round"/>
+      <path d="M182 92 C176 130 196 150 186 196 M232 94 C244 130 226 160 240 210" fill="none" stroke="#ff9f43"
+        stroke-width="14" stroke-linecap="round"/>
+      <path d="M60 250 C120 236 150 270 210 256 C270 242 300 270 370 254" fill="none" stroke="#6f5443" stroke-width="10"
+        stroke-linecap="round" opacity=".6"/>
+      <ellipse cx="120" cy="170" rx="22" ry="10" fill="#fff" opacity=".18" transform="rotate(-55 120 170)"/>`),
+  },
+  {
+    key: 'fern',
+    width: 240,
+    height: 260,
+    svg: svg(240, 260, fern()),
+  },
+  ...(['up', 'down'] as const).map((pose) => ({
+    key: `ptero-${pose}`,
+    width: 260,
+    height: 160,
+    // Ptérodactyle (tourné vers la droite), ailes hautes ou basses.
+    svg: svg(260, 160, `
+      ${pose === 'up'
+        ? `<path d="M120 84 L40 14 C60 40 70 56 66 76 C90 70 104 76 120 84 Z M140 84 L200 10 C192 40 190 58 196 76 C176 72 156 76 140 84 Z"
+            fill="#b678d6" stroke="${OUTLINE}" stroke-width="6" stroke-linejoin="round"/>`
+        : `<path d="M120 84 L36 140 C56 118 62 104 60 92 C86 92 104 88 120 84 Z M140 84 L206 144 C196 120 194 106 198 94 C176 94 156 90 140 84 Z"
+            fill="#a466c8" stroke="${OUTLINE}" stroke-width="6" stroke-linejoin="round"/>`}
+      <path d="M96 86 C110 70 160 70 176 84 C186 92 176 102 160 102 C130 104 108 100 96 86 Z" fill="#c58ae0" stroke="${OUTLINE}" stroke-width="6"/>
+      <path d="M96 86 L60 92 L96 96 Z" fill="#c58ae0" stroke="${OUTLINE}" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M170 80 C188 64 210 64 222 74 L252 82 L218 88 C206 94 186 94 172 90 Z" fill="#c58ae0" stroke="${OUTLINE}" stroke-width="6" stroke-linejoin="round"/>
+      <path d="M200 70 L188 46 L212 66 Z" fill="${SPIKE}" stroke="${OUTLINE}" stroke-width="5" stroke-linejoin="round"/>
+      <circle cx="206" cy="77" r="5" fill="${OUTLINE}"/>`),
+  })),
 ];
 
 /** Résolution de rendu des SVG (×2 pour un affichage net sur mobile). */

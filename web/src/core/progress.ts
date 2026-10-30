@@ -1,5 +1,11 @@
 import { AnswerRecord, DinoState, Food } from '../domain/models';
 
+/** Aliment gagné mais pas encore mangé (ventre plein), gardé pour plus tard. */
+export interface Leftover {
+  food: Food;
+  xp: number;
+}
+
 /** Mémoire clé-valeur ; `localStorage` dans le navigateur, en mémoire dans les tests. */
 export interface KeyValueStore {
   getItem(key: string): string | null;
@@ -8,13 +14,14 @@ export interface KeyValueStore {
 
 interface Data {
   age: number;
+  ageChosen: boolean;
   dino: DinoState;
   answers: AnswerRecord[];
   mastered: Record<string, string[]>;
   failedAt: Record<string, Record<string, number>>;
   recentSeries: Record<string, string[][]>;
   gameLevels: Record<string, number>;
-  pantry: Partial<Record<Food, number>>;
+  leftovers: Leftover[];
   feedLog: Record<string, number>;
   seriesPlayed: number;
   lastSeriesDay?: string;
@@ -26,13 +33,14 @@ const MAX_ANSWERS = 3000;
 
 const empty = (): Data => ({
   age: 4,
+  ageChosen: false,
   dino: { level: 1, xp: 0 },
   answers: [],
   mastered: {},
   failedAt: {},
   recentSeries: {},
   gameLevels: {},
-  pantry: {},
+  leftovers: [],
   feedLog: {},
   seriesPlayed: 0,
   seenTutorial: false,
@@ -64,9 +72,11 @@ export class Progress {
   }
 
   get age() { return this.data.age; }
-  set age(value: number) { this.data.age = value; this.save(); }
+  set age(value: number) { this.data.age = value; this.data.ageChosen = true; this.save(); }
+  get ageChosen() { return this.data.ageChosen; }
   get dino() { return this.data.dino; }
-  get pantry() { return this.data.pantry; }
+  get leftovers(): readonly Leftover[] { return this.data.leftovers; }
+  set leftovers(value: readonly Leftover[]) { this.data.leftovers = [...value]; this.save(); }
   get seriesPlayed() { return this.data.seriesPlayed; }
   get seenTutorial() { return this.data.seenTutorial; }
 
@@ -99,10 +109,6 @@ export class Progress {
 
   isFirstSeriesToday(now = new Date()) { return this.data.lastSeriesDay !== dayKey(now); }
 
-  get pantryCount() {
-    return Object.values(this.data.pantry).reduce((a, b) => a + (b ?? 0), 0);
-  }
-
   recordAnswer(a: AnswerRecord) {
     this.data.answers.unshift(a);
     this.data.answers.length = Math.min(this.data.answers.length, MAX_ANSWERS);
@@ -116,32 +122,25 @@ export class Progress {
     this.save();
   }
 
-  recordSeries(gameId: string, questionIds: string[], level: number,
-    rewards: Partial<Record<Food, number>>, now = new Date()) {
+  recordSeries(gameId: string, questionIds: string[], level: number, now = new Date()) {
     const series = (this.data.recentSeries[gameId] ??= []);
     series.unshift(questionIds);
     series.length = Math.min(series.length, 5);
     this.data.gameLevels[gameId] = level;
-    for (const [food, n] of Object.entries(rewards) as [Food, number][]) {
-      this.data.pantry[food] = (this.data.pantry[food] ?? 0) + n;
-    }
     this.data.seriesPlayed++;
     this.data.lastSeriesDay = dayKey(now);
     this.save();
   }
 
-  saveFeeding(food: Food, dino: DinoState, xpEatenToday: number, now = new Date()) {
-    const left = (this.data.pantry[food] ?? 1) - 1;
-    if (left > 0) this.data.pantry[food] = left;
-    else delete this.data.pantry[food];
+  saveFeeding(dino: DinoState, xpEatenToday: number, now = new Date()) {
     this.data.dino = dino;
     this.data.feedLog = { [dayKey(now)]: xpEatenToday };
     this.save();
   }
 
   reset() {
-    const age = this.data.age;
-    this.data = { ...empty(), age };
+    const { age, ageChosen } = this.data;
+    this.data = { ...empty(), age, ageChosen };
     this.save();
   }
 }

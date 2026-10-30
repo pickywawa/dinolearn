@@ -1,21 +1,26 @@
-// Extrait les illustrations utilisées du pack SVG « withicons Plush » (MIT)
-// et des drapeaux « circle-flags » (MIT) vers public/img/, une image par fichier.
+// Extrait les illustrations utilisées vers public/img/, une image par fichier :
+// - questions, fruits et décor : Noto (Google, Apache 2.0), dessins détaillés et réalistes ;
+// - boutons d'interface : withicons « Plush » (MIT) ; drapeaux : circle-flags (MIT).
 // Les images ne sont pas incluses dans le bundle JS : le jeu les charge à la demande.
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { getIconData, iconToHTML, iconToSVG } from '@iconify/utils';
 
 const require = createRequire(import.meta.url);
+const noto = require('@iconify-json/noto/icons.json');
 const plush = require('@iconify-json/withicons-plush/icons.json');
 const flags = require('@iconify-json/circle-flags/icons.json');
 
 const OUT = new URL('../public/img/', import.meta.url);
 mkdirSync(OUT, { recursive: true });
 
-const UI_ICONS = [
-  'play', 'home', 'shopping-basket', 'ear', 'star', 'sparkles', 'heart', 'globe',
-  'party-popper', 'cloud', 'sun', 'leaf', 'apple', 'cherry', 'citrus', 'cake', 'paw-print',
+const UI_ICONS = ['play', 'home', 'ear', 'star', 'sparkles', 'globe', 'cloud', 'cake'];
+const FRUITS = [
+  'red-apple', 'banana', 'strawberry', 'cherries', 'grapes', 'tangerine', 'pear', 'lemon',
+  'watermelon', 'peach', 'pineapple', 'kiwi-fruit', 'mango', 'blueberries', 'melon',
+  'green-apple', 'coconut',
 ];
+const DECOR = ['palm-tree', 'sauropod', 't-rex', 'herb'];
 const FLAGS = ['gb'];
 
 function write(name, set, icon) {
@@ -42,9 +47,12 @@ const { concepts } = JSON.parse(
 );
 for (const c of concepts) {
   if (c.icon.startsWith('color:')) colorBlob(c.id, c.icon.slice(6));
-  else write(c.id, plush, c.icon);
+  else write(c.id, noto, c.icon);
 }
+for (const fruit of FRUITS) write(`food-${fruit}`, noto, fruit);
+write('food-cake', noto, 'shortcake');
+for (const icon of DECOR) write(`decor-${icon}`, noto, icon);
 for (const icon of UI_ICONS) write(`ui-${icon}`, plush, icon);
 for (const flag of FLAGS) write(`flag-${flag}`, flags, flag);
 
-console.log(`${concepts.length} concepts, ${UI_ICONS.length} icônes, ${FLAGS.length} drapeaux → public/img/`);
+console.log(`${concepts.length} concepts, ${FRUITS.length + 1} aliments, ${UI_ICONS.length} icônes → public/img/`);

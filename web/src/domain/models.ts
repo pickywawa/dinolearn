@@ -13,18 +13,21 @@ export interface QuestionRef {
   level: number;
 }
 
-export type Food = 'leaf' | 'apple' | 'cherry' | 'watermelon' | 'cake';
+/**
+ * Fruits de la barre de progression : chaque question d'une série a son
+ * fruit (tous différents) ; il est gagné si la réponse est trouvée du premier
+ * coup, puis donné à manger au dino. `cake` est le bonus du sans-faute.
+ */
+export const FRUITS = [
+  'red-apple', 'banana', 'strawberry', 'cherries', 'grapes', 'tangerine', 'pear', 'lemon',
+  'watermelon', 'peach', 'pineapple', 'kiwi-fruit', 'mango', 'blueberries', 'melon',
+  'green-apple', 'coconut',
+] as const;
 
-/** Valeur nutritive (XP) et image de chaque aliment (spécifications §5.4). */
-export const FOODS: Record<Food, { xp: number; image: string }> = {
-  leaf: { xp: 1, image: 'ui-leaf' },
-  apple: { xp: 2, image: 'ui-apple' },
-  cherry: { xp: 4, image: 'ui-cherry' },
-  watermelon: { xp: 6, image: 'ui-citrus' },
-  cake: { xp: 12, image: 'ui-cake' },
-};
+export type Food = (typeof FRUITS)[number] | 'cake';
 
-export const FOOD_ORDER: Food[] = ['leaf', 'apple', 'cherry', 'watermelon', 'cake'];
+/** Clé de l'image d'un aliment (public/img/food-*.svg). */
+export const foodImage = (food: Food) => `food-${food}`;
 
 export interface DinoState {
   level: number;

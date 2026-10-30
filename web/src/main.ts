@@ -1,10 +1,10 @@
 import Phaser from 'phaser';
 import { app } from './core/app';
+import { AgeScene } from './scenes/AgeScene';
 import { BootScene } from './scenes/BootScene';
 import { EndScene } from './scenes/EndScene';
 import { GameScene } from './scenes/GameScene';
 import { HomeScene } from './scenes/HomeScene';
-import { PantryScene } from './scenes/PantryScene';
 import { StartScene } from './scenes/StartScene';
 
 /** Taille logique : 720 px sur le petit côté, l'autre suit le format de l'écran. */
@@ -24,7 +24,7 @@ const game = new Phaser.Game({
   ...size,
   scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
   input: { activePointers: 2 },
-  scene: [BootScene, StartScene, HomeScene, GameScene, EndScene, PantryScene],
+  scene: [BootScene, StartScene, AgeScene, HomeScene, GameScene, EndScene],
 });
 
 // Rotation de l'écran : on adapte la taille logique et on relance la scène active.

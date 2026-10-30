@@ -1,5 +1,5 @@
 import { BALANCE, Balance } from './balance';
-import { DinoState, Food, FOODS } from './models';
+import { DinoState } from './models';
 
 export type FeedOutcome = 'eaten' | 'levelUp' | 'full' | 'maxLevel';
 
@@ -23,10 +23,9 @@ export function growthProgress(dino: DinoState, b: Balance = BALANCE): number {
   return dino.level >= b.dinoMaxLevel ? 1 : dino.xp / xpToNext(dino.level, b);
 }
 
-export function feed(dino: DinoState, food: Food, xpEatenToday: number, b: Balance = BALANCE): FeedResult {
+export function feed(dino: DinoState, value: number, xpEatenToday: number, b: Balance = BALANCE): FeedResult {
   if (xpEatenToday >= b.dailyXpCap) return { outcome: 'full', dino, xpEatenToday };
   if (dino.level >= b.dinoMaxLevel) return { outcome: 'maxLevel', dino, xpEatenToday };
-  const value = FOODS[food].xp;
   let level = dino.level;
   let xp = dino.xp + value;
   let leveledUp = false;

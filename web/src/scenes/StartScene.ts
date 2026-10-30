@@ -3,6 +3,7 @@ import { app } from '../core/app';
 import { Sfx } from '../core/sfx';
 import { Dino } from '../dino/Dino';
 import { Guide } from '../ui/Guide';
+import { drawPrehistoric } from '../ui/prehistoric';
 import { drawScenery, goTo, unit } from '../ui/scenery';
 import { BaseScene } from './BaseScene';
 
@@ -17,7 +18,8 @@ export class StartScene extends BaseScene {
 
   create() {
     this.initBase();
-    drawScenery(this, 0x7d8fe0, 0xd7dcff);
+    drawScenery(this, 0xf6b26b, 0xffe6c2);
+    drawPrehistoric(this);
     const { width: W, height: H } = this.scale;
     const u = unit(this);
     const firstTime = app.progress.seriesPlayed === 0 && !app.progress.seenTutorial;
@@ -51,10 +53,10 @@ export class StartScene extends BaseScene {
       if (firstTime && target instanceof Phaser.GameObjects.Image) {
         this.tweens.add({
           targets: target, scale: target.scale * 1.15, angle: 0, duration: 200, yoyo: true, repeat: 2,
-          onComplete: () => goTo(this, 'Home', { hatched: true }),
+          onComplete: () => goTo(this, app.progress.ageChosen ? 'Home' : 'Age', { hatched: true }),
         });
       } else {
-        goTo(this, 'Home');
+        goTo(this, app.progress.ageChosen ? 'Home' : 'Age');
       }
     });
   }

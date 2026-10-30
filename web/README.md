@@ -5,14 +5,22 @@ Jeu jouable directement dans le navigateur d'un téléphone ou d'une tablette (p
 ## Ce que contient cette version
 - **Le dino guide tout** : il présente chaque bulle en la montrant du bras, une main animée tapote
   l'endroit à toucher, les boutons à toucher pulsent. Relances automatiques en cas d'inactivité.
-- **Menus réduits au minimum** : un œuf à toucher (débloque le son), puis 2 grosses bulles
-  (anglais 🇬🇧, monde 🌍) et le panier quand il y a à manger. Aucun texte.
+- **Menus réduits au minimum** : un œuf à toucher (débloque le son), le choix de l'âge (un gâteau
+  par âge, avec ses bougies), puis 2 grosses bulles (anglais 🇬🇧, monde 🌍). Aucun texte.
+- **Décor préhistorique animé** : volcan qui fume et entre en éruption, ptérodactyle qui traverse le
+  ciel, diplodocus qui marche au loin, palmier et fougères qui se balancent.
 - **2 jeux** (gabarit « écoute et touche ») :
-  - **EN-1** : le mot est dit en anglais, l'enfant touche la bonne image (7 niveaux, 85 mots) ;
-  - **MO-1 « Montre-moi »** : « Montre-moi le lapin ! » (6 niveaux).
+  - **EN-1** : le mot est dit en anglais, l'enfant touche la bonne image ;
+  - **MO-1 « Montre-moi »** : « Montre-moi le lapin ! ».
+  179 mots sur 10 niveaux, **toujours 4 réponses** ; les leurres se rapprochent avec le niveau
+  (autre famille → même famille → même sous-famille, ex. un dauphin parmi des animaux marins).
 - **Tutoriel** à la première partie : le dino fait la première question à la place de l'enfant.
-- **Série** de 6 à 10 questions, empreintes de progression, indice après 2 erreurs (la bonne
-  carte brille et le dino la montre), récompenses, nourrissage par glisser-déposer, croissance.
+- **Série** de 6 à 10 questions. La barre de progression montre un fruit différent par question,
+  gagné si la réponse est trouvée du premier coup (+ un gâteau pour un sans-faute). Indice après
+  2 erreurs (la bonne carte brille et le dino la montre).
+- **Fin de série** : l'enfant glisse ses fruits jusqu'à la bouche du dino, qui les mange ; la jauge
+  sur son ventre se remplit et il grandit. Au-delà de la limite quotidienne, les fruits sont gardés
+  pour la fois suivante.
 - **Logique du domaine** des spécifications §5–7 (difficulté adaptative, questions maîtrisées
   jamais reposées, révision, XP, plafond quotidien) dans `src/domain/`, testée avec Vitest.
 
@@ -22,10 +30,12 @@ Jeu jouable directement dans le navigateur d'un téléphone ou d'une tablette (p
 | Moteur de jeu, animations (tweens, particules) | [Phaser 3](https://phaser.io) |
 | Voix (synthèse vocale du navigateur, compatible iOS/Android) | [easy-speech](https://github.com/leaonline/easy-speech) — voix du dino aiguë (pitch 1.75) pour un rendu rigolo |
 | Effets sonores générés (aucun fichier audio) | [ZzFX](https://github.com/KilledByAPixel/ZzFX) |
-| Illustrations SVG | [withicons « Plush »](https://github.com/withevergrow/withicons) (MIT) via Iconify, drapeaux [circle-flags](https://github.com/HatScripts/circle-flags) (MIT) |
+| Illustrations SVG (questions, fruits, décor) | [Noto](https://github.com/googlefonts/noto-emoji) (Google, Apache 2.0) via Iconify |
+| Boutons, drapeaux | [withicons « Plush »](https://github.com/withevergrow/withicons) (MIT), [circle-flags](https://github.com/HatScripts/circle-flags) (MIT) |
 
-Le dinosaure est dessiné en pièces SVG (`src/dino/parts.ts`) assemblées et animées avec les tweens
-de Phaser : respiration, clignements, bouche synchronisée sur la voix, bras qui pointe, sauts, danse.
+Le dinosaure et le décor (volcan, fougères, ptérodactyle) sont dessinés en SVG (`src/dino/parts.ts`)
+et animés avec les tweens et particules de Phaser : respiration, clignements, bouche qui suit la voix,
+bras qui pointe, sauts, danse, mastication.
 
 Les images ne sont **pas** dans le code JavaScript : `npm run icons` extrait chaque illustration
 utilisée vers `public/img/` et le jeu les charge à la demande, série par série.
@@ -39,7 +49,8 @@ npm test           # tests du domaine et du déroulé de série
 npm run build      # version de production dans dist/
 ```
 
-Pour tester un autre âge (règle la difficulté et la longueur des séries) : ajouter `?age=6` à l'adresse.
+L'âge (3 à 7 ans) se choisit au premier lancement et se change avec le petit gâteau de l'accueil ;
+il règle la difficulté de départ et la longueur des séries (`?age=6` dans l'adresse fonctionne aussi).
 
 ## Mise en ligne
 Le workflow `.github/workflows/deploy-web.yml` publie automatiquement le jeu sur **GitHub Pages** à

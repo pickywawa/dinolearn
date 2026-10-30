@@ -9,7 +9,7 @@ import { gameById } from '../src/content/content';
 import { adjustment, baseLevel, computeLevel } from '../src/domain/difficulty';
 import { AnswerRecord, mulberry32 } from '../src/domain/models';
 import { feed, stageFor, xpToNext } from '../src/domain/progression';
-import { rewardsFor, starsFor } from '../src/domain/rewards';
+import { foodXp, seriesFruits, starsFor } from '../src/domain/rewards';
 import { pickQuestions } from '../src/domain/selector';
 
 const answers = (count: number, rate: number, gameId = 'EN-1'): AnswerRecord[] =>
@@ -21,7 +21,8 @@ const answers = (count: number, rate: number, gameId = 'EN-1'): AnswerRecord[] =
 describe('difficulté', () => {
   it('niveau de base selon le dino et l\'âge', () => {
     expect(baseLevel(1, 3)).toBe(1);
-    expect(baseLevel(1, 7)).toBe(4);
+    expect(baseLevel(1, 4)).toBe(2);
+    expect(baseLevel(1, 7)).toBe(5);
     expect(baseLevel(20, 4)).toBe(10);
   });
 
@@ -30,16 +31,16 @@ describe('difficulté', () => {
   });
 
   it('pas d\'ajustement sous 20 réponses, repli sur la catégorie', () => {
-    expect(computeLevel({ experienceLevel: 5, age: 4, gameAnswers: answers(10, 1),
+    expect(computeLevel({ experienceLevel: 5, age: 3, gameAnswers: answers(10, 1),
       categoryAnswers: answers(10, 1), allAnswers: answers(10, 1) })).toBe(3);
-    expect(computeLevel({ experienceLevel: 5, age: 4, gameAnswers: answers(5, 1),
+    expect(computeLevel({ experienceLevel: 5, age: 3, gameAnswers: answers(5, 1),
       categoryAnswers: answers(40, 0.2), allAnswers: [] })).toBe(1);
   });
 
   it('lissage ±1 et fenêtre des 100 dernières réponses', () => {
     expect(computeLevel({ experienceLevel: 20, age: 7, gameAnswers: answers(100, 1),
       categoryAnswers: [], allAnswers: [], previousLevel: 3 })).toBe(4);
-    expect(computeLevel({ experienceLevel: 4, age: 4,
+    expect(computeLevel({ experienceLevel: 4, age: 3,
       gameAnswers: [...answers(100, 1), ...answers(300, 0)], categoryAnswers: [], allAnswers: [] })).toBe(4);
   });
 });
@@ -86,19 +87,20 @@ describe('récompenses et croissance', () => {
     expect([1, 0.9, 0.75, 0.5, 0.2].map((s) => starsFor(s))).toEqual([3, 3, 2, 1, 0]);
   });
 
-  it('toujours une feuille, cumul des aliments', () => {
-    const rng = mulberry32(1);
-    expect(rewardsFor({ stars: 0, perfect: false, level: 1, firstSeriesOfDay: false }, rng)).toEqual({ leaf: 1 });
-    expect(rewardsFor({ stars: 3, perfect: false, level: 1, firstSeriesOfDay: true }, rng))
-      .toEqual({ leaf: 2, apple: 1, cherry: 1, watermelon: 1 });
+  it('fruits de série tous différents, valeur selon le niveau', () => {
+    const fruits = seriesFruits(10, mulberry32(1));
+    expect(new Set(fruits).size).toBe(10);
+    expect(foodXp('banana', 1)).toBe(2);
+    expect(foodXp('banana', 8)).toBe(4);
+    expect(foodXp('cake', 1)).toBe(6);
   });
 
   it('table d\'XP et plafond quotidien', () => {
     expect(xpToNext(1)).toBe(18);
     expect(xpToNext(19)).toBe(378);
     expect(Array.from({ length: 19 }, (_, i) => xpToNext(i + 1)).reduce((a, b) => a + b)).toBe(3412);
-    expect(feed({ level: 1, xp: 15 }, 'cherry', 0)).toEqual({ outcome: 'levelUp', dino: { level: 2, xp: 1 }, xpEatenToday: 4 });
-    expect(feed({ level: 3, xp: 0 }, 'apple', 40).outcome).toBe('full');
+    expect(feed({ level: 1, xp: 15 }, 4, 0)).toEqual({ outcome: 'levelUp', dino: { level: 2, xp: 1 }, xpEatenToday: 4 });
+    expect(feed({ level: 3, xp: 0 }, 2, 40).outcome).toBe('full');
     expect([1, 5, 20].map(stageFor)).toEqual([1, 2, 5]);
   });
 });
@@ -109,6 +111,15 @@ describe('contenus', () => {
     expect(frWithArticle(CONCEPTS.find((c) => c.id === 'bird')!)).toBe('l\'oiseau');
     expect(frWithArticle(CONCEPTS.find((c) => c.id === 'dog')!)).toBe('le chien');
     expect(frWithArticle(CONCEPTS.find((c) => c.id === 'red')!)).toBe('rouge');
+  });
+
+  it('leurres de la même sous-famille aux niveaux difficiles', () => {
+    const pool = conceptsFor('EN-1');
+    const dolphin = pool.find((c) => c.id === 'dolphin')!;
+    const d = pickDistractors(dolphin, pool, 3, 'same_category', mulberry32(2));
+    expect(d.every((c) => c.category === 'sea')).toBe(true);
+    const easy = pickDistractors(dolphin, pool, 3, 'other_group', mulberry32(2));
+    expect(easy.every((c) => c.group !== 'animal')).toBe(true);
   });
 
   it('distracteurs : bon nombre, sans mot en double', () => {
@@ -142,17 +153,19 @@ describe('contenus', () => {
 });
 
 describe('série', () => {
-  it('sans faute : 3 étoiles, aliments, questions maîtrisées', () => {
+  it('sans faute : 3 étoiles, un fruit par question + le gâteau, questions maîtrisées', () => {
     const progress = new Progress(new MemoryStore());
     const series = new Series(gameById('EN-1'), progress, mulberry32(1));
     expect(series.items).toHaveLength(6);
-    expect(series.level).toBe(1);
+    expect(series.level).toBe(2);
+    expect(new Set(series.items.map((i) => i.fruit)).size).toBe(6);
+    series.items.forEach((i) => expect(i.choices).toHaveLength(4));
     while (!series.finished) {
       expect(series.tap(series.current.answer).kind).toBe('correct');
       series.next();
     }
     expect(series.result!.stars).toBe(3);
-    expect(progress.pantry.watermelon).toBe(1);
+    expect(series.result!.earned).toEqual([...series.items.map((i) => i.fruit), 'cake']);
     expect(progress.mastered('EN-1').size).toBe(6);
     expect(progress.isFirstSeriesToday()).toBe(false);
   });
@@ -160,8 +173,9 @@ describe('série', () => {
   it('erreurs : carte désactivée, indice après 2 erreurs, question à retravailler', () => {
     const progress = new Progress(new MemoryStore());
     progress.age = 7;
+    expect(progress.ageChosen).toBe(true);
     const series = new Series(gameById('MO-1'), progress, mulberry32(2));
-    expect(series.level).toBe(4);
+    expect(series.level).toBe(5);
     expect(series.current.choices).toHaveLength(4);
     const wrong = series.current.choices.filter((c) => c.id !== series.current.answer.id);
     expect(series.tap(wrong[0])).toEqual({ kind: 'wrong', hint: false });
@@ -185,26 +199,30 @@ describe('série', () => {
     expect(series.result!.total).toBe(5);
   });
 
-  it('abandon après 3 réponses : récompense au prorata', () => {
+  it('seuls les fruits trouvés du premier coup sont gagnés ; abandon après 3 réponses', () => {
     const progress = new Progress(new MemoryStore());
     const series = new Series(gameById('EN-1'), progress, mulberry32(3));
+    const wrong = series.current.choices.find((c) => c.id !== series.current.answer.id)!;
+    series.tap(wrong);
     for (let i = 0; i < 3; i++) {
       series.tap(series.current.answer);
       series.next();
     }
     series.abandon();
     expect(series.result!.total).toBe(3);
-    expect(progress.pantryCount).toBeGreaterThan(0);
+    expect(series.result!.earned).toEqual([series.items[1].fruit, series.items[2].fruit]);
   });
 
   it('la progression survit à un rechargement', () => {
     const store = new MemoryStore();
     const a = new Progress(store);
     a.age = 6;
-    a.saveFeeding('apple', { level: 2, xp: 5 }, 10);
+    a.saveFeeding({ level: 2, xp: 5 }, 10);
+    a.leftovers = [{ food: 'banana', xp: 2 }];
     const b = new Progress(store);
     expect(b.age).toBe(6);
     expect(b.dino).toEqual({ level: 2, xp: 5 });
     expect(b.xpEatenToday()).toBe(10);
+    expect(b.leftovers).toEqual([{ food: 'banana', xp: 2 }]);
   });
 });

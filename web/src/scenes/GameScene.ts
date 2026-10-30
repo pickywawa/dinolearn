@@ -4,6 +4,7 @@ import { Concept, GameDef, gameById } from '../content/content';
 import { Series } from '../core/series';
 import { Sfx } from '../core/sfx';
 import { BALANCE } from '../domain/balance';
+import { foodImage } from '../domain/models';
 import { Dino } from '../dino/Dino';
 import { Bubble } from '../ui/Bubble';
 import { Guide } from '../ui/Guide';
@@ -44,7 +45,7 @@ export class GameScene extends BaseScene {
     this.game_ = gameById(data.gameId);
     const tint = Phaser.Display.Color.IntegerToColor(this.game_.color);
     const light = Phaser.Display.Color.Interpolate.ColorWithColor(tint, new Phaser.Display.Color(255, 255, 255), 100, 75);
-    drawScenery(this, Phaser.Display.Color.GetColor(light.r, light.g, light.b), 0xf4fbff);
+    drawScenery(this, Phaser.Display.Color.GetColor(light.r, light.g, light.b), 0xf4fbff, 0);
 
     const { width: W, height: H } = this.scale;
     const u = unit(this);
@@ -184,7 +185,7 @@ export class GameScene extends BaseScene {
 
     Sfx.play('correct');
     this.celebrateCard(card);
-    this.steps[this.series.index]?.setTint(0x43b649).setAlpha(1);
+    this.updateSteps(true);
     this.dino.react(outcome.streak === 3 ? 'cheer' : 'happy');
     this.run(async () => {
       if (outcome.streak === 3) await this.say('streak');
@@ -210,18 +211,38 @@ export class GameScene extends BaseScene {
 
   // ---- Affichage ----
 
+  /** Barre de progression : un fruit différent par question, gagné au premier essai. */
   private drawSteps() {
     const { width: W } = this.scale;
     const u = unit(this);
-    const size = u * 0.06;
+    const size = u * 0.056;
     const n = this.series.items.length;
-    const gap = size * 1.15;
-    this.steps = [];
-    for (let i = 0; i < n; i++) {
-      const step = this.add.image(W / 2 + (i - (n - 1) / 2) * gap, u * 0.1, 'ui-paw-print').setAlpha(0.35);
-      step.setScale(size / step.width).setTintFill(0xffffff);
-      this.steps.push(step);
-    }
+    const gap = size * 1.12;
+    this.steps = this.series.items.map((item, i) => {
+      const step = this.add.image(W / 2 + (i - (n - 1) / 2) * gap, u * 0.1, foodImage(item.fruit));
+      return step.setScale(size / step.width);
+    });
+    this.updateSteps(false);
+  }
+
+  /** Fruits gagnés en couleur, à gagner en silhouette blanche, perdus en silhouette pâle. */
+  private updateSteps(celebrate: boolean) {
+    this.series.items.forEach((item, i) => {
+      const step = this.steps[i];
+      if (!step) return;
+      if (item.firstTry === undefined) step.setTintFill(0x8fa6c4).setAlpha(0.75);
+      else if (item.firstTry) step.clearTint().setAlpha(1);
+      else step.setTintFill(0xc9d1dc).setAlpha(0.4);
+    });
+    const won = this.steps[this.series.index];
+    if (!celebrate || !won || !this.series.current.firstTry) return;
+    Sfx.play('star');
+    this.tweens.add({ targets: won, scale: won.scale * 1.7, duration: 220, yoyo: true, ease: 'Back.easeOut' });
+    const p = this.add.particles(won.x, won.y, 'ui-sparkles', {
+      speed: { min: 60, max: 160 }, scale: { start: 0.12, end: 0 }, lifespan: 500, emitting: false,
+    });
+    p.explode(8);
+    this.time.delayedCall(700, () => p.destroy());
   }
 
   private cardOf(id: string) {
@@ -231,9 +252,6 @@ export class GameScene extends BaseScene {
   private showCards() {
     this.cards.forEach((c) => c.container.destroy());
     this.cards = [];
-    this.steps.forEach((s, i) => {
-      if (i < this.series.index) s.clearTint().setTint(0x43b649).setAlpha(1);
-    });
     const item = this.series.current;
     const { width: W, height: H } = this.scale;
     const n = item.choices.length;
