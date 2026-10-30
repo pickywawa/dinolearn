@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { app } from '../core/app';
 import { Sfx } from '../core/sfx';
 import { GAMES } from '../content/games';
+import { BALANCE } from '../domain/balance';
 import { Dino } from '../dino/Dino';
 import { Bubble } from '../ui/Bubble';
 import { Guide } from '../ui/Guide';
@@ -148,7 +149,7 @@ export class HomeScene extends BaseScene {
 
   private changeLevel(delta: number) {
     const level = app.progress.dino.level + delta;
-    if (level < 1 || level > 20) return;
+    if (level < 1 || level > BALANCE.dinoMaxLevel) return;
     app.progress.setDinoLevel(level);
     Sfx.play(delta > 0 ? 'levelUp' : 'pop');
     if (delta > 0) this.dino.react('levelUp');

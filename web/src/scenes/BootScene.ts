@@ -4,7 +4,7 @@ import { FRUITS } from '../domain/models';
 
 export const UI_IMAGES = [
   'ui-play', 'ui-home', 'ui-star', 'ui-sparkles', 'ui-globe', 'ui-cloud', 'ui-cake', 'flag-gb',
-  'decor-palm-tree', 'decor-sauropod', 'decor-t-rex', 'decor-butterfly', 'riddle', 'oddoneout', 'counting', 'shadow', 'sequence', 'most', 'ui-basket',
+  'decor-palm-tree', 'decor-sauropod', 'decor-t-rex', 'decor-butterfly', 'riddle', 'oddoneout', 'counting', 'shadow', 'sequence', 'most', 'calc', 'flag-fr', 'ui-basket',
   ...[...FRUITS, 'cake'].map((f) => `food-${f}`),
 ];
 

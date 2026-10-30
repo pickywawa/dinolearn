@@ -1,3 +1,4 @@
+import { BALANCE } from '../domain/balance';
 import { AnswerRecord, DinoState, Food } from '../domain/models';
 
 /** Aliment gagné mais pas encore mangé (ventre plein), gardé pour plus tard. */
@@ -84,7 +85,7 @@ export class Progress {
 
   /** Change directement le niveau du dino (réglage de test depuis l'accueil). */
   setDinoLevel(level: number) {
-    this.data.dino = { level: Math.max(1, Math.min(20, level)), xp: 0 };
+    this.data.dino = { level: Math.max(1, Math.min(BALANCE.dinoMaxLevel, level)), xp: 0 };
     this.save();
   }
 

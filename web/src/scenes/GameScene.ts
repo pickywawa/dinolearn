@@ -322,7 +322,8 @@ export class GameScene extends BaseScene {
       else left = W * 0.6;
     }
     const n = item.choices.length;
-    const perRow = portrait || item.show ? 2 : n;
+    // 6 cartes (niveau CP) : 3 par ligne.
+    const perRow = n > 4 ? 3 : portrait || item.show ? 2 : n;
     const rows = Math.ceil(n / perRow);
     const bottom = H * (portrait ? 0.76 : 0.84);
     const right = W * 0.95;
@@ -390,6 +391,33 @@ export class GameScene extends BaseScene {
       return;
     }
 
+    if (show.kind === 'image') {
+      // Le mot dont on cherche la rime ou le début.
+      const img = this.add.image(area.x + area.w / 2, area.y + area.h / 2, show.image);
+      pop(img, Math.min(area.w, area.h) * 0.78, 0);
+      this.tweens.add({ targets: img, angle: { from: -4, to: 4 }, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+      return;
+    }
+
+    if (show.kind === 'numbers') {
+      // Suite de nombres écrits, avec un « ? » qui clignote à la fin.
+      const n = show.items.length;
+      const cell = Math.min(area.w / n, area.h * 0.8);
+      show.items.forEach((value, i) => {
+        const x = area.x + area.w / 2 + (i - (n - 1) / 2) * cell;
+        const mark = this.bigText(x, area.y + area.h / 2, value === null ? '?' : String(value), cell * 0.5,
+          value === null ? '#d9467a' : '#2d3354');
+        this.popText(mark, i);
+        if (value === null) this.tweens.add({ targets: mark, scale: 1.2, duration: 500, yoyo: true, repeat: -1, delay: 400 });
+      });
+      return;
+    }
+
+    if (show.kind === 'sum') {
+      this.drawSum(show, area, pop);
+      return;
+    }
+
     // Objets à compter : on mélange les groupes (aux niveaux difficiles, il y a des intrus).
     const items = Phaser.Utils.Array.Shuffle(show.groups.flatMap((g, gi) =>
       Array.from({ length: g.count }, () => ({ image: g.image, counted: gi === 0 }))));
@@ -408,6 +436,79 @@ export class GameScene extends BaseScene {
     });
   }
 
+  /** Calcul : en images (fruits, « + », fruits ; ou fruits barrés), sinon écrit en chiffres. */
+  private drawSum(
+    show: Extract<Show, { kind: 'sum' }>,
+    area: { x: number; y: number; w: number; h: number },
+    pop: (img: Phaser.GameObjects.Image, size: number, i: number) => void,
+  ) {
+    const cy = area.y + area.h / 2;
+    if (!show.image) {
+      const parts = show.total !== undefined
+        ? [String(show.a), '+', '?', '=', String(show.total)]
+        : [String(show.a), show.op === '+' ? '+' : '−', String(show.b), '=', '?'];
+      const cell = Math.min(area.w / parts.length, area.h * 0.8);
+      parts.forEach((part, i) => {
+        const x = area.x + area.w / 2 + (i - (parts.length - 1) / 2) * cell;
+        const color = part === '?' ? '#d9467a' : /[+−=]/.test(part) ? '#c2410c' : '#2d3354';
+        const mark = this.bigText(x, cy, part, cell * (part.length > 2 ? 0.4 : 0.52), color);
+        this.popText(mark, i);
+        if (part === '?') this.tweens.add({ targets: mark, scale: 1.2, duration: 500, yoyo: true, repeat: -1, delay: 400 });
+      });
+      return;
+    }
+    const image = show.image;
+    // Petite grille d'images (5 par ligne) centrée en (cx, cy).
+    const grid = (count: number, cx: number, w: number, crossedFrom = Infinity) => {
+      const perRow = Math.min(5, count);
+      const rows = Math.ceil(count / 5);
+      const cell = Math.min(w / perRow, (area.h * 0.9) / rows);
+      for (let i = 0; i < count; i++) {
+        const r = Math.floor(i / 5);
+        const inRow = Math.min(5, count - r * 5);
+        const x = cx + ((i % 5) - (inRow - 1) / 2) * cell;
+        const y = cy + (r - (rows - 1) / 2) * cell;
+        const img = this.add.image(x, y, image);
+        pop(img, cell * 0.8, i);
+        if (i >= crossedFrom) {
+          // Fruit mangé : pâle et barré d'une croix rouge.
+          img.setAlpha(0.35);
+          const cross = this.add.graphics();
+          cross.lineStyle(cell * 0.09, 0xe5484d, 1);
+          cross.lineBetween(x - cell * 0.35, y - cell * 0.35, x + cell * 0.35, y + cell * 0.35);
+          cross.lineBetween(x + cell * 0.35, y - cell * 0.35, x - cell * 0.35, y + cell * 0.35);
+          cross.setAlpha(0);
+          this.tweens.add({ targets: cross, alpha: 1, delay: 500 + i * 70, duration: 250 });
+          this.shown.push(cross);
+        }
+      }
+    };
+    if (show.op === '-') {
+      grid(show.a, area.x + area.w / 2, area.w * 0.92, show.a - show.b);
+      return;
+    }
+    const left = area.w * (show.a / (show.a + show.b)) * 0.8;
+    const right = area.w * 0.8 - left;
+    grid(show.a, area.x + area.w * 0.04 + left / 2, left);
+    const plus = this.bigText(area.x + area.w * 0.04 + left + area.w * 0.06, cy, '+', area.h * 0.35, '#c2410c');
+    this.popText(plus, 0);
+    grid(show.b, area.x + area.w * 0.96 - right / 2, right);
+  }
+
+  private bigText(x: number, y: number, text: string, size: number, color: string) {
+    const mark = this.add.text(x, y, text, {
+      fontFamily: 'Arial Rounded MT Bold, Arial, sans-serif', fontSize: `${Math.round(size)}px`,
+      color, fontStyle: 'bold',
+    }).setOrigin(0.5);
+    this.shown.push(mark);
+    return mark;
+  }
+
+  private popText(mark: Phaser.GameObjects.Text, i: number) {
+    mark.setScale(0);
+    this.tweens.add({ targets: mark, scale: 1, duration: 300, delay: i * 90, ease: 'Back.easeOut' });
+  }
+
   private makeCard(choice: Choice, x: number, y: number, size: number, index: number): Card {
     const container = this.add.container(x, y);
     const bg = this.add.graphics();
@@ -422,6 +523,12 @@ export class GameScene extends BaseScene {
       container.add(this.numberFace(choice.count, size));
     } else if (choice.repeat) {
       container.add(this.pileFace(choice.repeat.image, choice.repeat.count, size));
+    } else if (choice.number !== undefined) {
+      // Nombre écrit seul (niveau CP).
+      container.add(this.add.text(0, 0, String(choice.number), {
+        fontFamily: 'Arial Rounded MT Bold, Arial, sans-serif',
+        fontSize: `${Math.round(size * (choice.number >= 10 ? 0.42 : 0.5))}px`, color: '#2d3354', fontStyle: 'bold',
+      }).setOrigin(0.5));
     }
     container.setSize(size, size);
     container.setInteractive({ useHandCursor: true });
@@ -439,7 +546,8 @@ export class GameScene extends BaseScene {
     }).setOrigin(0.5);
     const dots = this.add.graphics();
     const perRow = 5;
-    const r = size * 0.035;
+    // Jusqu'à 20 points : plus petits au-delà de 10.
+    const r = size * (n > 10 ? 0.025 : 0.035);
     for (let i = 0; i < n; i++) {
       const row = Math.floor(i / perRow);
       const inRow = Math.min(perRow, n - row * perRow);
@@ -500,6 +608,8 @@ export class GameScene extends BaseScene {
 function showImages(show?: Show): (string | undefined)[] {
   if (!show) return [];
   if (show.kind === 'count') return show.groups.map((g) => g.image);
-  if (show.kind === 'silhouette') return [show.image];
-  return show.images.map((i) => i ?? undefined);
+  if (show.kind === 'silhouette' || show.kind === 'image') return [show.image];
+  if (show.kind === 'sum') return [show.image];
+  if (show.kind === 'sequence') return show.images.map((i) => i ?? undefined);
+  return [];
 }

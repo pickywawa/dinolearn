@@ -13,15 +13,19 @@ Jeu jouable directement dans le navigateur d'un téléphone ou d'une tablette (p
   le touche), ptérodactyle qui fait un looping, diplodocus au loin, bébé T-rex qui sort de derrière
   la colline, papillons, palmier et fougères. Le dino salue, bâille, rugit, regarde autour de lui,
   saute, fait une pirouette pour un sans-faute.
-- **8 jeux** (4 réponses, 2 pour l'anglais), 250 mots sur 10 niveaux :
-  - **Anglais — Écoute et touche** : le mot est dit deux fois, lentement, par une voix britannique ;
+- **10 jeux**, 20 niveaux de difficulté : 1–10 maternelle, 11–20 niveau CP (dino niveaux 21 à 40,
+  avec 6 images, des leurres piégeux et des nombres jusqu'à 100) :
+  - **Anglais — Écoute et touche** : le mot est dit deux fois par une voix britannique (2 images, 4 au CP) ;
   - **Monde — Montre-moi** : « Montre-moi le hérisson ! » ;
-  - **Monde — Devinettes** : des cris d'animaux aux énigmes (plus de 150 devinettes) ;
+  - **Monde — Devinettes** : des cris d'animaux aux énigmes à plusieurs indices (près de 200 devinettes) ;
   - **Monde — Les ombres** : à qui est cette ombre ?
-  - **Logique — L'intrus** : trois images de la même famille et un intrus (mots ambigus exclus) ;
-  - **Logique — Combien ?** : compter de 1 à 10 ; aux niveaux difficiles, d'autres fruits sont mélangés ;
-  - **Logique — La suite** : quel fruit vient après (AB, AAB, ABC… jusqu'à ABCCB) ;
-  - **Logique — Le plus, le moins** : où y a-t-il le plus (ou le moins) de fruits ?
+  - **Français — Les sons** : qu'est-ce qui rime avec « bateau » ? qu'est-ce qui commence comme « chapeau » ?
+  - **Logique — L'intrus** : une seule image n'est pas de la même famille (mots ambigus exclus) ;
+  - **Logique — Combien ?** : compter de 1 à 20, avec d'autres fruits mélangés aux niveaux difficiles ;
+  - **Logique — La suite** : suites de fruits (AB… ABCCB), puis de nombres (2, 4, 6… ; 100, 90, 80…) ;
+  - **Logique — Le plus, le moins** : des tas de fruits, puis des nombres écrits (24 ou 42 ?) ;
+  - **Logique — Calcul** : additions et soustractions en images, puis écrites, compléments à 10,
+    passage de la dizaine.
 - **Indices** : après une erreur, quand l'enfant hésite, ou tout de suite si le jeu est difficile pour
   lui en ce moment (« Indice : c'est un animal de la ferme », « Indice : qui fait meuh ? »).
 - **Toucher le dino** pendant un jeu lui fait répéter la question.
@@ -40,7 +44,7 @@ Jeu jouable directement dans le navigateur d'un téléphone ou d'une tablette (p
 | Besoin | Bibliothèque |
 |--------|--------------|
 | Moteur de jeu, animations (tweens, particules) | [Phaser 3](https://phaser.io) |
-| Voix (synthèse vocale du navigateur, compatible iOS/Android) | [easy-speech](https://github.com/leaonline/easy-speech) — voix du dino aiguë (pitch 1.75) pour un rendu rigolo |
+| Voix (synthèse vocale du navigateur, compatible iOS/Android) | [easy-speech](https://github.com/leaonline/easy-speech) — voix du dino naturelle, à peine plus aiguë (pitch 1.2) ; la bouche ne bouge que pendant le son, mot par mot |
 | Effets sonores générés (aucun fichier audio) | [ZzFX](https://github.com/KilledByAPixel/ZzFX) |
 | Illustrations SVG (questions, fruits, décor) | [Noto](https://github.com/googlefonts/noto-emoji) (Google, Apache 2.0) via Iconify |
 | Boutons, drapeaux | [withicons « Plush »](https://github.com/withevergrow/withicons) (MIT), [circle-flags](https://github.com/HatScripts/circle-flags) (MIT) |

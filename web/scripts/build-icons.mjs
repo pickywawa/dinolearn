@@ -21,7 +21,7 @@ const FRUITS = [
   'green-apple', 'coconut',
 ];
 const DECOR = ['palm-tree', 'sauropod', 't-rex', 'herb', 'butterfly'];
-const FLAGS = ['gb'];
+const FLAGS = ['gb', 'fr'];
 
 function write(name, set, icon) {
   const data = getIconData(set, icon);
@@ -60,6 +60,7 @@ write('ui-basket', noto, 'basket');
 write('shadow', noto, 'busts-in-silhouette');
 write('sequence', noto, 'repeat-button');
 write('most', noto, 'balance-scale');
+write('calc', noto, 'input-numbers');
 for (const icon of UI_ICONS) write(`ui-${icon}`, plush, icon);
 for (const flag of FLAGS) write(`flag-${flag}`, flags, flag);
 

@@ -11,7 +11,7 @@ export type DinoReaction =
 const IDLE_FUN: DinoReaction[] = ['wave', 'yawn', 'roar', 'lookAround', 'hop', 'spin'];
 
 const S = 1 / PART_RESOLUTION;
-const MOUTHS = ['dino-mouth-small', 'dino-mouth-open', 'dino-mouth-wide', 'dino-mouth-o', 'dino-mouth-open'];
+const MOUTHS = ['dino-mouth-open', 'dino-mouth-wide', 'dino-mouth-o', 'dino-mouth-open'];
 
 /**
  * Le dino animé : pièces SVG assemblées dans des conteneurs Phaser et
@@ -32,6 +32,9 @@ export class Dino extends Phaser.GameObjects.Container {
   private bellyFill: number | null = null;
   private eyeMode: 'open' | 'happy' | 'closed' = 'open';
   private talkTimer?: Phaser.Time.TimerEvent;
+  /** Vrai dès que la voix signale ses mots : la bouche suit alors chaque mot. */
+  private wordSync = false;
+  private wordTimers: Phaser.Time.TimerEvent[] = [];
   private busy = false;
   private unsubscribe: (() => void)[] = [];
 
@@ -66,11 +69,12 @@ export class Dino extends Phaser.GameObjects.Container {
     this.startIdle();
     this.unsubscribe.push(
       app.voice.onTalk((talking) => this.setTalking(talking)),
-      app.voice.onBoundary(() => this.mouth.setTexture('dino-mouth-wide')),
+      app.voice.onBoundary((ms) => this.sayWord(ms)),
     );
     this.once(Phaser.GameObjects.Events.DESTROY, () => {
       this.unsubscribe.forEach((fn) => fn());
       this.talkTimer?.remove();
+      this.clearWordTimers();
     });
     if (app.voice.talking) this.setTalking(true);
   }
@@ -115,21 +119,59 @@ export class Dino extends Phaser.GameObjects.Container {
     this.eyes.forEach((e) => e.setTexture(key));
   }
 
+  /**
+   * La bouche ne bouge que pendant le son. Si la voix signale ses mots, la
+   * bouche s'ouvre et se ferme mot par mot (elle reste fermée pendant les
+   * pauses) ; sinon elle bat régulièrement tant que la voix parle.
+   */
   private setTalking(talking: boolean) {
     this.talkTimer?.remove();
     this.talkTimer = undefined;
+    this.clearWordTimers();
+    this.wordSync = false;
     if (!talking) {
       if (!this.busy) this.mouth.setTexture('dino-mouth-smile');
       return;
     }
-    this.talkTimer = this.scene.time.addEvent({
-      delay: 95,
-      loop: true,
-      callback: () => {
-        const key = Phaser.Math.RND.pick(MOUTHS);
-        this.mouth.setTexture(this.mouth.texture.key === key ? 'dino-mouth-small' : key);
-      },
+    // On laisse un court instant au premier mot pour arriver avant de battre au hasard.
+    this.talkTimer = this.scene.time.delayedCall(120, () => {
+      if (this.wordSync || !app.voice.talking) return;
+      this.talkTimer = this.scene.time.addEvent({
+        delay: 110,
+        loop: true,
+        callback: () => {
+          const open = this.mouth.texture.key !== 'dino-mouth-small';
+          this.mouth.setTexture(open ? 'dino-mouth-small' : Phaser.Math.RND.pick(MOUTHS));
+        },
+      });
     });
+  }
+
+  /** Un mot commence : la bouche s'ouvre et se ferme à chaque syllabe, puis se referme. */
+  private sayWord(ms: number) {
+    if (!app.voice.talking || this.busy) return;
+    if (!this.wordSync) {
+      this.wordSync = true;
+      this.talkTimer?.remove();
+      this.talkTimer = undefined;
+    }
+    this.clearWordTimers();
+    const syllables = Math.max(1, Math.round(ms / 170));
+    const step = ms / syllables;
+    for (let i = 0; i < syllables; i++) {
+      this.wordTimers.push(
+        this.scene.time.delayedCall(i * step, () => this.mouth.setTexture(Phaser.Math.RND.pick(MOUTHS))),
+        this.scene.time.delayedCall(i * step + step * 0.6, () => this.mouth.setTexture('dino-mouth-small')),
+      );
+    }
+    this.wordTimers.push(this.scene.time.delayedCall(ms, () => {
+      if (!this.busy) this.mouth.setTexture('dino-mouth-smile');
+    }));
+  }
+
+  private clearWordTimers() {
+    this.wordTimers.forEach((t) => t.remove());
+    this.wordTimers = [];
   }
 
   // ---- Réactions ----

@@ -1,7 +1,9 @@
 /**
  * Devinettes du jeu « Devinettes » (catégorie Monde) : [concept, niveau, texte].
  * Niveaux 1–3 : cris d'animaux ; 4–6 : à quoi ça sert, à quoi ça ressemble ;
- * 7–10 : indices plus fins et mots plus rares.
+ * 7–10 : indices plus fins et mots plus rares ; 11–20 (niveau CP) : plusieurs
+ * indices à combiner, des savoirs sur le monde, des « mais je ne suis pas… ».
+ * Une deuxième devinette pour le même concept a l'identifiant `<concept>~2`.
  */
 export const RIDDLES: [string, number, string][] = [
   ['cow', 1, 'Qui fait meuh ?'],
@@ -153,4 +155,46 @@ export const RIDDLES: [string, number, string][] = [
   ['lock', 10, 'Je ferme la porte, et seule la clé m\'ouvre. Qui suis-je ?'],
   ['axe', 10, 'Le bûcheron m\'utilise pour couper les arbres. Qui suis-je ?'],
   ['oyster', 10, 'Je suis un coquillage, et parfois je cache une perle. Qui suis-je ?'],
+  // ---- Niveau CP (11–20) ----
+  ['butterfly~2', 11, 'Avant, j\'étais une chenille. Maintenant, j\'ai de belles ailes colorées. Qui suis-je ?'],
+  ['frog~2', 11, 'Quand j\'étais petit, j\'étais un têtard. Maintenant, je saute et je fais croâ. Qui suis-je ?'],
+  ['snail~2', 11, 'Je porte ma maison sur mon dos, et je laisse une trace qui brille. Qui suis-je ?'],
+  ['umbrella~2', 11, 'Quand il pleut, on m\'ouvre au-dessus de la tête pour rester au sec. Qui suis-je ?'],
+  ['tooth~2', 12, 'Je suis blanche, je suis dans ta bouche, et il faut me brosser matin et soir. Qui suis-je ?'],
+  ['carrot~2', 12, 'Je suis un légume orange qui pousse sous la terre. Les lapins m\'adorent. Qui suis-je ?'],
+  ['ice_cream~2', 12, 'Je suis froide et sucrée, et je fonds si tu ne me manges pas vite. Qui suis-je ?'],
+  ['owl~2', 12, 'Je suis un oiseau de nuit, avec de grands yeux ronds. Je fais hou-hou. Qui suis-je ?'],
+  ['giraffe~2', 13, 'J\'ai le plus long cou de tous les animaux, et je mange les feuilles en haut des arbres. Qui suis-je ?'],
+  ['elephant~2', 13, 'Je suis très lourd, j\'ai de grandes oreilles et une trompe pour boire. Qui suis-je ?'],
+  ['ladder~2', 13, 'J\'ai des barreaux, et on grimpe sur moi pour monter tout en haut. Qui suis-je ?'],
+  ['clock~2', 13, 'Je fais tic-tac, et je sonne le matin pour te réveiller. Qui suis-je ?'],
+  ['penguin~2', 14, 'Je suis un oiseau, mais je ne sais pas voler. Je nage dans l\'eau glacée. Qui suis-je ?'],
+  ['bat~2', 14, 'Je vole la nuit, mais je ne suis pas un oiseau. Je dors la tête en bas. Qui suis-je ?'],
+  ['lemon~2', 14, 'Je suis un fruit jaune, mais je ne suis pas sucré : je suis très acide ! Qui suis-je ?'],
+  ['snowman~2', 14, 'On me fabrique avec de la neige, j\'ai une carotte pour nez, et je fonds au soleil. Qui suis-je ?'],
+  ['spider~2', 15, 'J\'ai huit pattes, et je tisse une toile pour attraper les mouches. Qui suis-je ?'],
+  ['kangaroo~2', 15, 'Je fais de grands bonds, et je porte mon bébé dans une poche sur mon ventre. Qui suis-je ?'],
+  ['hedgehog~2', 15, 'Je suis couvert de piquants, et je me roule en boule quand j\'ai peur. Qui suis-je ?'],
+  ['honey~2', 15, 'Les abeilles me fabriquent avec les fleurs. Je suis doré et sucré. Qui suis-je ?'],
+  ['ambulance~2', 15, 'Je roule vite avec ma sirène pour emmener les malades à l\'hôpital. Qui suis-je ?'],
+  ['whale~2', 16, 'Je vis dans la mer, mais je ne suis pas un poisson. Je suis le plus gros animal du monde. Qui suis-je ?'],
+  ['squirrel~2', 16, 'Je grimpe aux arbres, j\'ai une grande queue touffue, et je cache des noisettes pour l\'hiver. Qui suis-je ?'],
+  ['moon~2', 16, 'Je tourne autour de la Terre. Parfois je suis toute ronde, parfois fine comme une banane. Qui suis-je ?'],
+  ['coconut~2', 16, 'Je suis un fruit très dur, marron et poilu. Dedans, il y a du lait blanc. Qui suis-je ?'],
+  ['camel~2', 17, 'Je vis dans le désert, je peux marcher longtemps sans boire, et j\'ai deux bosses sur le dos. Qui suis-je ?'],
+  ['octopus~2', 17, 'J\'ai huit bras, et je crache de l\'encre noire pour me cacher. Qui suis-je ?'],
+  ['beaver~2', 17, 'Je construis des barrages sur les rivières avec mes grandes dents. Qui suis-je ?'],
+  ['rainbow~2', 17, 'J\'apparais quand il y a du soleil et de la pluie en même temps. J\'ai sept couleurs. Qui suis-je ?'],
+  ['dolphin~2', 18, 'Je vis dans la mer, je respire de l\'air, et je fais des sauts et des petits cris pour parler. Qui suis-je ?'],
+  ['parrot~2', 18, 'Je suis un oiseau très coloré, et je peux répéter les mots que tu dis. Qui suis-je ?'],
+  ['mushroom~2', 18, 'Je pousse dans la forêt après la pluie. J\'ai un chapeau, mais pas de tête ! Qui suis-je ?'],
+  ['hourglass~2', 18, 'Je mesure le temps avec du sable qui coule tout doucement. Qui suis-je ?'],
+  ['sun~2', 19, 'Je suis une étoile, mais tu me vois le jour. Je chauffe et j\'éclaire la Terre. Qui suis-je ?'],
+  ['lighthouse~2', 19, 'Je suis une grande tour au bord de la mer. Ma lumière guide les bateaux la nuit. Qui suis-je ?'],
+  ['island~2', 19, 'Je suis une terre entourée d\'eau de tous les côtés. Qui suis-je ?'],
+  ['bread~2', 19, 'Le boulanger me fait cuire au four, et on me coupe en tranches pour les tartines. Qui suis-je ?'],
+  ['compass~2', 20, 'Mon aiguille montre toujours le nord. Je sers à ne pas se perdre. Qui suis-je ?'],
+  ['magnet~2', 20, 'J\'attire les objets en fer, comme les clous et les trombones. Qui suis-je ?'],
+  ['brain~2', 20, 'Je suis caché dans ta tête, et je sers à penser et à apprendre. Qui suis-je ?'],
+  ['bone~2', 20, 'Je suis dur et blanc, caché sous ta peau. Tu en as plus de deux cents ! Qui suis-je ?'],
 ];

@@ -7,7 +7,7 @@ export const BALANCE = {
   cakeXp: 6,
   /** Le dino peut beaucoup manger avant d'avoir le ventre plein (≈ 10 séries par jour). */
   dailyXpCap: 200,
-  dinoMaxLevel: 20,
+  dinoMaxLevel: 40,
   xpA: 10,
   xpB: 8,
   xpExp: 1.3,
@@ -32,7 +32,8 @@ export const BALANCE = {
   idleReminderMs: 7000,
   idlePointMs: 12000,
   minQuestionsForReward: 3,
-  maxLevel: 10,
+  /** Difficulté max : 1–10 maternelle, 11–20 niveau CP (dino niveaux 21 à 40). */
+  maxLevel: 20,
 };
 
 export type Balance = typeof BALANCE;

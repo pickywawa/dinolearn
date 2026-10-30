@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { CONCEPTS, conceptById, conceptsFor, frWithArticle, pickDistractors } from '../src/content/content';
 import { GAMES, gameById } from '../src/content/games';
+import { frNumber } from '../src/content/numbers';
 import { RIDDLES } from '../src/content/riddles';
+import { ONSETS, RHYMES } from '../src/content/sounds';
 import { LINES, LinePicker } from '../src/core/lines';
 import { MemoryStore, Progress } from '../src/core/progress';
 import { Series } from '../src/core/series';
@@ -23,7 +25,10 @@ describe('difficulté', () => {
     expect(baseLevel(1, 3)).toBe(1);
     expect(baseLevel(1, 4)).toBe(2);
     expect(baseLevel(1, 7)).toBe(5);
-    expect(baseLevel(20, 4)).toBe(10);
+    expect(baseLevel(20, 4)).toBe(11);
+    // Niveaux 21 à 40 : difficulté CP, jusqu'à 20.
+    expect(baseLevel(40, 3)).toBe(20);
+    expect(baseLevel(30, 3)).toBe(15);
   });
 
   it('ajustement selon le taux de réussite', () => {
@@ -123,15 +128,27 @@ describe('contenus', () => {
     expect(easy.every((c) => c.group !== 'animal')).toBe(true);
   });
 
-  it('chaque question se construit avec des réponses distinctes (2 en anglais, 4 ailleurs)', () => {
+  it('chaque question se construit avec des réponses distinctes (2 en anglais, 4 ailleurs, 6 au niveau CP)', () => {
     const rng = mulberry32(4);
+    const expectedCount = (gameId: string, id: string, level: number) => {
+      const expert = id.endsWith(':x');
+      if (gameId === 'EN-1') return expert ? 4 : 2;
+      if (['MO-1', 'MO-3', 'LO-1'].includes(gameId) && expert) return 6;
+      if (gameId === 'MO-2' && level >= 15) return 6;
+      if (gameId === 'FR-1' && level >= 17) return 6;
+      return 4;
+    };
     for (const game of GAMES) {
       expect(game.questions.length).toBeGreaterThan(40);
+      // Chaque niveau de 1 à 20 a des questions.
+      for (let level = 1; level <= 20; level++) {
+        expect(game.questions.some((q) => Math.abs(q.level - level) <= 1), `${game.id} niveau ${level}`).toBe(true);
+      }
       for (const ref of game.questions) {
-        for (const level of [1, 5, 10]) {
+        for (const level of [ref.level, 5, 10]) {
           const q = game.build(ref, level, rng);
           const all = [q.answer, ...q.distractors];
-          const expected = game.id === 'EN-1' ? 2 : 4;
+          const expected = expectedCount(game.id, ref.id, level);
           expect(all, ref.id).toHaveLength(expected);
           expect(new Set(all.map((c) => c.id)).size, ref.id).toBe(expected);
           const concepts = all.filter((c) => c.image && !c.image.startsWith('food-')).map((c) => conceptById(c.id));
@@ -171,7 +188,8 @@ describe('contenus', () => {
   });
 
   it('devinettes : chaque réponse existe, sans leurre qui répondrait aussi', () => {
-    RIDDLES.forEach(([id]) => expect(() => conceptById(id)).not.toThrow());
+    RIDDLES.forEach(([id]) => expect(() => conceptById(id.split('~')[0])).not.toThrow());
+    expect(new Set(RIDDLES.map(([id]) => id)).size).toBe(RIDDLES.length);
     const game = gameById('MO-2');
     for (let seed = 0; seed < 30; seed++) {
       const q = game.build({ id: 'MO-2:moon', level: 5 }, 7, mulberry32(seed));
@@ -183,6 +201,14 @@ describe('contenus', () => {
     const game = gameById('LO-3');
     for (const ref of game.questions) {
       const q = game.build(ref, 5, mulberry32(11));
+      if (q.show?.kind === 'numbers') {
+        // Suite de nombres : pas constant, ou qui grandit de 1 (1, 2, 4, 7, 11).
+        const [a, b, c, d] = q.show.items as number[];
+        const next = b - a === c - b ? d + (d - c) : d + (d - c) + 1;
+        expect(q.answer.number, ref.id).toBe(next);
+        expect(q.distractors.map((x) => x.number), ref.id).not.toContain(next);
+        continue;
+      }
       if (q.show?.kind !== 'sequence') throw new Error('suite attendue');
       const pattern = ref.id.split(':')[1];
       const seq = q.show.images.slice(0, -1);
@@ -195,10 +221,56 @@ describe('contenus', () => {
     const game = gameById('LO-4');
     for (const ref of game.questions) {
       const q = game.build(ref, 5, mulberry32(12));
+      if (ref.id.includes(':num:')) {
+        // Niveau CP : comparer des nombres écrits.
+        const others = q.distractors.map((d) => d.number!);
+        if (ref.id.includes('least')) expect(Math.min(...others), ref.id).toBeGreaterThan(q.answer.number!);
+        else expect(Math.max(...others), ref.id).toBeLessThan(q.answer.number!);
+        continue;
+      }
       const counts = q.distractors.map((d) => d.repeat!.count);
       if (ref.id.endsWith('least')) expect(Math.min(...counts), ref.id).toBeGreaterThan(q.answer.repeat!.count);
       else expect(Math.max(...counts), ref.id).toBeLessThan(q.answer.repeat!.count);
     }
+  });
+
+  it('calcul : la bonne réponse est le résultat du calcul', () => {
+    const game = gameById('LO-5');
+    for (const ref of game.questions) {
+      const q = game.build(ref, ref.level, mulberry32(3));
+      if (q.show?.kind !== 'sum') throw new Error('calcul attendu');
+      const { a, b, op, total } = q.show;
+      const value = q.answer.number ?? q.answer.count!;
+      if (total !== undefined) expect(a + value, ref.id).toBe(total);
+      else expect(value, ref.id).toBe(op === '+' ? a + b : a - b);
+      expect(value, ref.id).toBeGreaterThanOrEqual(0);
+      expect(value, ref.id).toBeLessThanOrEqual(20);
+      // En images jusqu'au niveau 10, écrit ensuite.
+      expect(Boolean(q.show.image), ref.id).toBe(ref.level <= 10);
+    }
+  });
+
+  it('les sons : la réponse rime (ou commence) comme le mot, les leurres non', () => {
+    const rhyme = new Map(RHYMES.flatMap(([k, ids]) => ids.map((id) => [id, k] as const)));
+    const onset = new Map(ONSETS.flatMap(([k, ids]) => ids.map((id) => [id, k] as const)));
+    const game = gameById('FR-1');
+    for (const ref of game.questions) {
+      const [, kind, x] = ref.id.split(':');
+      const family = kind === 'rime' ? rhyme : onset;
+      const q = game.build(ref, ref.level, mulberry32(9));
+      expect(q.show).toEqual({ kind: 'image', image: x });
+      expect(family.get(q.answer.id), ref.id).toBe(family.get(x));
+      expect(q.answer.id, ref.id).not.toBe(x);
+      q.distractors.forEach((d) => {
+        expect(d.id, ref.id).not.toBe(x);
+        expect(family.get(d.id), ref.id).not.toBe(family.get(x));
+      });
+    }
+  });
+
+  it('nombres en lettres', () => {
+    expect([1, 17, 21, 71, 80, 91, 100].map(frNumber)).toEqual(
+      ['un', 'dix-sept', 'vingt et un', 'soixante et onze', 'quatre-vingts', 'quatre-vingt-onze', 'cent']);
   });
 
   it('les ombres : une silhouette de la bonne réponse, avec des indices', () => {

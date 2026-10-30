@@ -3,13 +3,18 @@ import { Speech } from '../content/content';
 import { LinePicker } from './lines';
 
 type TalkListener = (talking: boolean) => void;
-type BoundaryListener = () => void;
+/** Début d'un mot : durée estimée du mot, en millisecondes. */
+type BoundaryListener = (wordMs: number) => void;
 
 /**
  * Voix du dino via la synthèse vocale du navigateur, pilotée par la
  * bibliothèque `easy-speech` (compatibilité iOS / Android / Chrome).
- * Voix rigolote : la meilleure voix française disponible, très aiguë et
- * un peu rapide. Les mots anglais sont dits par une voix anglaise naturelle.
+ * Voix du dino : la voix française la plus naturelle de l'appareil, juste un
+ * peu plus aiguë qu'une voix normale (une voix trop aiguë devient agaçante).
+ * Les mots anglais sont dits par une voix anglaise naturelle.
+ * La bouche du dino ne bouge que pendant le son : `talking` passe à vrai au
+ * vrai début de la parole (événement `start`), et chaque mot (événement
+ * `boundary`) est signalé pour animer la bouche mot par mot.
  */
 export class Voice {
   private voices: Partial<Record<'fr' | 'en', SpeechSynthesisVoice>> = {};
@@ -19,8 +24,8 @@ export class Voice {
   private boundaryListeners = new Set<BoundaryListener>();
   talking = false;
 
-  /** Réglages de la voix du dino (hauteur max = 2). */
-  static readonly DINO = { pitch: 1.75, rate: 1.05 };
+  /** Réglages de la voix du dino (1 = voix normale, max = 2). */
+  static readonly DINO = { pitch: 1.2, rate: 0.95 };
   /** Mots anglais : lents et bien articulés. */
   static readonly WORD = { pitch: 1.0, rate: 0.72 };
 
@@ -75,7 +80,6 @@ export class Voice {
     for (const part of parts) {
       if (generation !== this.generation) return;
       if (!part.text.trim()) continue;
-      this.setTalking(true);
       await this.speak(part);
       if (generation !== this.generation) return;
       this.setTalking(false);
@@ -107,13 +111,22 @@ export class Voice {
       return;
     }
     const settings = part.lang === 'fr' ? Voice.DINO : Voice.WORD;
+    const rate = part.slow ? settings.rate * 0.85 : settings.rate;
+    const generation = this.generation;
     const speaking = EasySpeech.speak({
       text: part.text,
       voice: this.voices[part.lang],
       pitch: settings.pitch,
-      rate: part.slow ? settings.rate * 0.85 : settings.rate,
+      rate,
       volume: 1,
-      boundary: () => this.boundaryListeners.forEach((fn) => fn()),
+      // La bouche ne s'ouvre qu'une fois le son vraiment parti.
+      start: () => { if (generation === this.generation) this.setTalking(true); },
+      boundary: (event) => {
+        if (generation !== this.generation || (event.name && event.name !== 'word')) return;
+        const word = part.text.slice(event.charIndex).match(/^[\p{L}\p{N}'’-]+/u)?.[0] ?? '';
+        const ms = Math.min(700, Math.max(140, (word.length * 70) / rate));
+        this.boundaryListeners.forEach((fn) => fn(ms));
+      },
     }).catch(() => undefined);
     await Promise.race([speaking, wait(estimate * 2.5)]);
   }
@@ -123,9 +136,9 @@ const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, 
 
 /** Préférences : voix « naturelles » et connues pour bien sonner. */
 const PREFERRED: Record<'fr' | 'en', RegExp[]> = {
-  fr: [/natural/i, /google/i, /amélie|amelie/i, /audrey/i, /thomas/i, /denise/i, /marie/i],
+  fr: [/premium|enhanced|amélioré/i, /natural|neural/i, /google/i, /amélie|amelie/i, /audrey/i, /thomas/i, /denise/i, /marie/i],
   // Voix anglaise : accent britannique, claire et douce, de préférence féminine.
-  en: [/sonia|libby|maisie/i, /google uk english female/i, /serena|kate|martha|stephanie/i,
+  en: [/(sonia|libby|maisie).*(natural|neural)/i, /premium|enhanced/i, /sonia|libby|maisie/i, /google uk english female/i, /serena|kate|martha|stephanie/i,
     /google uk/i, /daniel/i, /natural/i, /samantha|karen|moira|tessa/i],
 };
 
