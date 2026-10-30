@@ -10,6 +10,7 @@ const require = createRequire(import.meta.url);
 const noto = require('@iconify-json/noto/icons.json');
 const plush = require('@iconify-json/withicons-plush/icons.json');
 const flags = require('@iconify-json/circle-flags/icons.json');
+const openmoji = require('@iconify-json/openmoji/icons.json');
 
 const OUT = new URL('../public/img/', import.meta.url);
 mkdirSync(OUT, { recursive: true });
@@ -21,7 +22,10 @@ const FRUITS = [
   'green-apple', 'coconut',
 ];
 const DECOR = ['palm-tree', 'sauropod', 't-rex', 'herb', 'butterfly'];
-const FLAGS = ['gb', 'fr'];
+const FLAGS = [
+  'gb', 'fr', 'be', 'ch', 'ca', 'lu', 'it', 'ie', 'nl', 'de', 'es', 'us', 'jp', 'br', 'cn', 'mx', 'at', 'ro', 'pe', 'dk',
+  'ru', 'td', 'li', 'in', 'sn', 'lb', 'to',
+];
 
 function write(name, set, icon) {
   const data = getIconData(set, icon);
@@ -99,6 +103,20 @@ function cape(name, color, dark, star) {
 }
 cape('acc-cape-red', '#e5484d', '#a8262b', false);
 cape('acc-cape-blue', '#3b5bdb', '#243a9e', true);
+// Jeu « Mon pays » : spécialités, fêtes, monnaies, monuments (OpenMoji, CC BY-SA 4.0, pour les monuments).
+const COUNTRY_ICONS = {
+  'baguette-bread': 'baguette-bread', waffle: 'waffle', 'chocolate-bar': 'chocolate-bar', fondue: 'fondue',
+  'maple-leaf': 'maple-leaf', fireworks: 'fireworks', 'christmas-tree': 'christmas-tree', 'jack-o-lantern': 'jack-o-lantern',
+  'snow-capped-mountain': 'snow-capped-mountain', beach: 'beach-with-umbrella', desert: 'desert', euro: 'euro-banknote',
+  dollar: 'dollar-banknote', yen: 'yen-banknote', pound: 'pound-banknote', taco: 'taco', sushi: 'sushi', burrito: 'burrito',
+  'curry-rice': 'curry-rice', dumpling: 'dumpling', 'ice-hockey': 'ice-hockey', moai: 'moai', basketball: 'basketball',
+  tennis: 'tennis', 'american-football': 'american-football', 'tokyo-tower': 'tokyo-tower',
+};
+for (const [name, icon] of Object.entries(COUNTRY_ICONS)) write(`cty-${name}`, noto, icon);
+write('cty-eiffel-tower', openmoji, 'eiffel-tower');
+write('cty-statue-of-liberty', openmoji, 'statue-of-liberty');
+write('cty-pyramid', openmoji, 'great-pyramid-of-giza');
+write('my-country', noto, 'world-map');
 write('ui-wardrobe', noto, 'top-hat');
 write('ui-gift', noto, 'wrapped-gift');
 for (const icon of UI_ICONS) write(`ui-${icon}`, plush, icon);

@@ -4,6 +4,8 @@ import { GAMES, gameById, gamesForAge, sayMoney, sayTime } from '../src/content/
 import { PAIRS, SIZES, enNumber } from '../src/content/extra';
 import { frNumber } from '../src/content/numbers';
 import { ITEMS, giftChoices, sameSlot } from '../src/content/items';
+import { existsSync } from 'node:fs';
+import { COUNTRIES, setCountry } from '../src/content/countries';
 import { RIDDLES } from '../src/content/riddles';
 import { SENTENCES } from '../src/content/sentences';
 import { ONSETS, RHYMES } from '../src/content/sounds';
@@ -138,6 +140,7 @@ describe('contenus', () => {
     const expectedCount = (gameId: string, id: string, level: number, refLevel: number) => {
       const expert = id.endsWith(':x');
       if (gameId.startsWith('TR-')) return 1;
+      if (gameId === 'MO-6') return id.endsWith(':flag') ? 3 : /hard6|capital6|neighbour6/.test(id) ? 6 : 4;
       if (gameId === 'EN-1') return expert ? 4 : 2;
       if (gameId === 'EN-2') return Number(id.split(':')[1]) <= 10 ? 3 : 4;
       if (['MO-1', 'MO-3', 'LO-1', 'MO-4', 'LO-6'].includes(gameId) && expert) return 6;
@@ -153,7 +156,8 @@ describe('contenus', () => {
       return 4;
     };
     for (const game of GAMES) {
-      expect(game.questions.length).toBeGreaterThan(40);
+      // « Mon pays » : une quinzaine de questions sur le pays de l'enfant.
+      expect(game.questions.length).toBeGreaterThan(game.id === 'MO-6' ? 10 : 40);
       // Chaque niveau de 1 à 20 a des questions.
       for (let level = 1; level <= 20; level++) {
         expect(game.questions.some((q) => Math.abs(q.level - level) <= 1), `${game.id} niveau ${level}`).toBe(true);
@@ -165,7 +169,7 @@ describe('contenus', () => {
           const expected = expectedCount(game.id, ref.id, level, ref.level);
           expect(all, ref.id).toHaveLength(expected);
           expect(new Set(all.map((c) => c.id)).size, ref.id).toBe(expected);
-          const concepts = all.filter((c) => c.image && !c.image.startsWith('food-')).map((c) => conceptById(c.id));
+          const concepts = all.filter((c) => c.image && !/^(food|flag|cty)-/.test(c.image)).map((c) => conceptById(c.id));
           if (concepts.length === expected) {
             expect(new Set(concepts.map((c) => c.fr.word)).size, ref.id).toBe(expected);
           }
@@ -723,5 +727,32 @@ describe('correction des tracés', () => {
     }
     // Un carré à la place d'un rond : refusé quand on dessine seul (sur les pointillés, impossible de s'y tromper).
     expect(scoreTrace(byId('circle'), byId('square'), true).ok).toBe(false);
+  });
+});
+
+describe('mon pays', () => {
+  it('chaque pays a ses questions, avec une seule bonne réponse et des images existantes', () => {
+    const game = gameById('MO-6');
+    for (const country of COUNTRIES) {
+      setCountry(country.code);
+      expect(game.questions.length, country.code).toBeGreaterThanOrEqual(10);
+      for (const ref of game.questions) {
+        for (let seed = 0; seed < 3; seed++) {
+          const q = game.build(ref, ref.level, mulberry32(seed));
+          const ids = [q.answer, ...q.distractors].map((c) => c.id);
+          expect(new Set(ids).size, ref.id).toBe(ids.length);
+          expect(q.distractors.length, ref.id).toBeGreaterThanOrEqual(2);
+          for (const c of [q.answer, ...q.distractors]) {
+            if (c.image) expect(existsSync(`public/img/${c.image}.svg`), `${ref.id} ${c.image}`).toBe(true);
+          }
+        }
+      }
+    }
+    setCountry('other');
+    expect(game.questions).toHaveLength(0);
+    setCountry('fr');
+    const flag = game.build({ id: 'MO-6:fr:flag', level: 1 }, 1, mulberry32(1));
+    expect(flag.answer.image).toBe('flag-fr');
+    expect(flag.prompt[0].text).toBe('Quel est le drapeau de la France ?');
   });
 });

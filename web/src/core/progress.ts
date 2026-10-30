@@ -71,6 +71,8 @@ export interface Settings {
   music: boolean;
   /** Heure du coucher (« 19:30 ») : le soir, mode nuit ; '' = pas de mode nuit. */
   nightTime: string;
+  /** Pays de l'enfant (« fr », « be »…, ou « other ») pour le jeu « Mon pays ». */
+  country: string;
   /** Code parent à 4 chiffres (espace parents, déblocage du temps de jeu). */
   pin?: string;
 }
@@ -91,7 +93,7 @@ const empty = (): Data => ({
   feedLog: {},
   seriesPlayed: 0,
   seenTutorial: false,
-  settings: { disabledGames: [], dailyMinutes: 0, sfx: true, music: true, nightTime: '' },
+  settings: { disabledGames: [], dailyMinutes: 0, sfx: true, music: true, nightTime: '', country: 'fr' },
   playLog: {},
   bonusLog: {},
   collection: { owned: [], worn: [], pending: 0 },

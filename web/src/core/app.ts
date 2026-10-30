@@ -1,3 +1,4 @@
+import { setCountry } from '../content/countries';
 import { GameDef, gamesForAge } from '../content/games';
 import { LinePicker } from './lines';
 import { Music } from './music';
@@ -25,6 +26,7 @@ if (ageParam >= 3 && ageParam <= 7) progress.age = ageParam;
 
 Sfx.enabled = progress.settings.sfx;
 Music.setEnabled(progress.settings.music);
+setCountry(progress.settings.country);
 
 /** Services partagés par toutes les scènes. */
 export const app = {
@@ -38,7 +40,7 @@ export const app = {
 /** Jeux proposés à l'enfant : ceux de son âge, sauf ceux que les parents ont désactivés. */
 export function playableGames(): GameDef[] {
   const forAge = gamesForAge(progress.age);
-  const enabled = forAge.filter((g) => !progress.settings.disabledGames.includes(g.id));
+  const enabled = forAge.filter((g) => !progress.settings.disabledGames.includes(g.id) && g.questions.length > 0);
   return enabled.length > 0 ? enabled : forAge;
 }
 

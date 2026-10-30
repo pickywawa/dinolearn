@@ -1,3 +1,4 @@
+import { setCountry } from '../content/countries';
 import { app } from '../core/app';
 
 /**
@@ -236,6 +237,22 @@ export async function firstLaunchSetup() {
     + 'lendemain ; votre code permet de le débloquer. Modifiable à tout moment dans l\'espace parents.',
   DAILY.map((m) => (m === 0 ? 'Illimité' : `${m} minutes`)));
   app.progress.updateSettings({ dailyMinutes: DAILY[index ?? 0] });
+  await chooseCountry();
+}
+
+const COUNTRY_CHOICES: [string, string][] = [
+  ['fr', 'France'], ['be', 'Belgique'], ['ch', 'Suisse'], ['ca', 'Canada'], ['lu', 'Luxembourg'], ['other', 'Autre pays'],
+];
+
+/** Le pays de l'enfant, pour le jeu « Mon pays » (dès 5 ans). */
+export async function chooseCountry(cancel?: string): Promise<boolean> {
+  const index = await choose('Le pays de l\'enfant', 'Pour le jeu « Mon pays » (drapeau, monuments, spécialités…), dès 5 ans. '
+    + 'Modifiable dans l\'espace parents.', COUNTRY_CHOICES.map(([, name]) => name), cancel);
+  if (index === null) return false;
+  const code = COUNTRY_CHOICES[index][0];
+  app.progress.updateSettings({ country: code });
+  setCountry(code);
+  return true;
 }
 
 /** Mode nuit : un parent peut laisser jouer encore ce soir avec son code. */

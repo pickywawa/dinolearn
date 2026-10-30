@@ -6,6 +6,7 @@ import { PAIRS, SIZES, SYLLABLES, enNumber } from './extra';
 import { frNumber } from './numbers';
 import { LETTER_LEVELS, LETTER_NAMES, LOOKALIKE_LETTERS, READ_WORDS, SYLLABLES_TO_READ } from './reading';
 import { RIDDLES } from './riddles';
+import { BANKNOTES, CELEBRATIONS, COUNTRIES, Country, FAR_FLAGS, FOREIGN_FOODS, OTHER_ANIMALS, currentCountry } from './countries';
 import { SENTENCES } from './sentences';
 import { LETTER_MODELS, SHAPE_MODELS, TRACE_MODES, TraceMode, TraceModel, traceModel } from './tracing';
 import { ONSETS, RHYMES } from './sounds';
@@ -1726,8 +1727,114 @@ const traceLetters: GameDef = {
   build: (ref, _level, rng) => buildTrace(ref, rng),
 };
 
+// ---- Monde : « Mon pays » (le pays de l'enfant, choisi par les parents) ----
+
+/** Questions sur un pays : [type, niveau], selon ce qu'on sait de lui. */
+function countryQuestions(c: Country): QuestionRef[] {
+  const q: [string, number][] = [['flag', 1], ['symbol:0', 2], ['day', 4], ['flag-hard', 10], ['capital', 12],
+    ['neighbour', 14], ['flag-hard6', 16], ['neighbour6', 18], ['capital6', 20]];
+  c.foods.forEach((_, i) => q.push([`food:${i}`, [3, 5, 7][i]]));
+  if (c.symbols[1]) q.push(['symbol:1', 9]);
+  if (c.currency) q.push(['currency', 6]);
+  if (c.landmark) q.push(['landmark', 8]);
+  if (c.code === 'fr') q.push(['hexagon', 9]);
+  return q.map(([type, level]) => ({ id: `MO-6:${c.code}:${type}`, level }));
+}
+
+function buildCountry(ref: QuestionRef, rng: Rng): BuiltQuestion {
+  const [, code, type, index] = ref.id.split(':');
+  const c = COUNTRIES.find((x) => x.code === code)!;
+  const img = (key: string): Choice => ({ id: key, image: key });
+  const flag = (code: string): Choice => img(`flag-${code}`);
+  const take = <T>(list: T[], n: number, not: T[] = []) => shuffle(list.filter((x) => !not.includes(x)), rng).slice(0, n);
+  const fact = (prompt: string, answer: Choice, distractors: Choice[], reinforce: string, hint?: string): BuiltQuestion => ({
+    answer, distractors, prompt: [{ text: prompt, lang: 'fr' }], reinforce: [{ text: reinforce, lang: 'fr' }],
+    hints: hint ? [{ text: `Indice : ${hint}`, lang: 'fr' }] : [],
+  });
+  const country = c.name.charAt(0).toUpperCase() + c.name.slice(1);
+  switch (type) {
+    case 'flag':
+      return fact(`Quel est le drapeau ${c.of} ?`, flag(c.code), take(FAR_FLAGS, 2, [c.code, ...c.neighbours]).map(flag),
+        `Oui ! C'est le drapeau ${c.of} !`);
+    case 'flag-hard':
+    case 'flag-hard6': {
+      // Des drapeaux qui se ressemblent : il faut bien regarder les couleurs et leur ordre.
+      const n = type === 'flag-hard' ? 3 : 5;
+      const traps = take(c.flagTraps, n);
+      const more = take(FAR_FLAGS, n - traps.length, [c.code, ...traps]);
+      return fact(`Attention, ils se ressemblent ! Quel est le drapeau ${c.of} ?`, flag(c.code), [...traps, ...more].map(flag),
+        `Bravo ! C'est bien le drapeau ${c.of} !`, 'regarde bien les couleurs, et dans quel ordre elles sont.');
+    }
+    case 'symbol': {
+      const [image, name] = c.symbols[Number(index)];
+      return fact(`Quel est un symbole ${c.of} ?`, img(image), take(OTHER_ANIMALS, 3, [image]).map(img),
+        `Oui ! ${name.charAt(0).toUpperCase()}${name.slice(1)}, c'est un symbole ${c.of} !`);
+    }
+    case 'food': {
+      const [image, name] = c.foods[Number(index)];
+      return fact(oneOf(rng, [`Lequel est une spécialité ${c.of} ?`, `Qu'est-ce qu'on aime manger ${c.in} ?`]), img(image),
+        take(FOREIGN_FOODS, 3).map(img), `Miam ! ${name.charAt(0).toUpperCase()}${name.slice(1)}, c'est une spécialité ${c.of} !`);
+    }
+    case 'day':
+      return fact(`${c.nationalDay.charAt(0).toUpperCase()}${c.nationalDay.slice(1)}, c'est la fête nationale ${c.of} ! `
+        + 'Qu\'est-ce qu\'on regarde dans le ciel, le soir ?', img('cty-fireworks'), take(CELEBRATIONS, 3).map(img),
+      `Oui ! ${c.nationalDay.charAt(0).toUpperCase()}${c.nationalDay.slice(1)}, il y a un grand feu d'artifice !`);
+    case 'currency': {
+      const [image, name] = c.currency!;
+      return fact(`Avec quel argent est-ce qu'on paie ${c.in} ?`, img(image), take(BANKNOTES, 3, [image]).map(img),
+        `Oui ! ${c.in.charAt(0).toUpperCase()}${c.in.slice(1)}, on paie avec ${name} !`);
+    }
+    case 'landmark': {
+      const [image, question, name, others] = c.landmark!;
+      return fact(question, img(image), take(others, 3).map(img), `Oui ! C'est ${name} !`);
+    }
+    case 'hexagon': {
+      const shapes: ShapeCard[] = [{ shape: 'hexagon', color: 0x2f6fde }, { shape: 'triangle', color: 0x2f6fde },
+        { shape: 'circle', color: 0x2f6fde }, { shape: 'star', color: 0x2f6fde }];
+      const [answer, ...rest] = shapes.map((sh) => ({ id: `s:${sh.shape}`, shape: sh }));
+      return fact('On appelle la France l\'Hexagone, à cause de sa forme à six côtés. Touche l\'hexagone !', answer, rest,
+        'Oui ! L\'hexagone a six côtés, comme la forme de la France !', 'compte les côtés : il en faut six.');
+    }
+    case 'capital':
+    case 'capital6': {
+      // Les villes sont écrites : il faut les lire.
+      const n = type === 'capital' ? 3 : 5;
+      const word = (w: string) => ({ id: `t:${w}`, text: { value: w.toLocaleUpperCase('fr-FR'), script: 'caps' as Script } });
+      return fact(`Quelle est la capitale ${c.of} ? Lis bien les noms des villes !`, word(c.capital),
+        take(c.cities, n).map(word), `Oui ! La capitale ${c.of}, c'est ${c.capital} !`,
+        `elle commence par la lettre ${LETTER_NAMES[c.capital[0].toUpperCase()]}.`);
+    }
+    default: {
+      // Pays voisins : un seul drapeau est celui d'un voisin.
+      const n = type === 'neighbour' ? 3 : 5;
+      const neighbour = take(c.neighbours, 1)[0];
+      return fact(`Lequel de ces drapeaux est celui d'un pays voisin ${c.of} ?`, flag(neighbour),
+        take(FAR_FLAGS, n, [c.code, ...c.neighbours]).map(flag),
+        `Oui ! Ce pays touche ${c.name}. ${country} a des voisins : on peut aller chez eux en voiture !`,
+        'les voisins sont tout près, en Europe ou sur le même continent.');
+    }
+  }
+}
+
+const myCountry: GameDef = {
+  id: 'MO-6',
+  category: 'world',
+  minAge: 5,
+  icon: 'my-country',
+  color: 0x2563eb,
+  introLine: 'intro.MO-6',
+  homeLine: 'home.MO-6',
+  shortLine: 'short.MO-6',
+  // Les questions dépendent du pays choisi par les parents.
+  get questions() {
+    const c = currentCountry();
+    return c ? countryQuestions(c) : [];
+  },
+  build: (ref, _level, rng) => buildCountry(ref, rng),
+};
+
 export const GAMES: GameDef[] = [
-  listenTap, englishNumbers, showMe, riddles, shadows, together, bigger, missingWord, missingWordRead, sounds,
+  listenTap, englishNumbers, showMe, riddles, shadows, together, bigger, myCountry, missingWord, missingWordRead, sounds,
   syllables, readWord, readPicture, letters, oddOneOut, shapesGame, counting, numbers, sequence, most, calc,
   clockGame, moneyGame, traceShapes, traceLetters,
 ];

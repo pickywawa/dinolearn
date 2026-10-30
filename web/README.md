@@ -13,7 +13,7 @@ Jeu jouable directement dans le navigateur d'un téléphone ou d'une tablette (p
   le touche), ptérodactyle qui fait un looping, diplodocus au loin, bébé T-rex qui sort de derrière
   la colline, papillons, palmier et fougères. Le dino salue, bâille, rugit, regarde autour de lui,
   saute, fait une pirouette pour un sans-faute.
-- **23 jeux**, 20 niveaux de difficulté : 1–10 maternelle, 11–20 niveau CP (dino niveaux 21 à 40,
+- **26 jeux**, 20 niveaux de difficulté : 1–10 maternelle, 11–20 niveau CP (dino niveaux 21 à 40,
   avec 6 images, des leurres piégeux et des nombres jusqu'à 100). Certains jeux n'apparaissent qu'à
   partir d'un âge : anglais, calcul, lecture, sons et syllabes dès 5 ans ; suites, nombres et tailles dès 4 ans.
   - **Anglais — Écoute et touche** : le mot est dit deux fois par une voix britannique (2 images, 4 au CP) ;
@@ -35,6 +35,13 @@ Jeu jouable directement dans le navigateur d'un téléphone ou d'une tablette (p
     il faut le lire pour trouver son image ;
   - **Français — La phrase à trou** : « Le soir, je dors dans mon… » → l'image du lit (dès 3 ans) ;
     variante dès 5 ans : la phrase est aussi écrite et on choisit le mot écrit ;
+  - **Monde — Mon pays** (dès 5 ans) : le pays choisi par les parents (France, Belgique, Suisse, Canada,
+    Luxembourg) : drapeau (puis drapeaux qui se ressemblent), symboles, spécialités, fête nationale, monnaie,
+    monument (tour Eiffel…), l'Hexagone, la capitale (écrite, à lire), les pays voisins ;
+  - **Écriture — Trace les formes / les lettres et les chiffres** : avec le doigt, sur des pointillés
+    (départ numéroté), puis sur des points légers, puis tout seul à côté d'un modèle. Le tracé est
+    corrigé avec tolérance (couverture du modèle, précision, pas de gribouillis ; le sens ne compte pas) ;
+    après deux essais, le dino montre comment faire ;
   - **Logique — L'intrus** : une seule image n'est pas de la même famille (mots ambigus exclus) ;
   - **Logique — Formes et couleurs** : « le triangle bleu », puis les pièges (même forme, autre
     couleur), les tailles (« le petit cœur rouge ») et « le carré qui n'est pas bleu » ;
@@ -61,7 +68,7 @@ Jeu jouable directement dans le navigateur d'un téléphone ou d'une tablette (p
 - **Musique de fond** douce, créée par le jeu (aucun fichier), qui se fait discrète quand le dino parle ;
   bouton note de musique sur l'accueil et réglage dans l'espace parents.
 - **Code parent** : créé au premier lancement (le dino demande à l'enfant d'aller chercher un parent),
-  il protège l'espace parents et débloque le jeu quand le temps du jour est fini (+15 min, +30 min ou
+  avec le temps de jeu et le pays de l'enfant ; il protège l'espace parents et débloque le jeu quand le temps du jour est fini (+15 min, +30 min ou
   illimité aujourd'hui). « Code oublié ? » : nouveau code après une question pour adulte.
 - **Collection** : à chaque niveau gagné, l'enfant choisit un cadeau parmi 4 objets (23 : chapeaux,
   casquette, couronne, lunettes, nœud papillon, écharpe, capes, ailes, ballon, baguette magique…). Le dino
@@ -90,6 +97,8 @@ Jeu jouable directement dans le navigateur d'un téléphone ou d'une tablette (p
 | Voix (synthèse vocale du navigateur, compatible iOS/Android) | [easy-speech](https://github.com/leaonline/easy-speech) — voix du dino naturelle, à peine plus aiguë (pitch 1.2) ; la bouche ne bouge que pendant le son, mot par mot |
 | Effets sonores générés (aucun fichier audio) | [ZzFX](https://github.com/KilledByAPixel/ZzFX) |
 | Illustrations SVG (questions, fruits, décor) | [Noto](https://github.com/googlefonts/noto-emoji) (Google, Apache 2.0) via Iconify |
+| Monuments (tour Eiffel, statue de la Liberté, pyramide) | [OpenMoji](https://openmoji.org) (HfG Schwäbisch Gmünd, CC BY-SA 4.0) via Iconify |
+| Drapeaux | [circle-flags](https://github.com/HatScripts/circle-flags) (MIT) via Iconify |
 | Boutons, drapeaux | [withicons « Plush »](https://github.com/withevergrow/withicons) (MIT), [circle-flags](https://github.com/HatScripts/circle-flags) (MIT) |
 
 Le dinosaure et le décor (volcan, fougères, ptérodactyle) sont dessinés en SVG (`src/dino/parts.ts`)

@@ -5,7 +5,8 @@ import { Sfx } from '../core/sfx';
 import { BALANCE } from '../domain/balance';
 import { baseLevel } from '../domain/difficulty';
 import { mulberry32 } from '../domain/models';
-import { createParentCode } from './pin';
+import { COUNTRIES } from '../content/countries';
+import { chooseCountry, createParentCode } from './pin';
 
 /**
  * Espace parents : une page HTML classique posée sur le jeu (lisible et
@@ -22,7 +23,7 @@ const TITLES: Record<string, string> = {
   'LO-2': 'Logique — Combien ?', 'LO-3': 'Logique — La suite', 'LO-4': 'Logique — Le plus, le moins',
   'LO-5': 'Logique — Calcul', 'LO-6': 'Logique — Les nombres', 'LO-7': 'Logique — Formes et couleurs',
   'LO-8': 'Logique — L\'heure', 'LO-9': 'Logique — La monnaie',
-  'TR-1': 'Écriture — Trace les formes', 'TR-2': 'Écriture — Trace les lettres et les chiffres',
+  'MO-6': 'Monde — Mon pays', 'TR-1': 'Écriture — Trace les formes', 'TR-2': 'Écriture — Trace les lettres et les chiffres',
   'FR-5': 'Français — Lis et touche l\'image', 'FR-6': 'Français — La phrase à trou (images)',
   'FR-7': 'Français — La phrase à trou (mots écrits)',
 };
@@ -108,7 +109,7 @@ export function openParents(onClose: () => void) {
 
   const render = () => {
     main.replaceChildren(
-      childSection(), levelSection(), timeSection(), codeSection(), gamesSection(), failuresSection(), soundSection(),
+      childSection(), levelSection(), timeSection(), codeSection(), countrySection(), gamesSection(), failuresSection(), soundSection(),
       dataSection(),
     );
   };
@@ -328,6 +329,23 @@ export function openParents(onClose: () => void) {
         + 'Les voix viennent du téléphone : pour une voix plus naturelle, installez une voix « améliorée » ou « premium » '
         + 'dans les réglages d\'accessibilité (synthèse vocale).'),
       test,
+    );
+  }
+
+  // ---- Pays ----
+  function countrySection() {
+    const current = COUNTRIES.find((c) => c.code === p.settings.country);
+    const change = el('button', {}, 'Changer de pays');
+    change.addEventListener('click', async () => {
+      if (await chooseCountry('Annuler')) render();
+    });
+    return el('section', {},
+      el('h2', {}, 'Pays de l\'enfant'),
+      el('p', { class: 'help' }, current
+        ? `Pays : ${current.name.replace(/^(la|le) /, '')}. Le jeu « Mon pays » pose des questions dessus : drapeau, `
+          + 'symboles, spécialités, fête nationale, capitale, pays voisins…'
+        : 'Autre pays : le jeu « Mon pays » n\'est pas proposé.'),
+      change,
     );
   }
 
