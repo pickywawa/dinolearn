@@ -57,11 +57,16 @@ export class GameScene extends BaseScene {
   }
 
   create(data: { gameId?: string; mixed?: boolean }) {
+    // Les jeux de tracé ont leur propre scène.
+    if (data.gameId && gameById(data.gameId).trace) {
+      this.scene.start('Trace', data);
+      return;
+    }
     this.initBase();
     this.playMs = 0;
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.savePlayTime());
     this.mixed = !!data.mixed || !data.gameId;
-    const games = this.mixed ? playableGames() : [gameById(data.gameId!)];
+    const games = this.mixed ? playableGames().filter((g) => !g.trace) : [gameById(data.gameId!)];
     const tint = Phaser.Display.Color.IntegerToColor(this.mixed ? 0x9fd8ff : games[0].color);
     const light = Phaser.Display.Color.Interpolate.ColorWithColor(tint, new Phaser.Display.Color(255, 255, 255), 100, 75);
     drawScenery(this, Phaser.Display.Color.GetColor(light.r, light.g, light.b), 0xf4fbff, 0);
@@ -456,6 +461,7 @@ export class GameScene extends BaseScene {
       this.drawSum(show, area, pop);
       return;
     }
+    if (show.kind === 'trace') return;
 
     // Objets à compter : on mélange les groupes (aux niveaux difficiles, il y a des intrus).
     const items = Phaser.Utils.Array.Shuffle(show.groups.flatMap((g, gi) =>
@@ -793,7 +799,7 @@ function showImages(show?: Show): (string | undefined)[] {
   if (show.kind === 'count') return show.groups.map((g) => g.image);
   if (show.kind === 'silhouette' || show.kind === 'image') return [show.image];
   if (show.kind === 'sum') return [show.image];
-  if (show.kind === 'text') return [];
+  if (show.kind === 'text' || show.kind === 'trace') return [];
   if (show.kind === 'sequence') return show.images.map((i) => i ?? undefined);
   return [];
 }

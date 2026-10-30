@@ -16,6 +16,8 @@ import { AnswerRecord, mulberry32 } from '../src/domain/models';
 import { feed, stageFor, xpToNext } from '../src/domain/progression';
 import { foodXp, seriesFruits, starsFor } from '../src/domain/rewards';
 import { pickQuestions } from '../src/domain/selector';
+import { Point, resample, scoreTrace } from '../src/domain/trace';
+import { LETTER_MODELS, SHAPE_MODELS } from '../src/content/tracing';
 
 const answers = (count: number, rate: number, gameId = 'EN-1'): AnswerRecord[] =>
   Array.from({ length: count }, (_, i) => ({
@@ -135,6 +137,7 @@ describe('contenus', () => {
     const rng = mulberry32(4);
     const expectedCount = (gameId: string, id: string, level: number, refLevel: number) => {
       const expert = id.endsWith(':x');
+      if (gameId.startsWith('TR-')) return 1;
       if (gameId === 'EN-1') return expert ? 4 : 2;
       if (gameId === 'EN-2') return Number(id.split(':')[1]) <= 10 ? 3 : 4;
       if (['MO-1', 'MO-3', 'LO-1', 'MO-4', 'LO-6'].includes(gameId) && expert) return 6;
@@ -682,5 +685,43 @@ describe('mode nuit', () => {
     expect(p.isSleeping(at(31, 21))).toBe(false);
     p.markNightSeries(at(31, 21));
     expect(p.isSleeping(at(31, 21, 30))).toBe(false);
+  });
+});
+
+describe('correction des tracés', () => {
+  const all = [...SHAPE_MODELS, ...LETTER_MODELS];
+  const shift = (strokes: Point[][], dx: number, dy: number, k = 1): Point[][] =>
+    strokes.map((s) => s.map(([x, y]): Point => [0.5 + (x - 0.5) * k + dx, 0.5 + (y - 0.5) * k + dy]));
+  const wobble = (strokes: Point[][], rng: () => number): Point[][] =>
+    strokes.map((s) => resample([s], 0.02).map(([x, y]): Point => [x + (rng() - 0.5) * 0.06, y + (rng() - 0.5) * 0.06]));
+
+  it('un tracé correct, un peu tremblé ou décalé, est accepté', () => {
+    const rng = mulberry32(3);
+    for (const m of all) {
+      expect(scoreTrace(m.strokes, m.strokes, false).ok, m.id).toBe(true);
+      expect(scoreTrace(m.strokes, wobble(m.strokes, rng), false).ok, `${m.id} tremblé`).toBe(true);
+      expect(scoreTrace(m.strokes, shift(m.strokes, 0.04, -0.03), false).ok, `${m.id} décalé`).toBe(true);
+      // Sans pointillés : plus petit et ailleurs dans le cadre, c'est bon aussi.
+      expect(scoreTrace(m.strokes, shift(wobble(m.strokes, rng), 0.1, 0.05, 0.6), true).ok, `${m.id} libre`).toBe(true);
+    }
+  });
+
+  it('un tracé incomplet, un gribouillis ou une autre forme est refusé', () => {
+    const rng = mulberry32(5);
+    for (const m of all) {
+      const points = resample(m.strokes, 0.02);
+      const half = [points.slice(0, Math.floor(points.length / 2))];
+      expect(scoreTrace(m.strokes, half, false).ok, `${m.id} à moitié`).toBe(false);
+      const scribble = [Array.from({ length: 200 }, (): Point => [rng(), rng()])];
+      expect(scoreTrace(m.strokes, scribble, false).ok, `${m.id} gribouillis`).toBe(false);
+    }
+    const byId = (id: string) => all.find((m) => m.id === id)!.strokes;
+    for (const [asked, drawn] of [['triangle', 'square'], ['O', 'L'], ['A', 'H'], ['T', 'L'], ['star', 'circle'],
+      ['heart', 'triangle'], ['M', 'N'], ['X', 'V'], ['O', 'C'], ['E', 'F'], ['F', 'E'], ['P', 'R'], ['C', 'G']]) {
+      expect(scoreTrace(byId(asked), byId(drawn), false).ok, `${asked} ≠ ${drawn}`).toBe(false);
+      expect(scoreTrace(byId(asked), byId(drawn), true).ok, `${asked} ≠ ${drawn} (libre)`).toBe(false);
+    }
+    // Un carré à la place d'un rond : refusé quand on dessine seul (sur les pointillés, impossible de s'y tromper).
+    expect(scoreTrace(byId('circle'), byId('square'), true).ok).toBe(false);
   });
 });

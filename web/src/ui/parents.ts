@@ -22,6 +22,7 @@ const TITLES: Record<string, string> = {
   'LO-2': 'Logique — Combien ?', 'LO-3': 'Logique — La suite', 'LO-4': 'Logique — Le plus, le moins',
   'LO-5': 'Logique — Calcul', 'LO-6': 'Logique — Les nombres', 'LO-7': 'Logique — Formes et couleurs',
   'LO-8': 'Logique — L\'heure', 'LO-9': 'Logique — La monnaie',
+  'TR-1': 'Écriture — Trace les formes', 'TR-2': 'Écriture — Trace les lettres et les chiffres',
   'FR-5': 'Français — Lis et touche l\'image', 'FR-6': 'Français — La phrase à trou (images)',
   'FR-7': 'Français — La phrase à trou (mots écrits)',
 };

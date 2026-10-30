@@ -78,6 +78,9 @@ write('money', noto, 'euro-banknote');
 write('ui-music', noto, 'musical-note');
 write('ui-music-off', noto, 'muted-speaker');
 write('ui-moon', noto, 'crescent-moon');
+write('trace-shapes', noto, 'crayon');
+write('trace-letters', noto, 'writing-hand');
+write('ui-eraser', noto, 'sponge');
 // Objets à collectionner pour le dino (accessoires), et deux capes dessinées ici.
 const ACCESSORIES = [
   'top-hat', 'billed-cap', 'crown', 'womans-hat', 'graduation-cap', 'rescue-workers-helmet', 'headphone', 'hibiscus',

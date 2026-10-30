@@ -7,6 +7,7 @@ import { frNumber } from './numbers';
 import { LETTER_LEVELS, LETTER_NAMES, LOOKALIKE_LETTERS, READ_WORDS, SYLLABLES_TO_READ } from './reading';
 import { RIDDLES } from './riddles';
 import { SENTENCES } from './sentences';
+import { LETTER_MODELS, SHAPE_MODELS, TRACE_MODES, TraceMode, TraceModel, traceModel } from './tracing';
 import { ONSETS, RHYMES } from './sounds';
 
 /** Une réponse possible : une image, un nombre (carte à points) ou un tas d'objets. */
@@ -54,6 +55,8 @@ export type Show =
   | { kind: 'image'; image: string }
   /** Un texte à lire (un mot, une phrase à trou). */
   | { kind: 'text'; value: string; script: Script }
+  /** Un modèle à tracer avec le doigt (jeux de tracé, scène à part). */
+  | { kind: 'trace'; model: string; mode: TraceMode }
   /**
    * Un calcul. Avec `image` : en images (a fruits, puis + b fruits, ou b fruits
    * barrés pour « − ») ; sans image : écrit en chiffres. `total` : « a + ? = total ».
@@ -74,7 +77,9 @@ export interface BuiltQuestion {
 export interface GameDef {
   id: string;
   /** Catégorie de la spécification (île) : sert aussi au calcul de difficulté. */
-  category: 'foreign_language' | 'world' | 'logic' | 'french';
+  category: 'foreign_language' | 'world' | 'logic' | 'french' | 'writing';
+  /** Jeu de tracé : il se joue dans sa propre scène, pas dans les séries mélangées. */
+  trace?: boolean;
   /** Âge minimum de l'enfant pour que le jeu soit proposé (3 par défaut). */
   minAge?: number;
   /** Image de la bulle du jeu. */
@@ -1668,10 +1673,63 @@ const moneyGame: GameDef = {
   },
 };
 
+// ---- Écriture : « Trace les formes », « Trace les lettres » ----
+
+/** Questions de tracé : chaque modèle avec pointillés, avec des points légers, puis tout seul. */
+function traceQuestions(gameId: string, models: TraceModel[], offsets: number[]): QuestionRef[] {
+  return models.flatMap((m) => TRACE_MODES.map(([mode], i) =>
+    ({ id: `${gameId}:${m.id}:${mode}`, level: Math.min(20, m.level + offsets[i]) })));
+}
+
+function buildTrace(ref: QuestionRef, rng: Rng): BuiltQuestion {
+  const [, id, mode] = ref.id.split(':') as [string, string, TraceMode];
+  const model = traceModel(id)!;
+  const prompt = mode === 'free'
+    ? oneOf(rng, [`Maintenant, dessine ${model.name} tout seul, comme le modèle !`, `À toi : dessine ${model.name}, sans les points !`])
+    : mode === 'faint'
+      ? `Trace ${model.name} en suivant les petits points.`
+      : oneOf(rng, [`Trace ${model.name} en suivant les pointillés !`, `Avec ton doigt, repasse sur les pointillés : ${model.name} !`]);
+  return {
+    answer: { id: 'ok' },
+    distractors: [],
+    show: { kind: 'trace', model: id, mode },
+    prompt: [{ text: prompt, lang: 'fr' }],
+    reinforce: [{ text: oneOf(rng, [`Bravo ! C'est ${model.name} magnifique !`, `Super, ${model.name} !`, 'Quel joli dessin !']), lang: 'fr' }],
+    hints: [{ text: 'Regarde, je te montre ! Commence au point vert numéro un.', lang: 'fr' }],
+  };
+}
+
+const traceShapes: GameDef = {
+  id: 'TR-1',
+  category: 'writing',
+  trace: true,
+  icon: 'trace-shapes',
+  color: 0x0891b2,
+  introLine: 'intro.TR-1',
+  homeLine: 'home.TR-1',
+  shortLine: 'short.TR-1',
+  questions: traceQuestions('TR-1', SHAPE_MODELS, [0, 5, 11]),
+  build: (ref, _level, rng) => buildTrace(ref, rng),
+};
+
+const traceLetters: GameDef = {
+  id: 'TR-2',
+  category: 'writing',
+  trace: true,
+  minAge: 4,
+  icon: 'trace-letters',
+  color: 0x7c3aed,
+  introLine: 'intro.TR-2',
+  homeLine: 'home.TR-2',
+  shortLine: 'short.TR-2',
+  questions: traceQuestions('TR-2', LETTER_MODELS, [0, 6, 12]),
+  build: (ref, _level, rng) => buildTrace(ref, rng),
+};
+
 export const GAMES: GameDef[] = [
   listenTap, englishNumbers, showMe, riddles, shadows, together, bigger, missingWord, missingWordRead, sounds,
   syllables, readWord, readPicture, letters, oddOneOut, shapesGame, counting, numbers, sequence, most, calc,
-  clockGame, moneyGame,
+  clockGame, moneyGame, traceShapes, traceLetters,
 ];
 
 /** Jeux proposés à un enfant de cet âge. */

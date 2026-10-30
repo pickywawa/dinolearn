@@ -55,6 +55,8 @@ export const LINES: Record<string, string[]> = {
   'home.LO-7': ['La palette : les formes et les couleurs !'],
   'home.LO-8': ['Le réveil : quelle heure est-il ?'],
   'home.LO-9': ['Le billet : on compte les sous !'],
+  'home.TR-1': ['Le crayon : on trace des formes !'],
+  'home.TR-2': ['La main qui écrit : on trace des lettres et des chiffres !'],
   'intro.MIX': [
     'On mélange tous les jeux ! Écoute bien chaque question.',
     'Surprise : une question de chaque jeu ! Écoute bien.',
@@ -84,6 +86,8 @@ export const LINES: Record<string, string[]> = {
   'short.LO-7': ['Les formes !', 'Formes et couleurs !'],
   'short.LO-8': ['Quelle heure est-il ?', 'L\'heure !'],
   'short.LO-9': ['On compte les sous !', 'La monnaie !'],
+  'short.TR-1': ['On trace !'],
+  'short.TR-2': ['On écrit !'],
   'home.level': ['L\'étoile, c\'est mon niveau !'],
   'home.age': ['Le gâteau, c\'est pour changer ton âge.'],
   'age.ask': ['Quel âge as-tu ? Touche le gâteau avec ton âge !'],
@@ -192,6 +196,17 @@ export const LINES: Record<string, string[]> = {
     'On joue à la marchande ! Compte les pièces, et trouve la bonne somme.',
     'Des pièces et des billets ! Trouve la carte où il y a ce que je dis.',
   ],
+  'intro.TR-1': [
+    'On dessine avec le doigt ! Commence au point vert, et suis bien les pointillés.',
+    'Prends ton doigt comme un crayon, et repasse sur les petits points !',
+  ],
+  'intro.TR-2': [
+    'On apprend à écrire ! Commence au point vert numéro un, et suis les pointillés.',
+    'Ton doigt est un crayon magique ! Repasse sur les points pour écrire.',
+  ],
+  'trace.start': ['Pose ton doigt sur le point vert, et suis les petits points !', 'Allez, dessine avec ton doigt !'],
+  'trace.continue': ['Continue, tu y es presque !', 'Il manque encore un bout. Continue !'],
+  'trace.retry': ['Presque ! On efface, et on recommence ?', 'Oups, ce n\'est pas tout à fait ça. Essaie encore !'],
   tutorial: ['Regarde, je te montre ! On touche la bonne image, comme ça !'],
   tutorial_your_turn: ['À toi maintenant !'],
   correct: [
