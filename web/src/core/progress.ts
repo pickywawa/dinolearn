@@ -14,6 +14,10 @@ export interface KeyValueStore {
 }
 
 interface Data {
+  /** Prénom de l'enfant. */
+  name: string;
+  /** Couleur du dino (0 à 9) ; -1 tant que l'œuf n'est pas éclos. */
+  color: number;
   age: number;
   ageChosen: boolean;
   dino: DinoState;
@@ -73,14 +77,17 @@ export interface Settings {
   nightTime: string;
   /** Pays de l'enfant (« fr », « be »…, ou « other ») pour le jeu « Mon pays ». */
   country: string;
-  /** Code parent à 4 chiffres (espace parents, déblocage du temps de jeu). */
+  /** Ancien emplacement du code parent (désormais commun à tous les enfants, dans les profils). */
   pin?: string;
 }
 
-const KEY = 'dinolearn.progress.v1';
+/** Clé du premier enfant (et de la progression d'avant les profils). */
+export const PROGRESS_KEY = 'dinolearn.progress.v1';
 const MAX_ANSWERS = 3000;
 
 const empty = (): Data => ({
+  name: '',
+  color: -1,
   age: 4,
   ageChosen: false,
   dino: { level: 1, xp: 0 },
@@ -106,10 +113,10 @@ export const dayKey = (d = new Date()) =>
 export class Progress {
   private data: Data;
 
-  constructor(private store: KeyValueStore) {
+  constructor(private store: KeyValueStore, private key = PROGRESS_KEY) {
     let parsed: Partial<Data> = {};
     try {
-      parsed = JSON.parse(store.getItem(KEY) ?? '{}');
+      parsed = JSON.parse(store.getItem(key) ?? '{}');
     } catch {
       parsed = {};
     }
@@ -129,11 +136,20 @@ export class Progress {
 
   private save() {
     try {
-      this.store.setItem(KEY, JSON.stringify(this.data));
+      this.store.setItem(this.key, JSON.stringify(this.data));
     } catch {
       // Stockage indisponible (navigation privée) : la partie continue en mémoire.
     }
   }
+
+  get name() { return this.data.name; }
+  set name(value: string) { this.data.name = value.trim(); this.save(); }
+  get color() { return Math.max(0, this.data.color); }
+  /** L'œuf est-il éclos ? */
+  get hatched() { return this.data.color >= 0; }
+  hatch(color: number) { this.data.color = color; this.save(); }
+  /** Partie d'avant les profils : l'œuf était déjà éclos (dino vert). */
+  get isLegacy() { return this.data.answers.length > 0 || this.data.seriesPlayed > 0 || this.data.seenTutorial; }
 
   get age() { return this.data.age; }
   set age(value: number) { this.data.age = value; this.data.ageChosen = true; this.save(); }
@@ -246,8 +262,6 @@ export class Progress {
     this.save();
   }
 
-  /** Le code parent est-il le bon ? */
-  checkPin(pin: string) { return !!this.data.settings.pin && this.data.settings.pin === pin; }
 
   // ---- Mode nuit ----
 
@@ -374,8 +388,8 @@ export class Progress {
   }
 
   reset() {
-    const { age, ageChosen, settings } = this.data;
-    this.data = { ...empty(), age, ageChosen, settings, collection: { owned: [], worn: [], pending: 0 } };
+    const { name, color, age, ageChosen, settings } = this.data;
+    this.data = { ...empty(), name, color, age, ageChosen, settings, collection: { owned: [], worn: [], pending: 0 } };
     this.save();
   }
 }

@@ -6,16 +6,16 @@ import { Rng } from '../domain/models';
  */
 export const LINES: Record<string, string[]> = {
   hello: [
-    'Coucou ! C\'est moi, Dino !',
-    'Bonjour ! Je suis Dino, ton copain dinosaure !',
+    'Coucou {name} ! C\'est moi, ton dino !',
+    'Bonjour {name} ! On va bien s\'amuser ensemble !',
   ],
   welcome_back: [
-    'Te revoilà ! Youpi !',
-    'Coucou ! J\'avais hâte de te voir !',
+    'Te revoilà, {name} ! Youpi !',
+    'Coucou {name} ! J\'avais hâte de te voir !',
     'Ah, te voilà ! On s\'amuse ?',
-    'Salut, champion ! Je t\'attendais !',
+    'Salut {name}, mon champion ! Je t\'attendais !',
     'Hourra, mon copain est là !',
-    'Bonjour ! J\'ai rêvé de fruits toute la nuit !',
+    'Bonjour {name} ! J\'ai rêvé de fruits toute la nuit !',
   ],
   'home.play': [
     'Touche le gros bouton vert : je te pose des questions de tous les jeux !',
@@ -91,13 +91,6 @@ export const LINES: Record<string, string[]> = {
   'short.TR-2': ['On écrit !'],
   'short.MO-6': ['Une question sur ton pays !'],
   'home.level': ['L\'étoile, c\'est mon niveau !'],
-  'home.age': ['Le gâteau, c\'est pour changer ton âge.'],
-  'age.ask': ['Quel âge as-tu ? Touche le gâteau avec ton âge !'],
-  'age.3': ['Trois ans ! Super !'],
-  'age.4': ['Quatre ans ! Super !'],
-  'age.5': ['Cinq ans ! Génial !'],
-  'age.6': ['Six ans ! Génial !'],
-  'age.7': ['Sept ans ! Waouh !'],
   'intro.EN-1': [
     'Je dis un mot en anglais. Touche la bonne image !',
     'Écoute bien le mot anglais, et touche la bonne image !',
@@ -216,12 +209,12 @@ export const LINES: Record<string, string[]> = {
   tutorial: ['Regarde, je te montre ! On touche la bonne image, comme ça !'],
   tutorial_your_turn: ['À toi maintenant !'],
   correct: [
-    'Bravo !',
+    'Bravo {name} !',
+    'Bien joué, {name} !',
     'Exactement !',
     'Trop fort !',
     'Tu as l\'œil !',
     'Super !',
-    'Bien joué !',
     'Ouiii !',
     'Génial !',
     'Champion !',
@@ -271,13 +264,14 @@ export const LINES: Record<string, string[]> = {
     'Tu as tout appris ! On révise un peu ?',
   ],
   series_perfect: [
-    'Waouh, tout juste ! Tu es une vraie star !',
+    'Waouh, tout juste ! Tu es une vraie star, {name} !',
     'Sans faute ! Je danse de joie !',
     'Parfait ! Même un ptérodactyle n\'aurait pas fait mieux !',
+    'Bravo {name}, c\'est un sans-faute !',
   ],
   series_great: [
     'Incroyable ! Presque tout juste !',
-    'Quel talent !',
+    'Quel talent, {name} !',
     'Super partie ! Je suis fier de toi !',
   ],
   series_good: [
@@ -373,15 +367,32 @@ export const LINES: Record<string, string[]> = {
     'Et maintenant, la toute dernière !',
     'Allez, une dernière !',
   ],
+  'child.turn': [
+    'C\'est à toi, {name} ! On joue ensemble ?',
+    'Coucou {name} ! À ton tour de jouer !',
+    '{name}, c\'est ton tour ! Je suis prêt !',
+  ],
+  'child.ask_name': [
+    'Coucou ! Va chercher papa ou maman : ils doivent me dire ton prénom !',
+  ],
 };
 
 /** Choisit une variante sans répéter les dernières (spécifications §3.4). */
 export class LinePicker {
   private history = new Map<string, number[]>();
 
+  /** Prénom de l'enfant, glissé à la place de « {name} » dans les répliques. */
+  name: () => string = () => '';
+
   constructor(private rng: Rng, private lines = LINES) {}
 
   pick(group: string): string {
+    const name = this.name();
+    const line = this.pickRaw(group);
+    return name ? line.replace(/\{name\}/g, name) : line.replace(/,? ?\{name\}/g, '');
+  }
+
+  private pickRaw(group: string): string {
     const variants = this.lines[group];
     if (!variants?.length) return '';
     const history = this.history.get(group) ?? [];

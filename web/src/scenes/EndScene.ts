@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { app } from '../core/app';
+import { app, switchChild } from '../core/app';
 import { chooseGifts } from '../ui/gifts';
 import { Leftover } from '../core/progress';
 import { SeriesResult } from '../core/series';
@@ -219,6 +219,22 @@ export class EndScene extends BaseScene {
       this.dino.react('yawn');
       await this.say('night.goodnight');
       goTo(this, 'Home');
+      return;
+    }
+    // Plusieurs enfants qui alternent : c'est au tour du suivant.
+    if (app.profiles.alternate && app.profiles.count > 1) {
+      const current = app.progress.name;
+      const next = app.profiles.progressOf(app.profiles.nextId()).name;
+      this.dino.react('wave');
+      const lines = [
+        `Bravo ${current} ! Maintenant, c'est au tour de ${next} !`,
+        `Merci ${current} ! ${next}, à toi de jouer !`,
+        `Super partie, ${current} ! Passe la main à ${next} !`,
+      ];
+      await app.voice.say([{ text: lines[Math.floor(app.rng() * lines.length)], lang: 'fr' }]);
+      if (!this.alive) return;
+      switchChild(app.profiles.nextId());
+      goTo(this, 'Home', { switched: true });
       return;
     }
     this.again.setVisible(true).setScale(0);

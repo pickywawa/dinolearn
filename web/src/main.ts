@@ -2,7 +2,6 @@ import '@fontsource/andika/700.css';
 import '@fontsource/playwrite-fr-moderne/400.css';
 import Phaser from 'phaser';
 import { app } from './core/app';
-import { AgeScene } from './scenes/AgeScene';
 import { BootScene } from './scenes/BootScene';
 import { ChooseScene } from './scenes/ChooseScene';
 import { EndScene } from './scenes/EndScene';
@@ -33,7 +32,7 @@ const game = new Phaser.Game({
   ...size,
   scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
   input: { activePointers: 2 },
-  scene: [BootScene, StartScene, AgeScene, HomeScene, ChooseScene, GameScene, EndScene, WardrobeScene, TraceScene],
+  scene: [BootScene, StartScene, HomeScene, ChooseScene, GameScene, EndScene, WardrobeScene, TraceScene],
 });
 
 // Rotation de l'écran : on adapte la taille logique et on relance la scène active.

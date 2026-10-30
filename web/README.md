@@ -5,8 +5,7 @@ Jeu jouable directement dans le navigateur d'un téléphone ou d'une tablette (p
 ## Ce que contient cette version
 - **Le dino guide tout** : il présente chaque bulle en la montrant du bras, une main animée tapote
   l'endroit à toucher, les boutons à toucher pulsent. Relances automatiques en cas d'inactivité.
-- **Menus réduits au minimum** : un œuf à toucher (débloque le son), le choix de l'âge (un gâteau
-  par âge, avec ses bougies), puis l'accueil : un **gros bouton vert** lance une série **tout
+- **Menus réduits au minimum** : un œuf à toucher (débloque le son), puis l'accueil : un **gros bouton vert** lance une série **tout
   mélangée** (chaque question vient d'un jeu au hasard), un **petit bouton** (mosaïque) ouvre le
   choix d'un jeu précis. Aucun texte.
 - **Décor préhistorique animé et interactif** : volcan qui fume et entre en éruption (aussi quand on
@@ -67,8 +66,15 @@ Jeu jouable directement dans le navigateur d'un téléphone ou d'une tablette (p
   jouer encore).
 - **Musique de fond** douce, créée par le jeu (aucun fichier), qui se fait discrète quand le dino parle ;
   bouton note de musique sur l'accueil et réglage dans l'espace parents.
-- **Code parent** : créé au premier lancement (le dino demande à l'enfant d'aller chercher un parent),
-  avec le temps de jeu et le pays de l'enfant ; il protège l'espace parents et débloque le jeu quand le temps du jour est fini (+15 min, +30 min ou
+- **Plusieurs enfants** : au premier lancement, un parent crée le code puis la fiche de l'enfant (prénom,
+  âge, pays, temps de jeu, heure du coucher). L'enfant touche son œuf : il en sort un dino d'une couleur au
+  hasard parmi 10, plus ou moins grand selon son âge, qui l'appelle par son prénom. Dans l'espace parents, on
+  ajoute, modifie ou supprime des enfants (chacun a son dino, sa progression et ses réglages) ; un nouvel
+  enfant ouvre son œuf en sortant de l'espace parents. Une tête de dino sur l'accueil passe la main à
+  l'enfant suivant, et l'option « alterner les séries » change d'enfant après chaque série (« Bravo Léa !
+  Maintenant, c'est au tour de Tom ! »).
+- **Code parent** : créé au premier lancement (le dino demande à l'enfant d'aller chercher un parent) ;
+  commun à tous les enfants, il protège l'espace parents et débloque le jeu quand le temps du jour est fini (+15 min, +30 min ou
   illimité aujourd'hui). « Code oublié ? » : nouveau code après une question pour adulte.
 - **Collection** : à chaque niveau gagné, l'enfant choisit un cadeau parmi 4 objets (23 : chapeaux,
   casquette, couronne, lunettes, nœud papillon, écharpe, capes, ailes, ballon, baguette magique…). Le dino
@@ -117,8 +123,8 @@ npm test           # tests du domaine et du déroulé de série
 npm run build      # version de production dans dist/
 ```
 
-L'âge (3 à 7 ans) se choisit au premier lancement et se change avec le petit gâteau de l'accueil ;
-il règle la difficulté de départ et la longueur des séries (`?age=6` dans l'adresse fonctionne aussi).
+L'âge (3 à 7 ans) se renseigne dans la fiche de l'enfant (premier lancement, espace parents) ;
+il règle les jeux proposés, la difficulté de départ, la longueur des séries et la taille du dino.
 
 ## Mise en ligne
 Le workflow `.github/workflows/deploy-web.yml` publie automatiquement le jeu sur **GitHub Pages** à

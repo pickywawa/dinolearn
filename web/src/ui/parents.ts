@@ -1,12 +1,13 @@
 import { GAMES, GameDef } from '../content/games';
-import { app } from '../core/app';
+import { app, applyChildSettings, switchChild } from '../core/app';
+import { DINO_COLORS } from '../dino/parts';
 import { Music } from '../core/music';
 import { Sfx } from '../core/sfx';
 import { BALANCE } from '../domain/balance';
 import { baseLevel } from '../domain/difficulty';
 import { mulberry32 } from '../domain/models';
 import { COUNTRIES } from '../content/countries';
-import { chooseCountry, createParentCode } from './pin';
+import { childForm, createParentCode } from './pin';
 
 /**
  * Espace parents : une page HTML classique posée sur le jeu (lisible et
@@ -92,7 +93,10 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Record<string,
 
 /** Ouvre l'espace parents ; `onClose` relance l'accueil pour appliquer les réglages. */
 export function openParents(onClose: () => void) {
-  const p = app.progress;
+  // Enfant affiché (onglets en haut) ; un enfant ajouté devra ouvrir son œuf en sortant.
+  let selected = app.profiles.activeId;
+  let p = app.profiles.progressOf(selected);
+  let added: string | undefined;
   if (!document.getElementById('parents-css')) {
     document.head.append(el('style', { id: 'parents-css' }, CSS));
   }
@@ -100,6 +104,8 @@ export function openParents(onClose: () => void) {
   const close = el('button', { class: 'primary' }, 'Retour au jeu');
   close.addEventListener('click', () => {
     root.remove();
+    if (added) switchChild(added);
+    else applyChildSettings();
     onClose();
   });
   root.append(el('header', {}, el('h1', {}, 'Espace parents'), close));
@@ -109,36 +115,90 @@ export function openParents(onClose: () => void) {
 
   const render = () => {
     main.replaceChildren(
-      childSection(), levelSection(), timeSection(), codeSection(), countrySection(), gamesSection(), failuresSection(), soundSection(),
+      childrenSection(), levelSection(), timeSection(), codeSection(), gamesSection(), failuresSection(), soundSection(),
       dataSection(),
     );
   };
 
   // ---- Enfant : âge ----
-  function childSection() {
-    const ages = el('div', { class: 'row' });
-    for (let age = 3; age <= 7; age++) {
-      const b = el('button', { class: p.age === age ? 'on' : '' }, `${age} ans`);
-      b.addEventListener('click', () => {
-        p.age = age;
-        p.clearGameLevels();
-        render();
-      });
-      ages.append(b);
+  const select = (id: string) => {
+    selected = id;
+    p = app.profiles.progressOf(id);
+    render();
+  };
+
+  /** Onglets des enfants, fiche de l'enfant choisi, ajout et suppression, alternance. */
+  function childrenSection() {
+    const tabs = el('div', { class: 'row' });
+    for (const id of app.profiles.ids) {
+      const child = app.profiles.progressOf(id);
+      const b = el('button', { class: id === selected ? 'on' : '' }, child.name || 'Sans prénom');
+      b.addEventListener('click', () => select(id));
+      tabs.append(b);
     }
+    const add = el('button', { class: 'primary' }, '+ Ajouter un enfant');
+    add.addEventListener('click', async () => {
+      const child = await childForm('Nouvel enfant', 'En quittant l\'espace parents, le nouvel enfant touchera son œuf '
+        + 'pour faire éclore son propre dino.', undefined, 'Annuler');
+      if (!child) return;
+      added = app.profiles.add(child);
+      select(added);
+    });
+    tabs.append(add);
+
+    const edit = el('button', {}, 'Modifier la fiche');
+    edit.addEventListener('click', async () => {
+      const s = p.settings;
+      const child = await childForm(`Fiche de ${p.name || 'l\'enfant'}`, 'Prénom, âge et réglages.', {
+        name: p.name, age: p.age, country: s.country, dailyMinutes: s.dailyMinutes, nightTime: s.nightTime,
+      }, 'Annuler');
+      if (!child) return;
+      if (child.age !== p.age) p.clearGameLevels();
+      p.name = child.name;
+      p.age = child.age;
+      p.updateSettings({ country: child.country, dailyMinutes: child.dailyMinutes, nightTime: child.nightTime });
+      render();
+    });
+    const actions = el('div', { class: 'row', style: 'margin-top:12px' }, edit);
+    if (app.profiles.count > 1) {
+      const remove = el('button', { class: 'danger' }, `Supprimer ${p.name || 'cet enfant'}`);
+      remove.addEventListener('click', () => {
+        if (!confirm(`Supprimer ${p.name || 'cet enfant'}, son dino et toute sa progression ? C'est définitif.`)) return;
+        app.profiles.remove(selected);
+        if (added === selected) added = undefined;
+        select(app.profiles.activeId);
+      });
+      actions.append(remove);
+    }
+    const country = COUNTRIES.find((c) => c.code === p.settings.country);
+    const dino = p.hatched ? `dino ${DINO_COLORS[p.color].name}` : 'œuf pas encore éclos';
     const answers = p.answers();
     const last100 = answers.slice(0, 100);
     const rate = last100.length ? last100.filter((a) => a.firstTrySuccess).length / last100.length : 0;
+
+    const alternate = el('input', { type: 'checkbox', 'aria-label': 'Alterner les séries entre les enfants' });
+    (alternate as HTMLInputElement).checked = app.profiles.alternate;
+    alternate.addEventListener('change', () => app.profiles.setAlternate((alternate as HTMLInputElement).checked));
+
     return el('section', {},
-      el('h2', {}, 'Enfant'),
-      el('p', { class: 'help' }, 'L\'âge choisit les jeux proposés (anglais, calcul et lecture dès 5 ans) et le niveau de départ.'),
-      ages,
+      el('h2', {}, 'Enfants'),
+      el('p', { class: 'help' }, 'Chaque enfant a son dino, sa progression et ses réglages. Les réglages ci-dessous '
+        + 'concernent l\'enfant choisi.'),
+      tabs,
+      el('p', { style: 'margin:14px 0 0' }, el('b', {}, p.name || 'Sans prénom'),
+        ` · ${p.age} ans · ${country ? country.name.replace(/^(la|le) /, '') : 'autre pays'} · ${dino}`),
+      actions,
       el('div', { class: 'stat', style: 'margin-top:12px' },
         el('div', {}, el('b', {}, String(p.seriesPlayed)), 'séries jouées'),
         el('div', {}, el('b', {}, String(answers.length)), 'réponses'),
         el('div', {}, el('b', {}, last100.length ? percent(rate) : '—'), 'réussite du 1er coup (100 dernières)'),
         el('div', {}, el('b', {}, `${minutes(p.playMsToday())} min`), 'de jeu aujourd\'hui'),
       ),
+      app.profiles.count > 1
+        ? el('div', { class: 'row', style: 'justify-content:space-between;margin-top:14px' },
+          el('span', {}, 'Alterner les séries : après chaque série, c\'est au tour de l\'enfant suivant'),
+          el('label', { class: 'switch' }, alternate, el('span')))
+        : '',
     );
   }
 
@@ -329,23 +389,6 @@ export function openParents(onClose: () => void) {
         + 'Les voix viennent du téléphone : pour une voix plus naturelle, installez une voix « améliorée » ou « premium » '
         + 'dans les réglages d\'accessibilité (synthèse vocale).'),
       test,
-    );
-  }
-
-  // ---- Pays ----
-  function countrySection() {
-    const current = COUNTRIES.find((c) => c.code === p.settings.country);
-    const change = el('button', {}, 'Changer de pays');
-    change.addEventListener('click', async () => {
-      if (await chooseCountry('Annuler')) render();
-    });
-    return el('section', {},
-      el('h2', {}, 'Pays de l\'enfant'),
-      el('p', { class: 'help' }, current
-        ? `Pays : ${current.name.replace(/^(la|le) /, '')}. Le jeu « Mon pays » pose des questions dessus : drapeau, `
-          + 'symboles, spécialités, fête nationale, capitale, pays voisins…'
-        : 'Autre pays : le jeu « Mon pays » n\'est pas proposé.'),
-      change,
     );
   }
 

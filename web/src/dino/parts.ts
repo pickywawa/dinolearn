@@ -4,9 +4,6 @@
  * épais, couleurs douces, reflet clair.
  */
 const OUTLINE = '#2d3354';
-const SKIN = '#7bd45a';
-const SKIN_DARK = '#58b23f';
-const BELLY = '#fff1bd';
 const SPIKE = '#ff9f43';
 const CHEEK = '#ff8fa3';
 const W = 8; // épaisseur du contour
@@ -52,61 +49,94 @@ export interface DinoPart {
   svg: string;
 }
 
+/** Couleur d'un dino : peau, ombre, piquants, ventre, et son nom (dit par le dino). */
+export interface DinoColor {
+  name: string;
+  skin: string;
+  dark: string;
+  spike: string;
+  belly: string;
+}
+
+/** Les 10 couleurs possibles à l'éclosion (la première est le dino vert d'origine). */
+export const DINO_COLORS: DinoColor[] = [
+  { name: 'vert', skin: '#7bd45a', dark: '#58b23f', spike: '#ff9f43', belly: '#fff1bd' },
+  { name: 'bleu', skin: '#62aef2', dark: '#3f86cf', spike: '#ffd23f', belly: '#fff1bd' },
+  { name: 'violet', skin: '#b58cec', dark: '#8f63c9', spike: '#ffd23f', belly: '#fde7ff' },
+  { name: 'rose', skin: '#ff9fcd', dark: '#e174aa', spike: '#8e6cff', belly: '#fff1f6' },
+  { name: 'orange', skin: '#ffab52', dark: '#e8862a', spike: '#43b649', belly: '#fff1bd' },
+  { name: 'jaune', skin: '#ffd84d', dark: '#e0b52c', spike: '#ff6b6b', belly: '#fffbe6' },
+  { name: 'turquoise', skin: '#4fd1c5', dark: '#2faea3', spike: '#ff8fa3', belly: '#eafffb' },
+  { name: 'rouge', skin: '#ff7070', dark: '#d94a4a', spike: '#ffd23f', belly: '#fff1bd' },
+  { name: 'marron', skin: '#c79a6a', dark: '#9a6a40', spike: '#7bd45a', belly: '#fff1d6' },
+  { name: 'gris', skin: '#aab4c6', dark: '#8592a6', spike: '#ff9f43', belly: '#f4f6fb' },
+];
+
+/** Suffixe des textures d'une couleur (aucun pour le vert d'origine). */
+export const colorSuffix = (index: number) => (index > 0 ? `-c${index}` : '');
+
+/** Les pièces qui changent de couleur : queue, corps, pattes, bras, tête. */
+function skinParts(c: DinoColor, suffix: string): DinoPart[] {
+  return [
+    {
+      key: `dino-tail${suffix}`,
+      width: 220,
+      height: 170,
+      svg: svg(220, 170, `
+        <path d="M20 110 C70 120 120 112 160 70 C178 50 196 30 206 16 C210 60 196 110 160 136 C120 162 60 160 18 148 Z"
+          fill="${c.skin}" stroke="${OUTLINE}" stroke-width="${W}" stroke-linejoin="round"/>
+        <path d="M40 140 C90 146 140 130 170 100" fill="none" stroke="${c.dark}" stroke-width="10" stroke-linecap="round" opacity=".6"/>
+        <path d="M120 98 l14 -26 l10 24 z M154 64 l16 -22 l6 22 z" fill="${c.spike}" stroke="${OUTLINE}" stroke-width="5" stroke-linejoin="round"/>`),
+    },
+    {
+      key: `dino-body${suffix}`,
+      width: 270,
+      height: 250,
+      svg: svg(270, 250, `
+        <ellipse cx="135" cy="128" rx="118" ry="112" fill="${c.skin}" stroke="${OUTLINE}" stroke-width="${W}"/>
+        <path d="M40 170 C70 225 200 225 230 170" fill="none" stroke="${c.dark}" stroke-width="16" stroke-linecap="round" opacity=".55"/>
+        <ellipse cx="135" cy="146" rx="70" ry="74" fill="${c.belly}" stroke="${OUTLINE}" stroke-width="6"/>
+        <path d="M85 120 h100 M80 150 h110 M88 180 h94" stroke="#f1d98f" stroke-width="6" stroke-linecap="round"/>
+        <ellipse cx="80" cy="70" rx="26" ry="14" fill="#fff" opacity=".35" transform="rotate(-35 80 70)"/>`),
+    },
+    {
+      key: `dino-leg${suffix}`,
+      width: 110,
+      height: 80,
+      svg: svg(110, 80, `
+        <path d="M12 60 C10 22 34 8 56 8 C80 8 100 24 98 60 C98 70 90 72 55 72 C20 72 12 70 12 60 Z"
+          fill="${c.dark}" stroke="${OUTLINE}" stroke-width="${W}" stroke-linejoin="round"/>
+        <path d="M30 70 v-10 M55 72 v-12 M80 70 v-10" stroke="#fff" stroke-width="7" stroke-linecap="round"/>`),
+    },
+    {
+      key: `dino-arm${suffix}`,
+      width: 70,
+      height: 110,
+      svg: svg(70, 110, `
+        <path d="M22 10 C40 6 54 18 54 38 L56 78 C58 96 46 104 34 102 C20 100 14 90 16 76 L14 34 C12 20 14 12 22 10 Z"
+          fill="${c.skin}" stroke="${OUTLINE}" stroke-width="${W}" stroke-linejoin="round"/>
+        <path d="M24 100 l-4 8 M36 103 v8 M48 99 l4 7" stroke="${OUTLINE}" stroke-width="5" stroke-linecap="round"/>`),
+    },
+    {
+      key: `dino-head${suffix}`,
+      width: 330,
+      height: 290,
+      svg: svg(330, 290, `
+        <path d="M96 66 l18 -50 l26 46 z M150 50 l26 -46 l20 50 z M206 60 l32 -36 l8 52 z"
+          fill="${c.spike}" stroke="${OUTLINE}" stroke-width="7" stroke-linejoin="round"/>
+        <ellipse cx="165" cy="160" rx="150" ry="116" fill="${c.skin}" stroke="${OUTLINE}" stroke-width="${W}"/>
+        <path d="M40 200 C80 262 250 262 290 200" fill="none" stroke="${c.dark}" stroke-width="16" stroke-linecap="round" opacity=".5"/>
+        <ellipse cx="88" cy="96" rx="34" ry="18" fill="#fff" opacity=".35" transform="rotate(-30 88 96)"/>
+        <ellipse cx="62" cy="196" rx="26" ry="15" fill="${CHEEK}" opacity=".75"/>
+        <ellipse cx="268" cy="196" rx="26" ry="15" fill="${CHEEK}" opacity=".75"/>
+        <circle cx="148" cy="190" r="5" fill="${OUTLINE}"/>
+        <circle cx="182" cy="190" r="5" fill="${OUTLINE}"/>`),
+    },
+  ];
+}
+
 export const DINO_PARTS: DinoPart[] = [
-  {
-    key: 'dino-tail',
-    width: 220,
-    height: 170,
-    svg: svg(220, 170, `
-      <path d="M20 110 C70 120 120 112 160 70 C178 50 196 30 206 16 C210 60 196 110 160 136 C120 162 60 160 18 148 Z"
-        fill="${SKIN}" stroke="${OUTLINE}" stroke-width="${W}" stroke-linejoin="round"/>
-      <path d="M40 140 C90 146 140 130 170 100" fill="none" stroke="${SKIN_DARK}" stroke-width="10" stroke-linecap="round" opacity=".6"/>
-      <path d="M120 98 l14 -26 l10 24 z M154 64 l16 -22 l6 22 z" fill="${SPIKE}" stroke="${OUTLINE}" stroke-width="5" stroke-linejoin="round"/>`),
-  },
-  {
-    key: 'dino-body',
-    width: 270,
-    height: 250,
-    svg: svg(270, 250, `
-      <ellipse cx="135" cy="128" rx="118" ry="112" fill="${SKIN}" stroke="${OUTLINE}" stroke-width="${W}"/>
-      <path d="M40 170 C70 225 200 225 230 170" fill="none" stroke="${SKIN_DARK}" stroke-width="16" stroke-linecap="round" opacity=".55"/>
-      <ellipse cx="135" cy="146" rx="70" ry="74" fill="${BELLY}" stroke="${OUTLINE}" stroke-width="6"/>
-      <path d="M85 120 h100 M80 150 h110 M88 180 h94" stroke="#f1d98f" stroke-width="6" stroke-linecap="round"/>
-      <ellipse cx="80" cy="70" rx="26" ry="14" fill="#fff" opacity=".35" transform="rotate(-35 80 70)"/>`),
-  },
-  {
-    key: 'dino-leg',
-    width: 110,
-    height: 80,
-    svg: svg(110, 80, `
-      <path d="M12 60 C10 22 34 8 56 8 C80 8 100 24 98 60 C98 70 90 72 55 72 C20 72 12 70 12 60 Z"
-        fill="${SKIN_DARK}" stroke="${OUTLINE}" stroke-width="${W}" stroke-linejoin="round"/>
-      <path d="M30 70 v-10 M55 72 v-12 M80 70 v-10" stroke="#fff" stroke-width="7" stroke-linecap="round"/>`),
-  },
-  {
-    key: 'dino-arm',
-    width: 70,
-    height: 110,
-    svg: svg(70, 110, `
-      <path d="M22 10 C40 6 54 18 54 38 L56 78 C58 96 46 104 34 102 C20 100 14 90 16 76 L14 34 C12 20 14 12 22 10 Z"
-        fill="${SKIN}" stroke="${OUTLINE}" stroke-width="${W}" stroke-linejoin="round"/>
-      <path d="M24 100 l-4 8 M36 103 v8 M48 99 l4 7" stroke="${OUTLINE}" stroke-width="5" stroke-linecap="round"/>`),
-  },
-  {
-    key: 'dino-head',
-    width: 330,
-    height: 290,
-    svg: svg(330, 290, `
-      <path d="M96 66 l18 -50 l26 46 z M150 50 l26 -46 l20 50 z M206 60 l32 -36 l8 52 z"
-        fill="${SPIKE}" stroke="${OUTLINE}" stroke-width="7" stroke-linejoin="round"/>
-      <ellipse cx="165" cy="160" rx="150" ry="116" fill="${SKIN}" stroke="${OUTLINE}" stroke-width="${W}"/>
-      <path d="M40 200 C80 262 250 262 290 200" fill="none" stroke="${SKIN_DARK}" stroke-width="16" stroke-linecap="round" opacity=".5"/>
-      <ellipse cx="88" cy="96" rx="34" ry="18" fill="#fff" opacity=".35" transform="rotate(-30 88 96)"/>
-      <ellipse cx="62" cy="196" rx="26" ry="15" fill="${CHEEK}" opacity=".75"/>
-      <ellipse cx="268" cy="196" rx="26" ry="15" fill="${CHEEK}" opacity=".75"/>
-      <circle cx="148" cy="190" r="5" fill="${OUTLINE}"/>
-      <circle cx="182" cy="190" r="5" fill="${OUTLINE}"/>`),
-  },
+  ...DINO_COLORS.flatMap((c, i) => skinParts(c, colorSuffix(i))),
   {
     key: 'dino-eye',
     width: 80,

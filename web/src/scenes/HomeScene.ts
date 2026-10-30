@@ -1,11 +1,12 @@
 import Phaser from 'phaser';
 import { app } from '../core/app';
 import { Sfx } from '../core/sfx';
-import { playableGames } from '../core/app';
+import { applyChildSettings, playableGames, switchChild } from '../core/app';
 import { chooseGifts } from '../ui/gifts';
 import { Music } from '../core/music';
 import { openParents } from '../ui/parents';
-import { askParentCode, createParentCode, firstLaunchSetup, unlockNight, unlockPlayTime } from '../ui/pin';
+import { askParentCode, childForm, createParentCode, unlockNight, unlockPlayTime } from '../ui/pin';
+import { colorSuffix } from '../dino/parts';
 import { Dino } from '../dino/Dino';
 import { Bubble } from '../ui/Bubble';
 import { Guide } from '../ui/Guide';
@@ -26,13 +27,19 @@ export class HomeScene extends BaseScene {
   private choose!: Phaser.GameObjects.Container;
   private dinoBase = 0;
   private gift?: Bubble;
+  private childSwitch?: Bubble;
   private wardrobe!: Bubble;
 
   constructor() {
     super('Home');
   }
 
-  create(data: { hatched?: boolean }) {
+  create(data: { hatched?: boolean; switched?: boolean }) {
+    // Pas encore d'enfant, ou l'œuf de l'enfant n'est pas éclos : retour à l'œuf.
+    if (!app.profiles.pin || app.profiles.count === 0 || !app.progress.hatched) {
+      this.scene.start('Start');
+      return;
+    }
     this.initBase();
     // Après l'heure du coucher : ciel de nuit.
     const night = app.progress.isNight();
@@ -60,8 +67,8 @@ export class HomeScene extends BaseScene {
     this.choose = this.makeChooseButton(small.x, small.y, u * 0.075);
 
     const ar = u * 0.06;
-    new Bubble(this, ar * 1.4, ar * 1.4, ar, 0xffd6e7, 'ui-cake', () => goTo(this, 'Age'), 0.7).setAlpha(0.85);
-    this.musicButton(ar * 1.4, ar * 3.9, ar);
+    this.musicButton(ar * 1.4, ar * 1.4, ar);
+    this.childButton(ar * 1.4, ar * 3.9, ar);
     this.drawLevelBadge(W - u * 0.13, u * 0.11, u);
     this.parentGate(W - u * 0.13, u * 0.27, u);
 
@@ -83,9 +90,9 @@ export class HomeScene extends BaseScene {
     }
 
 
-    // Premier lancement : le dino demande d'aller chercher un parent pour créer le code.
-    if (!app.progress.settings.pin) {
-      this.parentSetup(data);
+    // Partie d'avant les prénoms : on demande le prénom à un parent.
+    if (!app.progress.name) {
+      this.askName();
       return;
     }
 
@@ -103,8 +110,12 @@ export class HomeScene extends BaseScene {
     this.run(async () => {
       await this.wait(350);
       if (data?.hatched) {
+        // Il vient de dire bonjour en sortant de l'œuf.
         this.dino.react('cheer');
-        await this.say('hello');
+      } else if (data?.switched) {
+        // Changement d'enfant entre deux séries.
+        this.dino.react('wave');
+        await this.say('child.turn');
       } else if (night) {
         // Le soir : le dino bâille et propose une dernière série.
         this.dino.react('yawn');
@@ -205,18 +216,43 @@ export class HomeScene extends BaseScene {
     }).setOrigin(0.5);
   }
 
-  private parentSetup(data: { hatched?: boolean }) {
+  /** Partie d'avant les prénoms : un parent complète la fiche de l'enfant. */
+  private askName() {
     this.hideButtons();
     this.run(async () => {
       await this.wait(400);
       this.dino.react('wave');
-      await this.say('parent_code');
+      await this.say('child.ask_name');
       this.input.enabled = false;
-      await firstLaunchSetup();
-      this.dino.react('cheer');
-      await this.say('parent_code_done');
-      this.scene.restart(data);
+      const p = app.progress;
+      const s = p.settings;
+      const child = await childForm('Comment s\'appelle l\'enfant ?', 'Le dino va l\'appeler par son prénom.', {
+        name: '', age: p.age, country: s.country, dailyMinutes: s.dailyMinutes, nightTime: s.nightTime,
+      });
+      if (child) {
+        p.name = child.name;
+        p.age = child.age;
+        p.updateSettings({ country: child.country, dailyMinutes: child.dailyMinutes, nightTime: child.nightTime });
+        applyChildSettings();
+      }
+      this.scene.restart({});
     });
+  }
+
+  /** Plusieurs enfants : la tête du dino de l'enfant suivant ; le toucher passe la main. */
+  private childButton(x: number, y: number, r: number) {
+    if (app.profiles.count < 2) return;
+    const next = app.profiles.progressOf(app.profiles.nextId());
+    const button = new Bubble(this, x, y, r, 0xfff3c4, `dino-head${colorSuffix(next.hatched ? next.color : 0)}`, () => {
+      this.clearIdle();
+      switchChild(app.profiles.nextId());
+      this.scene.restart({ switched: true });
+    }, 0.8);
+    button.setAlpha(0.9);
+    this.add.text(x, y + r * 1.25, next.name, {
+      fontFamily: 'Andika, Arial, sans-serif', fontSize: `${Math.round(r * 0.45)}px`, color: '#2d3354', fontStyle: 'bold',
+    }).setOrigin(0.5, 0);
+    this.childSwitch = button;
   }
 
   /** Mode nuit : le dino dort jusqu'au matin ; un parent peut débloquer avec son code. */
@@ -241,7 +277,7 @@ export class HomeScene extends BaseScene {
   }
 
   private hideButtons() {
-    [this.play, this.choose, this.wardrobe, this.gift].forEach((b) => b?.setVisible(false));
+    [this.play, this.choose, this.wardrobe, this.gift, this.childSwitch].forEach((b) => b?.setVisible(false));
   }
 
   /**
@@ -339,7 +375,7 @@ export class HomeScene extends BaseScene {
     app.voice.stop();
     this.input.enabled = false;
     this.run(async () => {
-      const ok = app.progress.settings.pin
+      const ok = app.profiles.pin
         ? await askParentCode('Espace parents', 'Tapez votre code parent.')
         : await createParentCode('Code parent', 'Choisissez un code à 4 chiffres.', 'Annuler');
       if (ok) openParents(() => this.scene.restart({}));
