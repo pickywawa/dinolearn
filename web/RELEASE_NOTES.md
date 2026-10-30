@@ -1,26 +1,27 @@
-## DinoLearn 0.4.0 — 5 jeux, jeu au hasard, panier de fruits
+## DinoLearn 0.5.0 — questions mélangées, indices, 8 jeux
 
 ### Nouveautés
-- **Accueil simplifié** : un **gros bouton vert** au centre lance un jeu au hasard (jamais deux fois
-  le même d'affilée) ; un **petit bouton** (mosaïque) ouvre le choix des jeux. Le dino montre
-  chaque bouton du bras.
+- **Questions au hasard** : le gros bouton vert lance une série « tout mélangé » — chaque question
+  vient d'un jeu différent (jamais deux fois le même de suite) ; le dino annonce le jeu à chaque
+  changement. Chaque jeu garde son propre niveau.
 - **3 nouveaux jeux** :
-  - **Devinettes** (Monde) : des cris d'animaux (« Qui fait meuh ? ») jusqu'aux énigmes
-    (« J'ai huit bras et je vis dans la mer ») ;
-  - **L'intrus** (Logique) : trois images de la même famille et un intrus, de plus en plus proche ;
-  - **Combien ?** (Logique) : compter de 1 à 10 fruits et toucher le bon nombre (chiffre + points),
-    le dino compte ensuite à voix haute.
-- **Montre-moi** beaucoup plus difficile : mots plus rares plus tôt, et leurres de la même
-  sous-famille dès le niveau 2.
-- **Anglais** plus facile : 2 images seulement, mot dit deux fois, lentement.
-- **Toucher le dino** pendant un jeu lui fait répéter la question (le bouton oreille est supprimé).
-- **Panier de fruits** : en fin de série, les fruits tombent dans un panier ; un seul toucher et le
-  dino mange tout.
-- **Niveau du dino** affiché sur l'accueil (étoile), réglable avec − et + pour tester.
+  - **Les ombres** (Monde) : retrouver l'objet à partir de sa silhouette ;
+  - **La suite** (Logique) : trouver le fruit qui continue le motif (de AB jusqu'à ABCCB) ;
+  - **Le plus / le moins** (Logique) : quel tas a le plus de fruits, puis le moins.
+- **Indices** : après une erreur, une hésitation, ou si les dernières réponses étaient difficiles,
+  le dino donne la famille (« c'est un fruit… ») puis une devinette.
+- **Plus difficile** : 71 nouveaux mots (niveaux 7 à 10), 35 nouvelles devinettes, fruits
+  mélangés dans « Combien ? » à partir du niveau 7.
+- **L'intrus** sans ambiguïté : familles revues, mots ambigus exclus.
+- **Le dino mange 5 fois plus** avant d'être rassasié.
+- **Voix anglaise** britannique, lente.
+- **Animations** : le dino tourne, bâille, rugit, saute, fait coucou ; à l'accueil, le volcan
+  entre en éruption, le grand dino rugit et le ptérodactyle fait une boucle quand on les touche,
+  plus un bébé T-rex et des papillons.
 
 ### Installer / tester
 - En ligne : https://pickywawa.github.io/dinolearn/
-- Archive `dinolearn-web-v0.4.0.zip` : le jeu compilé, pour tout hébergement web statique.
+- Archive `dinolearn-web-v0.5.0.zip` : le jeu compilé, pour tout hébergement web statique.
 - En local : `cd web && npm install && npm run dev`.
 
 ### Limites connues
