@@ -56,6 +56,7 @@ for (const icon of DECOR) write(`decor-${icon}`, noto, icon);
 write('riddle', noto, 'magnifying-glass-tilted-left');
 write('oddoneout', noto, 'puzzle-piece');
 write('counting', noto, 'abacus');
+write('ui-basket', noto, 'basket');
 for (const icon of UI_ICONS) write(`ui-${icon}`, plush, icon);
 for (const flag of FLAGS) write(`flag-${flag}`, flags, flag);
 

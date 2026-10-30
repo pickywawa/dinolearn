@@ -35,14 +35,16 @@ export class GameScene extends BaseScene {
   private tutorial = false;
   private replayExplained = false;
   private shown: Phaser.GameObjects.GameObject[] = [];
+  private random = false;
 
   constructor() {
     super('Game');
   }
 
-  create(data: { gameId: string }) {
+  create(data: { gameId: string; random?: boolean }) {
     this.initBase();
     this.game_ = gameById(data.gameId);
+    this.random = !!data.random;
     const tint = Phaser.Display.Color.IntegerToColor(this.game_.color);
     const light = Phaser.Display.Color.Interpolate.ColorWithColor(tint, new Phaser.Display.Color(255, 255, 255), 100, 75);
     drawScenery(this, Phaser.Display.Color.GetColor(light.r, light.g, light.b), 0xf4fbff, 0);
@@ -212,7 +214,7 @@ export class GameScene extends BaseScene {
       this.series.next();
       if (this.series.finished) {
         this.phase = 'done';
-        goTo(this, 'End', { result: this.series.result });
+        goTo(this, 'End', { result: this.series.result, random: this.random });
       } else {
         this.showCards();
         this.ask();

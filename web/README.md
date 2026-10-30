@@ -6,11 +6,13 @@ Jeu jouable directement dans le navigateur d'un téléphone ou d'une tablette (p
 - **Le dino guide tout** : il présente chaque bulle en la montrant du bras, une main animée tapote
   l'endroit à toucher, les boutons à toucher pulsent. Relances automatiques en cas d'inactivité.
 - **Menus réduits au minimum** : un œuf à toucher (débloque le son), le choix de l'âge (un gâteau
-  par âge, avec ses bougies), puis 2 grosses bulles (anglais 🇬🇧, monde 🌍). Aucun texte.
+  par âge, avec ses bougies), puis l'accueil : un **gros bouton vert** lance un jeu au hasard, un
+  **petit bouton** (mosaïque) ouvre le choix des jeux. Aucun texte.
 - **Décor préhistorique animé** : volcan qui fume et entre en éruption, ptérodactyle qui traverse le
   ciel, diplodocus qui marche au loin, palmier et fougères qui se balancent.
-- **5 jeux**, toujours 4 réponses :
-  - **Anglais — Écoute et touche** : le mot est dit lentement en anglais, l'enfant touche l'image ;
+- **5 jeux** (4 réponses, 2 pour l'anglais) :
+  - **Anglais — Écoute et touche** : le mot est dit deux fois, lentement, en anglais ; l'enfant
+    touche la bonne image parmi **2** ;
   - **Monde — Montre-moi** : « Montre-moi le hérisson ! », leurres de la même sous-famille dès le niveau 2 ;
   - **Monde — Devinettes** : des cris d'animaux (« Qui fait meuh ? ») aux énigmes
     (« J'ai huit bras et je vis dans la mer ») ;
@@ -25,8 +27,8 @@ Jeu jouable directement dans le navigateur d'un téléphone ou d'une tablette (p
 - **Série** de 6 à 10 questions. La barre de progression montre un fruit différent par question,
   gagné si la réponse est trouvée du premier coup (+ un gâteau pour un sans-faute). Indice après
   2 erreurs (la bonne carte brille et le dino la montre).
-- **Fin de série** : l'enfant glisse ses fruits jusqu'à la bouche du dino, qui les mange ; la jauge
-  sur son ventre se remplit et il grandit. Au-delà de la limite quotidienne, les fruits sont gardés
+- **Fin de série** : les fruits gagnés tombent dans un panier ; l'enfant touche (ou glisse) le
+  panier vers le dino, qui mange tous les fruits ; la jauge sur son ventre se remplit et il grandit. Au-delà de la limite quotidienne, les fruits sont gardés
   pour la fois suivante.
 - **Logique du domaine** des spécifications §5–7 (difficulté adaptative, questions maîtrisées
   jamais reposées, révision, XP, plafond quotidien) dans `src/domain/`, testée avec Vitest.

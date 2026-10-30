@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { app } from '../core/app';
 import { Sfx } from '../core/sfx';
-import { GAMES } from '../content/games';
+import { GAMES, pickRandomGame } from '../content/games';
 import { Dino } from '../dino/Dino';
 import { Bubble } from '../ui/Bubble';
 import { Guide } from '../ui/Guide';
@@ -10,14 +10,15 @@ import { drawScenery, goTo, growthFactor, isPortrait, makeTickable, unit } from 
 import { BaseScene } from './BaseScene';
 
 /**
- * Accueil : une bulle par jeu. Le dino présente chaque bulle en la montrant ;
- * seule la bulle survolée par la main est entourée. En haut à droite, le
- * niveau du dino (réglable avec − et + pour tester).
+ * Accueil : un gros bouton vert au centre lance un jeu au hasard (choix par
+ * défaut). Un petit bouton ouvre le choix des jeux. En haut : le gâteau
+ * (âge) et l'étoile du niveau du dino (− et + pour tester).
  */
 export class HomeScene extends BaseScene {
   private dino!: Dino;
   private guide!: Guide;
-  private bubbles: { bubble: Bubble; line: string }[] = [];
+  private play!: Bubble;
+  private choose!: Phaser.GameObjects.Container;
   private dinoBase = 0;
   private levelText!: Phaser.GameObjects.Text;
 
@@ -34,20 +35,19 @@ export class HomeScene extends BaseScene {
     const portrait = isPortrait(this);
 
     this.dinoBase = u * (portrait ? 0.5 : 0.55);
-    this.dino = new Dino(this, W / 2, H * (portrait ? 0.92 : 0.96),
+    this.dino = new Dino(this, portrait ? W / 2 : W * 0.68, H * (portrait ? 0.92 : 0.96),
       this.dinoBase * growthFactor(app.progress.dino.level));
     makeTickable(this.dino);
     this.guide = new Guide(this, u * 0.15);
 
-    const r = u * (portrait ? 0.13 : 0.12);
-    const positions = portrait
-      ? [[0.2, 0.22], [0.5, 0.22], [0.8, 0.22], [0.33, 0.4], [0.67, 0.4]]
-      : [[0.09, 0.3], [0.26, 0.3], [0.74, 0.3], [0.91, 0.3], [0.18, 0.66]];
-    this.bubbles = GAMES.map((game, i) => ({
-      bubble: new Bubble(this, W * positions[i][0], H * positions[i][1], r, game.color, game.icon,
-        () => this.play(game.id)),
-      line: game.homeLine,
-    }));
+    // Gros bouton : un jeu au hasard.
+    const big = portrait ? { x: W / 2, y: H * 0.34, r: u * 0.22 } : { x: W * 0.3, y: H * 0.46, r: u * 0.22 };
+    this.play = new Bubble(this, big.x, big.y, big.r, 0x43b649, 'ui-play', () => this.playRandom(), 0.55);
+    this.tweens.add({ targets: this.play, scale: 1.06, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+
+    // Petit bouton : choisir son jeu (mosaïque des jeux).
+    const small = portrait ? { x: W * 0.14, y: H * 0.56 } : { x: W * 0.08, y: H * 0.82 };
+    this.choose = this.makeChooseButton(small.x, small.y, u * 0.075);
 
     const ar = u * 0.06;
     new Bubble(this, ar * 1.4, ar * 1.4, ar, 0xffd6e7, 'ui-cake', () => goTo(this, 'Age'), 0.7).setAlpha(0.85);
@@ -62,32 +62,64 @@ export class HomeScene extends BaseScene {
         this.dino.react('happy');
         await this.say('welcome_back');
       }
-      await this.presentGames();
+      await this.present();
     });
   }
 
-  /** Le dino présente chaque jeu en le montrant ; la bulle n'est entourée que pendant ce temps. */
-  private async presentGames() {
-    await this.say('home.choose');
-    for (const { bubble, line } of this.bubbles) {
-      bubble.highlight(true);
-      this.dino.pointAt(bubble.x, bubble.y);
-      this.guide.tap(bubble);
-      await this.say(line);
-      bubble.highlight(false);
-    }
+  /** Le dino montre le gros bouton, puis le petit. */
+  private async present() {
+    this.play.highlight(true);
+    this.dino.pointAt(this.play.x, this.play.y);
+    this.guide.tap(this.play);
+    await this.say('home.play');
+    this.play.highlight(false);
+    this.dino.pointAt(this.choose.x, this.choose.y);
+    this.guide.tap(this.choose);
+    await this.say('home.categories');
     this.guide.hide();
     this.armIdle([[9000, () => this.run(() => this.reminder())]]);
   }
 
-  /** Relance : la main fait le tour des bulles, en entourant seulement celle qu'elle survole. */
   private async reminder() {
     this.dino.react('happy');
-    this.guide.tour(this.bubbles.map(({ bubble }) => bubble), 1100, (index) => {
-      this.bubbles.forEach(({ bubble }, i) => bubble.highlight(i === index));
-    }, true);
-    await this.say('home.choose');
+    this.play.highlight(true);
+    this.guide.tap(this.play);
+    await this.say('home.play');
+    this.play.highlight(false);
+    this.guide.hide();
     this.armIdle([[14000, () => this.run(() => this.reminder())]]);
+  }
+
+  /** Petit bouton rond avec une mosaïque des jeux. */
+  private makeChooseButton(x: number, y: number, r: number) {
+    const button = this.add.container(x, y);
+    button.add(this.add.circle(0, r * 0.08, r, 0x000000, 0.18));
+    button.add(this.add.circle(0, 0, r, 0xffffff).setStrokeStyle(r * 0.08, 0x8e4ec6));
+    GAMES.slice(0, 4).forEach((game, i) => {
+      const icon = this.add.image((i % 2 - 0.5) * r * 0.9, (Math.floor(i / 2) - 0.5) * r * 0.9, game.icon);
+      icon.setScale((r * 0.75) / icon.width);
+      button.add(icon);
+    });
+    button.setSize(r * 2, r * 2).setInteractive(new Phaser.Geom.Circle(r, r, r), Phaser.Geom.Circle.Contains);
+    button.on('pointerup', () => {
+      Sfx.play('pop');
+      this.clearIdle();
+      this.guide.hide();
+      goTo(this, 'Choose');
+    });
+    return button;
+  }
+
+  private playRandom() {
+    this.clearIdle();
+    this.guide.hide();
+    const gameId = pickRandomGame(app.lastGame, app.rng);
+    app.lastGame = gameId;
+    this.dino.react('dance');
+    this.run(async () => {
+      await this.say('random.go');
+      goTo(this, 'Game', { gameId, random: true });
+    });
   }
 
   /** Étoile avec le niveau du dino ; − et + changent le niveau (pour tester). */
@@ -112,7 +144,7 @@ export class HomeScene extends BaseScene {
     };
     button(-u * 0.05, '−', -1);
     button(u * 0.05, '+', 1);
-    this.refreshLevel();
+    this.levelText.setText(String(app.progress.dino.level));
   }
 
   private changeLevel(delta: number) {
@@ -124,17 +156,6 @@ export class HomeScene extends BaseScene {
     this.tweens.add({
       targets: this.dino, scale: (this.dinoBase * growthFactor(level)) / Dino.HEIGHT, duration: 400, ease: 'Back.easeOut',
     });
-    this.refreshLevel();
-  }
-
-  private refreshLevel() {
-    this.levelText.setText(String(app.progress.dino.level));
-  }
-
-  private play(gameId: string) {
-    this.clearIdle();
-    this.guide.hide();
-    this.dino.react('happy');
-    goTo(this, 'Game', { gameId });
+    this.levelText.setText(String(level));
   }
 }

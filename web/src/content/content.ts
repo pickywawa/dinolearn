@@ -34,6 +34,8 @@ export interface Speech {
   text: string;
   lang: 'fr' | 'en';
   slow?: boolean;
+  /** Silence après ce morceau, en ms (180 par défaut). */
+  pauseAfter?: number;
 }
 
 /** Concepts ayant un niveau pour un jeu donné (champ `levels` du lexique). */

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { CONCEPTS, conceptById, conceptsFor, frWithArticle, pickDistractors } from '../src/content/content';
-import { GAMES, gameById } from '../src/content/games';
+import { GAMES, gameById, pickRandomGame } from '../src/content/games';
 import { RIDDLES } from '../src/content/riddles';
 import { LINES, LinePicker } from '../src/core/lines';
 import { MemoryStore, Progress } from '../src/core/progress';
@@ -121,7 +121,7 @@ describe('contenus', () => {
     expect(easy.every((c) => c.group !== 'animal')).toBe(true);
   });
 
-  it('chaque question de chaque jeu se construit avec 4 réponses distinctes', () => {
+  it('chaque question se construit avec des réponses distinctes (2 en anglais, 4 ailleurs)', () => {
     const rng = mulberry32(4);
     for (const game of GAMES) {
       expect(game.questions.length).toBeGreaterThan(40);
@@ -129,11 +129,12 @@ describe('contenus', () => {
         for (const level of [1, 5, 10]) {
           const q = game.build(ref, level, rng);
           const all = [q.answer, ...q.distractors];
-          expect(q.distractors, ref.id).toHaveLength(3);
-          expect(new Set(all.map((c) => c.id)).size, ref.id).toBe(4);
+          const expected = game.id === 'EN-1' ? 2 : 4;
+          expect(all, ref.id).toHaveLength(expected);
+          expect(new Set(all.map((c) => c.id)).size, ref.id).toBe(expected);
           const concepts = all.filter((c) => c.image && !c.image.startsWith('food-')).map((c) => conceptById(c.id));
-          if (concepts.length === 4) {
-            expect(new Set(concepts.map((c) => c.fr.word)).size, ref.id).toBe(4);
+          if (concepts.length === expected) {
+            expect(new Set(concepts.map((c) => c.fr.word)).size, ref.id).toBe(expected);
           }
           expect(q.prompt[0].text.length).toBeGreaterThan(0);
         }
@@ -171,6 +172,16 @@ describe('contenus', () => {
     }
   });
 
+  it('jeu au hasard : jamais deux fois le même de suite', () => {
+    const rng = mulberry32(6);
+    let previous = 'EN-1';
+    for (let i = 0; i < 50; i++) {
+      const next = pickRandomGame(previous, rng);
+      expect(next).not.toBe(previous);
+      previous = next;
+    }
+  });
+
   it('Montre-moi : des leurres de la même sous-famille dès le niveau 2', () => {
     const q = gameById('MO-1').build({ id: 'MO-1:dog', level: 1 }, 2, mulberry32(8));
     expect(q.distractors.every((c) => conceptById(c.id).category === 'farm')).toBe(true);
@@ -198,7 +209,8 @@ describe('série', () => {
     expect(series.items).toHaveLength(6);
     expect(series.level).toBe(2);
     expect(new Set(series.items.map((i) => i.fruit)).size).toBe(6);
-    series.items.forEach((i) => expect(i.choices).toHaveLength(4));
+    series.items.forEach((i) => expect(i.choices).toHaveLength(2));
+    expect(series.items[0].prompt).toHaveLength(2);
     while (!series.finished) {
       expect(series.tap(series.current.answer).kind).toBe('correct');
       series.next();

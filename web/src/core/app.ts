@@ -27,4 +27,6 @@ export const app = {
   voice: new Voice(new LinePicker(rng)),
   /** Vrai après le premier toucher (audio débloqué). */
   awake: false,
+  /** Dernier jeu lancé au hasard (pour ne pas le relancer tout de suite). */
+  lastGame: undefined as string | undefined,
 };

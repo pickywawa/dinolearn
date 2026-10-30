@@ -3,6 +3,7 @@ import { app } from '../core/app';
 import { Leftover } from '../core/progress';
 import { SeriesResult } from '../core/series';
 import { Sfx } from '../core/sfx';
+import { pickRandomGame } from '../content/games';
 import { foodImage } from '../domain/models';
 import { feed, growthProgress } from '../domain/progression';
 import { foodXp } from '../domain/rewards';
@@ -14,46 +15,49 @@ import { BaseScene } from './BaseScene';
 
 const MAX_SHOWN = 10;
 
-interface FoodItem {
-  leftover: Leftover;
-  img: Phaser.GameObjects.Image;
-  home: Phaser.Math.Vector2;
+export interface EndData {
+  result: SeriesResult;
+  /** Partie lancée par le gros bouton : « rejouer » choisit un autre jeu au hasard. */
+  random?: boolean;
 }
 
 /**
- * Fin de série : étoiles, puis l'enfant donne au dino les fruits gagnés en
- * les glissant jusqu'à sa bouche (ou en les touchant). Le dino les mange et
- * sa jauge de croissance se remplit. Ensuite, bouton vert pour rejouer.
+ * Fin de série : étoiles, puis les fruits gagnés tombent dans un panier.
+ * L'enfant donne tout le panier au dino d'un seul geste (toucher ou glisser) ;
+ * le dino mange les fruits un par un et sa jauge de croissance se remplit.
  */
 export class EndScene extends BaseScene {
   private dino!: Dino;
   private guide!: Guide;
-  private items: FoodItem[] = [];
+  private basket?: Phaser.GameObjects.Container;
+  private basketHome = new Phaser.Math.Vector2();
+  private fruits: { leftover: Leftover; img: Phaser.GameObjects.Image }[] = [];
   private again!: Bubble;
-  private busy = false;
-  private full = false;
+  private feeding = false;
 
   constructor() {
     super('End');
   }
 
-  create(data: { result: SeriesResult }) {
+  create(data: EndData) {
     this.initBase();
     drawScenery(this, 0xffe9a8, 0xfff8e6);
     const r = data.result;
     const { width: W, height: H } = this.scale;
     const u = unit(this);
     const portrait = isPortrait(this);
-    this.items = [];
-    this.busy = false;
-    this.full = false;
+    this.fruits = [];
+    this.basket = undefined;
+    this.feeding = false;
 
     homeButton(this, () => goTo(this, 'Home'));
     this.dino = new Dino(this, W / 2, H * (portrait ? 0.7 : 0.74), u * (portrait ? 0.62 : 0.5));
     this.dino.setBellyFill(growthProgress(app.progress.dino));
     this.guide = new Guide(this, u * 0.16);
-    this.again = new Bubble(this, W - u * 0.15, u * 0.15, u * 0.11, 0x43b649, 'ui-play',
-      () => goTo(this, 'Game', { gameId: r.gameId }));
+    this.again = new Bubble(this, W - u * 0.15, u * 0.15, u * 0.11, 0x43b649, 'ui-play', () => {
+      const gameId = data.random ? pickRandomGame(r.gameId, app.rng) : r.gameId;
+      goTo(this, 'Game', { gameId, random: data.random });
+    });
     this.again.setVisible(false);
 
     const stars = [0, 1, 2].map((i) => {
@@ -65,8 +69,8 @@ export class EndScene extends BaseScene {
     // Les fruits gagnés, plus ceux gardés d'une partie précédente (ventre plein).
     const earned: Leftover[] = r.earned.map((food) => ({ food, xp: foodXp(food, r.level) }));
     const all = [...earned, ...app.progress.leftovers];
-    this.layoutFood(all.slice(0, MAX_SHOWN), H * (portrait ? 0.86 : 0.9));
     app.progress.leftovers = all;
+    const shown = all.slice(0, MAX_SHOWN);
 
     this.run(async () => {
       for (let i = 0; i < r.stars; i++) {
@@ -79,106 +83,124 @@ export class EndScene extends BaseScene {
         : r.stars === 2 ? 'series_good' : r.stars === 1 ? 'series_ok' : 'series_encourage';
       this.dino.react(r.stars >= 3 ? 'dance' : r.stars === 2 ? 'cheer' : r.stars === 1 ? 'happy' : 'think');
       await this.say(group);
-      if (this.items.length === 0) {
+      if (shown.length === 0) {
         await this.say('end.nothing');
         await this.showAgain();
         return;
       }
-      this.showDragHint();
+      this.makeBasket(shown, W / 2, H * (portrait ? 0.88 : 0.88));
+      await this.wait(500 + shown.length * 120);
+      this.showBasketHint();
       await this.say('end.feed');
       this.armFeedReminder();
     });
   }
 
-  private layoutFood(foods: Leftover[], y: number) {
-    const { width: W } = this.scale;
+  /** Le panier, rempli des fruits qui y tombent un par un. Toucher ou glisser = tout donner. */
+  private makeBasket(foods: Leftover[], x: number, y: number) {
     const u = unit(this);
-    const size = u * 0.12;
-    const step = Math.min(size * 1.25, (W * 0.92) / Math.max(1, foods.length));
-    this.add.rectangle(W / 2, y, Math.min(W * 0.94, step * foods.length + size * 0.6), size * 1.5, 0xffffff, 0.85)
-      .setStrokeStyle(8, 0xe5484d).setDepth(-1);
+    const basket = this.add.container(x, y).setDepth(10);
+    const img = this.add.image(0, 0, 'ui-basket');
+    const size = u * 0.3;
+    img.setScale(size / img.width);
+    basket.add(img);
     foods.forEach((leftover, i) => {
-      const x = W / 2 + (i - (foods.length - 1) / 2) * step;
-      const img = this.add.image(x, y + u * 0.3, foodImage(leftover.food)).setDepth(10);
-      img.setScale(size / img.width).setInteractive({ draggable: true });
-      // Les fruits arrivent en rebondissant.
-      this.tweens.add({ targets: img, y, duration: 500, delay: 200 + i * 90, ease: 'Bounce.easeOut' });
-      const item: FoodItem = { leftover, img, home: new Phaser.Math.Vector2(x, y) };
-      this.items.push(item);
-      img.on('dragstart', () => {
-        this.guide.hide();
-        this.clearIdle();
-        img.setScale((size * 1.25) / img.width);
-      });
-      img.on('drag', (_p: Phaser.Input.Pointer, dx: number, dy: number) => img.setPosition(dx, dy));
-      img.on('dragend', () => this.drop(item, false));
-      img.on('pointerup', (p: Phaser.Input.Pointer) => {
-        if (p.getDistance() < 12) this.drop(item, true);
-      });
+      const fruit = this.add.image(0, -u * 0.6, foodImage(leftover.food));
+      fruit.setScale((u * 0.1) / fruit.width);
+      // Les fruits s'empilent et dépassent bien du panier.
+      const col = i % 5;
+      const row = Math.floor(i / 5);
+      const tx = (col - 2) * u * 0.05 + (row % 2) * u * 0.025;
+      const ty = -size * 0.3 - row * u * 0.065;
+      basket.addAt(fruit, 0);
+      this.tweens.add({ targets: fruit, x: tx, y: ty, duration: 500, delay: i * 120, ease: 'Bounce.easeOut' });
+      this.fruits.push({ leftover, img: fruit });
+    });
+    basket.setSize(size, size).setInteractive({ draggable: true, useHandCursor: true });
+    this.basket = basket;
+    this.basketHome.set(x, y);
+    basket.on('dragstart', () => { this.guide.hide(); this.clearIdle(); });
+    basket.on('drag', (_p: Phaser.Input.Pointer, dx: number, dy: number) => basket.setPosition(dx, dy));
+    basket.on('dragend', () => this.giveBasket(false));
+    basket.on('pointerup', (p: Phaser.Input.Pointer) => {
+      if (p.getDistance() < 12) this.giveBasket(true);
     });
   }
 
-  private showDragHint() {
-    const first = this.items[0];
-    if (first) this.guide.drag(first.home, this.dino.mouthWorldPoint());
+  private showBasketHint() {
+    if (this.basket && !this.feeding) this.guide.tap(this.basket);
   }
 
   private armFeedReminder() {
     this.armIdle([[9000, () => this.run(async () => {
-      if (this.busy || this.items.length === 0 || this.full) return;
-      this.showDragHint();
+      if (this.feeding) return;
+      this.showBasketHint();
       await this.say('end.feed_again');
       this.armFeedReminder();
     })]]);
   }
 
-  private drop(item: FoodItem, tapped: boolean) {
-    if (this.busy || this.full || !item.img.active) return;
-    const u = unit(this);
-    const baseScale = (u * 0.12) / item.img.width;
+  /** Le panier vient à la bouche du dino, qui mange les fruits un par un. */
+  private giveBasket(tapped: boolean) {
+    const basket = this.basket;
+    if (!basket || this.feeding) return;
     const mouth = this.dino.mouthWorldPoint();
-    const near = Phaser.Math.Distance.Between(item.img.x, item.img.y, mouth.x, mouth.y) < u * 0.25;
+    const near = Phaser.Math.Distance.Between(basket.x, basket.y, mouth.x, mouth.y) < unit(this) * 0.35;
     if (!near && !tapped) {
-      this.tweens.add({ targets: item.img, x: item.home.x, y: item.home.y, scale: baseScale, duration: 300, ease: 'Back.easeOut' });
+      this.tweens.add({ targets: basket, x: this.basketHome.x, y: this.basketHome.y, duration: 300, ease: 'Back.easeOut' });
       return;
     }
-    const result = feed(app.progress.dino, item.leftover.xp, app.progress.xpEatenToday());
-    if (result.outcome === 'full' || result.outcome === 'maxLevel') {
-      this.full = true;
-      this.tweens.add({ targets: item.img, x: item.home.x, y: item.home.y, scale: baseScale, duration: 300 });
-      this.dino.react('think');
-      this.run(async () => {
-        await this.say('full');
-        await this.showAgain();
-      });
-      return;
-    }
-    this.busy = true;
+    this.feeding = true;
     this.clearIdle();
     this.guide.hide();
+    basket.disableInteractive();
     this.tweens.add({
-      targets: item.img, x: mouth.x, y: mouth.y, scale: baseScale * 0.35, duration: 320, ease: 'Quad.easeIn',
-      onComplete: () => {
-        item.img.destroy();
-        this.items = this.items.filter((i) => i !== item);
-        app.progress.leftovers = app.progress.leftovers.filter((l) => l !== item.leftover);
-        app.progress.saveFeeding(result.dino, result.xpEatenToday);
-        Sfx.play('chomp');
-        this.dino.react('eat');
-        this.dino.setBellyFill(growthProgress(result.dino));
-        this.run(async () => {
-          await this.say('eating');
-          if (result.outcome === 'levelUp') {
-            Sfx.play('levelUp');
-            this.dino.react('levelUp');
-            await this.say('level_up');
-          }
-          this.busy = false;
-          if (this.items.length === 0) await this.showAgain();
-          else this.armFeedReminder();
-        });
-      },
+      targets: basket, x: mouth.x + unit(this) * 0.12, y: mouth.y + unit(this) * 0.16, duration: 400, ease: 'Sine.easeOut',
+      onComplete: () => this.run(() => this.eatAll()),
     });
+  }
+
+  private async eatAll() {
+    const mouth = this.dino.mouthWorldPoint();
+    let leveledUp = false;
+    let full = false;
+    for (const fruit of [...this.fruits]) {
+      const result = feed(app.progress.dino, fruit.leftover.xp, app.progress.xpEatenToday());
+      if (result.outcome === 'full' || result.outcome === 'maxLevel') {
+        full = true;
+        break;
+      }
+      const m = fruit.img.getWorldTransformMatrix();
+      this.basket!.remove(fruit.img);
+      fruit.img.setPosition(m.tx, m.ty).setDepth(20);
+      this.add.existing(fruit.img);
+      await new Promise<void>((resolve) => this.tweens.add({
+        targets: fruit.img, x: mouth.x, y: mouth.y, scale: fruit.img.scale * 0.4, duration: 260, ease: 'Quad.easeIn',
+        onComplete: () => resolve(),
+      }));
+      fruit.img.destroy();
+      this.fruits = this.fruits.filter((f) => f !== fruit);
+      app.progress.leftovers = app.progress.leftovers.filter((l) => l !== fruit.leftover);
+      app.progress.saveFeeding(result.dino, result.xpEatenToday);
+      Sfx.play('chomp');
+      this.dino.react('eat');
+      this.dino.setBellyFill(growthProgress(result.dino));
+      leveledUp ||= result.outcome === 'levelUp';
+      await this.wait(420);
+    }
+    this.tweens.add({ targets: this.basket!, alpha: full ? 1 : 0, duration: 300 });
+    if (full) {
+      this.dino.react('think');
+      await this.say('full');
+    } else {
+      await this.say('eating');
+    }
+    if (leveledUp) {
+      Sfx.play('levelUp');
+      this.dino.react('levelUp');
+      await this.say('level_up');
+    }
+    await this.showAgain();
   }
 
   /** Le dino montre le bouton vert pour rejouer. */

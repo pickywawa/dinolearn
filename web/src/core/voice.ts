@@ -79,7 +79,7 @@ export class Voice {
       await this.speak(part);
       if (generation !== this.generation) return;
       this.setTalking(false);
-      await wait(180);
+      await wait(part.pauseAfter ?? 180);
     }
     if (generation === this.generation) this.setTalking(false);
   }

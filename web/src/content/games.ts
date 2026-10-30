@@ -62,10 +62,13 @@ const listenTap: GameDef = {
   questions: imageQuestions('EN-1', (c) => c.levels['EN-1']),
   build(ref, level, rng) {
     const answer = conceptById(idOf(ref));
+    // Plus facile : 2 images seulement, très différentes jusqu'au niveau 5.
+    const word: Speech = { text: answer.en.word, lang: 'en', slow: true, pauseAfter: 700 };
     return {
       answer: conceptChoice(answer),
-      distractors: pickDistractors(answer, conceptsFor('EN-1'), 3, strategyFor(level, 2, 5), rng).map(conceptChoice),
-      prompt: [{ text: answer.en.word, lang: 'en', slow: true }],
+      distractors: pickDistractors(answer, conceptsFor('EN-1'), 1, strategyFor(level, 6, 9), rng).map(conceptChoice),
+      // Le mot est dit deux fois, lentement.
+      prompt: [word, { ...word, pauseAfter: undefined }],
       reinforce: [{ text: answer.en.word, lang: 'en', slow: true }, { text: `${frWithArticle(answer)} !`, lang: 'fr' }],
     };
   },
@@ -259,6 +262,12 @@ const counting: GameDef = {
 };
 
 export const GAMES: GameDef[] = [listenTap, showMe, riddles, oddOneOut, counting];
+
+/** Jeu tiré au hasard pour le gros bouton de l'accueil (jamais deux fois le même de suite). */
+export function pickRandomGame(previous: string | undefined, rng: Rng): string {
+  const pool = GAMES.filter((g) => g.id !== previous);
+  return pool[Math.floor(rng() * pool.length)].id;
+}
 
 export const gameById = (id: string): GameDef => {
   const game = GAMES.find((g) => g.id === id);
