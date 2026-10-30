@@ -9,11 +9,18 @@ Jeu jouable directement dans le navigateur d'un téléphone ou d'une tablette (p
   par âge, avec ses bougies), puis 2 grosses bulles (anglais 🇬🇧, monde 🌍). Aucun texte.
 - **Décor préhistorique animé** : volcan qui fume et entre en éruption, ptérodactyle qui traverse le
   ciel, diplodocus qui marche au loin, palmier et fougères qui se balancent.
-- **2 jeux** (gabarit « écoute et touche ») :
-  - **EN-1** : le mot est dit en anglais, l'enfant touche la bonne image ;
-  - **MO-1 « Montre-moi »** : « Montre-moi le lapin ! ».
-  179 mots sur 10 niveaux, **toujours 4 réponses** ; les leurres se rapprochent avec le niveau
-  (autre famille → même famille → même sous-famille, ex. un dauphin parmi des animaux marins).
+- **5 jeux**, toujours 4 réponses :
+  - **Anglais — Écoute et touche** : le mot est dit lentement en anglais, l'enfant touche l'image ;
+  - **Monde — Montre-moi** : « Montre-moi le hérisson ! », leurres de la même sous-famille dès le niveau 2 ;
+  - **Monde — Devinettes** : des cris d'animaux (« Qui fait meuh ? ») aux énigmes
+    (« J'ai huit bras et je vis dans la mer ») ;
+  - **Logique — L'intrus** : trois images de la même famille et un intrus (facile : un fruit parmi
+    des véhicules ; difficile : un légume parmi des fruits) ;
+  - **Logique — Combien ?** : compter de 1 à 10 fruits et toucher le bon nombre (chiffre + points) ;
+    aux niveaux difficiles, les nombres proposés sont tout proches.
+  180 mots sur 10 niveaux.
+- **Toucher le dino** pendant un jeu lui fait répéter la question.
+- **Niveau du dino** affiché sur l'accueil (étoile), réglable avec − et + pour tester.
 - **Tutoriel** à la première partie : le dino fait la première question à la place de l'enfant.
 - **Série** de 6 à 10 questions. La barre de progression montre un fruit différent par question,
   gagné si la réponse est trouvée du premier coup (+ un gâteau pour un sans-faute). Indice après

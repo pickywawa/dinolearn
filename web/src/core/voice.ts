@@ -21,7 +21,8 @@ export class Voice {
 
   /** Réglages de la voix du dino (hauteur max = 2). */
   static readonly DINO = { pitch: 1.75, rate: 1.05 };
-  static readonly WORD = { pitch: 1.15, rate: 0.95 };
+  /** Mots anglais : lents et bien articulés. */
+  static readonly WORD = { pitch: 1.1, rate: 0.72 };
 
   constructor(readonly lines: LinePicker) {}
 
@@ -110,7 +111,7 @@ export class Voice {
       text: part.text,
       voice: this.voices[part.lang],
       pitch: settings.pitch,
-      rate: part.slow ? settings.rate * 0.8 : settings.rate,
+      rate: part.slow ? settings.rate * 0.85 : settings.rate,
       volume: 1,
       boundary: () => this.boundaryListeners.forEach((fn) => fn()),
     }).catch(() => undefined);

@@ -66,16 +66,26 @@ export class Guide {
     this.timeline = this.scene.time.addEvent({ delay: 1000, loop: true, callback: press });
   }
 
-  /** Passe de cible en cible (ex. toutes les bulles d'un menu). */
-  tour(targets: Point[], stepMs = 1300) {
+  /**
+   * Passe de cible en cible (ex. toutes les bulles d'un menu). `onStep` est
+   * appelé avec l'index de la cible survolée, puis avec -1 à la fin du tour
+   * (la main disparaît alors si `hideAtEnd`).
+   */
+  tour(targets: Point[], stepMs = 1300, onStep?: (index: number) => void, hideAtEnd = false) {
     if (targets.length === 0) return;
     const id = ++this.tourId;
     let i = 0;
     const step = () => {
       if (id !== this.tourId) return;
-      this.moveAndTap(targets[i % targets.length]);
+      if (i >= targets.length) {
+        onStep?.(-1);
+        if (hideAtEnd) this.hide();
+        return;
+      }
+      onStep?.(i);
+      this.moveAndTap(targets[i]);
       i++;
-      if (i < targets.length) this.scene.time.delayedCall(stepMs, step);
+      this.scene.time.delayedCall(stepMs, step);
     };
     step();
   }

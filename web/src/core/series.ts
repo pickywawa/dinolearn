@@ -1,7 +1,5 @@
-import {
-  Concept, GameDef, choicesFor, conceptsFor, distractorsFor, pickDistractors, questionId,
-  questionsFor,
-} from '../content/content';
+import { Speech } from '../content/content';
+import { Choice, GameDef } from '../content/games';
 import { BALANCE, Balance, seriesLengthFor } from '../domain/balance';
 import { computeLevel } from '../domain/difficulty';
 import { Food, Rng } from '../domain/models';
@@ -10,10 +8,14 @@ import { pickQuestions } from '../domain/selector';
 import { Progress } from './progress';
 
 export interface SeriesItem {
-  answer: Concept;
   questionId: string;
   level: number;
-  choices: Concept[];
+  answer: Choice;
+  /** Réponses proposées, bonne réponse comprise. */
+  choices: Choice[];
+  show?: { image: string; count: number };
+  prompt: Speech[];
+  reinforce: Speech[];
   isReview: boolean;
   /** Fruit de la barre de progression, gagné si la réponse est trouvée du premier coup. */
   fruit: Food;
@@ -67,10 +69,9 @@ export class Series {
       previousLevel: progress.gameLevel(game.id),
     }, b);
 
-    const pool = conceptsFor(game.id);
-    const byId = new Map(pool.map((c) => [questionId(game.id, c), c]));
+    const refs = new Map(game.questions.map((q) => [q.id, q]));
     const selection = pickQuestions({
-      questions: questionsFor(game.id),
+      questions: game.questions,
       level: this.level,
       count: seriesLengthFor(progress.age, b),
       mastered: progress.mastered(game.id),
@@ -81,9 +82,9 @@ export class Series {
     const positions: number[] = [];
     const fruits = seriesFruits(selection.length, rng);
     this.items = selection.map((s, i) => {
-      const answer = byId.get(s.question.id)!;
-      const choices = pickDistractors(answer, pool, choicesFor(game, this.level) - 1,
-        distractorsFor(game, this.level), rng);
+      const ref = refs.get(s.question.id)!;
+      const q = game.build(ref, this.level, rng);
+      const choices = [...q.distractors];
       // Position de la bonne réponse : jamais 3 fois de suite la même.
       let position = Math.floor(rng() * (choices.length + 1));
       const n = positions.length;
@@ -91,10 +92,10 @@ export class Series {
         position = (position + 1) % (choices.length + 1);
       }
       positions.push(position);
-      choices.splice(position, 0, answer);
+      choices.splice(position, 0, q.answer);
       return {
-        answer, questionId: s.question.id, level: s.question.level, choices, isReview: s.isReview,
-        fruit: fruits[i],
+        questionId: ref.id, level: ref.level, answer: q.answer, choices, show: q.show,
+        prompt: q.prompt, reinforce: q.reinforce, isReview: s.isReview, fruit: fruits[i],
       };
     });
   }
@@ -103,7 +104,7 @@ export class Series {
   get hint(): boolean { return this.wrongAttempts >= this.b.hintAfterWrongAttempts; }
   get finished(): boolean { return this.result !== undefined; }
 
-  tap(choice: Concept): TapOutcome {
+  tap(choice: Choice): TapOutcome {
     if (this.finished || this.disabled.has(choice.id)) return { kind: 'ignored' };
     if (choice.id !== this.current.answer.id) {
       this.disabled.add(choice.id);

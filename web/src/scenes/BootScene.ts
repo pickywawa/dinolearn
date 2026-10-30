@@ -3,8 +3,8 @@ import { DINO_PARTS, PART_RESOLUTION } from '../dino/parts';
 import { FRUITS } from '../domain/models';
 
 export const UI_IMAGES = [
-  'ui-play', 'ui-home', 'ui-ear', 'ui-star', 'ui-sparkles', 'ui-globe', 'ui-cloud', 'ui-cake', 'flag-gb',
-  'decor-palm-tree', 'decor-sauropod',
+  'ui-play', 'ui-home', 'ui-star', 'ui-sparkles', 'ui-globe', 'ui-cloud', 'ui-cake', 'flag-gb',
+  'decor-palm-tree', 'decor-sauropod', 'riddle', 'oddoneout', 'counting',
   ...[...FRUITS, 'cake'].map((f) => `food-${f}`),
 ];
 

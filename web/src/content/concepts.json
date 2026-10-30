@@ -160,7 +160,7 @@
    "category": "farm",
    "levels": {
     "EN-1": 2,
-    "MO-1": 1
+    "MO-1": 2
    },
    "fr": {
     "article": "la",
@@ -177,7 +177,7 @@
    "category": "farm",
    "levels": {
     "EN-1": 2,
-    "MO-1": 1
+    "MO-1": 2
    },
    "fr": {
     "article": "le",
@@ -194,7 +194,7 @@
    "category": "farm",
    "levels": {
     "EN-1": 2,
-    "MO-1": 1
+    "MO-1": 2
    },
    "fr": {
     "article": "la",
@@ -211,7 +211,7 @@
    "category": "farm",
    "levels": {
     "EN-1": 2,
-    "MO-1": 1
+    "MO-1": 2
    },
    "fr": {
     "article": "la",
@@ -228,7 +228,7 @@
    "category": "wild",
    "levels": {
     "EN-1": 3,
-    "MO-1": 2
+    "MO-1": 3
    },
    "fr": {
     "article": "le",
@@ -405,7 +405,7 @@
    "category": "fruit",
    "levels": {
     "EN-1": 3,
-    "MO-1": 2
+    "MO-1": 3
    },
    "fr": {
     "article": "la",
@@ -422,7 +422,7 @@
    "category": "fruit",
    "levels": {
     "EN-1": 3,
-    "MO-1": 2
+    "MO-1": 3
    },
    "fr": {
     "article": "la",
@@ -439,7 +439,7 @@
    "category": "fruit",
    "levels": {
     "EN-1": 3,
-    "MO-1": 2
+    "MO-1": 3
    },
    "fr": {
     "article": "la",
@@ -456,7 +456,7 @@
    "category": "fruit",
    "levels": {
     "EN-1": 3,
-    "MO-1": 2
+    "MO-1": 3
    },
    "fr": {
     "article": "la",
@@ -473,7 +473,7 @@
    "category": "fruit",
    "levels": {
     "EN-1": 3,
-    "MO-1": 2
+    "MO-1": 3
    },
    "fr": {
     "article": "l'",
@@ -490,7 +490,7 @@
    "category": "meal",
    "levels": {
     "EN-1": 3,
-    "MO-1": 2
+    "MO-1": 3
    },
    "fr": {
     "article": "l'",
@@ -507,7 +507,7 @@
    "category": "meal",
    "levels": {
     "EN-1": 3,
-    "MO-1": 2
+    "MO-1": 3
    },
    "fr": {
     "article": "la",
@@ -524,7 +524,7 @@
    "category": "meal",
    "levels": {
     "EN-1": 3,
-    "MO-1": 2
+    "MO-1": 3
    },
    "fr": {
     "article": "la",
@@ -541,7 +541,7 @@
    "category": "fruit",
    "levels": {
     "EN-1": 4,
-    "MO-1": 2
+    "MO-1": 4
    },
    "fr": {
     "article": "le",
@@ -558,7 +558,7 @@
    "category": "fruit",
    "levels": {
     "EN-1": 4,
-    "MO-1": 2
+    "MO-1": 4
    },
    "fr": {
     "article": "la",
@@ -575,7 +575,7 @@
    "category": "fruit",
    "levels": {
     "EN-1": 4,
-    "MO-1": 2
+    "MO-1": 4
    },
    "fr": {
     "article": "le",
@@ -592,7 +592,7 @@
    "category": "veg",
    "levels": {
     "EN-1": 4,
-    "MO-1": 2
+    "MO-1": 4
    },
    "fr": {
     "article": "la",
@@ -609,7 +609,7 @@
    "category": "meal",
    "levels": {
     "EN-1": 4,
-    "MO-1": 2
+    "MO-1": 4
    },
    "fr": {
     "article": "le",
@@ -626,7 +626,7 @@
    "category": "meal",
    "levels": {
     "EN-1": 4,
-    "MO-1": 2
+    "MO-1": 4
    },
    "fr": {
     "article": "le",
@@ -643,7 +643,7 @@
    "category": "meal",
    "levels": {
     "EN-1": 4,
-    "MO-1": 2
+    "MO-1": 4
    },
    "fr": {
     "article": "le",
@@ -660,7 +660,7 @@
    "category": "fruit",
    "levels": {
     "EN-1": 4,
-    "MO-1": 3
+    "MO-1": 4
    },
    "fr": {
     "article": "la",
@@ -677,7 +677,7 @@
    "category": "meal",
    "levels": {
     "EN-1": 4,
-    "MO-1": 3
+    "MO-1": 4
    },
    "fr": {
     "article": "le",
@@ -694,7 +694,7 @@
    "category": "meal",
    "levels": {
     "EN-1": 5,
-    "MO-1": 3
+    "MO-1": 5
    },
    "fr": {
     "article": "le",
@@ -711,7 +711,7 @@
    "category": "veg",
    "levels": {
     "EN-1": 5,
-    "MO-1": 3
+    "MO-1": 5
    },
    "fr": {
     "article": "la",
@@ -728,7 +728,7 @@
    "category": "fruit",
    "levels": {
     "EN-1": 5,
-    "MO-1": 3
+    "MO-1": 5
    },
    "fr": {
     "article": "l'",
@@ -745,7 +745,7 @@
    "category": "fruit",
    "levels": {
     "EN-1": 6,
-    "MO-1": 3
+    "MO-1": 6
    },
    "fr": {
     "article": "la",
@@ -762,7 +762,7 @@
    "category": "veg",
    "levels": {
     "EN-1": 6,
-    "MO-1": 4
+    "MO-1": 6
    },
    "fr": {
     "article": "le",
@@ -779,7 +779,7 @@
    "category": "veg",
    "levels": {
     "EN-1": 6,
-    "MO-1": 4
+    "MO-1": 6
    },
    "fr": {
     "article": "le",
@@ -796,7 +796,7 @@
    "category": "fruit",
    "levels": {
     "EN-1": 6,
-    "MO-1": 4
+    "MO-1": 6
    },
    "fr": {
     "article": "le",
@@ -813,7 +813,7 @@
    "category": "fruit",
    "levels": {
     "EN-1": 7,
-    "MO-1": 5
+    "MO-1": 7
    },
    "fr": {
     "article": "la",
@@ -830,7 +830,7 @@
    "category": "fruit",
    "levels": {
     "EN-1": 7,
-    "MO-1": 5
+    "MO-1": 7
    },
    "fr": {
     "article": "la",
@@ -847,7 +847,7 @@
    "category": "fruit",
    "levels": {
     "EN-1": 7,
-    "MO-1": 5
+    "MO-1": 7
    },
    "fr": {
     "article": "la",
@@ -864,7 +864,7 @@
    "category": "vehicle",
    "levels": {
     "EN-1": 3,
-    "MO-1": 2
+    "MO-1": 3
    },
    "fr": {
     "article": "la",
@@ -881,7 +881,7 @@
    "category": "toy",
    "levels": {
     "EN-1": 3,
-    "MO-1": 2
+    "MO-1": 3
    },
    "fr": {
     "article": "le",
@@ -898,7 +898,7 @@
    "category": "vehicle",
    "levels": {
     "EN-1": 4,
-    "MO-1": 3
+    "MO-1": 4
    },
    "fr": {
     "article": "le",
@@ -915,7 +915,7 @@
    "category": "vehicle",
    "levels": {
     "EN-1": 4,
-    "MO-1": 3
+    "MO-1": 4
    },
    "fr": {
     "article": "le",
@@ -932,7 +932,7 @@
    "category": "vehicle",
    "levels": {
     "EN-1": 4,
-    "MO-1": 3
+    "MO-1": 4
    },
    "fr": {
     "article": "l'",
@@ -949,7 +949,7 @@
    "category": "vehicle",
    "levels": {
     "EN-1": 4,
-    "MO-1": 3
+    "MO-1": 4
    },
    "fr": {
     "article": "le",
@@ -966,7 +966,7 @@
    "category": "vehicle",
    "levels": {
     "EN-1": 4,
-    "MO-1": 3
+    "MO-1": 4
    },
    "fr": {
     "article": "le",
@@ -1000,7 +1000,7 @@
    "category": "toy",
    "levels": {
     "EN-1": 4,
-    "MO-1": 3
+    "MO-1": 4
    },
    "fr": {
     "article": "le",
@@ -1017,7 +1017,7 @@
    "category": "home",
    "levels": {
     "EN-1": 4,
-    "MO-1": 3
+    "MO-1": 4
    },
    "fr": {
     "article": "le",
@@ -1031,10 +1031,10 @@
    "id": "house",
    "icon": "house",
    "group": "place",
-   "category": "home",
+   "category": "landscape",
    "levels": {
     "EN-1": 4,
-    "MO-1": 3
+    "MO-1": 4
    },
    "fr": {
     "article": "la",
@@ -1051,7 +1051,7 @@
    "category": "toy",
    "levels": {
     "EN-1": 5,
-    "MO-1": 4
+    "MO-1": 5
    },
    "fr": {
     "article": "le",
@@ -1068,7 +1068,7 @@
    "category": "home",
    "levels": {
     "EN-1": 5,
-    "MO-1": 3
+    "MO-1": 5
    },
    "fr": {
     "article": "le",
@@ -1085,7 +1085,7 @@
    "category": "home",
    "levels": {
     "EN-1": 5,
-    "MO-1": 3
+    "MO-1": 5
    },
    "fr": {
     "article": "la",
@@ -1102,7 +1102,7 @@
    "category": "home",
    "levels": {
     "EN-1": 5,
-    "MO-1": 4
+    "MO-1": 5
    },
    "fr": {
     "article": "la",
@@ -1119,7 +1119,7 @@
    "category": "home",
    "levels": {
     "EN-1": 5,
-    "MO-1": 4
+    "MO-1": 5
    },
    "fr": {
     "article": "la",
@@ -1136,7 +1136,7 @@
    "category": "home",
    "levels": {
     "EN-1": 6,
-    "MO-1": 4
+    "MO-1": 6
    },
    "fr": {
     "article": "le",
@@ -1153,7 +1153,7 @@
    "category": "sky",
    "levels": {
     "EN-1": 4,
-    "MO-1": 3
+    "MO-1": 4
    },
    "fr": {
     "article": "le",
@@ -1170,7 +1170,7 @@
    "category": "sky",
    "levels": {
     "EN-1": 4,
-    "MO-1": 3
+    "MO-1": 4
    },
    "fr": {
     "article": "la",
@@ -1187,7 +1187,7 @@
    "category": "sky",
    "levels": {
     "EN-1": 4,
-    "MO-1": 3
+    "MO-1": 4
    },
    "fr": {
     "article": "l'",
@@ -1204,7 +1204,7 @@
    "category": "plant",
    "levels": {
     "EN-1": 4,
-    "MO-1": 3
+    "MO-1": 4
    },
    "fr": {
     "article": "la",
@@ -1221,7 +1221,7 @@
    "category": "sky",
    "levels": {
     "EN-1": 5,
-    "MO-1": 4
+    "MO-1": 5
    },
    "fr": {
     "article": "le",
@@ -1238,7 +1238,7 @@
    "category": "sky",
    "levels": {
     "EN-1": 5,
-    "MO-1": 4
+    "MO-1": 5
    },
    "fr": {
     "article": "l'",
@@ -1255,7 +1255,7 @@
    "category": "plant",
    "levels": {
     "EN-1": 5,
-    "MO-1": 3
+    "MO-1": 5
    },
    "fr": {
     "article": "l'",
@@ -1272,7 +1272,7 @@
    "category": "sky",
    "levels": {
     "EN-1": 6,
-    "MO-1": 5
+    "MO-1": 6
    },
    "fr": {
     "article": "la",
@@ -1289,7 +1289,7 @@
    "category": "sky",
    "levels": {
     "EN-1": 6,
-    "MO-1": 5
+    "MO-1": 6
    },
    "fr": {
     "article": "le",
@@ -1300,13 +1300,30 @@
    }
   },
   {
+   "id": "snowman",
+   "icon": "snowman-without-snow",
+   "group": "nature",
+   "category": "sky",
+   "levels": {
+    "EN-1": 6,
+    "MO-1": 6
+   },
+   "fr": {
+    "article": "le",
+    "word": "bonhomme de neige"
+   },
+   "en": {
+    "word": "snowman"
+   }
+  },
+  {
    "id": "leaf",
    "icon": "maple-leaf",
    "group": "nature",
    "category": "plant",
    "levels": {
     "EN-1": 6,
-    "MO-1": 4
+    "MO-1": 6
    },
    "fr": {
     "article": "la",
@@ -1323,7 +1340,7 @@
    "category": "landscape",
    "levels": {
     "EN-1": 6,
-    "MO-1": 5
+    "MO-1": 6
    },
    "fr": {
     "article": "la",
@@ -1337,10 +1354,10 @@
    "id": "fire",
    "icon": "fire",
    "group": "nature",
-   "category": "sky",
+   "category": "element",
    "levels": {
     "EN-1": 6,
-    "MO-1": 5
+    "MO-1": 6
    },
    "fr": {
     "article": "le",
@@ -1357,7 +1374,7 @@
    "category": "plant",
    "levels": {
     "EN-1": 7,
-    "MO-1": 6
+    "MO-1": 7
    },
    "fr": {
     "article": "le",
@@ -1371,10 +1388,10 @@
    "id": "drop",
    "icon": "droplet",
    "group": "nature",
-   "category": "sky",
+   "category": "element",
    "levels": {
     "EN-1": 7,
-    "MO-1": 6
+    "MO-1": 7
    },
    "fr": {
     "article": "la",
@@ -1391,7 +1408,7 @@
    "category": "body",
    "levels": {
     "EN-1": 5,
-    "MO-1": 4
+    "MO-1": 5
    },
    "fr": {
     "article": "l'",
@@ -1408,7 +1425,7 @@
    "category": "body",
    "levels": {
     "EN-1": 5,
-    "MO-1": 4
+    "MO-1": 5
    },
    "fr": {
     "article": "l'",
@@ -1425,7 +1442,7 @@
    "category": "body",
    "levels": {
     "EN-1": 5,
-    "MO-1": 4
+    "MO-1": 5
    },
    "fr": {
     "article": "le",
@@ -1442,7 +1459,7 @@
    "category": "body",
    "levels": {
     "EN-1": 5,
-    "MO-1": 4
+    "MO-1": 5
    },
    "fr": {
     "article": "la",
@@ -1459,7 +1476,7 @@
    "category": "body",
    "levels": {
     "EN-1": 5,
-    "MO-1": 4
+    "MO-1": 5
    },
    "fr": {
     "article": "la",
@@ -1476,7 +1493,7 @@
    "category": "body",
    "levels": {
     "EN-1": 6,
-    "MO-1": 4
+    "MO-1": 6
    },
    "fr": {
     "article": "le",
@@ -1493,7 +1510,7 @@
    "category": "body",
    "levels": {
     "EN-1": 6,
-    "MO-1": 5
+    "MO-1": 6
    },
    "fr": {
     "article": "la",
@@ -1510,7 +1527,7 @@
    "category": "wild",
    "levels": {
     "EN-1": 5,
-    "MO-1": 3
+    "MO-1": 5
    },
    "fr": {
     "article": "le",
@@ -1527,7 +1544,7 @@
    "category": "wild",
    "levels": {
     "EN-1": 5,
-    "MO-1": 4
+    "MO-1": 5
    },
    "fr": {
     "article": "le",
@@ -1544,7 +1561,7 @@
    "category": "wild",
    "levels": {
     "EN-1": 5,
-    "MO-1": 3
+    "MO-1": 5
    },
    "fr": {
     "article": "l'",
@@ -1561,7 +1578,7 @@
    "category": "wild",
    "levels": {
     "EN-1": 5,
-    "MO-1": 3
+    "MO-1": 5
    },
    "fr": {
     "article": "le",
@@ -1578,7 +1595,7 @@
    "category": "wild",
    "levels": {
     "EN-1": 5,
-    "MO-1": 3
+    "MO-1": 5
    },
    "fr": {
     "article": "l'",
@@ -1595,7 +1612,7 @@
    "category": "wild",
    "levels": {
     "EN-1": 6,
-    "MO-1": 4
+    "MO-1": 6
    },
    "fr": {
     "article": "la",
@@ -1612,7 +1629,7 @@
    "category": "wild",
    "levels": {
     "EN-1": 6,
-    "MO-1": 4
+    "MO-1": 6
    },
    "fr": {
     "article": "le",
@@ -1629,7 +1646,7 @@
    "category": "wild",
    "levels": {
     "EN-1": 6,
-    "MO-1": 4
+    "MO-1": 6
    },
    "fr": {
     "article": "le",
@@ -1646,7 +1663,7 @@
    "category": "wild",
    "levels": {
     "EN-1": 6,
-    "MO-1": 4
+    "MO-1": 6
    },
    "fr": {
     "article": "le",
@@ -1663,7 +1680,7 @@
    "category": "wild",
    "levels": {
     "EN-1": 6,
-    "MO-1": 4
+    "MO-1": 6
    },
    "fr": {
     "article": "la",
@@ -1680,7 +1697,7 @@
    "category": "wild",
    "levels": {
     "EN-1": 7,
-    "MO-1": 5
+    "MO-1": 7
    },
    "fr": {
     "article": "le",
@@ -1697,7 +1714,7 @@
    "category": "wild",
    "levels": {
     "EN-1": 7,
-    "MO-1": 5
+    "MO-1": 7
    },
    "fr": {
     "article": "le",
@@ -1714,7 +1731,7 @@
    "category": "wild",
    "levels": {
     "EN-1": 8,
-    "MO-1": 6
+    "MO-1": 8
    },
    "fr": {
     "article": "l'",
@@ -1731,7 +1748,7 @@
    "category": "wild",
    "levels": {
     "EN-1": 8,
-    "MO-1": 6
+    "MO-1": 8
    },
    "fr": {
     "article": "le",
@@ -1748,7 +1765,7 @@
    "category": "wild",
    "levels": {
     "EN-1": 8,
-    "MO-1": 7
+    "MO-1": 8
    },
    "fr": {
     "article": "le",
@@ -1765,7 +1782,7 @@
    "category": "bug",
    "levels": {
     "EN-1": 6,
-    "MO-1": 4
+    "MO-1": 6
    },
    "fr": {
     "article": "le",
@@ -1782,7 +1799,7 @@
    "category": "bug",
    "levels": {
     "EN-1": 6,
-    "MO-1": 4
+    "MO-1": 6
    },
    "fr": {
     "article": "l'",
@@ -1799,7 +1816,7 @@
    "category": "bug",
    "levels": {
     "EN-1": 7,
-    "MO-1": 5
+    "MO-1": 7
    },
    "fr": {
     "article": "la",
@@ -1816,7 +1833,7 @@
    "category": "bug",
    "levels": {
     "EN-1": 7,
-    "MO-1": 5
+    "MO-1": 7
    },
    "fr": {
     "article": "l'",
@@ -1833,7 +1850,7 @@
    "category": "bug",
    "levels": {
     "EN-1": 7,
-    "MO-1": 6
+    "MO-1": 7
    },
    "fr": {
     "article": "la",
@@ -1850,7 +1867,7 @@
    "category": "bug",
    "levels": {
     "EN-1": 7,
-    "MO-1": 5
+    "MO-1": 7
    },
    "fr": {
     "article": "l'",
@@ -1867,7 +1884,7 @@
    "category": "sea",
    "levels": {
     "EN-1": 7,
-    "MO-1": 5
+    "MO-1": 7
    },
    "fr": {
     "article": "le",
@@ -1884,7 +1901,7 @@
    "category": "sea",
    "levels": {
     "EN-1": 7,
-    "MO-1": 5
+    "MO-1": 7
    },
    "fr": {
     "article": "la",
@@ -1901,7 +1918,7 @@
    "category": "sea",
    "levels": {
     "EN-1": 7,
-    "MO-1": 5
+    "MO-1": 7
    },
    "fr": {
     "article": "la",
@@ -1918,7 +1935,7 @@
    "category": "sea",
    "levels": {
     "EN-1": 7,
-    "MO-1": 6
+    "MO-1": 7
    },
    "fr": {
     "article": "le",
@@ -1935,7 +1952,7 @@
    "category": "sea",
    "levels": {
     "EN-1": 7,
-    "MO-1": 5
+    "MO-1": 7
    },
    "fr": {
     "article": "le",
@@ -1952,7 +1969,7 @@
    "category": "bird",
    "levels": {
     "EN-1": 7,
-    "MO-1": 5
+    "MO-1": 7
    },
    "fr": {
     "article": "le",
@@ -1969,7 +1986,7 @@
    "category": "bird",
    "levels": {
     "EN-1": 7,
-    "MO-1": 5
+    "MO-1": 7
    },
    "fr": {
     "article": "le",
@@ -1986,7 +2003,7 @@
    "category": "bird",
    "levels": {
     "EN-1": 8,
-    "MO-1": 6
+    "MO-1": 8
    },
    "fr": {
     "article": "le",
@@ -2003,7 +2020,7 @@
    "category": "bird",
    "levels": {
     "EN-1": 8,
-    "MO-1": 7
+    "MO-1": 8
    },
    "fr": {
     "article": "le",
@@ -2020,7 +2037,7 @@
    "category": "bird",
    "levels": {
     "EN-1": 8,
-    "MO-1": 7
+    "MO-1": 8
    },
    "fr": {
     "article": "le",
@@ -2037,7 +2054,7 @@
    "category": "bird",
    "levels": {
     "EN-1": 8,
-    "MO-1": 7
+    "MO-1": 8
    },
    "fr": {
     "article": "l'",
@@ -2054,7 +2071,7 @@
    "category": "bird",
    "levels": {
     "EN-1": 8,
-    "MO-1": 7
+    "MO-1": 8
    },
    "fr": {
     "article": "le",
@@ -2071,7 +2088,7 @@
    "category": "clothes",
    "levels": {
     "EN-1": 6,
-    "MO-1": 5
+    "MO-1": 6
    },
    "fr": {
     "article": "le",
@@ -2088,7 +2105,7 @@
    "category": "clothes",
    "levels": {
     "EN-1": 6,
-    "MO-1": 5
+    "MO-1": 6
    },
    "fr": {
     "article": "la",
@@ -2105,7 +2122,7 @@
    "category": "clothes",
    "levels": {
     "EN-1": 6,
-    "MO-1": 5
+    "MO-1": 6
    },
    "fr": {
     "article": "la",
@@ -2122,7 +2139,7 @@
    "category": "clothes",
    "levels": {
     "EN-1": 7,
-    "MO-1": 6
+    "MO-1": 7
    },
    "fr": {
     "article": "la",
@@ -2139,7 +2156,7 @@
    "category": "clothes",
    "levels": {
     "EN-1": 7,
-    "MO-1": 5
+    "MO-1": 7
    },
    "fr": {
     "article": "les",
@@ -2156,7 +2173,7 @@
    "category": "clothes",
    "levels": {
     "EN-1": 7,
-    "MO-1": 6
+    "MO-1": 7
    },
    "fr": {
     "article": "les",
@@ -2173,7 +2190,7 @@
    "category": "clothes",
    "levels": {
     "EN-1": 7,
-    "MO-1": 5
+    "MO-1": 7
    },
    "fr": {
     "article": "le",
@@ -2190,7 +2207,7 @@
    "category": "clothes",
    "levels": {
     "EN-1": 7,
-    "MO-1": 5
+    "MO-1": 7
    },
    "fr": {
     "article": "les",
@@ -2207,7 +2224,7 @@
    "category": "home",
    "levels": {
     "EN-1": 7,
-    "MO-1": 5
+    "MO-1": 7
    },
    "fr": {
     "article": "le",
@@ -2224,7 +2241,7 @@
    "category": "tool",
    "levels": {
     "EN-1": 7,
-    "MO-1": 5
+    "MO-1": 7
    },
    "fr": {
     "article": "le",
@@ -2241,7 +2258,7 @@
    "category": "kitchen",
    "levels": {
     "EN-1": 7,
-    "MO-1": 5
+    "MO-1": 7
    },
    "fr": {
     "article": "la",
@@ -2258,7 +2275,7 @@
    "category": "tool",
    "levels": {
     "EN-1": 8,
-    "MO-1": 6
+    "MO-1": 8
    },
    "fr": {
     "article": "les",
@@ -2275,7 +2292,7 @@
    "category": "tool",
    "levels": {
     "EN-1": 8,
-    "MO-1": 6
+    "MO-1": 8
    },
    "fr": {
     "article": "le",
@@ -2292,7 +2309,7 @@
    "category": "tool",
    "levels": {
     "EN-1": 8,
-    "MO-1": 7
+    "MO-1": 8
    },
    "fr": {
     "article": "l'",
@@ -2309,7 +2326,7 @@
    "category": "tool",
    "levels": {
     "EN-1": 8,
-    "MO-1": 7
+    "MO-1": 8
    },
    "fr": {
     "article": "le",
@@ -2326,7 +2343,7 @@
    "category": "kitchen",
    "levels": {
     "EN-1": 8,
-    "MO-1": 7
+    "MO-1": 8
    },
    "fr": {
     "article": "le",
@@ -2343,7 +2360,7 @@
    "category": "kitchen",
    "levels": {
     "EN-1": 8,
-    "MO-1": 6
+    "MO-1": 8
    },
    "fr": {
     "article": "la",
@@ -2360,7 +2377,7 @@
    "category": "music",
    "levels": {
     "EN-1": 8,
-    "MO-1": 6
+    "MO-1": 8
    },
    "fr": {
     "article": "la",
@@ -2377,7 +2394,7 @@
    "category": "music",
    "levels": {
     "EN-1": 8,
-    "MO-1": 6
+    "MO-1": 8
    },
    "fr": {
     "article": "le",
@@ -2394,7 +2411,7 @@
    "category": "music",
    "levels": {
     "EN-1": 8,
-    "MO-1": 6
+    "MO-1": 8
    },
    "fr": {
     "article": "le",
@@ -2411,7 +2428,7 @@
    "category": "music",
    "levels": {
     "EN-1": 9,
-    "MO-1": 7
+    "MO-1": 9
    },
    "fr": {
     "article": "le",
@@ -2428,7 +2445,7 @@
    "category": "music",
    "levels": {
     "EN-1": 9,
-    "MO-1": 7
+    "MO-1": 9
    },
    "fr": {
     "article": "la",
@@ -2445,7 +2462,7 @@
    "category": "vehicle",
    "levels": {
     "EN-1": 8,
-    "MO-1": 6
+    "MO-1": 8
    },
    "fr": {
     "article": "l'",
@@ -2462,7 +2479,7 @@
    "category": "vehicle",
    "levels": {
     "EN-1": 8,
-    "MO-1": 6
+    "MO-1": 8
    },
    "fr": {
     "article": "le",
@@ -2479,7 +2496,7 @@
    "category": "vehicle",
    "levels": {
     "EN-1": 8,
-    "MO-1": 6
+    "MO-1": 8
    },
    "fr": {
     "article": "la",
@@ -2496,7 +2513,7 @@
    "category": "vehicle",
    "levels": {
     "EN-1": 8,
-    "MO-1": 6
+    "MO-1": 8
    },
    "fr": {
     "article": "l'",
@@ -2513,7 +2530,7 @@
    "category": "vehicle",
    "levels": {
     "EN-1": 8,
-    "MO-1": 6
+    "MO-1": 8
    },
    "fr": {
     "article": "la",
@@ -2530,7 +2547,7 @@
    "category": "vehicle",
    "levels": {
     "EN-1": 9,
-    "MO-1": 7
+    "MO-1": 9
    },
    "fr": {
     "article": "le",
@@ -2547,7 +2564,7 @@
    "category": "vehicle",
    "levels": {
     "EN-1": 9,
-    "MO-1": 7
+    "MO-1": 9
    },
    "fr": {
     "article": "la",
@@ -2564,7 +2581,7 @@
    "category": "toy",
    "levels": {
     "EN-1": 9,
-    "MO-1": 7
+    "MO-1": 9
    },
    "fr": {
     "article": "la",
@@ -2581,7 +2598,7 @@
    "category": "toy",
    "levels": {
     "EN-1": 9,
-    "MO-1": 8
+    "MO-1": 9
    },
    "fr": {
     "article": "la",
@@ -2598,7 +2615,7 @@
    "category": "farm",
    "levels": {
     "EN-1": 9,
-    "MO-1": 7
+    "MO-1": 9
    },
    "fr": {
     "article": "le",
@@ -2615,7 +2632,7 @@
    "category": "farm",
    "levels": {
     "EN-1": 9,
-    "MO-1": 7
+    "MO-1": 9
    },
    "fr": {
     "article": "la",
@@ -2632,7 +2649,7 @@
    "category": "wild",
    "levels": {
     "EN-1": 9,
-    "MO-1": 8
+    "MO-1": 9
    },
    "fr": {
     "article": "le",
@@ -2649,7 +2666,7 @@
    "category": "forest",
    "levels": {
     "EN-1": 9,
-    "MO-1": 8
+    "MO-1": 9
    },
    "fr": {
     "article": "le",
@@ -2666,7 +2683,7 @@
    "category": "forest",
    "levels": {
     "EN-1": 9,
-    "MO-1": 8
+    "MO-1": 9
    },
    "fr": {
     "article": "l'",
@@ -2683,7 +2700,7 @@
    "category": "forest",
    "levels": {
     "EN-1": 9,
-    "MO-1": 8
+    "MO-1": 9
    },
    "fr": {
     "article": "la",
@@ -2700,7 +2717,7 @@
    "category": "forest",
    "levels": {
     "EN-1": 9,
-    "MO-1": 8
+    "MO-1": 9
    },
    "fr": {
     "article": "le",
@@ -2717,7 +2734,7 @@
    "category": "forest",
    "levels": {
     "EN-1": 9,
-    "MO-1": 8
+    "MO-1": 9
    },
    "fr": {
     "article": "le",
@@ -2734,7 +2751,7 @@
    "category": "forest",
    "levels": {
     "EN-1": 9,
-    "MO-1": 7
+    "MO-1": 9
    },
    "fr": {
     "article": "le",
@@ -2751,7 +2768,7 @@
    "category": "forest",
    "levels": {
     "EN-1": 10,
-    "MO-1": 9
+    "MO-1": 10
    },
    "fr": {
     "article": "le",
@@ -2768,7 +2785,7 @@
    "category": "forest",
    "levels": {
     "EN-1": 10,
-    "MO-1": 9
+    "MO-1": 10
    },
    "fr": {
     "article": "le",
@@ -2785,7 +2802,7 @@
    "category": "forest",
    "levels": {
     "EN-1": 10,
-    "MO-1": 9
+    "MO-1": 10
    },
    "fr": {
     "article": "la",
@@ -2836,7 +2853,7 @@
    "category": "forest",
    "levels": {
     "EN-1": 10,
-    "MO-1": 9
+    "MO-1": 10
    },
    "fr": {
     "article": "le",
@@ -2853,7 +2870,7 @@
    "category": "landscape",
    "levels": {
     "EN-1": 9,
-    "MO-1": 7
+    "MO-1": 9
    },
    "fr": {
     "article": "le",
@@ -2870,7 +2887,7 @@
    "category": "landscape",
    "levels": {
     "EN-1": 9,
-    "MO-1": 8
+    "MO-1": 9
    },
    "fr": {
     "article": "la",
@@ -2887,7 +2904,7 @@
    "category": "landscape",
    "levels": {
     "EN-1": 10,
-    "MO-1": 9
+    "MO-1": 10
    },
    "fr": {
     "article": "le",
@@ -2904,7 +2921,7 @@
    "category": "landscape",
    "levels": {
     "EN-1": 10,
-    "MO-1": 9
+    "MO-1": 10
    },
    "fr": {
     "article": "le",
@@ -2921,7 +2938,7 @@
    "category": "landscape",
    "levels": {
     "EN-1": 10,
-    "MO-1": 9
+    "MO-1": 10
    },
    "fr": {
     "article": "l'",
@@ -2938,7 +2955,7 @@
    "category": "tool",
    "levels": {
     "EN-1": 10,
-    "MO-1": 9
+    "MO-1": 10
    },
    "fr": {
     "article": "l'",
@@ -2955,7 +2972,7 @@
    "category": "tool",
    "levels": {
     "EN-1": 10,
-    "MO-1": 9
+    "MO-1": 10
    },
    "fr": {
     "article": "l'",

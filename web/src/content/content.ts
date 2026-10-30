@@ -1,5 +1,5 @@
 import conceptsJson from './concepts.json';
-import { QuestionRef, Rng, shuffle } from '../domain/models';
+import { Rng, shuffle } from '../domain/models';
 
 export interface Concept {
   id: string;
@@ -29,13 +29,6 @@ export function frWithArticle(c: Concept): string {
  */
 export type DistractorStrategy = 'other_group' | 'same_group' | 'same_category';
 
-/** 4 réponses à chaque question ; les leurres se rapprochent avec le niveau. */
-const CHOICES = [4, 4, 4, 4, 4, 4, 4, 4, 4, 4];
-const DISTRACTORS: DistractorStrategy[] = [
-  'other_group', 'same_group', 'same_group', 'same_group', 'same_category',
-  'same_category', 'same_category', 'same_category', 'same_category', 'same_category',
-];
-
 /** Un morceau de parole : texte et langue. */
 export interface Speech {
   text: string;
@@ -43,66 +36,15 @@ export interface Speech {
   slow?: boolean;
 }
 
-export interface GameDef {
-  id: string;
-  category: 'foreign_language' | 'world';
-  /** Image de la bulle du jeu (public/img). */
-  icon: string;
-  /** Couleur de la bulle et du décor. */
-  color: number;
-  introLine: string;
-  choicesByLevel: number[];
-  distractorsByLevel: DistractorStrategy[];
-  /** Consigne de chaque question. */
-  prompt(c: Concept, level: number): Speech[];
-  /** Renforcement après la bonne réponse. */
-  reinforce(c: Concept): Speech[];
-}
-
-export const GAMES: GameDef[] = [
-  {
-    id: 'EN-1',
-    category: 'foreign_language',
-    icon: 'flag-gb',
-    color: 0x3b7de9,
-    introLine: 'intro.EN-1',
-    choicesByLevel: CHOICES,
-    distractorsByLevel: DISTRACTORS,
-    prompt: (c, level) => [{ text: c.en.word, lang: 'en', slow: level <= 3 }],
-    reinforce: (c) => [
-      { text: c.en.word, lang: 'en' },
-      { text: `${frWithArticle(c)} !`, lang: 'fr' },
-    ],
-  },
-  {
-    id: 'MO-1',
-    category: 'world',
-    icon: 'ui-globe',
-    color: 0x30a46c,
-    introLine: 'intro.MO-1',
-    choicesByLevel: CHOICES,
-    distractorsByLevel: DISTRACTORS,
-    prompt: (c) => [{ text: `Montre-moi ${frWithArticle(c)} !`, lang: 'fr' }],
-    reinforce: (c) => [{ text: `Oui, ${frWithArticle(c)} !`, lang: 'fr' }],
-  },
-];
-
-export const gameById = (id: string): GameDef => {
-  const game = GAMES.find((g) => g.id === id);
-  if (!game) throw new Error(`Jeu inconnu : ${id}`);
-  return game;
-};
-
+/** Concepts ayant un niveau pour un jeu donné (champ `levels` du lexique). */
 export const conceptsFor = (gameId: string): Concept[] =>
   CONCEPTS.filter((c) => c.levels[gameId] !== undefined);
 
-export const questionId = (gameId: string, c: Concept) => `${gameId}:${c.id}`;
-
-export const questionsFor = (gameId: string): QuestionRef[] =>
-  conceptsFor(gameId).map((c) => ({ id: questionId(gameId, c), level: c.levels[gameId]! }));
-
-export const choicesFor = (g: GameDef, level: number) => g.choicesByLevel[Math.min(9, level - 1)];
-export const distractorsFor = (g: GameDef, level: number) => g.distractorsByLevel[Math.min(9, level - 1)];
+export const conceptById = (id: string): Concept => {
+  const c = CONCEPTS.find((x) => x.id === id);
+  if (!c) throw new Error(`Concept inconnu : ${id}`);
+  return c;
+};
 
 /** Mauvaises réponses d'une question (sans doublon de mot prononcé). */
 export function pickDistractors(

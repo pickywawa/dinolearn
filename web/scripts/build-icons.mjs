@@ -52,6 +52,10 @@ for (const c of concepts) {
 for (const fruit of FRUITS) write(`food-${fruit}`, noto, fruit);
 write('food-cake', noto, 'shortcake');
 for (const icon of DECOR) write(`decor-${icon}`, noto, icon);
+// Bulles des jeux de l'accueil.
+write('riddle', noto, 'magnifying-glass-tilted-left');
+write('oddoneout', noto, 'puzzle-piece');
+write('counting', noto, 'abacus');
 for (const icon of UI_ICONS) write(`ui-${icon}`, plush, icon);
 for (const flag of FLAGS) write(`flag-${flag}`, flags, flag);
 

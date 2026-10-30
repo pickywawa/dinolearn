@@ -82,6 +82,12 @@ export class Progress {
 
   markTutorialSeen() { this.data.seenTutorial = true; this.save(); }
 
+  /** Change directement le niveau du dino (réglage de test depuis l'accueil). */
+  setDinoLevel(level: number) {
+    this.data.dino = { level: Math.max(1, Math.min(20, level)), xp: 0 };
+    this.save();
+  }
+
   answers(filter: { gameId?: string; category?: string } = {}): AnswerRecord[] {
     return this.data.answers.filter((a) =>
       (!filter.gameId || a.gameId === filter.gameId) && (!filter.category || a.category === filter.category));

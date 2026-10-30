@@ -1,11 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import {
-  CONCEPTS, GAMES, choicesFor, conceptsFor, distractorsFor, frWithArticle, pickDistractors,
-} from '../src/content/content';
+import { CONCEPTS, conceptById, conceptsFor, frWithArticle, pickDistractors } from '../src/content/content';
+import { GAMES, gameById } from '../src/content/games';
+import { RIDDLES } from '../src/content/riddles';
 import { LINES, LinePicker } from '../src/core/lines';
 import { MemoryStore, Progress } from '../src/core/progress';
 import { Series } from '../src/core/series';
-import { gameById } from '../src/content/content';
 import { adjustment, baseLevel, computeLevel } from '../src/domain/difficulty';
 import { AnswerRecord, mulberry32 } from '../src/domain/models';
 import { feed, stageFor, xpToNext } from '../src/domain/progression';
@@ -122,19 +121,59 @@ describe('contenus', () => {
     expect(easy.every((c) => c.group !== 'animal')).toBe(true);
   });
 
-  it('distracteurs : bon nombre, sans mot en double', () => {
+  it('chaque question de chaque jeu se construit avec 4 réponses distinctes', () => {
     const rng = mulberry32(4);
     for (const game of GAMES) {
-      const pool = conceptsFor(game.id);
-      for (const answer of pool) {
-        for (let level = 1; level <= 10; level++) {
-          const d = pickDistractors(answer, pool, choicesFor(game, level) - 1, distractorsFor(game, level), rng);
-          expect(d).toHaveLength(choicesFor(game, level) - 1);
-          expect(new Set([answer, ...d].map((c) => c.en.word)).size).toBe(d.length + 1);
-          expect(new Set([answer, ...d].map((c) => c.fr.word)).size).toBe(d.length + 1);
+      expect(game.questions.length).toBeGreaterThan(40);
+      for (const ref of game.questions) {
+        for (const level of [1, 5, 10]) {
+          const q = game.build(ref, level, rng);
+          const all = [q.answer, ...q.distractors];
+          expect(q.distractors, ref.id).toHaveLength(3);
+          expect(new Set(all.map((c) => c.id)).size, ref.id).toBe(4);
+          const concepts = all.filter((c) => c.image && !c.image.startsWith('food-')).map((c) => conceptById(c.id));
+          if (concepts.length === 4) {
+            expect(new Set(concepts.map((c) => c.fr.word)).size, ref.id).toBe(4);
+          }
+          expect(q.prompt[0].text.length).toBeGreaterThan(0);
         }
       }
     }
+  });
+
+  it('l\'intrus est le seul d\'une autre famille', () => {
+    const game = gameById('LO-1');
+    for (const ref of game.questions) {
+      const q = game.build(ref, 5, mulberry32(1));
+      const odd = conceptById(q.answer.id);
+      const others = q.distractors.map((c) => conceptById(c.id));
+      const family = ref.id.split(':')[2];
+      expect(others.every((c) => c.category === family), ref.id).toBe(true);
+      expect(odd.category, ref.id).not.toBe(family);
+    }
+  });
+
+  it('combien : la bonne quantité est montrée, les autres nombres sont proches aux niveaux difficiles', () => {
+    const game = gameById('LO-2');
+    const q = game.build({ id: 'LO-2:food-banana:7', level: 5 }, 8, mulberry32(3));
+    expect(q.show).toEqual({ image: 'food-banana', count: 7 });
+    expect(q.answer.count).toBe(7);
+    q.distractors.forEach((d) => expect(Math.abs(d.count! - 7)).toBeLessThanOrEqual(2));
+    expect(q.reinforce[0].text).toContain('Il y a sept bananes');
+  });
+
+  it('devinettes : chaque réponse existe, sans leurre qui répondrait aussi', () => {
+    RIDDLES.forEach(([id]) => expect(() => conceptById(id)).not.toThrow());
+    const game = gameById('MO-2');
+    for (let seed = 0; seed < 30; seed++) {
+      const q = game.build({ id: 'MO-2:moon', level: 5 }, 7, mulberry32(seed));
+      expect(q.distractors.map((c) => c.id)).not.toContain('star');
+    }
+  });
+
+  it('Montre-moi : des leurres de la même sous-famille dès le niveau 2', () => {
+    const q = gameById('MO-1').build({ id: 'MO-1:dog', level: 1 }, 2, mulberry32(8));
+    expect(q.distractors.every((c) => conceptById(c.id).category === 'farm')).toBe(true);
   });
 
   it('chaque groupe de répliques utilisé existe', () => {

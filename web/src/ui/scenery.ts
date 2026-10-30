@@ -25,6 +25,9 @@ export function drawScenery(scene: Phaser.Scene, skyTop = 0x9fd8ff, skyBottom = 
   }
 }
 
+/** Le dino grandit avec son niveau (1 à 20) : facteur de taille d'affichage. */
+export const growthFactor = (level: number) => 0.8 + Math.min(20, level) * 0.02;
+
 export const isPortrait = (scene: Phaser.Scene) => scene.scale.height >= scene.scale.width;
 
 /** Taille de référence : le plus petit côté de l'écran. */
