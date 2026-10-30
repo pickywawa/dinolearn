@@ -1,3 +1,5 @@
+import '@fontsource/andika/700.css';
+import '@fontsource/playwrite-fr-moderne/400.css';
 import Phaser from 'phaser';
 import { app } from './core/app';
 import { AgeScene } from './scenes/AgeScene';
@@ -16,6 +18,10 @@ function gameSize() {
   const long = Math.round(720 * ratio);
   return h >= w ? { width: 720, height: long } : { width: long, height: 720 };
 }
+
+// Polices des jeux de lecture : chargées tout de suite, prêtes bien avant la première question.
+void document.fonts?.load('bold 40px Andika');
+void document.fonts?.load('40px "Playwrite FR Moderne"');
 
 const size = gameSize();
 const game = new Phaser.Game({

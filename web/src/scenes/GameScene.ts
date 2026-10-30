@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { app } from '../core/app';
-import { Choice, Show, gameById, gamesForAge } from '../content/games';
+import { Choice, Script, Show, gameById, gamesForAge } from '../content/games';
 import { Series } from '../core/series';
 import { Sfx } from '../core/sfx';
 import { BALANCE } from '../domain/balance';
@@ -529,6 +529,8 @@ export class GameScene extends BaseScene {
       container.add(this.numberFace(choice.count, size));
     } else if (choice.repeat) {
       container.add(this.pileFace(choice.repeat.image, choice.repeat.count, size));
+    } else if (choice.text) {
+      container.add(this.writtenFace(choice.text.value, choice.text.script, size));
     } else if (choice.number !== undefined) {
       // Nombre écrit seul (niveau CP).
       container.add(this.add.text(0, 0, String(choice.number), {
@@ -562,6 +564,22 @@ export class GameScene extends BaseScene {
       dots.fillStyle(0xe5484d, 1).fillCircle(x, y, r);
     }
     return [digit, dots];
+  }
+
+  /** Carte écrite : CAPITALES et minuscules en police de lecture (Andika), attaché en cursive scolaire. */
+  private writtenFace(value: string, script: Script, size: number): Phaser.GameObjects.Text {
+    const cursive = script === 'cursive';
+    const text = this.add.text(0, cursive ? -size * 0.04 : 0, value, {
+      fontFamily: cursive ? '"Playwrite FR Moderne", cursive' : 'Andika, Arial, sans-serif',
+      fontSize: `${Math.round(size * (value.length <= 2 ? 0.42 : cursive ? 0.2 : 0.24))}px`,
+      color: '#2d3354',
+      fontStyle: cursive ? 'normal' : 'bold',
+      padding: { x: 8, y: cursive ? 24 : 6 },
+    }).setOrigin(0.5);
+    // Les mots longs rétrécissent pour tenir dans la carte.
+    const fit = (size * 0.86) / text.width;
+    if (fit < 1) text.setScale(fit);
+    return text;
   }
 
   /** Carte « tas » : la même image répétée `count` fois, en petit. */

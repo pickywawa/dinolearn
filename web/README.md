@@ -13,9 +13,9 @@ Jeu jouable directement dans le navigateur d'un téléphone ou d'une tablette (p
   le touche), ptérodactyle qui fait un looping, diplodocus au loin, bébé T-rex qui sort de derrière
   la colline, papillons, palmier et fougères. Le dino salue, bâille, rugit, regarde autour de lui,
   saute, fait une pirouette pour un sans-faute.
-- **15 jeux**, 20 niveaux de difficulté : 1–10 maternelle, 11–20 niveau CP (dino niveaux 21 à 40,
+- **17 jeux**, 20 niveaux de difficulté : 1–10 maternelle, 11–20 niveau CP (dino niveaux 21 à 40,
   avec 6 images, des leurres piégeux et des nombres jusqu'à 100). Certains jeux n'apparaissent qu'à
-  partir d'un âge : anglais, calcul, sons et syllabes dès 5 ans ; suites, nombres et tailles dès 4 ans.
+  partir d'un âge : anglais, calcul, lecture, sons et syllabes dès 5 ans ; suites, nombres et tailles dès 4 ans.
   - **Anglais — Écoute et touche** : le mot est dit deux fois par une voix britannique (2 images, 4 au CP) ;
   - **Anglais — Numbers** : les nombres en anglais, de « one » à « ninety-nine » (pièges thirteen / thirty) ;
   - **Monde — Montre-moi** : « Montre-moi le hérisson ! » ;
@@ -27,6 +27,10 @@ Jeu jouable directement dans le navigateur d'un téléphone ou d'une tablette (p
   - **Français — Les sons** : qu'est-ce qui rime avec « bateau » ? qu'est-ce qui commence comme « chapeau » ?
   - **Français — Les syllabes** : on tape dans les mains (« pa-pi-llon : trois ») ; au CP, quel mot a
     trois syllabes ?
+  - **Français — Lis le mot** : « Trouve le mot MAMAN » ; 70 mots, en CAPITALES puis en écriture
+    attachée (police scolaire Playwrite France Moderne), avec des leurres de plus en plus ressemblants ;
+  - **Français — Les lettres** : les lettres (capitales, minuscules, attaché ; pièges b/d/p/q), puis les
+    syllabes (MA, LI… puis CHOU, MOI, PAN) ;
   - **Logique — L'intrus** : une seule image n'est pas de la même famille (mots ambigus exclus) ;
   - **Logique — Combien ?** : compter de 1 à 20, avec d'autres fruits mélangés aux niveaux difficiles ;
   - **Logique — Les nombres** : « Touche le nombre soixante-douze » (pièges 27 / 72) ;

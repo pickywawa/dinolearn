@@ -47,6 +47,8 @@ export const LINES: Record<string, string[]> = {
   'home.MO-5': ['La règle : qui est le plus grand, en vrai ?'],
   'home.LO-6': ['Les chiffres : trouve le bon nombre !'],
   'home.FR-2': ['Les mains : on tape les syllabes !'],
+  'home.FR-3': ['Le livre : on apprend à lire des mots !'],
+  'home.FR-4': ['Les lettres : trouve les lettres et les syllabes !'],
   'intro.MIX': [
     'On mélange tous les jeux ! Écoute bien chaque question.',
     'Surprise : une question de chaque jeu ! Écoute bien.',
@@ -68,6 +70,8 @@ export const LINES: Record<string, string[]> = {
   'short.MO-5': ['Le plus grand ou le plus petit !'],
   'short.LO-6': ['Trouve le nombre !'],
   'short.FR-2': ['Tape les syllabes !'],
+  'short.FR-3': ['Lis le mot !', 'On lit !'],
+  'short.FR-4': ['Les lettres !', 'Lis bien !'],
   'home.level': ['L\'étoile, c\'est mon niveau !'],
   'home.age': ['Le gâteau, c\'est pour changer ton âge.'],
   'age.ask': ['Quel âge as-tu ? Touche le gâteau avec ton âge !'],
@@ -143,6 +147,14 @@ export const LINES: Record<string, string[]> = {
   'intro.FR-2': [
     'On tape dans les mains pour chaque morceau du mot ! Pa-pi-llon : trois tapes !',
     'Les syllabes, ce sont les morceaux des mots. On les compte en tapant dans les mains !',
+  ],
+  'intro.FR-3': [
+    'On apprend à lire ! Je dis un mot, et tu touches le mot écrit.',
+    'Regarde bien les lettres de chaque mot, et trouve celui que je dis !',
+  ],
+  'intro.FR-4': [
+    'On joue avec les lettres ! Écoute bien, et touche la bonne.',
+    'Les lettres, c\'est le début de la lecture ! Trouve celle que je dis.',
   ],
   tutorial: ['Regarde, je te montre ! On touche la bonne image, comme ça !'],
   tutorial_your_turn: ['À toi maintenant !'],

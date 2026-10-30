@@ -4,6 +4,7 @@ import {
 } from './content';
 import { PAIRS, SIZES, SYLLABLES, enNumber } from './extra';
 import { frNumber } from './numbers';
+import { LETTER_LEVELS, LETTER_NAMES, LOOKALIKE_LETTERS, READ_WORDS, SYLLABLES_TO_READ } from './reading';
 import { RIDDLES } from './riddles';
 import { ONSETS, RHYMES } from './sounds';
 
@@ -18,7 +19,11 @@ export interface Choice {
   repeat?: { image: string; count: number };
   /** Carte nombre écrit en chiffres, sans points (niveau CP). */
   number?: number;
+  /** Carte écrite (jeux de lecture) : en CAPITALES, en minuscules d'imprimerie ou en attaché. */
+  text?: { value: string; script: Script };
 }
+
+export type Script = 'caps' | 'lower' | 'cursive';
 
 /** Ce qui est montré au-dessus des réponses. */
 export type Show =
@@ -1103,8 +1108,133 @@ const syllables: GameDef = {
   },
 };
 
+// ---- Français : « Lis le mot » (à partir de 5 ans) ----
+
+const written = (value: string, script: Script): Choice => ({
+  id: `t:${value}`,
+  text: { value: script === 'caps' ? value.toLocaleUpperCase('fr-FR') : value, script },
+});
+
+/** Ressemblance visuelle de deux mots : même début, même fin, même longueur, lettres communes. */
+function likeness(a: string, b: string): number {
+  let score = (a[0] === b[0] ? 3 : 0) + (a[a.length - 1] === b[b.length - 1] ? 2 : 0) + (a.length === b.length ? 2 : 0);
+  for (let i = 0; i < Math.min(a.length, b.length); i++) if (a[i] === b[i]) score++;
+  return score - Math.abs(a.length - b.length);
+}
+
+/** Leurres écrits : très différents aux premiers niveaux, puis de plus en plus ressemblants. */
+function writtenDistractors(target: string, pool: string[], count: number, level: number, rng: Rng): string[] {
+  const others = shuffle(pool.filter((w) => w !== target), rng);
+  if (level <= 3) {
+    // Faciles : un autre début et une autre longueur.
+    const far = others.filter((w) => w[0] !== target[0] && w.length !== target.length);
+    return [...far, ...others].filter((w, i, all) => all.indexOf(w) === i).slice(0, count);
+  }
+  const ranked = others.map((w) => ({ w, score: likeness(target, w) })).sort((x, y) => y.score - x.score);
+  // Niveaux moyens : on pioche parmi les plus ressemblants ; niveau CP : les plus ressemblants.
+  const top = ranked.slice(0, level >= 12 ? count : count * 3).map((x) => x.w);
+  return shuffle(top, rng).slice(0, count);
+}
+
+const readWord: GameDef = {
+  id: 'FR-3',
+  category: 'french',
+  minAge: 5,
+  icon: 'read',
+  color: 0x9a3412,
+  introLine: 'intro.FR-3',
+  homeLine: 'home.FR-3',
+  shortLine: 'short.FR-3',
+  // Chaque mot en CAPITALES, puis en attaché six niveaux plus haut.
+  questions: READ_WORDS.flatMap(([word, , level]) => [
+    { id: `FR-3:${word}:caps`, level },
+    { id: `FR-3:${word}:cursive`, level: Math.min(20, level + 6) },
+  ]),
+  build(ref, _level, rng) {
+    const [, word, script] = ref.id.split(':') as [string, string, Script];
+    const [, conceptId] = READ_WORDS.find(([w]) => w === word)!;
+    const count = ref.level <= 3 ? 2 : ref.level >= 16 ? 5 : 3;
+    const pool = READ_WORDS.map(([w]) => w);
+    return {
+      answer: written(word, script),
+      distractors: writtenDistractors(word, pool, count, ref.level, rng).map((w) => written(w, script)),
+      show: conceptId ? { kind: 'image', image: conceptId } : undefined,
+      prompt: [{
+        text: oneOf(rng, [`Trouve le mot : ${word} !`, `Où est écrit ${word} ?`, `Lis bien, et touche le mot ${word}.`]),
+        lang: 'fr',
+      }],
+      reinforce: [{ text: oneOf(rng, [`Oui ! Ici, c'est écrit ${word} !`, `Bravo, tu as lu ${word} !`]), lang: 'fr' }],
+      hints: [{
+        text: `Indice : ${word} commence par la lettre ${LETTER_NAMES[word[0].normalize('NFD')[0].toUpperCase()]}.`,
+        lang: 'fr',
+      }],
+    };
+  },
+};
+
+// ---- Français : « Les lettres » (lettres, puis syllabes) ----
+
+const lookalikesOf = (letter: string) => LOOKALIKE_LETTERS.filter((g) => g.includes(letter)).join('').split(letter).join('');
+
+const letters: GameDef = {
+  id: 'FR-4',
+  category: 'french',
+  minAge: 5,
+  icon: 'letters',
+  color: 0x0e7490,
+  introLine: 'intro.FR-4',
+  homeLine: 'home.FR-4',
+  shortLine: 'short.FR-4',
+  // Lettres en CAPITALES (1–6), en minuscules (7–10) et en attaché (8–12) ; syllabes (8–20).
+  questions: [
+    ...LETTER_LEVELS.flatMap(([letter, level]) => [
+      { id: `FR-4:L:${letter}:caps`, level },
+      { id: `FR-4:L:${letter}:lower`, level: level + 4 },
+      { id: `FR-4:L:${letter}:cursive`, level: level + 6 },
+    ]),
+    ...SYLLABLES_TO_READ.flatMap(([syllable, , level]) => [
+      { id: `FR-4:S:${syllable}:caps`, level },
+      { id: `FR-4:S:${syllable}:cursive`, level: Math.min(20, level + 4) },
+    ]),
+  ],
+  build(ref, _level, rng) {
+    const [, kind, value, script] = ref.id.split(':') as [string, 'L' | 'S', string, Script];
+    if (kind === 'L') {
+      // Lettres : au début des lettres au hasard, ensuite celles qui se ressemblent (b, d, p, q…).
+      const all = LETTER_LEVELS.map(([l]) => l).filter((l) => l !== value);
+      const near = script === 'caps' && ref.level <= 3 ? [] : shuffle([...lookalikesOf(value)], rng);
+      const others = [...near, ...shuffle(all, rng)].filter((l, i, list) => list.indexOf(l) === i).slice(0, 3);
+      const show = (l: string) => written(script === 'caps' ? l : l.toLowerCase(), script);
+      const name = LETTER_NAMES[value];
+      return {
+        answer: show(value),
+        distractors: others.map(show),
+        prompt: [{ text: oneOf(rng, [`Touche la lettre ${name} !`, `Où est la lettre ${name} ?`]), lang: 'fr' }],
+        reinforce: [{ text: `Oui ! C'est la lettre ${name} !`, lang: 'fr' }],
+        hints: [{ text: 'Indice : regarde bien la forme de chaque lettre, elles se ressemblent !', lang: 'fr' }],
+      };
+    }
+    const [, said] = SYLLABLES_TO_READ.find(([syl]) => syl === value)!;
+    // Leurres : les syllabes qui se ressemblent le plus (MA / MO / AM…).
+    const pool = SYLLABLES_TO_READ.map(([syl]) => syl);
+    const reversed = value.length === 2 && /[aeiou]$/.test(value) ? [value[1] + value[0]] : [];
+    const others = [...(ref.level >= 10 ? reversed : []),
+      ...writtenDistractors(value, pool, 3, Math.max(ref.level, 12), rng)].slice(0, 3);
+    return {
+      answer: written(value, script),
+      distractors: others.map((o) => written(o, script)),
+      prompt: [{ text: oneOf(rng, [`Trouve la syllabe ${said} !`, `Où est écrit ${said} ?`]), lang: 'fr' }],
+      reinforce: [{ text: `Oui ! Ça se lit ${said} !`, lang: 'fr' }],
+      hints: [{
+        text: `Indice : ${said}, ça commence par la lettre ${LETTER_NAMES[value[0].toUpperCase()]}.`,
+        lang: 'fr',
+      }],
+    };
+  },
+};
+
 export const GAMES: GameDef[] = [
-  listenTap, englishNumbers, showMe, riddles, shadows, together, bigger, sounds, syllables,
+  listenTap, englishNumbers, showMe, riddles, shadows, together, bigger, sounds, syllables, readWord, letters,
   oddOneOut, counting, numbers, sequence, most, calc,
 ];
 

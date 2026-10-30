@@ -131,12 +131,13 @@ describe('contenus', () => {
 
   it('chaque question se construit avec des réponses distinctes (2 en anglais, 4 ailleurs, 6 au niveau CP)', () => {
     const rng = mulberry32(4);
-    const expectedCount = (gameId: string, id: string, level: number) => {
+    const expectedCount = (gameId: string, id: string, level: number, refLevel: number) => {
       const expert = id.endsWith(':x');
       if (gameId === 'EN-1') return expert ? 4 : 2;
       if (gameId === 'EN-2') return Number(id.split(':')[1]) <= 10 ? 3 : 4;
       if (['MO-1', 'MO-3', 'LO-1', 'MO-4', 'LO-6'].includes(gameId) && expert) return 6;
       if (gameId === 'MO-5' && Number(id.split(':')[1]) >= 16) return 6;
+      if (gameId === 'FR-3') return refLevel <= 3 ? 3 : refLevel >= 16 ? 6 : 4;
       if (gameId === 'MO-2' && level >= 15) return 6;
       if (gameId === 'FR-1' && level >= 17) return 6;
       return 4;
@@ -151,7 +152,7 @@ describe('contenus', () => {
         for (const level of [ref.level, 5, 10]) {
           const q = game.build(ref, level, rng);
           const all = [q.answer, ...q.distractors];
-          const expected = expectedCount(game.id, ref.id, level);
+          const expected = expectedCount(game.id, ref.id, level, ref.level);
           expect(all, ref.id).toHaveLength(expected);
           expect(new Set(all.map((c) => c.id)).size, ref.id).toBe(expected);
           const concepts = all.filter((c) => c.image && !c.image.startsWith('food-')).map((c) => conceptById(c.id));
@@ -311,6 +312,28 @@ describe('contenus', () => {
     expect(at3).toContain('MO-1');
     expect(gamesForAge(5).map((g) => g.id)).toContain('LO-5');
     expect(gamesForAge(7)).toHaveLength(GAMES.length);
+  });
+
+  it('lecture : le bon mot écrit, dans la bonne écriture, des leurres de plus en plus ressemblants', () => {
+    const game = gameById('FR-3');
+    const easy = game.build({ id: 'FR-3:maman:caps', level: 1 }, 1, mulberry32(1));
+    expect(easy.answer.text).toEqual({ value: 'MAMAN', script: 'caps' });
+    easy.distractors.forEach((d) => expect(d.text!.value[0]).not.toBe('M'));
+    const hard = game.build({ id: 'FR-3:chapeau:cursive', level: 14 }, 14, mulberry32(1));
+    expect(hard.answer.text).toEqual({ value: 'chapeau', script: 'cursive' });
+    expect(hard.show).toEqual({ kind: 'image', image: 'hat' });
+    expect(hard.hints![0].text).toContain('cé');
+    const letters = gameById('FR-4');
+    for (const ref of letters.questions) {
+      const q = letters.build(ref, ref.level, mulberry32(2));
+      const values = [q.answer, ...q.distractors].map((c) => c.text!.value);
+      expect(new Set(values).size, ref.id).toBe(values.length);
+      const [, , value, script] = ref.id.split(':');
+      expect(q.answer.text!.value.toLowerCase(), ref.id).toBe(value.toLowerCase());
+      if (script === 'caps') values.forEach((v) => expect(v, ref.id).toBe(v.toUpperCase()));
+    }
+    const b = letters.build({ id: 'FR-4:L:B:lower', level: 8 }, 8, mulberry32(3));
+    expect(b.distractors.map((d) => d.text!.value).some((v) => 'dpq'.includes(v))).toBe(true);
   });
 
   it('nombres en lettres', () => {
