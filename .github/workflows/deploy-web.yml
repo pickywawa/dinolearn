@@ -29,6 +29,8 @@ jobs:
           cache: npm
           cache-dependency-path: web/package-lock.json
       - run: npm ci
+      # Les tests vérifient que les images des jeux existent : on les extrait d'abord.
+      - run: npm run icons
       - run: npm test
       - run: npm run build
       - uses: actions/upload-pages-artifact@v3
