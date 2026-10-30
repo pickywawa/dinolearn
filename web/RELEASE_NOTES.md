@@ -1,27 +1,27 @@
-## DinoLearn 0.2.0 — jeu web mobile (Phaser 3 + TypeScript)
+## DinoLearn 0.3.0 — plus difficile, plus réaliste, plus vivant
 
-Première version jouable dans le navigateur d'un téléphone ou d'une tablette, pour les 3–7 ans.
-
-### Contenu
-- **Le dino guide tout** : il présente chaque bulle en la montrant du bras, une main animée tapote
-  l'endroit à toucher, relances automatiques si l'enfant ne fait rien. Aucun texte à lire.
-- **Deux jeux** :
-  - *Anglais* : le mot est dit en anglais, l'enfant touche la bonne image ;
-  - *Monde* : « Montre-moi le lapin ! ».
-- 85 mots illustrés (pack SVG withicons « Plush », MIT), 6 à 7 niveaux par jeu.
-- Tutoriel à la première partie, indice après 2 erreurs, séries de 6 à 10 questions selon l'âge.
-- Récompenses (étoiles, aliments), nourrissage par glisser-déposer, dino qui grandit
-  (limite de nourriture par jour).
-- Difficulté adaptative : niveau du dino, âge et réussite des 100 dernières réponses ;
-  une question réussie n'est plus reposée.
-- Voix du dino par la synthèse vocale de l'appareil (easy-speech), bruitages ZzFX.
+### Nouveautés
+- **Images plus réalistes** : illustrations Noto (Google, Apache 2.0) pour les questions, les fruits
+  et le décor ; les animaux et objets se reconnaissent beaucoup mieux.
+- **Questions plus difficiles** : toujours **4 réponses**, **179 mots sur 10 niveaux** (écureuil,
+  mouffette, phare, boussole, camion de pompiers…). Les mauvaises réponses se rapprochent de la
+  bonne avec le niveau : autre famille, puis même famille, puis même sous-famille
+  (un dauphin parmi des animaux marins).
+- **Choix de l'âge au démarrage** : un gâteau par âge (3 à 7 ans) avec ses bougies ; l'âge règle le
+  niveau de départ et la longueur des séries. Modifiable avec le petit gâteau de l'accueil.
+- **Fruits à gagner** : la barre de progression montre un fruit différent par question, gagné si la
+  réponse est trouvée du premier coup (+ un gâteau pour un sans-faute).
+- **Nourrir le dino en fin de série** : l'enfant glisse ses fruits jusqu'à la bouche du dino, qui les
+  mange ; la jauge sur son ventre se remplit et il grandit. Le panier et le garde-manger sont supprimés.
+- **Décor préhistorique animé** sur les écrans de départ et d'accueil : volcan qui fume et entre en
+  éruption, ptérodactyle qui vole, diplodocus qui marche, palmier et fougères qui se balancent.
 
 ### Installer / tester
-- Archive `dinolearn-web-v0.2.0.zip` : le jeu compilé, à déposer sur n'importe quel hébergement
-  web statique.
-- Ou en local : `cd web && npm install && npm run dev`.
+- En ligne : https://pickywawa.github.io/dinolearn/
+- Archive `dinolearn-web-v0.3.0.zip` : le jeu compilé, pour tout hébergement web statique.
+- En local : `cd web && npm install && npm run dev`.
 
 ### Limites connues
-- La voix dépend des voix installées sur l'appareil ; certaines vues web intégrées (dont
-  l'aperçu dans l'appli Claude) n'ont pas de synthèse vocale.
-- Pas encore d'espace parents (l'âge se règle avec `?age=6` dans l'adresse).
+- La voix dépend des voix installées sur l'appareil ; certaines vues web intégrées (dont l'aperçu
+  dans l'appli Claude) n'ont pas de synthèse vocale.
+- Pas encore d'espace parents.
