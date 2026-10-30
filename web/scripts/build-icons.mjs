@@ -20,7 +20,7 @@ const FRUITS = [
   'watermelon', 'peach', 'pineapple', 'kiwi-fruit', 'mango', 'blueberries', 'melon',
   'green-apple', 'coconut',
 ];
-const DECOR = ['palm-tree', 'sauropod', 't-rex', 'herb'];
+const DECOR = ['palm-tree', 'sauropod', 't-rex', 'herb', 'butterfly'];
 const FLAGS = ['gb'];
 
 function write(name, set, icon) {
@@ -57,6 +57,9 @@ write('riddle', noto, 'magnifying-glass-tilted-left');
 write('oddoneout', noto, 'puzzle-piece');
 write('counting', noto, 'abacus');
 write('ui-basket', noto, 'basket');
+write('shadow', noto, 'busts-in-silhouette');
+write('sequence', noto, 'repeat-button');
+write('most', noto, 'balance-scale');
 for (const icon of UI_ICONS) write(`ui-${icon}`, plush, icon);
 for (const flag of FLAGS) write(`flag-${flag}`, flags, flag);
 

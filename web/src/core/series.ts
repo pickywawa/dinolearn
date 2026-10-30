@@ -1,5 +1,5 @@
 import { Speech } from '../content/content';
-import { Choice, GameDef } from '../content/games';
+import { Choice, GameDef, Show } from '../content/games';
 import { BALANCE, Balance, seriesLengthFor } from '../domain/balance';
 import { computeLevel } from '../domain/difficulty';
 import { Food, Rng } from '../domain/models';
@@ -8,14 +8,16 @@ import { pickQuestions } from '../domain/selector';
 import { Progress } from './progress';
 
 export interface SeriesItem {
+  game: GameDef;
   questionId: string;
   level: number;
   answer: Choice;
   /** Réponses proposées, bonne réponse comprise. */
   choices: Choice[];
-  show?: { image: string; count: number };
+  show?: Show;
   prompt: Speech[];
   reinforce: Speech[];
+  hints: Speech[];
   isReview: boolean;
   /** Fruit de la barre de progression, gagné si la réponse est trouvée du premier coup. */
   fruit: Food;
@@ -24,6 +26,7 @@ export interface SeriesItem {
 }
 
 export interface SeriesResult {
+  /** Jeu joué, ou 'MIX' pour une série tout mélangée. */
   gameId: string;
   level: number;
   total: number;
@@ -41,49 +44,54 @@ export type TapOutcome =
 /**
  * Déroulé d'une série (spécifications §5.1–5.3), sans dépendance à Phaser :
  * la scène s'occupe des animations et de la voix.
+ * Avec un seul jeu, toutes les questions en viennent ; avec plusieurs jeux
+ * (gros bouton de l'accueil), chaque question est tirée d'un jeu au hasard.
  */
 export class Series {
   readonly level: number;
   readonly items: SeriesItem[];
+  readonly mixed: boolean;
   index = 0;
   wrongAttempts = 0;
   readonly disabled = new Set<string>();
   firstTrySuccesses = 0;
   private streak = 0;
   private answered = 0;
+  private levels = new Map<string, number>();
   result?: SeriesResult;
 
   constructor(
-    readonly game: GameDef,
+    games: GameDef | GameDef[],
     private progress: Progress,
     rng: Rng,
     private b: Balance = BALANCE,
   ) {
-    const category = game.category;
-    this.level = computeLevel({
-      experienceLevel: progress.dino.level,
-      age: progress.age,
-      gameAnswers: progress.answers({ gameId: game.id }),
-      categoryAnswers: progress.answers({ category }),
-      allAnswers: progress.answers(),
-      previousLevel: progress.gameLevel(game.id),
-    }, b);
+    const list = Array.isArray(games) ? games : [games];
+    this.mixed = list.length > 1;
+    for (const game of list) this.levels.set(game.id, this.levelFor(game));
 
-    const refs = new Map(game.questions.map((q) => [q.id, q]));
-    const selection = pickQuestions({
-      questions: game.questions,
-      level: this.level,
-      count: seriesLengthFor(progress.age, b),
-      mastered: progress.mastered(game.id),
-      recent: progress.recentQuestions(game.id, b.recentSeriesExcluded),
-      toRetry: progress.toRetry(game.id, b.retryMaxAgeDays),
-    }, rng, b);
+    const count = seriesLengthFor(progress.age, b);
+    const picks: { game: GameDef; question: { id: string; level: number }; isReview: boolean }[] = [];
+    if (this.mixed) {
+      // Une question par tirage, jamais deux fois le même jeu de suite.
+      let previous: GameDef | undefined;
+      for (let i = 0; i < count; i++) {
+        const options = list.filter((g) => g !== previous);
+        const game = options[Math.floor(rng() * options.length)];
+        const taken = new Set(picks.filter((p) => p.game === game).map((p) => p.question.id));
+        const [pick] = this.select(game, 1, rng, taken);
+        if (pick) picks.push({ game, ...pick });
+        previous = game;
+      }
+    } else {
+      for (const pick of this.select(list[0], count, rng, new Set())) picks.push({ game: list[0], ...pick });
+    }
+    this.level = Math.round(picks.reduce((sum, p) => sum + this.levels.get(p.game.id)!, 0) / Math.max(1, picks.length));
 
     const positions: number[] = [];
-    const fruits = seriesFruits(selection.length, rng);
-    this.items = selection.map((s, i) => {
-      const ref = refs.get(s.question.id)!;
-      const q = game.build(ref, this.level, rng);
+    const fruits = seriesFruits(picks.length, rng);
+    this.items = picks.map(({ game, question, isReview }, i) => {
+      const q = game.build(question, this.levels.get(game.id)!, rng);
       const choices = [...q.distractors];
       // Position de la bonne réponse : jamais 3 fois de suite la même.
       let position = Math.floor(rng() * (choices.length + 1));
@@ -94,15 +102,41 @@ export class Series {
       positions.push(position);
       choices.splice(position, 0, q.answer);
       return {
-        questionId: ref.id, level: ref.level, answer: q.answer, choices, show: q.show,
-        prompt: q.prompt, reinforce: q.reinforce, isReview: s.isReview, fruit: fruits[i],
+        game, questionId: question.id, level: question.level, answer: q.answer, choices, show: q.show,
+        prompt: q.prompt, reinforce: q.reinforce, hints: q.hints ?? [], isReview, fruit: fruits[i],
       };
     });
+  }
+
+  private levelFor(game: GameDef): number {
+    const p = this.progress;
+    return computeLevel({
+      experienceLevel: p.dino.level,
+      age: p.age,
+      gameAnswers: p.answers({ gameId: game.id }),
+      categoryAnswers: p.answers({ category: game.category }),
+      allAnswers: p.answers(),
+      previousLevel: p.gameLevel(game.id),
+    }, this.b);
+  }
+
+  private select(game: GameDef, count: number, rng: Rng, taken: Set<string>) {
+    const p = this.progress;
+    return pickQuestions({
+      questions: game.questions,
+      level: this.levels.get(game.id)!,
+      count,
+      mastered: p.mastered(game.id),
+      recent: new Set([...p.recentQuestions(game.id, this.b.recentSeriesExcluded), ...taken]),
+      toRetry: p.toRetry(game.id, this.b.retryMaxAgeDays),
+    }, rng, this.b);
   }
 
   get current(): SeriesItem { return this.items[this.index]; }
   get hint(): boolean { return this.wrongAttempts >= this.b.hintAfterWrongAttempts; }
   get finished(): boolean { return this.result !== undefined; }
+  /** Vrai si le jeu change par rapport à la question précédente (mode mélangé). */
+  get gameChanged(): boolean { return this.index === 0 || this.items[this.index - 1].game !== this.current.game; }
 
   tap(choice: Choice): TapOutcome {
     if (this.finished || this.disabled.has(choice.id)) return { kind: 'ignored' };
@@ -110,7 +144,8 @@ export class Series {
       this.disabled.add(choice.id);
       this.wrongAttempts++;
       this.streak = 0;
-      return { kind: 'wrong', hint: this.hint };
+      // Avec 2 réponses, il n'en reste qu'une : on la montre tout de suite.
+      return { kind: 'wrong', hint: this.hint || this.disabled.size >= this.current.choices.length - 1 };
     }
     const firstTry = this.wrongAttempts === 0;
     if (firstTry) {
@@ -122,8 +157,8 @@ export class Series {
     this.answered++;
     this.current.firstTry = firstTry;
     this.progress.recordAnswer({
-      gameId: this.game.id,
-      category: this.game.category,
+      gameId: this.current.game.id,
+      category: this.current.game.category,
       questionId: this.current.questionId,
       level: this.current.level,
       firstTrySuccess: firstTry,
@@ -161,9 +196,13 @@ export class Series {
     const answeredItems = this.items.slice(0, answered);
     const earned: Food[] = answeredItems.filter((i) => i.firstTry).map((i) => i.fruit);
     if (answered === this.items.length && this.firstTrySuccesses === answered) earned.push('cake');
-    this.progress.recordSeries(this.game.id, answeredItems.map((i) => i.questionId), this.level);
+    // Historique et niveau enregistrés jeu par jeu.
+    for (const [gameId, level] of this.levels) {
+      const ids = answeredItems.filter((i) => i.game.id === gameId).map((i) => i.questionId);
+      if (ids.length > 0) this.progress.recordSeries(gameId, ids, level);
+    }
     this.result = {
-      gameId: this.game.id, level: this.level, total: answered,
+      gameId: this.mixed ? 'MIX' : this.items[0].game.id, level: this.level, total: answered,
       firstTrySuccesses: this.firstTrySuccesses, stars, earned,
     };
   }

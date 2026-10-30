@@ -22,7 +22,7 @@ export class Voice {
   /** Réglages de la voix du dino (hauteur max = 2). */
   static readonly DINO = { pitch: 1.75, rate: 1.05 };
   /** Mots anglais : lents et bien articulés. */
-  static readonly WORD = { pitch: 1.1, rate: 0.72 };
+  static readonly WORD = { pitch: 1.0, rate: 0.72 };
 
   constructor(readonly lines: LinePicker) {}
 
@@ -124,12 +124,14 @@ const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, 
 /** Préférences : voix « naturelles » et connues pour bien sonner. */
 const PREFERRED: Record<'fr' | 'en', RegExp[]> = {
   fr: [/natural/i, /google/i, /amélie|amelie/i, /audrey/i, /thomas/i, /denise/i, /marie/i],
-  en: [/natural/i, /google us/i, /samantha/i, /karen/i, /daniel/i, /google uk/i, /aria|jenny/i],
+  // Voix anglaise : accent britannique, claire et douce, de préférence féminine.
+  en: [/sonia|libby|maisie/i, /google uk english female/i, /serena|kate|martha|stephanie/i,
+    /google uk/i, /daniel/i, /natural/i, /samantha|karen|moira|tessa/i],
 };
 
 function bestVoice(all: SpeechSynthesisVoice[], lang: 'fr' | 'en'): SpeechSynthesisVoice | undefined {
   const candidates = all.filter((v) => v.lang.toLowerCase().replace('_', '-').startsWith(lang));
-  const regional = candidates.filter((v) => /fr-fr|en-us|en-gb/i.test(v.lang.replace('_', '-')));
+  const regional = candidates.filter((v) => (lang === 'en' ? /en-gb/i : /fr-fr/i).test(v.lang.replace('_', '-')));
   const pool = regional.length ? regional : candidates;
   for (const pattern of PREFERRED[lang]) {
     const voice = pool.find((v) => pattern.test(v.name));

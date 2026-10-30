@@ -33,10 +33,10 @@ export class ChooseScene extends BaseScene {
     makeTickable(this.dino);
     this.guide = new Guide(this, u * 0.15);
 
-    const r = u * (portrait ? 0.13 : 0.12);
+    const r = u * (portrait ? 0.12 : 0.11);
     const positions = portrait
-      ? [[0.2, 0.22], [0.5, 0.22], [0.8, 0.22], [0.33, 0.4], [0.67, 0.4]]
-      : [[0.09, 0.3], [0.26, 0.3], [0.74, 0.3], [0.91, 0.3], [0.18, 0.66]];
+      ? [[0.2, 0.18], [0.5, 0.18], [0.8, 0.18], [0.2, 0.33], [0.5, 0.33], [0.8, 0.33], [0.35, 0.48], [0.65, 0.48]]
+      : [[0.08, 0.28], [0.23, 0.28], [0.77, 0.28], [0.92, 0.28], [0.08, 0.6], [0.23, 0.6], [0.77, 0.6], [0.92, 0.6]];
     this.bubbles = GAMES.map((game, i) => ({
       bubble: new Bubble(this, W * positions[i][0], H * positions[i][1], r, game.color, game.icon,
         () => this.play(game.id)),

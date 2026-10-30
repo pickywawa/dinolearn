@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { CONCEPTS, conceptById, conceptsFor, frWithArticle, pickDistractors } from '../src/content/content';
-import { GAMES, gameById, pickRandomGame } from '../src/content/games';
+import { GAMES, gameById } from '../src/content/games';
 import { RIDDLES } from '../src/content/riddles';
 import { LINES, LinePicker } from '../src/core/lines';
 import { MemoryStore, Progress } from '../src/core/progress';
 import { Series } from '../src/core/series';
+import { BALANCE } from '../src/domain/balance';
 import { adjustment, baseLevel, computeLevel } from '../src/domain/difficulty';
 import { AnswerRecord, mulberry32 } from '../src/domain/models';
 import { feed, stageFor, xpToNext } from '../src/domain/progression';
@@ -99,7 +100,8 @@ describe('récompenses et croissance', () => {
     expect(xpToNext(19)).toBe(378);
     expect(Array.from({ length: 19 }, (_, i) => xpToNext(i + 1)).reduce((a, b) => a + b)).toBe(3412);
     expect(feed({ level: 1, xp: 15 }, 4, 0)).toEqual({ outcome: 'levelUp', dino: { level: 2, xp: 1 }, xpEatenToday: 4 });
-    expect(feed({ level: 3, xp: 0 }, 2, 40).outcome).toBe('full');
+    expect(feed({ level: 3, xp: 0 }, 2, 40).outcome).toBe('eaten');
+    expect(feed({ level: 3, xp: 0 }, 2, BALANCE.dailyXpCap).outcome).toBe('full');
     expect([1, 5, 20].map(stageFor)).toEqual([1, 2, 5]);
   });
 });
@@ -157,7 +159,12 @@ describe('contenus', () => {
   it('combien : la bonne quantité est montrée, les autres nombres sont proches aux niveaux difficiles', () => {
     const game = gameById('LO-2');
     const q = game.build({ id: 'LO-2:food-banana:7', level: 5 }, 8, mulberry32(3));
-    expect(q.show).toEqual({ image: 'food-banana', count: 7 });
+    expect(q.show?.kind).toBe('count');
+    if (q.show?.kind === 'count') {
+      expect(q.show.groups[0]).toEqual({ image: 'food-banana', count: 7 });
+      expect(q.show.groups).toHaveLength(2); // niveau 8 : d'autres fruits mélangés
+    }
+    expect(q.prompt[0].text).toContain('seulement les bananes');
     expect(q.answer.count).toBe(7);
     q.distractors.forEach((d) => expect(Math.abs(d.count! - 7)).toBeLessThanOrEqual(2));
     expect(q.reinforce[0].text).toContain('Il y a sept bananes');
@@ -172,14 +179,49 @@ describe('contenus', () => {
     }
   });
 
-  it('jeu au hasard : jamais deux fois le même de suite', () => {
-    const rng = mulberry32(6);
-    let previous = 'EN-1';
-    for (let i = 0; i < 50; i++) {
-      const next = pickRandomGame(previous, rng);
-      expect(next).not.toBe(previous);
-      previous = next;
+  it('la suite : la bonne réponse continue le motif', () => {
+    const game = gameById('LO-3');
+    for (const ref of game.questions) {
+      const q = game.build(ref, 5, mulberry32(11));
+      if (q.show?.kind !== 'sequence') throw new Error('suite attendue');
+      const pattern = ref.id.split(':')[1];
+      const seq = q.show.images.slice(0, -1);
+      const expected = seq[seq.length - pattern.length];
+      expect(`food-${q.answer.id}`, ref.id).toBe(expected);
     }
+  });
+
+  it('le plus / le moins : la bonne carte a le plus (ou le moins) de fruits', () => {
+    const game = gameById('LO-4');
+    for (const ref of game.questions) {
+      const q = game.build(ref, 5, mulberry32(12));
+      const counts = q.distractors.map((d) => d.repeat!.count);
+      if (ref.id.endsWith('least')) expect(Math.min(...counts), ref.id).toBeGreaterThan(q.answer.repeat!.count);
+      else expect(Math.max(...counts), ref.id).toBeLessThan(q.answer.repeat!.count);
+    }
+  });
+
+  it('les ombres : une silhouette de la bonne réponse, avec des indices', () => {
+    const q = gameById('MO-3').build({ id: 'MO-3:giraffe', level: 4 }, 4, mulberry32(2));
+    expect(q.show).toEqual({ kind: 'silhouette', image: 'giraffe' });
+    expect(q.hints!.length).toBeGreaterThan(0);
+  });
+
+  it('série mélangée : des questions de plusieurs jeux, jamais deux fois le même jeu de suite', () => {
+    const progress = new Progress(new MemoryStore());
+    progress.age = 7;
+    const series = new Series(GAMES, progress, mulberry32(21));
+    expect(series.mixed).toBe(true);
+    expect(series.items).toHaveLength(10);
+    expect(new Set(series.items.map((i) => i.game.id)).size).toBeGreaterThan(3);
+    series.items.slice(1).forEach((item, i) => expect(item.game).not.toBe(series.items[i].game));
+    while (!series.finished) {
+      series.tap(series.current.answer);
+      series.next();
+    }
+    expect(series.result!.gameId).toBe('MIX');
+    const played = new Set(series.items.map((i) => i.game.id));
+    played.forEach((id) => expect(progress.gameLevel(id)).toBeDefined());
   });
 
   it('Montre-moi : des leurres de la même sous-famille dès le niveau 2', () => {

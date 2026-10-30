@@ -3,7 +3,6 @@ import { app } from '../core/app';
 import { Leftover } from '../core/progress';
 import { SeriesResult } from '../core/series';
 import { Sfx } from '../core/sfx';
-import { pickRandomGame } from '../content/games';
 import { foodImage } from '../domain/models';
 import { feed, growthProgress } from '../domain/progression';
 import { foodXp } from '../domain/rewards';
@@ -17,8 +16,8 @@ const MAX_SHOWN = 10;
 
 export interface EndData {
   result: SeriesResult;
-  /** Partie lancée par le gros bouton : « rejouer » choisit un autre jeu au hasard. */
-  random?: boolean;
+  /** Partie lancée par le gros bouton : « rejouer » relance une série tout mélangée. */
+  mixed?: boolean;
 }
 
 /**
@@ -55,8 +54,7 @@ export class EndScene extends BaseScene {
     this.dino.setBellyFill(growthProgress(app.progress.dino));
     this.guide = new Guide(this, u * 0.16);
     this.again = new Bubble(this, W - u * 0.15, u * 0.15, u * 0.11, 0x43b649, 'ui-play', () => {
-      const gameId = data.random ? pickRandomGame(r.gameId, app.rng) : r.gameId;
-      goTo(this, 'Game', { gameId, random: data.random });
+      goTo(this, 'Game', data.mixed ? { mixed: true } : { gameId: r.gameId });
     });
     this.again.setVisible(false);
 
@@ -81,7 +79,7 @@ export class EndScene extends BaseScene {
       }
       const group = r.stars === 3 ? (r.firstTrySuccesses === r.total ? 'series_perfect' : 'series_great')
         : r.stars === 2 ? 'series_good' : r.stars === 1 ? 'series_ok' : 'series_encourage';
-      this.dino.react(r.stars >= 3 ? 'dance' : r.stars === 2 ? 'cheer' : r.stars === 1 ? 'happy' : 'think');
+      this.dino.react(r.firstTrySuccesses === r.total && r.total > 0 ? 'spin' : r.stars >= 3 ? 'dance' : r.stars === 2 ? 'cheer' : r.stars === 1 ? 'happy' : 'think');
       await this.say(group);
       if (shown.length === 0) {
         await this.say('end.nothing');

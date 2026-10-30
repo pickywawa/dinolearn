@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { app } from '../core/app';
 import { Sfx } from '../core/sfx';
-import { GAMES, pickRandomGame } from '../content/games';
+import { GAMES } from '../content/games';
 import { Dino } from '../dino/Dino';
 import { Bubble } from '../ui/Bubble';
 import { Guide } from '../ui/Guide';
@@ -10,8 +10,8 @@ import { drawScenery, goTo, growthFactor, isPortrait, makeTickable, unit } from 
 import { BaseScene } from './BaseScene';
 
 /**
- * Accueil : un gros bouton vert au centre lance un jeu au hasard (choix par
- * défaut). Un petit bouton ouvre le choix des jeux. En haut : le gâteau
+ * Accueil : un gros bouton vert au centre lance une série tout mélangée
+ * (chaque question vient d'un jeu au hasard, choix par défaut). Un petit bouton ouvre le choix des jeux. En haut : le gâteau
  * (âge) et l'étoile du niveau du dino (− et + pour tester).
  */
 export class HomeScene extends BaseScene {
@@ -59,9 +59,10 @@ export class HomeScene extends BaseScene {
         this.dino.react('cheer');
         await this.say('hello');
       } else {
-        this.dino.react('happy');
+        this.dino.react('wave');
         await this.say('welcome_back');
       }
+      this.time.addEvent({ delay: 6500, loop: true, callback: () => this.dino.idleFun() });
       await this.present();
     });
   }
@@ -113,12 +114,10 @@ export class HomeScene extends BaseScene {
   private playRandom() {
     this.clearIdle();
     this.guide.hide();
-    const gameId = pickRandomGame(app.lastGame, app.rng);
-    app.lastGame = gameId;
     this.dino.react('dance');
     this.run(async () => {
       await this.say('random.go');
-      goTo(this, 'Game', { gameId, random: true });
+      goTo(this, 'Game', { mixed: true });
     });
   }
 

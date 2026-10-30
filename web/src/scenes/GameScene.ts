@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { app } from '../core/app';
-import { Choice, GameDef, gameById } from '../content/games';
+import { Choice, GAMES, Show, gameById } from '../content/games';
 import { Series } from '../core/series';
 import { Sfx } from '../core/sfx';
 import { BALANCE } from '../domain/balance';
@@ -21,11 +21,11 @@ type Phase = 'loading' | 'intro' | 'asking' | 'feedback' | 'done';
 
 /**
  * Gabarit commun à tous les jeux : la consigne est dite, l'enfant touche la
- * bonne réponse parmi 4 cartes (images, ou nombres pour « Combien ? »).
- * Toucher le dino fait répéter la consigne.
+ * bonne réponse parmi 2 à 4 cartes (images, nombres, tas de fruits).
+ * En mode « tout mélangé », chaque question vient d'un jeu différent.
+ * Toucher le dino fait répéter la consigne ; des indices aident quand c'est difficile.
  */
 export class GameScene extends BaseScene {
-  private game_!: GameDef;
   private series!: Series;
   private dino!: Dino;
   private guide!: Guide;
@@ -35,17 +35,20 @@ export class GameScene extends BaseScene {
   private tutorial = false;
   private replayExplained = false;
   private shown: Phaser.GameObjects.GameObject[] = [];
-  private random = false;
+  /** Objets comptés (ils sautent pendant que le dino compte). */
+  private counted: Phaser.GameObjects.Image[] = [];
+  private mixed = false;
+  private hintsGiven = 0;
 
   constructor() {
     super('Game');
   }
 
-  create(data: { gameId: string; random?: boolean }) {
+  create(data: { gameId?: string; mixed?: boolean }) {
     this.initBase();
-    this.game_ = gameById(data.gameId);
-    this.random = !!data.random;
-    const tint = Phaser.Display.Color.IntegerToColor(this.game_.color);
+    this.mixed = !!data.mixed || !data.gameId;
+    const games = this.mixed ? GAMES : [gameById(data.gameId!)];
+    const tint = Phaser.Display.Color.IntegerToColor(this.mixed ? 0x9fd8ff : games[0].color);
     const light = Phaser.Display.Color.Interpolate.ColorWithColor(tint, new Phaser.Display.Color(255, 255, 255), 100, 75);
     drawScenery(this, Phaser.Display.Color.GetColor(light.r, light.g, light.b), 0xf4fbff, 0);
 
@@ -55,7 +58,7 @@ export class GameScene extends BaseScene {
     this.cards = [];
     this.replayExplained = false;
     this.shown = [];
-    this.series = new Series(this.game_, app.progress, app.rng);
+    this.series = new Series(this.mixed ? games : games[0], app.progress, app.rng);
     this.tutorial = !app.progress.seenTutorial && this.series.items.length > 1;
 
     homeButton(this, () => this.leave());
@@ -71,7 +74,9 @@ export class GameScene extends BaseScene {
 
     // Images de la série chargées à la demande (pas embarquées dans le code).
     let toLoad = 0;
-    const keys = new Set(this.series.items.flatMap((i) => [...i.choices.map((c) => c.image), i.show?.image]));
+    const keys = new Set(this.series.items.flatMap((i) => [
+      ...i.choices.flatMap((c) => [c.image, c.repeat?.image]), ...showImages(i.show),
+    ]));
     for (const key of keys) {
       if (key && !this.textures.exists(key)) {
         this.load.svg(key, `img/${key}.svg`, { width: 256, height: 256 });
@@ -93,7 +98,7 @@ export class GameScene extends BaseScene {
     const allReview = this.series.items.every((i) => i.isReview);
     this.showCards();
     if (allReview) await this.say('review');
-    await this.say(this.game_.introLine);
+    await this.say(this.mixed ? 'intro.MIX' : this.series.current.game.introLine);
     if (this.tutorial) await this.playTutorial();
     this.ask();
   }
@@ -122,8 +127,32 @@ export class GameScene extends BaseScene {
 
   private ask() {
     this.phase = 'asking';
-    void app.voice.say(this.series.current.prompt);
+    this.hintsGiven = 0;
+    const item = this.series.current;
+    this.run(async () => {
+      // Mode mélangé : le dino annonce le jeu quand il change.
+      if (this.mixed && this.series.gameChanged) await this.say(item.game.shortLine);
+      await app.voice.say(item.prompt);
+      // Si ce jeu est difficile en ce moment, un indice tout de suite.
+      if (this.struggling() && this.phase === 'asking') await this.giveHint();
+    });
     this.armReminders();
+  }
+
+  /** Vrai si l'enfant rate souvent ce jeu ces derniers temps. */
+  private struggling(): boolean {
+    const recent = app.progress.answers({ gameId: this.series.current.game.id }).slice(0, 8);
+    return recent.length >= 4 && recent.filter((a) => a.firstTrySuccess).length / recent.length < 0.5;
+  }
+
+  /** Dit l'indice suivant de la question, s'il en reste un. */
+  private async giveHint(): Promise<boolean> {
+    const hint = this.series.current.hints[this.hintsGiven];
+    if (!hint) return false;
+    this.hintsGiven++;
+    this.dino.react('think');
+    await app.voice.say([hint]);
+    return true;
   }
 
   private repeatPrompt() {
@@ -134,14 +163,12 @@ export class GameScene extends BaseScene {
     this.armReminders();
   }
 
-  /** Renforcement après la bonne réponse ; pour « Combien ? », les fruits sautent un par un. */
+  /** Renforcement après la bonne réponse ; pour « Combien ? », les bons fruits sautent un par un. */
   private async reinforce() {
     const item = this.series.current;
-    if (item.show) {
-      this.shown.forEach((obj, i) => this.tweens.add({
-        targets: obj, y: '-=18', duration: 160, yoyo: true, delay: 300 + i * 520,
-      }));
-    }
+    this.counted.forEach((obj, i) => this.tweens.add({
+      targets: obj, y: '-=18', duration: 160, yoyo: true, delay: 300 + i * 520,
+    }));
     await app.voice.say(item.reinforce);
   }
 
@@ -155,6 +182,8 @@ export class GameScene extends BaseScene {
           await this.say('idle');
           if (this.phase !== 'asking') return;
           await app.voice.say(this.series.current.prompt);
+          // L'enfant hésite : un indice.
+          if (this.phase === 'asking') await this.giveHint();
           if (!this.replayExplained && this.phase === 'asking') {
             this.replayExplained = true;
             this.dino.react('happy');
@@ -187,13 +216,18 @@ export class GameScene extends BaseScene {
       this.dino.react('oops');
       this.run(async () => {
         if (outcome.hint) {
-          // L'indice : la bonne carte brille et le dino la montre.
+          // Dernier recours : la bonne carte brille et le dino la montre.
           const good = this.cardOf(this.series.current.answer.id)!;
           this.glowCard(good);
           this.dino.pointAt(good.container.x, good.container.y);
           this.guide.tap(good.container);
+          await this.giveHint();
+          await this.say('hint');
+        } else {
+          // Après une erreur : un indice parlé plutôt que la réponse.
+          await this.say('wrong');
+          await this.giveHint();
         }
-        await this.say(outcome.hint ? 'hint' : 'wrong');
         await app.voice.say(this.series.current.prompt);
         this.phase = 'asking';
         this.armReminders();
@@ -214,7 +248,7 @@ export class GameScene extends BaseScene {
       this.series.next();
       if (this.series.finished) {
         this.phase = 'done';
-        goTo(this, 'End', { result: this.series.result, random: this.random });
+        goTo(this, 'End', { result: this.series.result, mixed: this.mixed });
       } else {
         this.showCards();
         this.ask();
@@ -272,6 +306,7 @@ export class GameScene extends BaseScene {
     this.cards = [];
     this.shown.forEach((o) => o.destroy());
     this.shown = [];
+    this.counted = [];
     const item = this.series.current;
     const { width: W, height: H } = this.scale;
     const portrait = isPortrait(this);
@@ -308,26 +343,69 @@ export class GameScene extends BaseScene {
     });
   }
 
-  /** Les objets à compter, rangés en grille dans un cadre. */
-  private drawShow(show: { image: string; count: number }, area: { x: number; y: number; w: number; h: number }) {
+  /** Ce qui est montré au-dessus des réponses, dans un cadre. */
+  private drawShow(show: Show, area: { x: number; y: number; w: number; h: number }) {
     const frame = this.add.graphics();
     frame.fillStyle(0xffffff, 0.85).fillRoundedRect(area.x, area.y, area.w, area.h, 28);
-    frame.lineStyle(6, this.game_.color, 1).strokeRoundedRect(area.x, area.y, area.w, area.h, 28);
+    frame.lineStyle(6, this.series.current.game.color, 1).strokeRoundedRect(area.x, area.y, area.w, area.h, 28);
     this.shown.push(frame);
-    const cols = show.count <= 3 ? show.count : show.count <= 8 ? Math.ceil(show.count / 2) : 5;
-    const rows = Math.ceil(show.count / cols);
-    const cell = Math.min(area.w / cols, area.h / rows) * 0.9;
-    for (let i = 0; i < show.count; i++) {
-      const r = Math.floor(i / cols);
-      const inRow = Math.min(cols, show.count - r * cols);
-      const x = area.x + area.w / 2 + ((i % cols) - (inRow - 1) / 2) * (area.w / cols);
-      const y = area.y + area.h / 2 + (r - (rows - 1) / 2) * (area.h / rows);
-      const img = this.add.image(x, y, show.image);
-      const scale = (cell * 0.8) / img.width;
+    this.counted = [];
+    const pop = (img: Phaser.GameObjects.Image, size: number, i: number) => {
+      const scale = size / Math.max(img.width, img.height);
       img.setScale(0);
       this.tweens.add({ targets: img, scale, duration: 300, delay: i * 70, ease: 'Back.easeOut' });
       this.shown.push(img);
+    };
+
+    if (show.kind === 'silhouette') {
+      // L'ombre : l'image en noir, qui flotte doucement.
+      const img = this.add.image(area.x + area.w / 2, area.y + area.h / 2, show.image).setTintFill(0x1e2235);
+      pop(img, Math.min(area.w, area.h) * 0.8, 0);
+      this.tweens.add({ targets: img, y: '-=8', duration: 1200, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+      return;
     }
+
+    if (show.kind === 'sequence') {
+      // La suite sur une ou deux lignes, avec un « ? » qui clignote à la fin.
+      const n = show.images.length;
+      const perRow = n > 7 ? Math.ceil(n / 2) : n;
+      const rows = Math.ceil(n / perRow);
+      const cell = Math.min(area.w / perRow, area.h / rows);
+      show.images.forEach((key, i) => {
+        const r = Math.floor(i / perRow);
+        const inRow = Math.min(perRow, n - r * perRow);
+        const x = area.x + area.w / 2 + ((i % perRow) - (inRow - 1) / 2) * cell;
+        const y = area.y + area.h / 2 + (r - (rows - 1) / 2) * cell;
+        if (key) {
+          pop(this.add.image(x, y, key), cell * 0.78, i);
+        } else {
+          const mark = this.add.text(x, y, '?', {
+            fontFamily: 'Arial Rounded MT Bold, Arial, sans-serif', fontSize: `${Math.round(cell * 0.7)}px`,
+            color: '#d9467a', fontStyle: 'bold',
+          }).setOrigin(0.5);
+          this.tweens.add({ targets: mark, scale: 1.2, duration: 500, yoyo: true, repeat: -1 });
+          this.shown.push(mark);
+        }
+      });
+      return;
+    }
+
+    // Objets à compter : on mélange les groupes (aux niveaux difficiles, il y a des intrus).
+    const items = Phaser.Utils.Array.Shuffle(show.groups.flatMap((g, gi) =>
+      Array.from({ length: g.count }, () => ({ image: g.image, counted: gi === 0 }))));
+    const total = items.length;
+    const cols = total <= 3 ? total : total <= 8 ? Math.ceil(total / 2) : Math.ceil(total / 3);
+    const rows = Math.ceil(total / cols);
+    const cell = Math.min(area.w / cols, area.h / rows) * 0.9;
+    items.forEach((item, i) => {
+      const r = Math.floor(i / cols);
+      const inRow = Math.min(cols, total - r * cols);
+      const x = area.x + area.w / 2 + ((i % cols) - (inRow - 1) / 2) * (area.w / cols);
+      const y = area.y + area.h / 2 + (r - (rows - 1) / 2) * (area.h / rows);
+      const img = this.add.image(x, y, item.image);
+      pop(img, cell * 0.8, i);
+      if (item.counted) this.counted.push(img);
+    });
   }
 
   private makeCard(choice: Choice, x: number, y: number, size: number, index: number): Card {
@@ -342,6 +420,8 @@ export class GameScene extends BaseScene {
       container.add(img);
     } else if (choice.count !== undefined) {
       container.add(this.numberFace(choice.count, size));
+    } else if (choice.repeat) {
+      container.add(this.pileFace(choice.repeat.image, choice.repeat.count, size));
     }
     container.setSize(size, size);
     container.setInteractive({ useHandCursor: true });
@@ -368,6 +448,19 @@ export class GameScene extends BaseScene {
       dots.fillStyle(0xe5484d, 1).fillCircle(x, y, r);
     }
     return [digit, dots];
+  }
+
+  /** Carte « tas » : la même image répétée `count` fois, en petit. */
+  private pileFace(image: string, count: number, size: number): Phaser.GameObjects.GameObject[] {
+    const cols = count <= 4 ? 2 : count <= 9 ? 3 : 4;
+    const rows = Math.ceil(count / cols);
+    const cell = (size * 0.8) / Math.max(cols, rows);
+    return Array.from({ length: count }, (_, i) => {
+      const r = Math.floor(i / cols);
+      const inRow = Math.min(cols, count - r * cols);
+      const img = this.add.image(((i % cols) - (inRow - 1) / 2) * cell, (r - (rows - 1) / 2) * cell, image);
+      return img.setScale((cell * 0.85) / Math.max(img.width, img.height));
+    });
   }
 
   private paintCard(card: Card, fill: number, border: number, borderWidth = card.size * 0.035) {
@@ -401,4 +494,12 @@ export class GameScene extends BaseScene {
     this.paintCard(card, 0xfff6d5, 0xffc107, card.size * 0.07);
     this.tweens.add({ targets: card.container, scale: 1.07, duration: 400, yoyo: true, repeat: -1 });
   }
+}
+
+/** Images à charger pour ce qui est montré au-dessus des réponses. */
+function showImages(show?: Show): (string | undefined)[] {
+  if (!show) return [];
+  if (show.kind === 'count') return show.groups.map((g) => g.image);
+  if (show.kind === 'silhouette') return [show.image];
+  return show.images.map((i) => i ?? undefined);
 }

@@ -6,21 +6,24 @@ Jeu jouable directement dans le navigateur d'un téléphone ou d'une tablette (p
 - **Le dino guide tout** : il présente chaque bulle en la montrant du bras, une main animée tapote
   l'endroit à toucher, les boutons à toucher pulsent. Relances automatiques en cas d'inactivité.
 - **Menus réduits au minimum** : un œuf à toucher (débloque le son), le choix de l'âge (un gâteau
-  par âge, avec ses bougies), puis l'accueil : un **gros bouton vert** lance un jeu au hasard, un
-  **petit bouton** (mosaïque) ouvre le choix des jeux. Aucun texte.
-- **Décor préhistorique animé** : volcan qui fume et entre en éruption, ptérodactyle qui traverse le
-  ciel, diplodocus qui marche au loin, palmier et fougères qui se balancent.
-- **5 jeux** (4 réponses, 2 pour l'anglais) :
-  - **Anglais — Écoute et touche** : le mot est dit deux fois, lentement, en anglais ; l'enfant
-    touche la bonne image parmi **2** ;
-  - **Monde — Montre-moi** : « Montre-moi le hérisson ! », leurres de la même sous-famille dès le niveau 2 ;
-  - **Monde — Devinettes** : des cris d'animaux (« Qui fait meuh ? ») aux énigmes
-    (« J'ai huit bras et je vis dans la mer ») ;
-  - **Logique — L'intrus** : trois images de la même famille et un intrus (facile : un fruit parmi
-    des véhicules ; difficile : un légume parmi des fruits) ;
-  - **Logique — Combien ?** : compter de 1 à 10 fruits et toucher le bon nombre (chiffre + points) ;
-    aux niveaux difficiles, les nombres proposés sont tout proches.
-  180 mots sur 10 niveaux.
+  par âge, avec ses bougies), puis l'accueil : un **gros bouton vert** lance une série **tout
+  mélangée** (chaque question vient d'un jeu au hasard), un **petit bouton** (mosaïque) ouvre le
+  choix d'un jeu précis. Aucun texte.
+- **Décor préhistorique animé et interactif** : volcan qui fume et entre en éruption (aussi quand on
+  le touche), ptérodactyle qui fait un looping, diplodocus au loin, bébé T-rex qui sort de derrière
+  la colline, papillons, palmier et fougères. Le dino salue, bâille, rugit, regarde autour de lui,
+  saute, fait une pirouette pour un sans-faute.
+- **8 jeux** (4 réponses, 2 pour l'anglais), 250 mots sur 10 niveaux :
+  - **Anglais — Écoute et touche** : le mot est dit deux fois, lentement, par une voix britannique ;
+  - **Monde — Montre-moi** : « Montre-moi le hérisson ! » ;
+  - **Monde — Devinettes** : des cris d'animaux aux énigmes (plus de 150 devinettes) ;
+  - **Monde — Les ombres** : à qui est cette ombre ?
+  - **Logique — L'intrus** : trois images de la même famille et un intrus (mots ambigus exclus) ;
+  - **Logique — Combien ?** : compter de 1 à 10 ; aux niveaux difficiles, d'autres fruits sont mélangés ;
+  - **Logique — La suite** : quel fruit vient après (AB, AAB, ABC… jusqu'à ABCCB) ;
+  - **Logique — Le plus, le moins** : où y a-t-il le plus (ou le moins) de fruits ?
+- **Indices** : après une erreur, quand l'enfant hésite, ou tout de suite si le jeu est difficile pour
+  lui en ce moment (« Indice : c'est un animal de la ferme », « Indice : qui fait meuh ? »).
 - **Toucher le dino** pendant un jeu lui fait répéter la question.
 - **Niveau du dino** affiché sur l'accueil (étoile), réglable avec − et + pour tester.
 - **Tutoriel** à la première partie : le dino fait la première question à la place de l'enfant.
@@ -28,8 +31,8 @@ Jeu jouable directement dans le navigateur d'un téléphone ou d'une tablette (p
   gagné si la réponse est trouvée du premier coup (+ un gâteau pour un sans-faute). Indice après
   2 erreurs (la bonne carte brille et le dino la montre).
 - **Fin de série** : les fruits gagnés tombent dans un panier ; l'enfant touche (ou glisse) le
-  panier vers le dino, qui mange tous les fruits ; la jauge sur son ventre se remplit et il grandit. Au-delà de la limite quotidienne, les fruits sont gardés
-  pour la fois suivante.
+  panier vers le dino, qui mange tous les fruits ; la jauge sur son ventre se remplit et il grandit.
+  Il peut manger l'équivalent d'une dizaine de séries par jour ; au-delà, les fruits sont gardés.
 - **Logique du domaine** des spécifications §5–7 (difficulté adaptative, questions maîtrisées
   jamais reposées, révision, XP, plafond quotidien) dans `src/domain/`, testée avec Vitest.
 

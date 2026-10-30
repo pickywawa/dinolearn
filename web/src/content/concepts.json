@@ -191,7 +191,7 @@
    "id": "frog",
    "icon": "frog",
    "group": "animal",
-   "category": "farm",
+   "category": "wild",
    "levels": {
     "EN-1": 2,
     "MO-1": 2
@@ -208,7 +208,7 @@
    "id": "mouse",
    "icon": "mouse",
    "group": "animal",
-   "category": "farm",
+   "category": "forest",
    "levels": {
     "EN-1": 2,
     "MO-1": 2
@@ -2612,7 +2612,7 @@
    "id": "llama",
    "icon": "llama",
    "group": "animal",
-   "category": "farm",
+   "category": "wild",
    "levels": {
     "EN-1": 9,
     "MO-1": 9
@@ -3048,6 +3048,1213 @@
    },
    "en": {
     "word": "hourglass"
+   }
+  },
+  {
+   "id": "jellyfish",
+   "icon": "jellyfish",
+   "group": "animal",
+   "category": "sea",
+   "levels": {
+    "EN-1": 9,
+    "MO-1": 8
+   },
+   "fr": {
+    "article": "la",
+    "word": "méduse"
+   },
+   "en": {
+    "word": "jellyfish"
+   }
+  },
+  {
+   "id": "seal",
+   "icon": "seal",
+   "group": "animal",
+   "category": "sea",
+   "levels": {
+    "EN-1": 9,
+    "MO-1": 8
+   },
+   "fr": {
+    "article": "le",
+    "word": "phoque"
+   },
+   "en": {
+    "word": "seal"
+   }
+  },
+  {
+   "id": "lobster",
+   "icon": "lobster",
+   "group": "animal",
+   "category": "sea",
+   "levels": {
+    "EN-1": 10,
+    "MO-1": 9
+   },
+   "fr": {
+    "article": "le",
+    "word": "homard"
+   },
+   "en": {
+    "word": "lobster"
+   }
+  },
+  {
+   "id": "shrimp",
+   "icon": "shrimp",
+   "group": "animal",
+   "category": "sea",
+   "levels": {
+    "EN-1": 9,
+    "MO-1": 8
+   },
+   "fr": {
+    "article": "la",
+    "word": "crevette"
+   },
+   "en": {
+    "word": "shrimp"
+   }
+  },
+  {
+   "id": "squid",
+   "icon": "squid",
+   "group": "animal",
+   "category": "sea",
+   "levels": {
+    "EN-1": 10,
+    "MO-1": 10
+   },
+   "fr": {
+    "article": "le",
+    "word": "calamar"
+   },
+   "en": {
+    "word": "squid"
+   }
+  },
+  {
+   "id": "oyster",
+   "icon": "oyster",
+   "group": "animal",
+   "category": "sea",
+   "levels": {
+    "EN-1": 10,
+    "MO-1": 10
+   },
+   "fr": {
+    "article": "l'",
+    "word": "huître"
+   },
+   "en": {
+    "word": "oyster"
+   }
+  },
+  {
+   "id": "beetle",
+   "icon": "beetle",
+   "group": "animal",
+   "category": "bug",
+   "levels": {
+    "EN-1": 10,
+    "MO-1": 9
+   },
+   "fr": {
+    "article": "le",
+    "word": "scarabée"
+   },
+   "en": {
+    "word": "beetle"
+   }
+  },
+  {
+   "id": "cricket",
+   "icon": "cricket",
+   "group": "animal",
+   "category": "bug",
+   "levels": {
+    "EN-1": 10,
+    "MO-1": 10
+   },
+   "fr": {
+    "article": "le",
+    "word": "grillon"
+   },
+   "en": {
+    "word": "cricket"
+   }
+  },
+  {
+   "id": "mosquito",
+   "icon": "mosquito",
+   "group": "animal",
+   "category": "bug",
+   "levels": {
+    "EN-1": 9,
+    "MO-1": 9
+   },
+   "fr": {
+    "article": "le",
+    "word": "moustique"
+   },
+   "en": {
+    "word": "mosquito"
+   }
+  },
+  {
+   "id": "worm",
+   "icon": "worm",
+   "group": "animal",
+   "category": "bug",
+   "levels": {
+    "EN-1": 8,
+    "MO-1": 8
+   },
+   "fr": {
+    "article": "le",
+    "word": "ver de terre"
+   },
+   "en": {
+    "word": "worm"
+   }
+  },
+  {
+   "id": "scorpion",
+   "icon": "scorpion",
+   "group": "animal",
+   "category": "bug",
+   "levels": {
+    "EN-1": 10,
+    "MO-1": 9
+   },
+   "fr": {
+    "article": "le",
+    "word": "scorpion"
+   },
+   "en": {
+    "word": "scorpion"
+   }
+  },
+  {
+   "id": "rooster",
+   "icon": "rooster",
+   "group": "animal",
+   "category": "farm",
+   "levels": {
+    "EN-1": 7,
+    "MO-1": 6
+   },
+   "fr": {
+    "article": "le",
+    "word": "coq"
+   },
+   "en": {
+    "word": "rooster"
+   }
+  },
+  {
+   "id": "turkey",
+   "icon": "turkey",
+   "group": "animal",
+   "category": "farm",
+   "levels": {
+    "EN-1": 9,
+    "MO-1": 8
+   },
+   "fr": {
+    "article": "la",
+    "word": "dinde"
+   },
+   "en": {
+    "word": "turkey"
+   }
+  },
+  {
+   "id": "donkey",
+   "icon": "donkey",
+   "group": "animal",
+   "category": "farm",
+   "levels": {
+    "EN-1": 8,
+    "MO-1": 7
+   },
+   "fr": {
+    "article": "l'",
+    "word": "âne"
+   },
+   "en": {
+    "word": "donkey"
+   }
+  },
+  {
+   "id": "ox",
+   "icon": "ox",
+   "group": "animal",
+   "category": "farm",
+   "levels": {
+    "EN-1": 10,
+    "MO-1": 9
+   },
+   "fr": {
+    "article": "le",
+    "word": "bœuf"
+   },
+   "en": {
+    "word": "ox"
+   }
+  },
+  {
+   "id": "leopard",
+   "icon": "leopard",
+   "group": "animal",
+   "category": "wild",
+   "levels": {
+    "EN-1": 9,
+    "MO-1": 8
+   },
+   "fr": {
+    "article": "le",
+    "word": "léopard"
+   },
+   "en": {
+    "word": "leopard"
+   }
+  },
+  {
+   "id": "polar_bear",
+   "icon": "polar-bear",
+   "group": "animal",
+   "category": "wild",
+   "levels": {
+    "EN-1": 8,
+    "MO-1": 7
+   },
+   "fr": {
+    "article": "l'",
+    "word": "ours blanc"
+   },
+   "en": {
+    "word": "polar bear"
+   }
+  },
+  {
+   "id": "koala",
+   "icon": "koala",
+   "group": "animal",
+   "category": "wild",
+   "levels": {
+    "EN-1": 8,
+    "MO-1": 7
+   },
+   "fr": {
+    "article": "le",
+    "word": "koala"
+   },
+   "en": {
+    "word": "koala"
+   }
+  },
+  {
+   "id": "orangutan",
+   "icon": "orangutan",
+   "group": "animal",
+   "category": "wild",
+   "levels": {
+    "EN-1": 10,
+    "MO-1": 10
+   },
+   "fr": {
+    "article": "l'",
+    "word": "orang-outan"
+   },
+   "en": {
+    "word": "orangutan"
+   }
+  },
+  {
+   "id": "mammoth",
+   "icon": "mammoth",
+   "group": "animal",
+   "category": "wild",
+   "levels": {
+    "EN-1": 10,
+    "MO-1": 9
+   },
+   "fr": {
+    "article": "le",
+    "word": "mammouth"
+   },
+   "en": {
+    "word": "mammoth"
+   }
+  },
+  {
+   "id": "moose",
+   "icon": "moose",
+   "group": "animal",
+   "category": "forest",
+   "levels": {
+    "EN-1": 10,
+    "MO-1": 10
+   },
+   "fr": {
+    "article": "l'",
+    "word": "élan"
+   },
+   "en": {
+    "word": "moose"
+   }
+  },
+  {
+   "id": "badger",
+   "icon": "badger",
+   "group": "animal",
+   "category": "forest",
+   "levels": {
+    "EN-1": 10,
+    "MO-1": 10
+   },
+   "fr": {
+    "article": "le",
+    "word": "blaireau"
+   },
+   "en": {
+    "word": "badger"
+   }
+  },
+  {
+   "id": "avocado",
+   "icon": "avocado",
+   "group": "food",
+   "category": "veg",
+   "levels": {
+    "EN-1": 9,
+    "MO-1": 9
+   },
+   "fr": {
+    "article": "l'",
+    "word": "avocat"
+   },
+   "en": {
+    "word": "avocado"
+   }
+  },
+  {
+   "id": "eggplant",
+   "icon": "eggplant",
+   "group": "food",
+   "category": "veg",
+   "levels": {
+    "EN-1": 9,
+    "MO-1": 8
+   },
+   "fr": {
+    "article": "l'",
+    "word": "aubergine"
+   },
+   "en": {
+    "word": "eggplant"
+   }
+  },
+  {
+   "id": "garlic",
+   "icon": "garlic",
+   "group": "food",
+   "category": "veg",
+   "levels": {
+    "EN-1": 10,
+    "MO-1": 9
+   },
+   "fr": {
+    "article": "l'",
+    "word": "ail"
+   },
+   "en": {
+    "word": "garlic"
+   }
+  },
+  {
+   "id": "onion",
+   "icon": "onion",
+   "group": "food",
+   "category": "veg",
+   "levels": {
+    "EN-1": 8,
+    "MO-1": 8
+   },
+   "fr": {
+    "article": "l'",
+    "word": "oignon"
+   },
+   "en": {
+    "word": "onion"
+   }
+  },
+  {
+   "id": "pepper",
+   "icon": "hot-pepper",
+   "group": "food",
+   "category": "veg",
+   "levels": {
+    "EN-1": 9,
+    "MO-1": 8
+   },
+   "fr": {
+    "article": "le",
+    "word": "piment"
+   },
+   "en": {
+    "word": "chili pepper"
+   }
+  },
+  {
+   "id": "cucumber",
+   "icon": "cucumber",
+   "group": "food",
+   "category": "veg",
+   "levels": {
+    "EN-1": 9,
+    "MO-1": 8
+   },
+   "fr": {
+    "article": "le",
+    "word": "concombre"
+   },
+   "en": {
+    "word": "cucumber"
+   }
+  },
+  {
+   "id": "potato",
+   "icon": "potato",
+   "group": "food",
+   "category": "veg",
+   "levels": {
+    "EN-1": 8,
+    "MO-1": 7
+   },
+   "fr": {
+    "article": "la",
+    "word": "pomme de terre"
+   },
+   "en": {
+    "word": "potato"
+   }
+  },
+  {
+   "id": "mushroom",
+   "icon": "mushroom",
+   "group": "food",
+   "category": "veg",
+   "levels": {
+    "EN-1": 7,
+    "MO-1": 6
+   },
+   "fr": {
+    "article": "le",
+    "word": "champignon"
+   },
+   "en": {
+    "word": "mushroom"
+   }
+  },
+  {
+   "id": "peanuts",
+   "icon": "peanuts",
+   "group": "food",
+   "category": "meal",
+   "levels": {
+    "EN-1": 9,
+    "MO-1": 8
+   },
+   "fr": {
+    "article": "les",
+    "word": "cacahuètes"
+   },
+   "en": {
+    "word": "peanuts"
+   }
+  },
+  {
+   "id": "croissant",
+   "icon": "croissant",
+   "group": "food",
+   "category": "meal",
+   "levels": {
+    "EN-1": 8,
+    "MO-1": 6
+   },
+   "fr": {
+    "article": "le",
+    "word": "croissant"
+   },
+   "en": {
+    "word": "croissant"
+   }
+  },
+  {
+   "id": "pancakes",
+   "icon": "pancakes",
+   "group": "food",
+   "category": "meal",
+   "levels": {
+    "EN-1": 9,
+    "MO-1": 8
+   },
+   "fr": {
+    "article": "les",
+    "word": "crêpes"
+   },
+   "en": {
+    "word": "pancakes"
+   }
+  },
+  {
+   "id": "honey",
+   "icon": "honey-pot",
+   "group": "food",
+   "category": "meal",
+   "levels": {
+    "EN-1": 8,
+    "MO-1": 7
+   },
+   "fr": {
+    "article": "le",
+    "word": "miel"
+   },
+   "en": {
+    "word": "honey"
+   }
+  },
+  {
+   "id": "spaghetti",
+   "icon": "spaghetti",
+   "group": "food",
+   "category": "meal",
+   "levels": {
+    "EN-1": 8,
+    "MO-1": 7
+   },
+   "fr": {
+    "article": "les",
+    "word": "spaghettis"
+   },
+   "en": {
+    "word": "spaghetti"
+   }
+  },
+  {
+   "id": "fries",
+   "icon": "french-fries",
+   "group": "food",
+   "category": "meal",
+   "levels": {
+    "EN-1": 7,
+    "MO-1": 6
+   },
+   "fr": {
+    "article": "les",
+    "word": "frites"
+   },
+   "en": {
+    "word": "chips"
+   }
+  },
+  {
+   "id": "sandwich",
+   "icon": "sandwich",
+   "group": "food",
+   "category": "meal",
+   "levels": {
+    "EN-1": 8,
+    "MO-1": 7
+   },
+   "fr": {
+    "article": "le",
+    "word": "sandwich"
+   },
+   "en": {
+    "word": "sandwich"
+   }
+  },
+  {
+   "id": "candle",
+   "icon": "candle",
+   "group": "object",
+   "category": "home",
+   "levels": {
+    "EN-1": 8,
+    "MO-1": 7
+   },
+   "fr": {
+    "article": "la",
+    "word": "bougie"
+   },
+   "en": {
+    "word": "candle"
+   }
+  },
+  {
+   "id": "mirror",
+   "icon": "mirror",
+   "group": "object",
+   "category": "home",
+   "levels": {
+    "EN-1": 9,
+    "MO-1": 8
+   },
+   "fr": {
+    "article": "le",
+    "word": "miroir"
+   },
+   "en": {
+    "word": "mirror"
+   }
+  },
+  {
+   "id": "window",
+   "icon": "window",
+   "group": "object",
+   "category": "home",
+   "levels": {
+    "EN-1": 8,
+    "MO-1": 7
+   },
+   "fr": {
+    "article": "la",
+    "word": "fenêtre"
+   },
+   "en": {
+    "word": "window"
+   }
+  },
+  {
+   "id": "bucket",
+   "icon": "bucket",
+   "group": "object",
+   "category": "home",
+   "levels": {
+    "EN-1": 9,
+    "MO-1": 8
+   },
+   "fr": {
+    "article": "le",
+    "word": "seau"
+   },
+   "en": {
+    "word": "bucket"
+   }
+  },
+  {
+   "id": "bell",
+   "icon": "bell",
+   "group": "object",
+   "category": "home",
+   "levels": {
+    "EN-1": 8,
+    "MO-1": 7
+   },
+   "fr": {
+    "article": "la",
+    "word": "cloche"
+   },
+   "en": {
+    "word": "bell"
+   }
+  },
+  {
+   "id": "lock",
+   "icon": "locked",
+   "group": "object",
+   "category": "home",
+   "levels": {
+    "EN-1": 10,
+    "MO-1": 9
+   },
+   "fr": {
+    "article": "le",
+    "word": "cadenas"
+   },
+   "en": {
+    "word": "padlock"
+   }
+  },
+  {
+   "id": "light_bulb",
+   "icon": "light-bulb",
+   "group": "object",
+   "category": "home",
+   "levels": {
+    "EN-1": 9,
+    "MO-1": 8
+   },
+   "fr": {
+    "article": "l'",
+    "word": "ampoule"
+   },
+   "en": {
+    "word": "light bulb"
+   }
+  },
+  {
+   "id": "flashlight",
+   "icon": "flashlight",
+   "group": "object",
+   "category": "home",
+   "levels": {
+    "EN-1": 10,
+    "MO-1": 9
+   },
+   "fr": {
+    "article": "la",
+    "word": "lampe de poche"
+   },
+   "en": {
+    "word": "torch"
+   }
+  },
+  {
+   "id": "axe",
+   "icon": "axe",
+   "group": "object",
+   "category": "tool",
+   "levels": {
+    "EN-1": 10,
+    "MO-1": 9
+   },
+   "fr": {
+    "article": "la",
+    "word": "hache"
+   },
+   "en": {
+    "word": "axe"
+   }
+  },
+  {
+   "id": "saw",
+   "icon": "carpentry-saw",
+   "group": "object",
+   "category": "tool",
+   "levels": {
+    "EN-1": 9,
+    "MO-1": 9
+   },
+   "fr": {
+    "article": "la",
+    "word": "scie"
+   },
+   "en": {
+    "word": "saw"
+   }
+  },
+  {
+   "id": "wrench",
+   "icon": "wrench",
+   "group": "object",
+   "category": "tool",
+   "levels": {
+    "EN-1": 10,
+    "MO-1": 10
+   },
+   "fr": {
+    "article": "la",
+    "word": "clé à molette"
+   },
+   "en": {
+    "word": "spanner"
+   }
+  },
+  {
+   "id": "screwdriver",
+   "icon": "screwdriver",
+   "group": "object",
+   "category": "tool",
+   "levels": {
+    "EN-1": 10,
+    "MO-1": 10
+   },
+   "fr": {
+    "article": "le",
+    "word": "tournevis"
+   },
+   "en": {
+    "word": "screwdriver"
+   }
+  },
+  {
+   "id": "paintbrush",
+   "icon": "paintbrush",
+   "group": "object",
+   "category": "tool",
+   "levels": {
+    "EN-1": 9,
+    "MO-1": 8
+   },
+   "fr": {
+    "article": "le",
+    "word": "pinceau"
+   },
+   "en": {
+    "word": "paintbrush"
+   }
+  },
+  {
+   "id": "crayon",
+   "icon": "crayon",
+   "group": "object",
+   "category": "tool",
+   "levels": {
+    "EN-1": 10,
+    "MO-1": 10
+   },
+   "fr": {
+    "article": "la",
+    "word": "craie grasse"
+   },
+   "en": {
+    "word": "crayon"
+   }
+  },
+  {
+   "id": "trophy",
+   "icon": "trophy",
+   "group": "object",
+   "category": "toy",
+   "levels": {
+    "EN-1": 9,
+    "MO-1": 8
+   },
+   "fr": {
+    "article": "la",
+    "word": "coupe"
+   },
+   "en": {
+    "word": "trophy"
+   }
+  },
+  {
+   "id": "medal",
+   "icon": "sports-medal",
+   "group": "object",
+   "category": "toy",
+   "levels": {
+    "EN-1": 9,
+    "MO-1": 8
+   },
+   "fr": {
+    "article": "la",
+    "word": "médaille"
+   },
+   "en": {
+    "word": "medal"
+   }
+  },
+  {
+   "id": "ring",
+   "icon": "ring",
+   "group": "object",
+   "category": "clothes",
+   "levels": {
+    "EN-1": 9,
+    "MO-1": 8
+   },
+   "fr": {
+    "article": "la",
+    "word": "bague"
+   },
+   "en": {
+    "word": "ring"
+   }
+  },
+  {
+   "id": "skateboard",
+   "icon": "skateboard",
+   "group": "object",
+   "category": "toy",
+   "levels": {
+    "EN-1": 9,
+    "MO-1": 8
+   },
+   "fr": {
+    "article": "le",
+    "word": "skateboard"
+   },
+   "en": {
+    "word": "skateboard"
+   }
+  },
+  {
+   "id": "yoyo",
+   "icon": "yo-yo",
+   "group": "object",
+   "category": "toy",
+   "levels": {
+    "EN-1": 9,
+    "MO-1": 8
+   },
+   "fr": {
+    "article": "le",
+    "word": "yoyo"
+   },
+   "en": {
+    "word": "yo-yo"
+   }
+  },
+  {
+   "id": "roller_skate",
+   "icon": "roller-skate",
+   "group": "object",
+   "category": "toy",
+   "levels": {
+    "EN-1": 10,
+    "MO-1": 9
+   },
+   "fr": {
+    "article": "le",
+    "word": "patin à roulettes"
+   },
+   "en": {
+    "word": "roller skate"
+   }
+  },
+  {
+   "id": "canoe",
+   "icon": "canoe",
+   "group": "object",
+   "category": "vehicle",
+   "levels": {
+    "EN-1": 10,
+    "MO-1": 9
+   },
+   "fr": {
+    "article": "le",
+    "word": "canoë"
+   },
+   "en": {
+    "word": "canoe"
+   }
+  },
+  {
+   "id": "tram",
+   "icon": "tram",
+   "group": "object",
+   "category": "vehicle",
+   "levels": {
+    "EN-1": 10,
+    "MO-1": 10
+   },
+   "fr": {
+    "article": "le",
+    "word": "tramway"
+   },
+   "en": {
+    "word": "tram"
+   }
+  },
+  {
+   "id": "parachute",
+   "icon": "parachute",
+   "group": "object",
+   "category": "vehicle",
+   "levels": {
+    "EN-1": 10,
+    "MO-1": 9
+   },
+   "fr": {
+    "article": "le",
+    "word": "parachute"
+   },
+   "en": {
+    "word": "parachute"
+   }
+  },
+  {
+   "id": "satellite",
+   "icon": "satellite",
+   "group": "object",
+   "category": "vehicle",
+   "levels": {
+    "EN-1": 10,
+    "MO-1": 10
+   },
+   "fr": {
+    "article": "le",
+    "word": "satellite"
+   },
+   "en": {
+    "word": "satellite"
+   }
+  },
+  {
+   "id": "brain",
+   "icon": "brain",
+   "group": "body",
+   "category": "body",
+   "levels": {
+    "EN-1": 10,
+    "MO-1": 9
+   },
+   "fr": {
+    "article": "le",
+    "word": "cerveau"
+   },
+   "en": {
+    "word": "brain"
+   }
+  },
+  {
+   "id": "bone",
+   "icon": "bone",
+   "group": "body",
+   "category": "body",
+   "levels": {
+    "EN-1": 9,
+    "MO-1": 8
+   },
+   "fr": {
+    "article": "l'",
+    "word": "os"
+   },
+   "en": {
+    "word": "bone"
+   }
+  },
+  {
+   "id": "tongue",
+   "icon": "tongue",
+   "group": "body",
+   "category": "body",
+   "levels": {
+    "EN-1": 8,
+    "MO-1": 7
+   },
+   "fr": {
+    "article": "la",
+    "word": "langue"
+   },
+   "en": {
+    "word": "tongue"
+   }
+  },
+  {
+   "id": "leg",
+   "icon": "leg",
+   "group": "body",
+   "category": "body",
+   "levels": {
+    "EN-1": 8,
+    "MO-1": 7
+   },
+   "fr": {
+    "article": "la",
+    "word": "jambe"
+   },
+   "en": {
+    "word": "leg"
+   }
+  },
+  {
+   "id": "tornado",
+   "icon": "tornado",
+   "group": "nature",
+   "category": "sky",
+   "levels": {
+    "EN-1": 10,
+    "MO-1": 10
+   },
+   "fr": {
+    "article": "la",
+    "word": "tornade"
+   },
+   "en": {
+    "word": "tornado"
+   }
+  },
+  {
+   "id": "lightning",
+   "icon": "cloud-with-lightning",
+   "group": "nature",
+   "category": "sky",
+   "levels": {
+    "EN-1": 9,
+    "MO-1": 9
+   },
+   "fr": {
+    "article": "l'",
+    "word": "éclair"
+   },
+   "en": {
+    "word": "lightning"
+   }
+  },
+  {
+   "id": "comet",
+   "icon": "comet",
+   "group": "nature",
+   "category": "sky",
+   "levels": {
+    "EN-1": 10,
+    "MO-1": 10
+   },
+   "fr": {
+    "article": "la",
+    "word": "comète"
+   },
+   "en": {
+    "word": "comet"
+   }
+  },
+  {
+   "id": "cactus",
+   "icon": "cactus",
+   "group": "nature",
+   "category": "plant",
+   "levels": {
+    "EN-1": 8,
+    "MO-1": 7
+   },
+   "fr": {
+    "article": "le",
+    "word": "cactus"
+   },
+   "en": {
+    "word": "cactus"
+   }
+  },
+  {
+   "id": "blossom",
+   "icon": "blossom",
+   "group": "nature",
+   "category": "plant",
+   "levels": {
+    "EN-1": 10,
+    "MO-1": 10
+   },
+   "fr": {
+    "article": "la",
+    "word": "fleur de cerisier"
+   },
+   "en": {
+    "word": "blossom"
+   }
+  },
+  {
+   "id": "feather",
+   "icon": "feather",
+   "group": "nature",
+   "category": "element",
+   "levels": {
+    "EN-1": 9,
+    "MO-1": 8
+   },
+   "fr": {
+    "article": "la",
+    "word": "plume"
+   },
+   "en": {
+    "word": "feather"
    }
   }
  ]

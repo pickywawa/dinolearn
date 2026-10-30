@@ -5,7 +5,8 @@ export const BALANCE = {
   /** XP d'un fruit (+1 tous les 4 niveaux de difficulté) et du gâteau du sans-faute. */
   fruitXp: 2,
   cakeXp: 6,
-  dailyXpCap: 40,
+  /** Le dino peut beaucoup manger avant d'avoir le ventre plein (≈ 10 séries par jour). */
+  dailyXpCap: 200,
   dinoMaxLevel: 20,
   xpA: 10,
   xpB: 8,

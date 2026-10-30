@@ -1,8 +1,14 @@
 import Phaser from 'phaser';
 import { app } from '../core/app';
+import { Sfx } from '../core/sfx';
 import { PART_RESOLUTION } from './parts';
 
-export type DinoReaction = 'happy' | 'cheer' | 'dance' | 'oops' | 'think' | 'eat' | 'levelUp' | 'tickle';
+export type DinoReaction =
+  | 'happy' | 'cheer' | 'dance' | 'oops' | 'think' | 'eat' | 'levelUp' | 'tickle'
+  | 'wave' | 'spin' | 'yawn' | 'roar' | 'lookAround' | 'hop';
+
+/** Petites animations jouées au hasard quand le dino attend. */
+const IDLE_FUN: DinoReaction[] = ['wave', 'yawn', 'roar', 'lookAround', 'hop', 'spin'];
 
 const S = 1 / PART_RESOLUTION;
 const MOUTHS = ['dino-mouth-small', 'dino-mouth-open', 'dino-mouth-wide', 'dino-mouth-o', 'dino-mouth-open'];
@@ -192,7 +198,75 @@ export class Dino extends Phaser.GameObjects.Container {
         this.flashMouth('dino-mouth-wide', 900);
         t.add({ targets: this.rig, x: 8, duration: 40, yoyo: true, repeat: 9 });
         break;
+      case 'wave':
+        // Coucou de la main : le bras droit se lève et s'agite.
+        happyFor(1400);
+        t.killTweensOf(this.armR);
+        t.chain({
+          targets: this.armR,
+          tweens: [
+            { angle: -150, duration: 250, ease: 'Back.easeOut' },
+            { angle: -110, duration: 180, yoyo: true, repeat: 3, ease: 'Sine.easeInOut' },
+            { angle: 0, duration: 300 },
+          ],
+          // Puis le bras reprend son balancement habituel.
+          onComplete: () => t.add({
+            targets: this.armR, angle: { from: -4, to: 6 }, duration: 1300, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
+          }),
+        });
+        break;
+      case 'spin':
+        // Saut avec pirouette.
+        happyFor(1200);
+        armsUp(300);
+        t.add({ targets: this.rig, y: -90, duration: 350, yoyo: true, ease: 'Quad.easeOut' });
+        t.add({ targets: this.rig, angle: 360, duration: 700, ease: 'Sine.easeInOut', onComplete: () => this.rig.setAngle(0) });
+        break;
+      case 'yawn':
+        // Bâillement : yeux fermés, grande bouche, bras qui s'étirent.
+        this.setEyes('closed');
+        this.flashMouth('dino-mouth-o', 1300);
+        this.scene.time.delayedCall(1300, () => this.setEyes('open'));
+        armsUp(650);
+        t.add({ targets: this.rig, scaleY: 1.06, duration: 650, yoyo: true, ease: 'Sine.easeInOut' });
+        break;
+      case 'roar':
+        // Petit rugissement : la tête avance, la bouche s'ouvre en grand.
+        Sfx.play('roar');
+        this.flashMouth('dino-mouth-wide', 900);
+        t.add({ targets: this.head, scale: 1.12, duration: 200, yoyo: true, hold: 500, ease: 'Back.easeOut' });
+        t.add({ targets: this.rig, x: 5, duration: 45, yoyo: true, repeat: 7 });
+        break;
+      case 'lookAround':
+        // Il regarde à gauche, puis à droite, la tête suit.
+        t.chain({
+          targets: this.eyes,
+          tweens: [
+            { x: '-=10', duration: 250, hold: 500 },
+            { x: '+=20', duration: 400, hold: 500 },
+            { x: '-=10', duration: 250 },
+          ],
+        });
+        t.chain({
+          targets: this.head,
+          tweens: [
+            { angle: -8, duration: 250, hold: 500 },
+            { angle: 8, duration: 400, hold: 500 },
+            { angle: 0, duration: 250 },
+          ],
+        });
+        break;
+      case 'hop':
+        // Trois petits sauts sur place.
+        t.add({ targets: this.rig, y: -35, duration: 160, yoyo: true, repeat: 2, ease: 'Quad.easeOut' });
+        break;
     }
+  }
+
+  /** Une petite animation au hasard, quand le dino attend (si il ne parle pas). */
+  idleFun() {
+    if (app.voice.talking || this.busy) return;
+    this.react(Phaser.Math.RND.pick(IDLE_FUN));
   }
 
   private flashMouth(key: string, ms: number) {
