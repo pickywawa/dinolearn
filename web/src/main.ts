@@ -9,6 +9,7 @@ import { EndScene } from './scenes/EndScene';
 import { GameScene } from './scenes/GameScene';
 import { HomeScene } from './scenes/HomeScene';
 import { StartScene } from './scenes/StartScene';
+import { WardrobeScene } from './scenes/WardrobeScene';
 
 /** Taille logique : 720 px sur le petit côté, l'autre suit le format de l'écran. */
 function gameSize() {
@@ -31,7 +32,7 @@ const game = new Phaser.Game({
   ...size,
   scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
   input: { activePointers: 2 },
-  scene: [BootScene, StartScene, AgeScene, HomeScene, ChooseScene, GameScene, EndScene],
+  scene: [BootScene, StartScene, AgeScene, HomeScene, ChooseScene, GameScene, EndScene, WardrobeScene],
 });
 
 // Rotation de l'écran : on adapte la taille logique et on relance la scène active.

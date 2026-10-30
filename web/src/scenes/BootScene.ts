@@ -1,11 +1,13 @@
 import Phaser from 'phaser';
 import { DINO_PARTS, PART_RESOLUTION } from '../dino/parts';
 import { FRUITS } from '../domain/models';
+import { ITEMS, itemTexture } from '../content/items';
 
 export const UI_IMAGES = [
   'ui-play', 'ui-home', 'ui-star', 'ui-sparkles', 'ui-globe', 'ui-cloud', 'ui-cake', 'flag-gb',
   'decor-palm-tree', 'decor-sauropod', 'decor-t-rex', 'decor-butterfly', 'riddle', 'oddoneout', 'counting', 'shadow', 'sequence', 'most', 'calc', 'flag-fr', 'numbers', 'together', 'bigger', 'en-numbers', 'syllables', 'read', 'letters', 'ui-parents', 'read-picture', 'missing-word', 'missing-word-read', 'shapes', 'ui-basket',
   ...[...FRUITS, 'cake'].map((f) => `food-${f}`),
+  'ui-wardrobe', 'ui-gift', ...ITEMS.map((i) => itemTexture(i.id)),
 ];
 
 /** Charge le dino, la main guide et les icônes d'interface. */

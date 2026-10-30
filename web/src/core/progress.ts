@@ -32,6 +32,17 @@ interface Data {
   settings: Settings;
   /** Temps de jeu (ms) du jour, par jour. */
   playLog: Record<string, number>;
+  /** Minutes de jeu ajoutées par un parent (code), par jour ; -1 = illimité ce jour-là. */
+  bonusLog: Record<string, number>;
+  /** Objets du dino. */
+  collection: Collection;
+}
+
+export interface Collection {
+  owned: string[];
+  worn: string[];
+  /** Cadeaux à choisir (un par niveau gagné). */
+  pending: number;
 }
 
 export interface Review {
@@ -54,6 +65,8 @@ export interface Settings {
   dailyMinutes: number;
   /** Bruitages. */
   sfx: boolean;
+  /** Code parent à 4 chiffres (espace parents, déblocage du temps de jeu). */
+  pin?: string;
 }
 
 const KEY = 'dinolearn.progress.v1';
@@ -74,6 +87,8 @@ const empty = (): Data => ({
   seenTutorial: false,
   settings: { disabledGames: [], dailyMinutes: 0, sfx: true },
   playLog: {},
+  bonusLog: {},
+  collection: { owned: [], worn: [], pending: 0 },
 });
 
 export const dayKey = (d = new Date()) =>
@@ -92,6 +107,10 @@ export class Progress {
     }
     this.data = { ...empty(), ...parsed };
     this.data.settings = { ...empty().settings, ...parsed.settings };
+    // Joueur d'avant la collection : quelques cadeaux pour commencer.
+    if (!parsed.collection && this.data.dino.level > 1) {
+      this.data.collection = { owned: [], worn: [], pending: Math.min(3, this.data.dino.level - 1) };
+    }
     // Ancien format : questions ratées sans calendrier → révision dès le lendemain.
     const legacy = (parsed as { failedAt?: Record<string, Record<string, number>> }).failedAt;
     if (legacy && !parsed.reviews) {
@@ -204,10 +223,53 @@ export class Progress {
     });
   }
 
-  /** Vrai si le temps de jeu du jour fixé par les parents est atteint. */
+  /** Vrai si le temps de jeu du jour fixé par les parents (plus les minutes débloquées) est atteint. */
   timeIsUp(now = new Date()) {
     const max = this.data.settings.dailyMinutes;
-    return max > 0 && this.playMsToday(now) >= max * 60_000;
+    const bonus = this.data.bonusLog[dayKey(now)] ?? 0;
+    return max > 0 && bonus !== -1 && this.playMsToday(now) >= (max + bonus) * 60_000;
+  }
+
+  /** Un parent débloque : `minutes` de plus aujourd'hui, ou -1 pour illimité aujourd'hui. */
+  unlockToday(minutes: number, now = new Date()) {
+    const day = dayKey(now);
+    const current = this.data.bonusLog[day] ?? 0;
+    this.data.bonusLog = { [day]: minutes === -1 || current === -1 ? -1 : current + minutes };
+    this.save();
+  }
+
+  /** Le code parent est-il le bon ? */
+  checkPin(pin: string) { return !!this.data.settings.pin && this.data.settings.pin === pin; }
+
+  // ---- Collection d'objets ----
+
+  get collection(): Readonly<Collection> { return this.data.collection; }
+
+  /** Ajoute un objet à la collection et le met au dino (il remplace ceux de `replaced`). */
+  own(id: string, replaced: string[]) {
+    const c = this.data.collection;
+    if (!c.owned.includes(id)) c.owned = [...c.owned, id];
+    c.pending = Math.max(0, c.pending - 1);
+    this.data.collection = c;
+    this.wear(id, replaced);
+  }
+
+  /** Met un objet au dino ; les objets du même emplacement (`replaced`) sont enlevés. */
+  wear(id: string, replaced: string[]) {
+    const c = this.data.collection;
+    c.worn = [...c.worn.filter((w) => w !== id && !replaced.includes(w)), id];
+    this.save();
+  }
+
+  takeOff(id: string) {
+    this.data.collection.worn = this.data.collection.worn.filter((w) => w !== id);
+    this.save();
+  }
+
+  /** Plus de cadeau à choisir quand tous les objets sont gagnés. */
+  limitPending(remaining: number) {
+    this.data.collection.pending = Math.min(this.data.collection.pending, remaining);
+    this.save();
   }
 
   xpEatenToday(now = new Date()) { return this.data.feedLog[dayKey(now)] ?? 0; }
@@ -257,6 +319,8 @@ export class Progress {
   }
 
   saveFeeding(dino: DinoState, xpEatenToday: number, now = new Date()) {
+    // Chaque niveau gagné en mangeant donne un cadeau à choisir.
+    if (dino.level > this.data.dino.level) this.data.collection.pending += dino.level - this.data.dino.level;
     this.data.dino = dino;
     this.data.feedLog = { [dayKey(now)]: xpEatenToday };
     this.save();
@@ -264,7 +328,7 @@ export class Progress {
 
   reset() {
     const { age, ageChosen, settings } = this.data;
-    this.data = { ...empty(), age, ageChosen, settings };
+    this.data = { ...empty(), age, ageChosen, settings, collection: { owned: [], worn: [], pending: 0 } };
     this.save();
   }
 }

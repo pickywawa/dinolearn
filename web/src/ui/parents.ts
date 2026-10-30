@@ -4,6 +4,7 @@ import { Sfx } from '../core/sfx';
 import { BALANCE } from '../domain/balance';
 import { baseLevel } from '../domain/difficulty';
 import { mulberry32 } from '../domain/models';
+import { createParentCode } from './pin';
 
 /**
  * Espace parents : une page HTML classique posée sur le jeu (lisible et
@@ -104,7 +105,8 @@ export function openParents(onClose: () => void) {
 
   const render = () => {
     main.replaceChildren(
-      childSection(), levelSection(), timeSection(), gamesSection(), failuresSection(), soundSection(), dataSection(),
+      childSection(), levelSection(), timeSection(), codeSection(), gamesSection(), failuresSection(), soundSection(),
+      dataSection(),
     );
   };
 
@@ -186,7 +188,8 @@ export function openParents(onClose: () => void) {
         days[new Date(`${day}T12:00:00`).getDay()])));
     return el('section', {},
       el('h2', {}, 'Temps de jeu par jour'),
-      el('p', { class: 'help' }, 'Quand le temps est atteint, l\'enfant finit sa série, puis le dino va se coucher jusqu\'au lendemain.'),
+      el('p', { class: 'help' }, 'Quand le temps est atteint, l\'enfant finit sa série, puis le jeu se bloque jusqu\'au '
+        + 'lendemain : le dino va se coucher. Avec votre code, vous pouvez ajouter 15 ou 30 minutes, ou débloquer la journée.'),
       choices,
       chart,
     );
@@ -298,6 +301,22 @@ export function openParents(onClose: () => void) {
         + 'Les voix viennent du téléphone : pour une voix plus naturelle, installez une voix « améliorée » ou « premium » '
         + 'dans les réglages d\'accessibilité (synthèse vocale).'),
       test,
+    );
+  }
+
+  // ---- Code parent ----
+  function codeSection() {
+    const change = el('button', {}, 'Changer le code');
+    change.addEventListener('click', async () => {
+      if (await createParentCode('Nouveau code parent', 'Choisissez un nouveau code à 4 chiffres.', 'Annuler')) {
+        alert('Le code parent a été changé.');
+      }
+    });
+    return el('section', {},
+      el('h2', {}, 'Code parent'),
+      el('p', { class: 'help' }, 'Le code ouvre cet espace et débloque le jeu quand le temps du jour est fini. '
+        + 'En cas d\'oubli, « Code oublié ? » permet d\'en créer un nouveau après une question pour adulte.'),
+      change,
     );
   }
 

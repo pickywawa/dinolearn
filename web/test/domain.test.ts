@@ -3,6 +3,7 @@ import { CONCEPTS, conceptById, conceptsFor, frWithArticle, pickDistractors } fr
 import { GAMES, gameById, gamesForAge } from '../src/content/games';
 import { PAIRS, SIZES, enNumber } from '../src/content/extra';
 import { frNumber } from '../src/content/numbers';
+import { ITEMS, giftChoices, sameSlot } from '../src/content/items';
 import { RIDDLES } from '../src/content/riddles';
 import { SENTENCES } from '../src/content/sentences';
 import { ONSETS, RHYMES } from '../src/content/sounds';
@@ -584,5 +585,48 @@ describe('espace parents', () => {
     const series = new Series(gameById('LO-6'), p, mulberry32(3));
     expect(series.level).toBeGreaterThanOrEqual(14);
     expect(series.level).toBeLessThanOrEqual(16);
+  });
+});
+
+describe('code parent et collection', () => {
+  it('le code débloque du temps de jeu pour la journée', () => {
+    const p = new Progress(new MemoryStore());
+    const day = new Date(2026, 9, 30, 10);
+    expect(p.checkPin('1234')).toBe(false);
+    p.updateSettings({ pin: '1234', dailyMinutes: 15 });
+    expect(p.checkPin('1234')).toBe(true);
+    expect(p.checkPin('0000')).toBe(false);
+    p.addPlayTime(16 * 60_000, day);
+    expect(p.timeIsUp(day)).toBe(true);
+    p.unlockToday(15, day);
+    expect(p.timeIsUp(day)).toBe(false);
+    p.addPlayTime(15 * 60_000, day);
+    expect(p.timeIsUp(day)).toBe(true);
+    p.unlockToday(-1, day);
+    p.addPlayTime(120 * 60_000, day);
+    expect(p.timeIsUp(day)).toBe(false);
+    // Le lendemain, la limite revient.
+    const next = new Date(2026, 9, 31, 10);
+    p.addPlayTime(20 * 60_000, next);
+    expect(p.timeIsUp(next)).toBe(true);
+  });
+
+  it('un cadeau par niveau gagné ; un objet remplace celui du même emplacement', () => {
+    const p = new Progress(new MemoryStore());
+    p.saveFeeding({ level: 3, xp: 0 }, 10);
+    expect(p.collection.pending).toBe(2);
+    const choices = giftChoices(p.collection.owned, mulberry32(1));
+    expect(choices).toHaveLength(4);
+    expect(new Set(choices.map((c) => c.slot)).size).toBe(4);
+    p.own('billed-cap', sameSlot('billed-cap'));
+    expect(p.collection.pending).toBe(1);
+    p.own('sunglasses', sameSlot('sunglasses'));
+    expect(p.collection.worn).toEqual(['billed-cap', 'sunglasses']);
+    // Le chapeau remplace la casquette, pas les lunettes.
+    p.wear('top-hat', sameSlot('top-hat'));
+    expect(p.collection.worn).toEqual(['sunglasses', 'top-hat']);
+    p.takeOff('sunglasses');
+    expect(p.collection.worn).toEqual(['top-hat']);
+    expect(giftChoices(ITEMS.map((i) => i.id), mulberry32(1))).toHaveLength(0);
   });
 });

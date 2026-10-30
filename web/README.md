@@ -51,8 +51,16 @@ Jeu jouable directement dans le navigateur d'un téléphone ou d'une tablette (p
   lui en ce moment (« Indice : c'est un animal de la ferme », « Indice : qui fait meuh ? »).
 - **Toucher le dino** pendant un jeu lui fait répéter la question.
 - **Niveau du dino** affiché sur l'accueil (étoile).
+- **Code parent** : créé au premier lancement (le dino demande à l'enfant d'aller chercher un parent),
+  il protège l'espace parents et débloque le jeu quand le temps du jour est fini (+15 min, +30 min ou
+  illimité aujourd'hui). « Code oublié ? » : nouveau code après une question pour adulte.
+- **Collection** : à chaque niveau gagné, l'enfant choisit un cadeau parmi 4 objets (23 : chapeaux,
+  casquette, couronne, lunettes, nœud papillon, écharpe, capes, ailes, ballon, baguette magique…). Le dino
+  les porte partout. Le chapeau en haut de l'accueil ouvre le dressing : le dino en gros plan, on fait
+  glisser un objet sur lui pour le lui mettre (un chapeau remplace la casquette…), on touche un objet
+  porté pour l'enlever.
 - **Espace parents** : rester appuyé sur le cadenas de l'accueil, puis glisser vers le haut (un texte
-  explique le geste). On y règle l'âge, le niveau du dino (1 à 40) et le niveau de chaque jeu, on
+  explique le geste), puis taper le code parent. On y règle l'âge, le niveau du dino (1 à 40) et le niveau de chaque jeu, on
   active ou désactive des jeux, on fixe un temps de jeu par jour (le dino va ensuite se coucher), on
   suit la progression par jeu, le temps de jeu de la semaine et les questions à retravailler, on coupe
   les bruitages, on teste la voix et on peut tout recommencer. Tout reste sur l'appareil.

@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { app } from '../core/app';
+import { chooseGifts } from '../ui/gifts';
 import { Leftover } from '../core/progress';
 import { SeriesResult } from '../core/series';
 import { Sfx } from '../core/sfx';
@@ -199,6 +200,12 @@ export class EndScene extends BaseScene {
       Sfx.play('levelUp');
       this.dino.react('levelUp');
       await this.say('level_up');
+    }
+    // Chaque niveau gagné : un objet à choisir pour le dino.
+    if (app.progress.collection.pending > 0) {
+      this.again.setVisible(false);
+      await chooseGifts(this, this.dino);
+      if (!this.alive) return;
     }
     await this.showAgain();
   }

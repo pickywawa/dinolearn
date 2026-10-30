@@ -2,7 +2,9 @@ import Phaser from 'phaser';
 import { app } from '../core/app';
 import { Sfx } from '../core/sfx';
 import { playableGames } from '../core/app';
+import { chooseGifts } from '../ui/gifts';
 import { openParents } from '../ui/parents';
+import { askParentCode, createParentCode, firstLaunchSetup, unlockPlayTime } from '../ui/pin';
 import { Dino } from '../dino/Dino';
 import { Bubble } from '../ui/Bubble';
 import { Guide } from '../ui/Guide';
@@ -22,6 +24,8 @@ export class HomeScene extends BaseScene {
   private play!: Bubble;
   private choose!: Phaser.GameObjects.Container;
   private dinoBase = 0;
+  private gift?: Bubble;
+  private wardrobe!: Bubble;
 
   constructor() {
     super('Home');
@@ -55,6 +59,30 @@ export class HomeScene extends BaseScene {
     this.drawLevelBadge(W - u * 0.13, u * 0.11, u);
     this.parentGate(W - u * 0.13, u * 0.27, u);
 
+    // En haut : le dressing du dino, et le cadeau à ouvrir quand il a grandi.
+    this.wardrobe = new Bubble(this, W / 2, u * 0.1, u * 0.065, 0xffe9f3, 'ui-wardrobe', () => {
+      this.clearIdle();
+      goTo(this, 'Wardrobe');
+    }, 0.7);
+    if (app.progress.collection.pending > 0) {
+      this.gift = new Bubble(this, W / 2 + u * 0.17, u * 0.1, u * 0.065, 0xfff3c4, 'ui-gift', () => {
+        this.clearIdle();
+        app.voice.stop();
+        this.run(async () => {
+          await chooseGifts(this, this.dino);
+          this.scene.restart({});
+        });
+      }, 0.75);
+      this.tweens.add({ targets: this.gift, angle: { from: -10, to: 10 }, duration: 260, yoyo: true, repeat: -1 });
+    }
+
+
+    // Premier lancement : le dino demande d'aller chercher un parent pour créer le code.
+    if (!app.progress.settings.pin) {
+      this.parentSetup(data);
+      return;
+    }
+
     if (app.progress.timeIsUp()) {
       this.bedtime();
       return;
@@ -74,8 +102,15 @@ export class HomeScene extends BaseScene {
     });
   }
 
-  /** Le dino montre le gros bouton, puis le petit. */
+  /** Le dino montre le gros bouton, puis le petit (d'abord le cadeau s'il y en a un). */
   private async present() {
+    if (this.gift) {
+      this.gift.highlight(true);
+      this.dino.pointAt(this.gift.x, this.gift.y);
+      this.guide.tap(this.gift);
+      await this.say('gift.waiting');
+      this.gift.highlight(false);
+    }
     this.play.highlight(true);
     this.dino.pointAt(this.play.x, this.play.y);
     this.guide.tap(this.play);
@@ -142,10 +177,44 @@ export class HomeScene extends BaseScene {
     }).setOrigin(0.5);
   }
 
-  /** Temps de jeu atteint : plus de bouton de jeu, le dino bâille et va dormir. */
+  private parentSetup(data: { hatched?: boolean }) {
+    this.hideButtons();
+    this.run(async () => {
+      await this.wait(400);
+      this.dino.react('wave');
+      await this.say('parent_code');
+      this.input.enabled = false;
+      await firstLaunchSetup();
+      this.dino.react('cheer');
+      await this.say('parent_code_done');
+      this.scene.restart(data);
+    });
+  }
+
+  private hideButtons() {
+    [this.play, this.choose, this.wardrobe, this.gift].forEach((b) => b?.setVisible(false));
+  }
+
+  /**
+   * Temps de jeu atteint : plus de bouton de jeu, le dino bâille et va dormir.
+   * Un cadenas permet à un parent de débloquer avec son code.
+   */
   private bedtime() {
-    this.play.setVisible(false);
-    this.choose.setVisible(false);
+    const u = unit(this);
+    this.hideButtons();
+    const unlock = new Bubble(this, this.play.x, this.play.y, u * 0.13, 0xffffff, 'ui-parents', () => {
+      this.run(async () => {
+        app.voice.stop();
+        this.input.enabled = false;
+        const ok = await unlockPlayTime();
+        this.input.enabled = true;
+        if (ok) this.scene.restart({});
+      });
+    }, 0.6);
+    this.add.text(unlock.x, unlock.y + u * 0.19, 'Temps de jeu terminé.\nUn parent peut débloquer avec son code.', {
+      fontFamily: 'Arial, sans-serif', fontSize: `${Math.round(u * 0.036)}px`, color: '#ffffff', align: 'center',
+      backgroundColor: '#2d3354cc', padding: { x: 14, y: 10 },
+    }).setOrigin(0.5, 0);
     const sleep = () => this.run(async () => {
       this.dino.react('yawn');
       await this.say('bedtime');
@@ -214,11 +283,18 @@ export class HomeScene extends BaseScene {
     });
   }
 
+  /** Le geste est fait : il faut encore le code parent. */
   private openParentSpace() {
     this.clearIdle();
     this.guide.hide();
     app.voice.stop();
     this.input.enabled = false;
-    openParents(() => this.scene.restart({}));
+    this.run(async () => {
+      const ok = app.progress.settings.pin
+        ? await askParentCode('Espace parents', 'Tapez votre code parent.')
+        : await createParentCode('Code parent', 'Choisissez un code à 4 chiffres.', 'Annuler');
+      if (ok) openParents(() => this.scene.restart({}));
+      else this.scene.restart({});
+    });
   }
 }

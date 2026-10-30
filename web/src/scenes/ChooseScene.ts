@@ -1,4 +1,4 @@
-import { playableGames } from '../core/app';
+import { app, playableGames } from '../core/app';
 import { Dino } from '../dino/Dino';
 import { Bubble } from '../ui/Bubble';
 import { Guide } from '../ui/Guide';
@@ -22,6 +22,11 @@ export class ChooseScene extends BaseScene {
 
   create() {
     this.initBase();
+    // Temps de jeu fini : retour à l'accueil (bloqué par le code parent).
+    if (app.progress.timeIsUp()) {
+      goTo(this, 'Home');
+      return;
+    }
     drawScenery(this);
     drawPrehistoric(this);
     const { width: W, height: H } = this.scale;

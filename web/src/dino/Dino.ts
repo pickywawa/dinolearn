@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { app } from '../core/app';
 import { Sfx } from '../core/sfx';
+import { itemById, itemTexture } from '../content/items';
 import { PART_RESOLUTION } from './parts';
 
 export type DinoReaction =
@@ -37,6 +38,7 @@ export class Dino extends Phaser.GameObjects.Container {
   private wordTimers: Phaser.Time.TimerEvent[] = [];
   private busy = false;
   private unsubscribe: (() => void)[] = [];
+  private accessories: Phaser.GameObjects.Image[] = [];
 
   static readonly HEIGHT = 500;
 
@@ -63,6 +65,7 @@ export class Dino extends Phaser.GameObjects.Container {
     this.head.add([headImg, ...this.eyes, this.mouth]);
 
     this.rig.add([this.tail, legL, legR, this.body_, this.belly, this.armL, this.armR, this.head]);
+    this.dress(app.progress.collection.worn);
     this.setHeight(height);
     scene.add.existing(this);
 
@@ -77,6 +80,27 @@ export class Dino extends Phaser.GameObjects.Container {
       this.clearWordTimers();
     });
     if (app.voice.talking) this.setTalking(true);
+  }
+
+  /**
+   * Habille le dino avec ses objets : chapeaux et lunettes dans la tête (ils
+   * bougent avec elle), capes et ailes derrière le corps, le reste devant.
+   */
+  dress(ids: readonly string[]) {
+    this.accessories.forEach((a) => a.destroy());
+    this.accessories = [];
+    for (const id of ids) {
+      const item = itemById(id);
+      if (!item || !this.scene.textures.exists(itemTexture(id))) continue;
+      for (const x of item.mirror !== undefined ? [item.x, item.mirror] : [item.x]) {
+        const img = this.scene.add.image(x, item.y, itemTexture(id)).setAngle(item.angle ?? 0);
+        img.setScale(item.w / img.width).setFlipX(item.mirror !== undefined && x === item.mirror);
+        if (item.parent === 'head') this.head.add(img);
+        else if (item.slot === 'back') this.rig.addAt(img, 0);
+        else this.rig.add(img);
+        this.accessories.push(img);
+      }
+    }
   }
 
   /** Hauteur affichée en pixels. */

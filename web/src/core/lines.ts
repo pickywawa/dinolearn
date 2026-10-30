@@ -294,6 +294,19 @@ export const LINES: Record<string, string[]> = {
     'Hihi ! Encore !',
   ],
   start: ['Touche-moi pour me réveiller !'],
+  parent_code: [
+    'Avant de jouer, va chercher papa ou maman ! Ils doivent choisir un code secret pour moi.',
+  ],
+  parent_code_done: ['Merci ! Maintenant, on peut jouer ensemble !'],
+  'wardrobe.intro': [
+    'Fais glisser un objet jusqu\'à moi pour me le mettre !',
+    'Habille-moi ! Prends un objet avec ton doigt, et pose-le sur moi.',
+  ],
+  'wardrobe.drag': ['Garde ton doigt sur l\'objet, et fais-le glisser jusqu\'à moi !'],
+  'wardrobe.off': ['D\'accord, je l\'enlève !', 'Hop, enlevé !'],
+  'wardrobe.empty': ['Mon armoire est vide ! Quand je grandis, tu gagnes un objet pour moi.'],
+  'home.wardrobe': ['Le chapeau, c\'est pour m\'habiller !'],
+  'gift.waiting': ['J\'ai grandi ! Touche le cadeau pour choisir un objet pour moi !'],
   bedtime: [
     'On a bien joué aujourd\'hui ! Maintenant, je vais faire dodo. On rejoue demain ?',
     'C\'est l\'heure de me reposer ! À demain, mon copain !',
