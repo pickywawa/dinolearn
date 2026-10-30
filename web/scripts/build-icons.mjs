@@ -69,6 +69,10 @@ write('syllables', noto, 'clapping-hands');
 write('read', noto, 'open-book');
 write('letters', noto, 'input-latin-uppercase');
 write('ui-parents', noto, 'locked');
+write('read-picture', noto, 'eyes');
+write('missing-word', noto, 'speech-balloon');
+write('missing-word-read', noto, 'memo');
+write('shapes', noto, 'artist-palette');
 for (const icon of UI_ICONS) write(`ui-${icon}`, plush, icon);
 for (const flag of FLAGS) write(`flag-${flag}`, flags, flag);
 

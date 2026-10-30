@@ -24,8 +24,10 @@ export const BALANCE = {
   ] as [number, number][],
   levelMixSame: 0.7,
   levelMixBelow: 0.2,
-  retryShare: 0.2,
-  retryMaxAgeDays: 14,
+  /** Révision espacée : une question ratée revient 1 jour, puis 3 jours, puis 7 jours plus tard. */
+  reviewDays: [1, 3, 7],
+  /** Part maximale de questions à réviser dans une série. */
+  reviewShare: 0.4,
   recentSeriesExcluded: 2,
   maxLevelStepPerSeries: 1,
   hintAfterWrongAttempts: 2,

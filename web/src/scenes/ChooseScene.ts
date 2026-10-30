@@ -37,7 +37,7 @@ export class ChooseScene extends BaseScene {
     const games = playableGames();
     const { positions, rowStep } = bubbleGrid(games.length, portrait);
     // Rayon : aussi grand que possible sans que les bulles se touchent.
-    const r = Math.min(u * 0.12, H * rowStep * 0.42, W * (portrait ? 0.13 : 0.06));
+    const r = Math.min(u * 0.12, H * rowStep * 0.42, W * (portrait ? 0.105 : 0.06));
     this.bubbles = games.map((game, i) => ({
       bubble: new Bubble(this, W * positions[i][0], H * positions[i][1], r, game.color, game.icon,
         () => this.play(game.id)),
@@ -83,17 +83,19 @@ export class ChooseScene extends BaseScene {
 }
 
 /**
- * Positions des bulles (fractions de l'écran) : 3 par ligne au-dessus du dino
+ * Positions des bulles (fractions de l'écran) : 3 ou 4 par ligne au-dessus du dino
  * en portrait ; en paysage, 2 colonnes de chaque côté du dino.
  */
 function bubbleGrid(n: number, portrait: boolean): { positions: [number, number][]; rowStep: number } {
   if (portrait) {
-    const rows = Math.ceil(n / 3);
-    const step = Math.min(0.13, 0.5 / rows);
+    // Beaucoup de jeux : 4 par ligne.
+    const cols = n > 12 ? 4 : 3;
+    const rows = Math.ceil(n / cols);
+    const step = Math.min(0.13, 0.52 / rows);
     const positions = Array.from({ length: n }, (_, i): [number, number] => {
-      const row = Math.floor(i / 3);
-      const inRow = Math.min(3, n - row * 3);
-      return [0.5 + ((i % 3) - (inRow - 1) / 2) * 0.3, 0.15 + row * step];
+      const row = Math.floor(i / cols);
+      const inRow = Math.min(cols, n - row * cols);
+      return [0.5 + ((i % cols) - (inRow - 1) / 2) * (0.9 / cols), 0.14 + row * step];
     });
     return { positions, rowStep: step };
   }

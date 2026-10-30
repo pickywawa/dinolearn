@@ -19,6 +19,8 @@ export interface SeriesItem {
   reinforce: Speech[];
   hints: Speech[];
   isReview: boolean;
+  /** Question ratée un autre jour, reposée pour la réviser. */
+  due: boolean;
   /** Fruit de la barre de progression, gagné si la réponse est trouvée du premier coup. */
   fruit: Food;
   /** undefined : pas encore répondu. */
@@ -71,7 +73,7 @@ export class Series {
     for (const game of list) this.levels.set(game.id, this.levelFor(game));
 
     const count = seriesLengthFor(progress.age, b);
-    const picks: { game: GameDef; question: { id: string; level: number }; isReview: boolean }[] = [];
+    const picks: { game: GameDef; question: { id: string; level: number }; isReview: boolean; due?: boolean }[] = [];
     if (this.mixed) {
       // Une question par tirage, jamais deux fois le même jeu de suite.
       let previous: GameDef | undefined;
@@ -90,7 +92,7 @@ export class Series {
 
     const positions: number[] = [];
     const fruits = seriesFruits(picks.length, rng);
-    this.items = picks.map(({ game, question, isReview }, i) => {
+    this.items = picks.map(({ game, question, isReview, due }, i) => {
       const q = game.build(question, this.levels.get(game.id)!, rng);
       const choices = [...q.distractors];
       // Position de la bonne réponse : jamais 3 fois de suite la même.
@@ -103,7 +105,7 @@ export class Series {
       choices.splice(position, 0, q.answer);
       return {
         game, questionId: question.id, level: question.level, answer: q.answer, choices, show: q.show,
-        prompt: q.prompt, reinforce: q.reinforce, hints: q.hints ?? [], isReview, fruit: fruits[i],
+        prompt: q.prompt, reinforce: q.reinforce, hints: q.hints ?? [], isReview, due: !!due, fruit: fruits[i],
       };
     });
   }
@@ -128,7 +130,8 @@ export class Series {
       count,
       mastered: p.mastered(game.id),
       recent: new Set([...p.recentQuestions(game.id, this.b.recentSeriesExcluded), ...taken]),
-      toRetry: p.toRetry(game.id, this.b.retryMaxAgeDays),
+      due: p.dueReviews(game.id),
+      waiting: p.waitingReviews(game.id),
     }, rng, this.b);
   }
 

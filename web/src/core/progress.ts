@@ -19,7 +19,8 @@ interface Data {
   dino: DinoState;
   answers: AnswerRecord[];
   mastered: Record<string, string[]>;
-  failedAt: Record<string, Record<string, number>>;
+  /** Révision espacée : question ratée → étape (0, 1, 2) et date (ms) à partir de laquelle la reposer. */
+  reviews: Record<string, Record<string, Review>>;
   recentSeries: Record<string, string[][]>;
   gameLevels: Record<string, number>;
   leftovers: Leftover[];
@@ -32,6 +33,19 @@ interface Data {
   /** Temps de jeu (ms) du jour, par jour. */
   playLog: Record<string, number>;
 }
+
+export interface Review {
+  stage: number;
+  due: number;
+}
+
+/** Minuit du jour `days` jours après `at` : une révision « demain » est possible dès le matin. */
+const dayStartPlus = (at: number, days: number) => {
+  const d = new Date(at);
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() + days);
+  return d.getTime();
+};
 
 export interface Settings {
   /** Jeux désactivés par les parents. */
@@ -51,7 +65,7 @@ const empty = (): Data => ({
   dino: { level: 1, xp: 0 },
   answers: [],
   mastered: {},
-  failedAt: {},
+  reviews: {},
   recentSeries: {},
   gameLevels: {},
   leftovers: [],
@@ -78,6 +92,12 @@ export class Progress {
     }
     this.data = { ...empty(), ...parsed };
     this.data.settings = { ...empty().settings, ...parsed.settings };
+    // Ancien format : questions ratées sans calendrier → révision dès le lendemain.
+    const legacy = (parsed as { failedAt?: Record<string, Record<string, number>> }).failedAt;
+    if (legacy && !parsed.reviews) {
+      this.data.reviews = Object.fromEntries(Object.entries(legacy).map(([gameId, ids]) => [gameId,
+        Object.fromEntries(Object.entries(ids).map(([id, at]) => [id, { stage: 0, due: dayStartPlus(at, 1) }]))]));
+    }
   }
 
   private save() {
@@ -114,12 +134,14 @@ export class Progress {
     return new Set(this.data.mastered[gameId] ?? []);
   }
 
-  toRetry(gameId: string, maxAgeDays: number, now = Date.now()): Set<string> {
-    const limit = now - maxAgeDays * 86_400_000;
-    const mastered = this.mastered(gameId);
-    return new Set(Object.entries(this.data.failedAt[gameId] ?? {})
-      .filter(([id, at]) => at > limit && !mastered.has(id))
-      .map(([id]) => id));
+  /** Questions ratées dont la date de révision est arrivée. */
+  dueReviews(gameId: string, now = Date.now()): Set<string> {
+    return new Set(Object.entries(this.data.reviews[gameId] ?? {}).filter(([, r]) => r.due <= now).map(([id]) => id));
+  }
+
+  /** Questions ratées qui attendent encore leur date de révision. */
+  waitingReviews(gameId: string, now = Date.now()): Set<string> {
+    return new Set(Object.entries(this.data.reviews[gameId] ?? {}).filter(([, r]) => r.due > now).map(([id]) => id));
   }
 
   recentQuestions(gameId: string, seriesCount: number): Set<string> {
@@ -153,11 +175,11 @@ export class Progress {
     return this.data.answers.find((a) => a.gameId === gameId)?.at;
   }
 
-  /** Questions ratées récemment et pas encore réussies, de la plus récente à la plus ancienne. */
-  recentFailures(limit: number): { gameId: string; questionId: string; at: number }[] {
-    return Object.entries(this.data.failedAt)
-      .flatMap(([gameId, ids]) => Object.entries(ids).map(([questionId, at]) => ({ gameId, questionId, at })))
-      .sort((a, b) => b.at - a.at)
+  /** Questions en cours de révision, de la prochaine à revenir à la plus lointaine. */
+  reviewList(limit: number): { gameId: string; questionId: string; stage: number; due: number }[] {
+    return Object.entries(this.data.reviews)
+      .flatMap(([gameId, ids]) => Object.entries(ids).map(([questionId, r]) => ({ gameId, questionId, ...r })))
+      .sort((a, b) => a.due - b.due)
       .slice(0, limit);
   }
 
@@ -192,16 +214,35 @@ export class Progress {
 
   isFirstSeriesToday(now = new Date()) { return this.data.lastSeriesDay !== dayKey(now); }
 
+  /**
+   * Enregistre une réponse. Ratée : la question revient le lendemain. Réussie
+   * à sa date de révision : elle revient 3 jours plus tard, puis 7 jours plus
+   * tard ; réussie à cette dernière révision, elle est acquise.
+   */
   recordAnswer(a: AnswerRecord) {
     this.data.answers.unshift(a);
     this.data.answers.length = Math.min(this.data.answers.length, MAX_ANSWERS);
-    if (a.firstTrySuccess) {
-      const mastered = this.mastered(a.gameId).add(a.questionId);
-      this.data.mastered[a.gameId] = [...mastered];
-      delete this.data.failedAt[a.gameId]?.[a.questionId];
+    const days = BALANCE.reviewDays;
+    const reviews = (this.data.reviews[a.gameId] ??= {});
+    const review = reviews[a.questionId];
+    const mastered = this.mastered(a.gameId);
+    if (!a.firstTrySuccess) {
+      reviews[a.questionId] = { stage: 0, due: dayStartPlus(a.at, days[0]) };
+      mastered.delete(a.questionId);
+    } else if (review) {
+      if (a.at >= review.due) {
+        const stage = review.stage + 1;
+        if (stage >= days.length) {
+          delete reviews[a.questionId];
+          mastered.add(a.questionId);
+        } else {
+          reviews[a.questionId] = { stage, due: dayStartPlus(a.at, days[stage]) };
+        }
+      }
     } else {
-      (this.data.failedAt[a.gameId] ??= {})[a.questionId] = a.at;
+      mastered.add(a.questionId);
     }
+    this.data.mastered[a.gameId] = [...mastered];
     this.save();
   }
 

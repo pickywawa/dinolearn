@@ -13,7 +13,7 @@ Jeu jouable directement dans le navigateur d'un téléphone ou d'une tablette (p
   le touche), ptérodactyle qui fait un looping, diplodocus au loin, bébé T-rex qui sort de derrière
   la colline, papillons, palmier et fougères. Le dino salue, bâille, rugit, regarde autour de lui,
   saute, fait une pirouette pour un sans-faute.
-- **17 jeux**, 20 niveaux de difficulté : 1–10 maternelle, 11–20 niveau CP (dino niveaux 21 à 40,
+- **21 jeux**, 20 niveaux de difficulté : 1–10 maternelle, 11–20 niveau CP (dino niveaux 21 à 40,
   avec 6 images, des leurres piégeux et des nombres jusqu'à 100). Certains jeux n'apparaissent qu'à
   partir d'un âge : anglais, calcul, lecture, sons et syllabes dès 5 ans ; suites, nombres et tailles dès 4 ans.
   - **Anglais — Écoute et touche** : le mot est dit deux fois par une voix britannique (2 images, 4 au CP) ;
@@ -31,13 +31,22 @@ Jeu jouable directement dans le navigateur d'un téléphone ou d'une tablette (p
     attachée (police scolaire Playwrite France Moderne), avec des leurres de plus en plus ressemblants ;
   - **Français — Les lettres** : les lettres (capitales, minuscules, attaché ; pièges b/d/p/q), puis les
     syllabes (MA, LI… puis CHOU, MOI, PAN) ;
+  - **Français — Lis et touche l'image** : le mot est écrit sans être dit (CAPITALES puis attaché),
+    il faut le lire pour trouver son image ;
+  - **Français — La phrase à trou** : « Le soir, je dors dans mon… » → l'image du lit (dès 3 ans) ;
+    variante dès 5 ans : la phrase est aussi écrite et on choisit le mot écrit ;
   - **Logique — L'intrus** : une seule image n'est pas de la même famille (mots ambigus exclus) ;
+  - **Logique — Formes et couleurs** : « le triangle bleu », puis les pièges (même forme, autre
+    couleur), les tailles (« le petit cœur rouge ») et « le carré qui n'est pas bleu » ;
   - **Logique — Combien ?** : compter de 1 à 20, avec d'autres fruits mélangés aux niveaux difficiles ;
   - **Logique — Les nombres** : « Touche le nombre soixante-douze » (pièges 27 / 72) ;
   - **Logique — La suite** : suites de fruits (AB… ABCCB), puis de nombres (2, 4, 6… ; 100, 90, 80…) ;
   - **Logique — Le plus, le moins** : des tas de fruits, puis des nombres écrits (24 ou 42 ?) ;
   - **Logique — Calcul** : additions et soustractions en images, puis écrites, compléments à 10,
     passage de la dizaine.
+- **Révision espacée** : une question ratée revient le lendemain, puis 3 jours plus tard, puis une
+  semaine plus tard (le dino dit « Celle-là, on l'a déjà vue ensemble ! ») ; réussie les trois fois,
+  elle est acquise. L'espace parents montre quand chaque question reviendra.
 - **Indices** : après une erreur, quand l'enfant hésite, ou tout de suite si le jeu est difficile pour
   lui en ce moment (« Indice : c'est un animal de la ferme », « Indice : qui fait meuh ? »).
 - **Toucher le dino** pendant un jeu lui fait répéter la question.

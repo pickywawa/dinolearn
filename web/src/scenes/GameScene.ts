@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { app, playableGames } from '../core/app';
-import { Choice, Script, Show, gameById } from '../content/games';
+import { Choice, Script, ShapeCard, Show, gameById } from '../content/games';
 import { Series } from '../core/series';
 import { Sfx } from '../core/sfx';
 import { BALANCE } from '../domain/balance';
@@ -148,6 +148,8 @@ export class GameScene extends BaseScene {
       const { index, items } = this.series;
       if (index > 0 && index === items.length - 1) await this.say('last_question');
       else if (index > 0 && index === Math.floor(items.length / 2) && app.rng() < 0.6) await this.say('halfway');
+      // Révision d'une question ratée un autre jour.
+      if (item.due && app.rng() < 0.6) await this.say('review_due');
       // Mode mélangé : le dino annonce le jeu quand il change.
       if (this.mixed && this.series.gameChanged) await this.say(item.game.shortLine);
       await app.voice.say(item.prompt);
@@ -433,6 +435,23 @@ export class GameScene extends BaseScene {
       return;
     }
 
+    if (show.kind === 'text') {
+      // Un mot (en grand) ou une phrase à trou (sur plusieurs lignes) à lire.
+      const long = show.value.length > 14;
+      const cursive = show.script === 'cursive';
+      const text = this.add.text(area.x + area.w / 2, area.y + area.h / 2, show.value, {
+        fontFamily: cursive ? '"Playwrite FR Moderne", cursive' : 'Andika, Arial, sans-serif',
+        fontSize: `${Math.round(Math.min(area.h, area.w) * (long ? 0.13 : cursive ? 0.22 : 0.26))}px`,
+        color: '#2d3354', fontStyle: cursive ? 'normal' : 'bold', align: 'center',
+        wordWrap: { width: area.w * 0.88 }, padding: { x: 8, y: cursive ? 24 : 6 }, lineSpacing: 6,
+      }).setOrigin(0.5);
+      const fit = Math.min((area.w * 0.9) / text.width, (area.h * 0.9) / text.height);
+      if (fit < 1) text.setScale(fit);
+      this.shown.push(text);
+      this.popText(text, 0);
+      return;
+    }
+
     if (show.kind === 'sum') {
       this.drawSum(show, area, pop);
       return;
@@ -543,6 +562,8 @@ export class GameScene extends BaseScene {
       container.add(this.numberFace(choice.count, size));
     } else if (choice.repeat) {
       container.add(this.pileFace(choice.repeat.image, choice.repeat.count, size));
+    } else if (choice.shape) {
+      container.add(this.shapeFace(choice.shape, size));
     } else if (choice.text) {
       container.add(this.writtenFace(choice.text.value, choice.text.script, size));
     } else if (choice.number !== undefined) {
@@ -578,6 +599,39 @@ export class GameScene extends BaseScene {
       dots.fillStyle(0xe5484d, 1).fillCircle(x, y, r);
     }
     return [digit, dots];
+  }
+
+  /** Forme colorée, grande ou petite. */
+  private shapeFace(card: ShapeCard, size: number): Phaser.GameObjects.Graphics {
+    const g = this.add.graphics();
+    const r = size * (card.small ? 0.2 : 0.34);
+    g.fillStyle(card.color, 1).lineStyle(size * 0.02, 0x2d3354, 0.9);
+    const poly = (points: [number, number][]) => {
+      const pts = points.map(([x, y]) => new Phaser.Geom.Point(x * r, y * r));
+      g.fillPoints(pts, true).strokePoints(pts, true);
+    };
+    switch (card.shape) {
+      case 'circle': g.fillCircle(0, 0, r).strokeCircle(0, 0, r); break;
+      case 'square': g.fillRect(-r * 0.85, -r * 0.85, r * 1.7, r * 1.7).strokeRect(-r * 0.85, -r * 0.85, r * 1.7, r * 1.7); break;
+      case 'rectangle': g.fillRect(-r, -r * 0.55, r * 2, r * 1.1).strokeRect(-r, -r * 0.55, r * 2, r * 1.1); break;
+      case 'oval': g.fillEllipse(0, 0, r * 2, r * 1.3).strokeEllipse(0, 0, r * 2, r * 1.3); break;
+      case 'triangle': poly([[0, -1], [1, 0.8], [-1, 0.8]]); break;
+      case 'diamond': poly([[0, -1], [0.7, 0], [0, 1], [-0.7, 0]]); break;
+      case 'hexagon': poly(Array.from({ length: 6 }, (_, i): [number, number] =>
+        [Math.cos((i * Math.PI) / 3), Math.sin((i * Math.PI) / 3)])); break;
+      case 'cross': poly([[-0.3, -1], [0.3, -1], [0.3, -0.3], [1, -0.3], [1, 0.3], [0.3, 0.3], [0.3, 1], [-0.3, 1],
+        [-0.3, 0.3], [-1, 0.3], [-1, -0.3], [-0.3, -0.3]]); break;
+      case 'star': poly(Array.from({ length: 10 }, (_, i): [number, number] => {
+        const a = -Math.PI / 2 + (i * Math.PI) / 5;
+        const k = i % 2 === 0 ? 1 : 0.45;
+        return [Math.cos(a) * k, Math.sin(a) * k + 0.08];
+      })); break;
+      case 'heart': poly(Array.from({ length: 40 }, (_, i): [number, number] => {
+        const t = (i / 40) * Math.PI * 2;
+        return [(16 * Math.sin(t) ** 3) / 17, -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)) / 17];
+      })); break;
+    }
+    return g;
   }
 
   /** Carte écrite : CAPITALES et minuscules en police de lecture (Andika), attaché en cursive scolaire. */
@@ -648,6 +702,7 @@ function showImages(show?: Show): (string | undefined)[] {
   if (show.kind === 'count') return show.groups.map((g) => g.image);
   if (show.kind === 'silhouette' || show.kind === 'image') return [show.image];
   if (show.kind === 'sum') return [show.image];
+  if (show.kind === 'text') return [];
   if (show.kind === 'sequence') return show.images.map((i) => i ?? undefined);
   return [];
 }

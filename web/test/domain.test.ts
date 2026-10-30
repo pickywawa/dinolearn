@@ -4,6 +4,7 @@ import { GAMES, gameById, gamesForAge } from '../src/content/games';
 import { PAIRS, SIZES, enNumber } from '../src/content/extra';
 import { frNumber } from '../src/content/numbers';
 import { RIDDLES } from '../src/content/riddles';
+import { SENTENCES } from '../src/content/sentences';
 import { ONSETS, RHYMES } from '../src/content/sounds';
 import { LINES, LinePicker } from '../src/core/lines';
 import { MemoryStore, Progress } from '../src/core/progress';
@@ -57,7 +58,7 @@ describe('sélection des questions', () => {
 
   it('respecte la longueur et le niveau', () => {
     const picks = pickQuestions({ questions, level: 5, count: 10, mastered: new Set(),
-      recent: new Set(), toRetry: new Set() }, mulberry32(1));
+      recent: new Set(), due: new Set(), waiting: new Set() }, mulberry32(1));
     expect(picks).toHaveLength(10);
     expect(new Set(picks.map((p) => p.question.id)).size).toBe(10);
     picks.forEach((p) => expect(Math.abs(p.question.level - 5)).toBeLessThanOrEqual(1));
@@ -69,7 +70,7 @@ describe('sélection des questions', () => {
     const recent: string[][] = [];
     for (let s = 0; mastered.size < questions.length - 10 && s < 1000; s++) {
       const picks = pickQuestions({ questions, level: 1 + (s % 10), count: 10, mastered,
-        recent: new Set(recent.slice(0, 2).flat()), toRetry: new Set() }, rng);
+        recent: new Set(recent.slice(0, 2).flat()), due: new Set(), waiting: new Set() }, rng);
       for (const p of picks) {
         expect(mastered.has(p.question.id)).toBe(false);
         expect(p.isReview).toBe(false);
@@ -82,7 +83,7 @@ describe('sélection des questions', () => {
 
   it('mode révision quand tout est maîtrisé', () => {
     const picks = pickQuestions({ questions, level: 5, count: 8,
-      mastered: new Set(questions.map((q) => q.id)), recent: new Set(), toRetry: new Set() }, mulberry32(3));
+      mastered: new Set(questions.map((q) => q.id)), recent: new Set(), due: new Set(), waiting: new Set() }, mulberry32(3));
     expect(picks).toHaveLength(8);
     expect(picks.every((p) => p.isReview)).toBe(true);
   });
@@ -137,7 +138,10 @@ describe('contenus', () => {
       if (gameId === 'EN-2') return Number(id.split(':')[1]) <= 10 ? 3 : 4;
       if (['MO-1', 'MO-3', 'LO-1', 'MO-4', 'LO-6'].includes(gameId) && expert) return 6;
       if (gameId === 'MO-5' && Number(id.split(':')[1]) >= 16) return 6;
-      if (gameId === 'FR-3') return refLevel <= 3 ? 3 : refLevel >= 16 ? 6 : 4;
+      if (gameId === 'FR-3' || gameId === 'FR-5') return refLevel <= 3 ? 3 : refLevel >= 16 ? 6 : 4;
+      if (gameId === 'FR-6') return refLevel <= 2 ? 3 : refLevel >= 16 ? 6 : 4;
+      if (gameId === 'FR-7') return refLevel >= 16 ? 6 : 4;
+      if (gameId === 'LO-7') return refLevel <= 2 ? 3 : refLevel >= 18 ? 6 : 4;
       if (gameId === 'MO-2' && level >= 15) return 6;
       if (gameId === 'FR-1' && level >= 17) return 6;
       return 4;
@@ -336,6 +340,47 @@ describe('contenus', () => {
     expect(b.distractors.map((d) => d.text!.value).some((v) => 'dpq'.includes(v))).toBe(true);
   });
 
+  it('phrase à trou, lis et touche l\'image, formes et couleurs', () => {
+    // Phrase à trou : la réponse est le mot qui manque, jamais un leurre exclu.
+    for (const ref of gameById('FR-6').questions) {
+      const [, i, answer] = ref.id.split(':');
+      const [, , , extra] = SENTENCES[Number(i)];
+      for (let seed = 0; seed < 4; seed++) {
+        const q = gameById('FR-6').build(ref, ref.level, mulberry32(seed));
+        expect(q.answer.id).toBe(answer);
+        q.distractors.forEach((d) => {
+          expect(extra ?? [], ref.id).not.toContain(d.id);
+          expect(extra ?? [], ref.id).not.toContain(`cat:${conceptById(d.id).category}`);
+        });
+      }
+    }
+    const text = gameById('FR-7').build({ id: 'FR-7:2:bed', level: 5 }, 5, mulberry32(1));
+    expect(text.answer.text).toEqual({ value: 'LIT', script: 'caps' });
+    expect(text.show).toEqual({ kind: 'text', value: 'Le soir, je dors dans mon …….', script: 'lower' });
+    expect(text.prompt[0].text).toBe('Le soir, je dors dans mon…');
+    expect(text.reinforce[0].text).toBe('Oui ! Le soir, je dors dans mon lit.');
+    // Lis et touche l'image : le mot est écrit, pas dit.
+    const read = gameById('FR-5').build({ id: 'FR-5:chapeau:cursive', level: 14 }, 14, mulberry32(1));
+    expect(read.answer.id).toBe('hat');
+    expect(read.show).toEqual({ kind: 'text', value: 'chapeau', script: 'cursive' });
+    expect(read.prompt.map((x) => x.text).join(' ')).not.toContain('chapeau');
+    // Formes : une seule carte correspond à la consigne.
+    for (const ref of gameById('LO-7').questions) {
+      const q = gameById('LO-7').build(ref, ref.level, mulberry32(ref.id.length + ref.level));
+      const all = [q.answer, ...q.distractors].map((c) => c.shape!);
+      const a = q.answer.shape!;
+      const prompt = q.prompt[0].text;
+      const matches = all.filter((c) => {
+        if (prompt.includes('n\'est pas')) return c.shape === a.shape && c.color !== all[1].color;
+        if (ref.level === 1 || ref.level === 3) return c.shape === a.shape;
+        if (ref.level === 2 || ref.level === 4) return c.color === a.color;
+        const sized = ref.level >= 14 && ref.level !== 16 && ref.level !== 17;
+        return c.shape === a.shape && c.color === a.color && (!sized || !!c.small === !!a.small);
+      });
+      expect(matches, `${ref.id} ${prompt}`).toHaveLength(1);
+    }
+  });
+
   it('nombres en lettres', () => {
     expect([1, 17, 21, 71, 80, 91, 100].map(frNumber)).toEqual(
       ['un', 'dix-sept', 'vingt et un', 'soixante et onze', 'quatre-vingts', 'quatre-vingt-onze', 'cent']);
@@ -417,7 +462,45 @@ describe('série', () => {
     const id = series.current.questionId;
     expect(series.tap(series.current.answer)).toMatchObject({ kind: 'correct', firstTry: false });
     expect(progress.mastered('MO-1').has(id)).toBe(false);
-    expect(progress.toRetry('MO-1', 14).has(id)).toBe(true);
+    // Ratée : pas avant demain.
+    expect(progress.waitingReviews('MO-1').has(id)).toBe(true);
+    expect(progress.dueReviews('MO-1').has(id)).toBe(false);
+  });
+
+  it('révision espacée : le lendemain, puis 3 jours, puis 7 jours plus tard', () => {
+    const p = new Progress(new MemoryStore());
+    const day = (d: number, h = 10) => new Date(2026, 9, d, h).getTime();
+    const answer = (at: number, ok: boolean) =>
+      p.recordAnswer({ gameId: 'MO-1', category: 'world', questionId: 'MO-1:cat', level: 1, firstTrySuccess: ok, at });
+    answer(day(1), false);
+    expect(p.dueReviews('MO-1', day(1, 20)).size).toBe(0);
+    expect(p.dueReviews('MO-1', day(2, 8)).has('MO-1:cat')).toBe(true);
+    // Réussie trop tôt (le jour même, en fin de série) : rien ne change.
+    answer(day(1, 11), true);
+    expect(p.reviewList(5)[0]).toMatchObject({ stage: 0, due: new Date(2026, 9, 2).getTime() });
+    answer(day(2), true);
+    expect(p.reviewList(5)[0]).toMatchObject({ stage: 1, due: new Date(2026, 9, 5).getTime() });
+    answer(day(5), true);
+    expect(p.reviewList(5)[0]).toMatchObject({ stage: 2, due: new Date(2026, 9, 12).getTime() });
+    expect(p.mastered('MO-1').has('MO-1:cat')).toBe(false);
+    answer(day(12), true);
+    expect(p.reviewList(5)).toHaveLength(0);
+    expect(p.mastered('MO-1').has('MO-1:cat')).toBe(true);
+    // Ratée à nouveau : retour au lendemain.
+    answer(day(20), false);
+    expect(p.reviewList(5)[0]).toMatchObject({ stage: 0, due: new Date(2026, 9, 21).getTime() });
+    expect(p.mastered('MO-1').has('MO-1:cat')).toBe(false);
+  });
+
+  it('les révisions du jour passent en premier, les autres attendent leur date', () => {
+    const questions = Array.from({ length: 30 }, (_, i) => ({ id: `q${i}`, level: 3 }));
+    const picks = pickQuestions({ questions, level: 3, count: 10, mastered: new Set(), recent: new Set(),
+      due: new Set(['q1', 'q2']), waiting: new Set(['q3', 'q4']) }, mulberry32(1));
+    const ids = picks.map((p) => p.question.id);
+    expect(ids).toEqual(expect.arrayContaining(['q1', 'q2']));
+    expect(ids).not.toContain('q3');
+    expect(ids).not.toContain('q4');
+    expect(picks.filter((p) => p.due).map((p) => p.question.id).sort()).toEqual(['q1', 'q2']);
   });
 
   it('tutoriel : la question de démonstration ne compte pas', () => {
@@ -484,7 +567,7 @@ describe('espace parents', () => {
     expect(p.gameLevel('LO-5')).toBeUndefined();
 
     p.recordAnswer({ gameId: 'MO-1', category: 'world', questionId: 'MO-1:cat', level: 1, firstTrySuccess: false, at: 5 });
-    expect(p.recentFailures(5)).toEqual([{ gameId: 'MO-1', questionId: 'MO-1:cat', at: 5 }]);
+    expect(p.reviewList(5)).toMatchObject([{ gameId: 'MO-1', questionId: 'MO-1:cat', stage: 0 }]);
 
     // Réglages conservés après rechargement et après « tout recommencer ».
     const reloaded = new Progress(store);

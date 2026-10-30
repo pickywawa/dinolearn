@@ -5,6 +5,8 @@ export interface SelectedQuestion {
   question: QuestionRef;
   /** Question déjà maîtrisée, reposée parce que le jeu est épuisé. */
   isReview: boolean;
+  /** Question ratée autrefois, reposée à sa date de révision. */
+  due?: boolean;
 }
 
 /** Sélection des questions d'une série (spécifications §7.3). */
@@ -15,28 +17,31 @@ export function pickQuestions(
     count: number;
     mastered: Set<string>;
     recent: Set<string>;
-    toRetry: Set<string>;
+    /** Questions ratées dont la date de révision est arrivée. */
+    due: Set<string>;
+    /** Questions ratées qui attendent leur date de révision : pas avant. */
+    waiting: Set<string>;
   },
   rng: Rng,
   b: Balance = BALANCE,
 ): SelectedQuestion[] {
-  const { questions, level, count, mastered, recent, toRetry } = opts;
-  const candidates = questions.filter((q) => !mastered.has(q.id) && !recent.has(q.id));
+  const { questions, level, count, mastered, recent, due, waiting } = opts;
+  const candidates = questions.filter((q) => !mastered.has(q.id) && !recent.has(q.id) && !waiting.has(q.id));
   const picks: QuestionRef[] = [];
 
-  const retry = shuffle(
-    candidates.filter((q) => toRetry.has(q.id) && q.level <= level + 1),
-    rng,
-  );
-  picks.push(...retry.slice(0, Math.round(count * b.retryShare)));
+  // D'abord les révisions arrivées à leur date (au plus 40 % de la série).
+  const reviews = shuffle(candidates.filter((q) => due.has(q.id) && q.level <= level + 2), rng)
+    .slice(0, Math.max(1, Math.round(count * b.reviewShare)));
+  picks.push(...reviews);
+  const others = candidates.filter((q) => !due.has(q.id));
 
   while (picks.length < count) {
-    const q = nearestAvailable(candidates, weightedLevel(level, rng, b), picks, rng);
+    const q = nearestAvailable(others, weightedLevel(level, rng, b), picks, rng);
     if (!q) break;
     picks.push(q);
   }
 
-  const result: SelectedQuestion[] = picks.map((question) => ({ question, isReview: false }));
+  const result: SelectedQuestion[] = picks.map((question) => ({ question, isReview: false, due: reviews.includes(question) }));
   if (result.length < count) {
     // Mode révision : questions maîtrisées (ou récentes en dernier recours).
     const masteredPool = shuffle(

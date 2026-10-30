@@ -6,6 +6,7 @@ import { PAIRS, SIZES, SYLLABLES, enNumber } from './extra';
 import { frNumber } from './numbers';
 import { LETTER_LEVELS, LETTER_NAMES, LOOKALIKE_LETTERS, READ_WORDS, SYLLABLES_TO_READ } from './reading';
 import { RIDDLES } from './riddles';
+import { SENTENCES } from './sentences';
 import { ONSETS, RHYMES } from './sounds';
 
 /** Une réponse possible : une image, un nombre (carte à points) ou un tas d'objets. */
@@ -21,6 +22,16 @@ export interface Choice {
   number?: number;
   /** Carte écrite (jeux de lecture) : en CAPITALES, en minuscules d'imprimerie ou en attaché. */
   text?: { value: string; script: Script };
+  /** Forme colorée (jeu « Formes et couleurs »). */
+  shape?: ShapeCard;
+}
+
+export interface ShapeCard {
+  shape: string;
+  /** Couleur (#rrggbb). */
+  color: number;
+  /** Petite forme (les autres sont grandes) — seulement quand la taille compte. */
+  small?: boolean;
 }
 
 export type Script = 'caps' | 'lower' | 'cursive';
@@ -37,6 +48,8 @@ export type Show =
   | { kind: 'numbers'; items: (number | null)[] }
   /** Une image seule (le mot dont on cherche la rime, le début…). */
   | { kind: 'image'; image: string }
+  /** Un texte à lire (un mot, une phrase à trou). */
+  | { kind: 'text'; value: string; script: Script }
   /**
    * Un calcul. Avec `image` : en images (a fruits, puis + b fruits, ou b fruits
    * barrés pour « − ») ; sans image : écrit en chiffres. `total` : « a + ? = total ».
@@ -1233,9 +1246,251 @@ const letters: GameDef = {
   },
 };
 
+// ---- Français : « Lis et touche l'image » (le mot est écrit, pas dit) ----
+
+const readPicture: GameDef = {
+  id: 'FR-5',
+  category: 'french',
+  minAge: 5,
+  icon: 'read-picture',
+  color: 0x6d28d9,
+  introLine: 'intro.FR-5',
+  homeLine: 'home.FR-5',
+  shortLine: 'short.FR-5',
+  // Seulement les mots illustrés ; en CAPITALES, puis en attaché.
+  questions: READ_WORDS.filter(([, conceptId]) => conceptId).flatMap(([word, , level]) => [
+    { id: `FR-5:${word}:caps`, level },
+    { id: `FR-5:${word}:cursive`, level: Math.min(20, level + 6) },
+  ]),
+  build(ref, _level, rng) {
+    const [, word, script] = ref.id.split(':') as [string, string, Script];
+    const illustrated = READ_WORDS.filter(([, c]) => c);
+    const answer = conceptById(illustrated.find(([w]) => w === word)![1]);
+    const count = ref.level <= 3 ? 2 : ref.level >= 16 ? 5 : 3;
+    // Leurres : des images dont le nom s'écrit presque pareil (il faut vraiment lire).
+    const lookalikes = writtenDistractors(word, illustrated.map(([w]) => w), count, ref.level, rng)
+      .map((w) => conceptById(illustrated.find(([x]) => x === w)![1]));
+    return {
+      answer: conceptChoice(answer),
+      distractors: lookalikes.map(conceptChoice),
+      show: { kind: 'text', value: script === 'caps' ? word.toLocaleUpperCase('fr-FR') : word, script },
+      prompt: [{ text: oneOf(rng, ['Lis le mot, et touche la bonne image !', 'Qu\'est-ce qui est écrit ? Touche l\'image !']), lang: 'fr' }],
+      reinforce: [{ text: `Oui ! C'est écrit ${word} !`, lang: 'fr' }],
+      hints: [{
+        text: `Indice : le mot commence par la lettre ${LETTER_NAMES[word[0].normalize('NFD')[0].toUpperCase()]}. `
+          + 'Dis le nom de chaque image, et écoute si ça commence pareil.',
+        lang: 'fr',
+      }],
+    };
+  },
+};
+
+// ---- Français : « La phrase à trou » (images dès 3 ans, mots écrits dès 5 ans) ----
+
+/** Réponse et leurres d'une phrase : jamais une image qui irait aussi dans la phrase. */
+function sentenceQuestion(index: number, level: number, count: number, rng: Rng) {
+  const [sentence, answerId, , extra] = SENTENCES[index];
+  const answer = conceptById(answerId);
+  const banned = new Set(extra ?? []);
+  const pool = CONCEPTS.filter((c) => c.group !== 'color' && !banned.has(c.id) && !banned.has(`cat:${c.category}`));
+  const distractors = pickDistractors(answer, pool, count, strategyFor(level, 7, 14), rng);
+  const [before, after] = sentence.split('___');
+  // Le dino dit la phrase avec un petit silence à la place du mot.
+  const prompt: Speech[] = [
+    // « l'… » ne se dit pas bien : on s'arrête avant l'article élidé.
+    { text: `${before.trim().replace(/\s+(?:l'|d'|L')$/, '')}…`, lang: 'fr', pauseAfter: 450 },
+    ...(after.trim().length > 1 ? [{ text: `…${after.trim()}`, lang: 'fr' as const, pauseAfter: 350 }] : []),
+    { text: oneOf(rng, ['Quel mot manque ?', 'Qu\'est-ce qui manque ?', 'Trouve le mot qui manque !']), lang: 'fr' },
+  ];
+  const full = `${before}${answer.fr.word}${after}`.replace(/(\b(?:l'|d'))\s+/g, '$1');
+  return { answer, distractors, prompt, full, sentence };
+}
+
+const SENTENCE_REFS = SENTENCES.map(([, answer, level], i) => ({ i, answer, level }));
+
+const missingWord: GameDef = {
+  id: 'FR-6',
+  category: 'french',
+  icon: 'missing-word',
+  color: 0xea580c,
+  introLine: 'intro.FR-6',
+  homeLine: 'home.FR-6',
+  shortLine: 'short.FR-6',
+  questions: SENTENCE_REFS.map(({ i, answer, level }) => ({ id: `FR-6:${i}:${answer}`, level })),
+  build(ref, level, rng) {
+    const q = sentenceQuestion(Number(idOf(ref)), level, ref.level >= 16 ? 5 : ref.level <= 2 ? 2 : 3, rng);
+    return {
+      answer: conceptChoice(q.answer),
+      distractors: q.distractors.map(conceptChoice),
+      prompt: q.prompt,
+      reinforce: [{ text: `Oui ! ${q.full}`, lang: 'fr' }],
+      hints: conceptHints(q.answer),
+    };
+  },
+};
+
+const missingWordRead: GameDef = {
+  id: 'FR-7',
+  category: 'french',
+  minAge: 5,
+  icon: 'missing-word-read',
+  color: 0x0f766e,
+  introLine: 'intro.FR-7',
+  homeLine: 'home.FR-7',
+  shortLine: 'short.FR-7',
+  // Même phrases, mais les réponses sont des mots écrits : il faut les lire.
+  questions: SENTENCE_REFS.map(({ i, answer, level }) => ({ id: `FR-7:${i}:${answer}`, level: Math.min(20, level + 1) })),
+  build(ref, level, rng) {
+    const q = sentenceQuestion(Number(idOf(ref)), level, ref.level >= 16 ? 5 : 3, rng);
+    const script: Script = ref.level >= 12 ? 'lower' : 'caps';
+    const word = (c: Concept) => written(c.fr.word, script);
+    return {
+      answer: word(q.answer),
+      distractors: q.distractors.map(word),
+      show: { kind: 'text', value: q.sentence.replace('___', '……'), script: 'lower' },
+      prompt: q.prompt,
+      reinforce: [{ text: `Oui ! ${q.full}`, lang: 'fr' }],
+      hints: [{
+        text: `Indice : le mot commence par la lettre ${LETTER_NAMES[q.answer.fr.word[0].normalize('NFD')[0].toUpperCase()]}.`,
+        lang: 'fr',
+      }],
+    };
+  },
+};
+
+// ---- Logique : « Formes et couleurs » ----
+
+/** Formes : [id, nom, féminin, niveau d'apparition]. */
+const SHAPES: [string, string, boolean, number][] = [
+  ['circle', 'rond', false, 1], ['square', 'carré', false, 1], ['triangle', 'triangle', false, 1],
+  ['star', 'étoile', true, 1], ['heart', 'cœur', false, 1],
+  ['rectangle', 'rectangle', false, 11], ['diamond', 'losange', false, 11], ['oval', 'ovale', false, 11],
+  ['hexagon', 'hexagone', false, 12], ['cross', 'croix', true, 12],
+];
+/** Couleurs : [couleur, masculin, féminin]. */
+const COLORS: [number, string, string][] = [
+  [0xe5484d, 'rouge', 'rouge'], [0x2f6fde, 'bleu', 'bleue'], [0x30a46c, 'vert', 'verte'],
+  [0xf5c518, 'jaune', 'jaune'], [0xf28c28, 'orange', 'orange'], [0x8e4ec6, 'violet', 'violette'],
+  [0xf27aa6, 'rose', 'rose'],
+];
+
+function shapeWords(card: ShapeCard, withSize: boolean): string {
+  const [, name, fem] = SHAPES.find(([id]) => id === card.shape)!;
+  const color = COLORS.find(([c]) => c === card.color)!;
+  const adj = fem ? color[2] : color[1];
+  if (withSize) {
+    const size = card.small ? (fem ? 'petite' : 'petit') : (fem ? 'grande' : 'grand');
+    return `${fem ? 'la' : 'le'} ${size} ${name} ${adj}`;
+  }
+  const article = /^[aeiouéh]/.test(name) ? 'l\'' : fem ? 'la ' : 'le ';
+  return `${article}${name} ${adj}`;
+}
+
+const shapeChoice = (card: ShapeCard): Choice =>
+  ({ id: `s:${card.shape}:${card.color}:${card.small ? 's' : 'b'}`, shape: card });
+
+/** Génère une question « Formes et couleurs » selon le niveau. */
+function buildShapes(level: number, rng: Rng): BuiltQuestion {
+  const shapes = SHAPES.filter(([, , , from]) => from <= Math.max(level, 1)).map(([id]) => id);
+  const pick = <T>(list: T[]) => list[Math.floor(rng() * list.length)];
+  const colors = COLORS.map(([c]) => c);
+  const count = level >= 18 ? 6 : level <= 2 ? 3 : 4;
+  const key = (c: ShapeCard) => `${c.shape}:${c.color}:${!!c.small}`;
+  const fill = (cards: ShapeCard[], make: () => ShapeCard, ok: (c: ShapeCard) => boolean) => {
+    for (let guard = 0; cards.length < count && guard < 500; guard++) {
+      const c = make();
+      if (ok(c) && !cards.some((x) => key(x) === key(c))) cards.push(c);
+    }
+    return cards;
+  };
+  const answer: ShapeCard = { shape: pick(shapes), color: pick(colors) };
+  let cards: ShapeCard[] = [answer];
+  let prompt: string;
+  let said: string;
+
+  if (level <= 1 || level === 3) {
+    // La forme seulement (au niveau 3, toutes de la même couleur).
+    const sameColor = level === 3;
+    const used = new Set([answer.shape]);
+    cards = fill(cards, () => ({ shape: pick(shapes), color: sameColor ? answer.color : pick(colors) }), (c) => {
+      if (used.has(c.shape)) return false;
+      used.add(c.shape);
+      return true;
+    });
+    const [, name, fem] = SHAPES.find(([id]) => id === answer.shape)!;
+    said = `${/^[aeiouéh]/.test(name) ? 'l\'' : fem ? 'la ' : 'le '}${name}`;
+    prompt = `Touche ${said} !`;
+  } else if (level === 2 || level === 4) {
+    // La couleur seulement (au niveau 4, toutes de la même forme).
+    const sameShape = level === 4;
+    const used = new Set([answer.color]);
+    cards = fill(cards, () => ({ shape: sameShape ? answer.shape : pick(shapes), color: pick(colors) }), (c) => {
+      if (used.has(c.color)) return false;
+      used.add(c.color);
+      return true;
+    });
+    said = `la forme ${COLORS.find(([c]) => c === answer.color)![2]}`;
+    prompt = `Touche ${said} !`;
+  } else if (level <= 13 || level >= 18) {
+    // Forme + couleur. Dès le niveau 8, des pièges : même forme autre couleur, même couleur autre forme.
+    const withSize = level >= 18;
+    if (withSize) answer.small = rng() < 0.5;
+    if (level >= 8) {
+      cards.push({ shape: answer.shape, color: pick(colors.filter((c) => c !== answer.color)), small: withSize ? answer.small : undefined });
+      cards.push({ shape: pick(shapes.filter((s) => s !== answer.shape)), color: answer.color, small: withSize ? answer.small : undefined });
+      if (withSize) cards.push({ shape: answer.shape, color: answer.color, small: !answer.small });
+    }
+    cards = fill(cards, () => ({ shape: pick(shapes), color: pick(colors), small: withSize ? rng() < 0.5 : undefined }),
+      (c) => level >= 8 || (c.shape !== answer.shape && c.color !== answer.color));
+    said = shapeWords(answer, withSize);
+    prompt = `Touche ${said} !`;
+  } else if (level <= 15) {
+    // La taille compte : « le petit cœur rouge ».
+    answer.small = rng() < 0.5;
+    cards.push({ ...answer, small: !answer.small });
+    cards.push({ shape: answer.shape, color: pick(colors.filter((c) => c !== answer.color)), small: answer.small });
+    cards = fill(cards, () => ({ shape: pick(shapes), color: pick(colors), small: rng() < 0.5 }), () => true);
+    said = shapeWords(answer, true);
+    prompt = `Touche ${said} !`;
+  } else {
+    // « Le carré qui n'est pas bleu » : une seule forme de ce type n'a pas cette couleur.
+    const [, name, fem] = SHAPES.find(([id]) => id === answer.shape)!;
+    const notColor = pick(colors.filter((c) => c !== answer.color));
+    const colorName = COLORS.find(([c]) => c === notColor)!;
+    cards.push({ shape: answer.shape, color: notColor, small: false });
+    cards.push({ shape: answer.shape, color: notColor, small: true });
+    cards = fill(cards, () => ({ shape: pick(shapes.filter((x) => x !== answer.shape)), color: pick(colors) }), () => true);
+    said = `${fem ? 'la' : 'le'} ${name} qui n'est pas ${fem ? colorName[2] : colorName[1]}`;
+    prompt = `Attention ! Touche ${said} !`;
+  }
+  const [first, ...rest] = cards.map(shapeChoice);
+  return {
+    answer: first,
+    distractors: rest,
+    prompt: [{ text: prompt, lang: 'fr' }],
+    reinforce: [{ text: `Oui ! ${said.charAt(0).toUpperCase()}${said.slice(1)} !`, lang: 'fr' }],
+    hints: [{ text: 'Indice : cherche d\'abord la bonne couleur, puis regarde bien la forme.', lang: 'fr' }],
+  };
+}
+
+const shapesGame: GameDef = {
+  id: 'LO-7',
+  category: 'logic',
+  icon: 'shapes',
+  color: 0xdb2777,
+  introLine: 'intro.LO-7',
+  homeLine: 'home.LO-7',
+  shortLine: 'short.LO-7',
+  questions: Array.from({ length: 20 }, (_, l) =>
+    Array.from({ length: 8 }, (_, i) => ({ id: `LO-7:${l + 1}:${i}`, level: l + 1 }))).flat(),
+  build(ref, _level, rng) {
+    return buildShapes(ref.level, rng);
+  },
+};
+
 export const GAMES: GameDef[] = [
-  listenTap, englishNumbers, showMe, riddles, shadows, together, bigger, sounds, syllables, readWord, letters,
-  oddOneOut, counting, numbers, sequence, most, calc,
+  listenTap, englishNumbers, showMe, riddles, shadows, together, bigger, missingWord, missingWordRead, sounds,
+  syllables, readWord, readPicture, letters, oddOneOut, shapesGame, counting, numbers, sequence, most, calc,
 ];
 
 /** Jeux proposés à un enfant de cet âge. */

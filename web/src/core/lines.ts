@@ -49,6 +49,10 @@ export const LINES: Record<string, string[]> = {
   'home.FR-2': ['Les mains : on tape les syllabes !'],
   'home.FR-3': ['Le livre : on apprend à lire des mots !'],
   'home.FR-4': ['Les lettres : trouve les lettres et les syllabes !'],
+  'home.FR-5': ['Les yeux : lis le mot, et trouve l\'image !'],
+  'home.FR-6': ['La bulle : trouve le mot qui manque !'],
+  'home.FR-7': ['La feuille : complète la phrase avec le bon mot écrit !'],
+  'home.LO-7': ['La palette : les formes et les couleurs !'],
   'intro.MIX': [
     'On mélange tous les jeux ! Écoute bien chaque question.',
     'Surprise : une question de chaque jeu ! Écoute bien.',
@@ -72,6 +76,10 @@ export const LINES: Record<string, string[]> = {
   'short.FR-2': ['Tape les syllabes !'],
   'short.FR-3': ['Lis le mot !', 'On lit !'],
   'short.FR-4': ['Les lettres !', 'Lis bien !'],
+  'short.FR-5': ['Lis le mot !', 'Qu\'est-ce qui est écrit ?'],
+  'short.FR-6': ['Le mot qui manque !', 'Une phrase à trou !'],
+  'short.FR-7': ['Complète la phrase !'],
+  'short.LO-7': ['Les formes !', 'Formes et couleurs !'],
   'home.level': ['L\'étoile, c\'est mon niveau !'],
   'home.age': ['Le gâteau, c\'est pour changer ton âge.'],
   'age.ask': ['Quel âge as-tu ? Touche le gâteau avec ton âge !'],
@@ -156,6 +164,22 @@ export const LINES: Record<string, string[]> = {
     'On joue avec les lettres ! Écoute bien, et touche la bonne.',
     'Les lettres, c\'est le début de la lecture ! Trouve celle que je dis.',
   ],
+  'intro.FR-5': [
+    'Cette fois, je ne dis rien : c\'est toi qui lis ! Lis le mot, et touche la bonne image.',
+    'Un mot est écrit. Lis-le dans ta tête, et trouve son image !',
+  ],
+  'intro.FR-6': [
+    'Je dis une phrase, mais il manque un mot ! Touche l\'image du mot qui manque.',
+    'Oh non, j\'ai oublié un mot dans ma phrase ! Tu m\'aides à le retrouver ?',
+  ],
+  'intro.FR-7': [
+    'Il manque un mot dans la phrase. Lis bien les mots, et touche le bon !',
+    'Une phrase à trou ! Trouve le mot écrit qui va dedans.',
+  ],
+  'intro.LO-7': [
+    'On joue avec les formes et les couleurs ! Écoute bien, et touche la bonne forme.',
+    'Ronds, carrés, triangles… et plein de couleurs ! Trouve celle que je dis.',
+  ],
   tutorial: ['Regarde, je te montre ! On touche la bonne image, comme ça !'],
   tutorial_your_turn: ['À toi maintenant !'],
   correct: [
@@ -204,6 +228,11 @@ export const LINES: Record<string, string[]> = {
     'Prends ton temps, puis touche une carte.',
   ],
   touch_me: ['Pour réécouter, touche-moi !'],
+  review_due: [
+    'Celle-là, on l\'a déjà vue ensemble. Tu te souviens ?',
+    'Une question de révision ! Je suis sûr que tu sais.',
+    'On révise ! Celle-ci était difficile l\'autre jour.',
+  ],
   review: [
     'Tu connais déjà tout ici ! On révise ?',
     'Tu as tout appris ! On révise un peu ?',

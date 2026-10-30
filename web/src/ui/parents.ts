@@ -18,7 +18,9 @@ const TITLES: Record<string, string> = {
   'MO-5': 'Monde — Le plus grand', 'FR-1': 'Français — Les sons', 'FR-2': 'Français — Les syllabes',
   'FR-3': 'Français — Lis le mot', 'FR-4': 'Français — Les lettres', 'LO-1': 'Logique — L\'intrus',
   'LO-2': 'Logique — Combien ?', 'LO-3': 'Logique — La suite', 'LO-4': 'Logique — Le plus, le moins',
-  'LO-5': 'Logique — Calcul', 'LO-6': 'Logique — Les nombres',
+  'LO-5': 'Logique — Calcul', 'LO-6': 'Logique — Les nombres', 'LO-7': 'Logique — Formes et couleurs',
+  'FR-5': 'Français — Lis et touche l\'image', 'FR-6': 'Français — La phrase à trou (images)',
+  'FR-7': 'Français — La phrase à trou (mots écrits)',
 };
 export const gameTitle = (g: GameDef) => TITLES[g.id] ?? g.id;
 
@@ -245,22 +247,29 @@ export function openParents(onClose: () => void) {
     );
   }
 
-  // ---- À retravailler ----
+  // ---- À retravailler (révision espacée) ----
   function failuresSection() {
-    const fails = p.recentFailures(12);
+    const reviews = p.reviewList(15);
     const rng = mulberry32(1);
-    const items = fails.map(({ gameId, questionId }) => {
+    const when = (due: number) => {
+      const days = Math.round((due - new Date().setHours(0, 0, 0, 0)) / 86_400_000);
+      return days <= 0 ? 'à réviser aujourd\'hui' : days === 1 ? 'revient demain'
+        : `revient le ${new Date(due).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}`;
+    };
+    const items = reviews.map(({ gameId, questionId, stage, due }) => {
       const game = GAMES.find((g) => g.id === gameId);
       const ref = game?.questions.find((q) => q.id === questionId);
       if (!game || !ref) return undefined;
       const q = game.build(ref, ref.level, rng);
       const text = q.prompt.map((s) => s.text).join(' ');
-      return el('li', {}, text, ' ', el('small', {}, `— ${gameTitle(game)}, niveau ${ref.level}`));
+      return el('li', {}, text, ' ',
+        el('small', {}, `— ${gameTitle(game)} · révision ${stage + 1} sur ${BALANCE.reviewDays.length} · ${when(due)}`));
     }).filter((x): x is HTMLLIElement => x !== undefined);
     return el('section', {},
       el('h2', {}, 'À retravailler'),
-      el('p', { class: 'help' }, 'Les dernières questions ratées du premier coup. Le jeu les repose dans les jours qui suivent.'),
-      items.length ? el('ul', { class: 'fails' }, ...items) : el('p', {}, 'Rien pour l\'instant. Bravo !'),
+      el('p', { class: 'help' }, 'Une question ratée revient le lendemain, puis 3 jours plus tard, puis une semaine '
+        + 'plus tard. Réussie les trois fois, elle est acquise ; ratée, elle recommence au lendemain.'),
+      items.length ? el('ul', { class: 'fails' }, ...items) : el('p', {}, 'Rien à réviser pour l\'instant. Bravo !'),
     );
   }
 
