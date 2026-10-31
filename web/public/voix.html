@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Voix du dino — essai</title>
+<!--
+  Page d'essai, à part du jeu : comparer la voix actuelle du dino (synthèse
+  vocale du téléphone) et des voix neuronales Piper calculées dans le
+  navigateur. Rien n'est intégré au jeu tant qu'une voix n'a pas été choisie.
+  Piper (MIT) est chargé depuis jsDelivr, avec onnxruntime-web 1.18.0 ; les
+  voix (≈ 30 à 75 Mo) viennent de HuggingFace et restent ensuite dans le
+  navigateur (OPFS). Aucune donnée n'est envoyée : le texte est calculé ici.
+-->
+<script type="importmap">
+{ "imports": { "onnxruntime-web/wasm": "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.18.0/dist/esm/ort.wasm.min.js" } }
+</script>
+<style>
+  :root {
+    --ink: #1f2937; --muted: #6b7280; --bg: #f4f6fb; --card: #fff; --brand: #2d3354; --ok: #43b649;
+    --line: #e5e7eb; --chip: #eef0f6; --warn: #b45309;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.45 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+  header { background: var(--brand); color: #fff; padding: 16px; }
+  header h1 { margin: 0 0 4px; font-size: 20px; }
+  header p { margin: 0; opacity: .85; font-size: 14px; }
+  main { max-width: 760px; margin: 0 auto; padding: 16px 16px 64px; }
+  section { background: var(--card); border-radius: 14px; padding: 16px; margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  h2 { margin: 0 0 4px; font-size: 18px; }
+  .help { margin: 0 0 12px; color: var(--muted); font-size: 14px; }
+  button { font: inherit; border: 0; border-radius: 10px; padding: 10px 14px; min-height: 44px; cursor: pointer;
+    background: var(--chip); color: var(--ink); }
+  button.primary { background: var(--ok); color: #fff; font-weight: 600; }
+  button:disabled { opacity: .5; cursor: default; }
+  select, textarea { font: inherit; border: 1px solid #d1d5db; border-radius: 10px; padding: 8px; width: 100%; background: #fff; }
+  textarea { min-height: 44px; resize: vertical; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .sentence { border-top: 1px solid var(--line); padding: 10px 0; }
+  .sentence:first-child { border-top: 0; }
+  .sentence .text { margin-bottom: 8px; }
+  .sentence .meta { color: var(--muted); font-size: 13px; margin-top: 6px; min-height: 18px; }
+  .bar { height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; margin-top: 8px; }
+  .bar span { display: block; height: 100%; width: 0; background: var(--ok); transition: width .2s; }
+  .status { font-size: 14px; color: var(--muted); margin-top: 6px; min-height: 20px; }
+  .status.err { color: #b91c1c; }
+  label.slider { display: block; margin-top: 12px; font-size: 14px; }
+  label.slider input { width: 100%; height: 36px; accent-color: var(--ok); }
+  .tag { display: inline-block; background: var(--chip); border-radius: 8px; padding: 2px 8px; font-size: 13px; color: var(--muted); }
+  .note { font-size: 14px; color: var(--warn); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  td, th { text-align: left; padding: 6px 4px; border-top: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 500; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🦕 Quelle voix pour le dino ?</h1>
+  <p>Page d'essai, à part du jeu. Écoute les mêmes phrases avec chaque voix, puis dis-moi ta préférée.</p>
+</header>
+<main>
+  <section>
+    <h2>Les phrases</h2>
+    <p class="help">Tu peux les modifier. Le prénom change dans toutes les phrases.</p>
+    <div class="row"><label for="name">Prénom :</label><input id="name" value="Léa" style="font:inherit;padding:8px;border:1px solid #d1d5db;border-radius:10px;width:140px"></div>
+  </section>
+
+  <section>
+    <h2>1. La voix actuelle (le téléphone)</h2>
+    <p class="help">Celle du jeu aujourd'hui : la meilleure voix française de l'appareil, un peu plus aiguë.</p>
+    <div class="tag" id="phoneVoice">Recherche des voix…</div>
+    <div id="phoneList" style="margin-top:8px"></div>
+  </section>
+
+  <section>
+    <h2>2. Voix neuronales Piper (calculées dans le téléphone)</h2>
+    <p class="help">La même voix sur tous les appareils, hors ligne une fois téléchargée. Le premier chargement télécharge
+      la voix (30 à 75 Mo, à faire en Wi-Fi) ; ensuite elle reste dans le navigateur.</p>
+    <select id="piperVoice">
+      <optgroup label="Français">
+        <option value="fr_FR-siwis-medium">Siwis (femme, qualité moyenne) ★</option>
+        <option value="fr_FR-siwis-low">Siwis (femme, légère)</option>
+        <option value="fr_FR-tom-medium">Tom (homme)</option>
+        <option value="fr_FR-upmc-medium">UPMC (Jessica)</option>
+        <option value="fr_FR-gilles-low">Gilles (homme, légère)</option>
+        <option value="fr_FR-mls-medium">MLS (voix variée)</option>
+      </optgroup>
+    </select>
+    <div class="row" style="margin-top:10px">
+      <button class="primary" id="piperLoad">Charger cette voix</button>
+      <span class="tag" id="piperState">pas chargée</span>
+    </div>
+    <div class="bar"><span id="piperBar"></span></div>
+    <div class="status" id="piperStatus"></div>
+    <label class="slider">Effet « dino » (plus aigu et un peu plus rapide) : <b id="pitchOut">1,15</b>
+      <input type="range" id="pitch" min="1" max="1.4" step="0.05" value="1.15">
+    </label>
+    <div id="piperList" style="margin-top:8px"></div>
+  </section>
+
+  <section>
+    <h2>3. Les mots anglais</h2>
+    <p class="help">Le dino dit les mots anglais avec un accent britannique, lentement.</p>
+    <select id="enVoice">
+      <option value="en_GB-alba-medium">Alba (Écosse, femme) ★</option>
+      <option value="en_GB-jenny_dioco-medium">Jenny (Angleterre, femme)</option>
+      <option value="en_GB-cori-medium">Cori (Angleterre, femme)</option>
+      <option value="en_GB-alan-medium">Alan (homme)</option>
+    </select>
+    <div class="row" style="margin-top:10px">
+      <button class="primary" id="enLoad">Charger cette voix</button>
+      <span class="tag" id="enState">pas chargée</span>
+    </div>
+    <div class="bar"><span id="enBar"></span></div>
+    <div class="status" id="enStatus"></div>
+    <div id="enList" style="margin-top:8px"></div>
+  </section>
+
+  <section>
+    <h2>Ce qu'il faut regarder</h2>
+    <table>
+      <tr><th>Critère</th><th>Où le voir</th></tr>
+      <tr><td>La voix plaît-elle (enfant, parent) ?</td><td>À l'oreille</td></tr>
+      <tr><td>Attente avant que le dino parle</td><td>« calculée en … s » sous chaque phrase : idéalement moins de 1 s</td></tr>
+      <tr><td>Prononciation des prénoms et des mots</td><td>Change le prénom en haut</td></tr>
+    </table>
+    <p class="note">Si une voix Piper ne se charge pas, le message d'erreur s'affiche sous le bouton : envoie-le-moi.</p>
+  </section>
+</main>
+
+<script type="module">
+const FR = [
+  'Coucou {name} ! C\'est moi, ton dino ! On joue ensemble ?',
+  'Montre-moi le hérisson !',
+  'Bravo, {name} ! Tu as trouvé du premier coup ! Miam, une fraise pour moi !',
+  'Écoute bien l\'histoire. Le petit lapin a mangé trois carottes, puis il est allé dormir dans son terrier.',
+  'Oh là là, il commence à être tard… On fait une dernière série, et après, dodo ?',
+];
+const EN = ['Butterfly', 'Strawberry', 'Hello! How are you?', 'Thirteen. Thirty.'];
+
+const $ = (id) => document.getElementById(id);
+const name = () => $('name').value.trim() || 'Léa';
+const fill = (t) => t.replace(/\{name\}/g, name());
+
+// ---- Son : un seul AudioContext, débloqué au premier toucher (iOS) ----
+let ctx;
+function audio() {
+  ctx ??= new (window.AudioContext || window.webkitAudioContext)();
+  if (ctx.state === 'suspended') void ctx.resume();
+  return ctx;
+}
+let playing;
+async function playWav(blob, rate) {
+  const c = audio();
+  const buffer = await c.decodeAudioData(await blob.arrayBuffer());
+  playing?.stop();
+  const src = c.createBufferSource();
+  src.buffer = buffer;
+  // playbackRate change la hauteur ET la vitesse : c'est l'effet « voix de dessin animé ».
+  src.playbackRate.value = rate;
+  src.connect(c.destination);
+  src.start();
+  playing = src;
+  return buffer.duration / rate;
+}
+
+// ---- 1. La voix du téléphone (mêmes réglages que le jeu) ----
+const PREFERRED = {
+  fr: [/premium|enhanced|amélioré/i, /natural|neural/i, /google/i, /amélie|amelie/i, /audrey/i, /thomas/i, /denise/i, /marie/i],
+  en: [/(sonia|libby|maisie).*(natural|neural)/i, /premium|enhanced/i, /sonia|libby|maisie/i, /google uk english female/i,
+    /serena|kate|martha|stephanie/i, /google uk/i, /daniel/i, /natural/i, /samantha|karen|moira|tessa/i],
+};
+function bestVoice(all, lang) {
+  const candidates = all.filter((v) => v.lang.toLowerCase().replace('_', '-').startsWith(lang));
+  const regional = candidates.filter((v) => (lang === 'en' ? /en-gb/i : /fr-fr/i).test(v.lang.replace('_', '-')));
+  const pool = regional.length ? regional : candidates;
+  for (const p of PREFERRED[lang]) { const v = pool.find((x) => p.test(x.name)); if (v) return v; }
+  return pool[0];
+}
+let phone = {};
+function findPhoneVoices() {
+  if (!('speechSynthesis' in window)) { $('phoneVoice').textContent = 'Pas de synthèse vocale sur ce navigateur'; return; }
+  const all = speechSynthesis.getVoices();
+  if (!all.length) return;
+  phone = { fr: bestVoice(all, 'fr'), en: bestVoice(all, 'en') };
+  $('phoneVoice').textContent = `Voix française : ${phone.fr?.name ?? 'aucune'} · anglaise : ${phone.en?.name ?? 'aucune'}`;
+}
+if ('speechSynthesis' in window) {
+  findPhoneVoices();
+  speechSynthesis.addEventListener?.('voiceschanged', findPhoneVoices);
+  setTimeout(findPhoneVoices, 800);
+}
+function speakPhone(text, lang) {
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.voice = phone[lang] ?? null;
+  u.lang = lang === 'fr' ? 'fr-FR' : 'en-GB';
+  u.pitch = lang === 'fr' ? 1.2 : 1.0;
+  u.rate = lang === 'fr' ? 0.95 : 0.72;
+  speechSynthesis.speak(u);
+}
+
+function sentenceList(el, texts, actions) {
+  el.replaceChildren(...texts.map((raw) => {
+    const box = document.createElement('div');
+    box.className = 'sentence';
+    const text = document.createElement('div');
+    text.className = 'text';
+    text.textContent = fill(raw);
+    $('name').addEventListener('input', () => { text.textContent = fill(raw); });
+    const row = document.createElement('div');
+    row.className = 'row';
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    for (const [label, fn] of actions) {
+      const b = document.createElement('button');
+      b.textContent = label;
+      b.addEventListener('click', () => { audio(); fn(fill(raw), meta, b); });
+      row.append(b);
+    }
+    box.append(text, row, meta);
+    return box;
+  }));
+}
+
+sentenceList($('phoneList'), FR, [['▶ Écouter', (t) => speakPhone(t, 'fr')]]);
+
+// ---- 2 et 3. Piper ----
+let Piper;
+async function piperLib() {
+  Piper ??= await import('https://cdn.jsdelivr.net/npm/@mintplex-labs/piper-tts-web@1.0.5/dist/piper-tts-web.js');
+  return Piper;
+}
+const WASM_PATHS = {
+  onnxWasm: 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.18.0/dist/',
+  piperData: 'https://cdn.jsdelivr.net/npm/@diffusionstudio/piper-wasm@1.0.0/build/piper_phonemize.data',
+  piperWasm: 'https://cdn.jsdelivr.net/npm/@diffusionstudio/piper-wasm@1.0.0/build/piper_phonemize.wasm',
+};
+// Une session par voix : la bibliothèque garde sinon toujours la première voix chargée.
+const sessions = new Map();
+async function session(voiceId, ui) {
+  if (sessions.has(voiceId)) return sessions.get(voiceId);
+  const lib = await piperLib();
+  lib.TtsSession._instance = null;
+  const started = performance.now();
+  const s = new lib.TtsSession({
+    voiceId,
+    wasmPaths: WASM_PATHS,
+    progress: (p) => {
+      if (!p.total || p.url?.startsWith('tts://')) return;
+      ui.bar.style.width = `${Math.round((p.loaded / p.total) * 100)}%`;
+      ui.status.textContent = `Téléchargement : ${(p.loaded / 1e6).toFixed(0)} / ${(p.total / 1e6).toFixed(0)} Mo`;
+    },
+  });
+  const ready = Promise.resolve(s.waitReady).then(() => s);
+  sessions.set(voiceId, ready);
+  ready.then(() => {
+    ui.bar.style.width = '100%';
+    ui.status.textContent = `Voix prête en ${((performance.now() - started) / 1000).toFixed(1)} s (déjà téléchargée : quelques secondes ; sinon, le temps du téléchargement).`;
+  }, (e) => sessions.delete(voiceId));
+  return ready;
+}
+
+function piperSection({ select, load, state, bar, status, list, texts, rate }) {
+  const ui = { bar: $(bar), status: $(status) };
+  const current = () => $(select).value;
+  const setState = () => { $(state).textContent = sessions.has(current()) ? 'chargée' : 'pas chargée'; };
+  $(select).addEventListener('change', () => { ui.bar.style.width = '0'; ui.status.textContent = ''; setState(); });
+  $(load).addEventListener('click', async () => {
+    audio();
+    $(load).disabled = true;
+    ui.status.classList.remove('err');
+    ui.status.textContent = 'Chargement du moteur…';
+    try {
+      await session(current(), ui);
+    } catch (e) {
+      ui.status.classList.add('err');
+      ui.status.textContent = `Erreur : ${e?.message ?? e}`;
+    }
+    $(load).disabled = false;
+    setState();
+  });
+  sentenceList($(list), texts, [['▶ Écouter', async (text, meta, button) => {
+    button.disabled = true;
+    meta.textContent = 'Calcul…';
+    try {
+      const s = await session(current(), ui);
+      const t0 = performance.now();
+      const wav = await s.predict(text);
+      const calc = (performance.now() - t0) / 1000;
+      const dur = await playWav(wav, rate());
+      meta.textContent = `${current()} · calculée en ${calc.toFixed(2)} s pour ${dur.toFixed(1)} s de parole`;
+    } catch (e) {
+      meta.textContent = `Erreur : ${e?.message ?? e}`;
+    }
+    button.disabled = false;
+  }]]);
+  setState();
+}
+
+const pitch = () => Number($('pitch').value);
+$('pitch').addEventListener('input', () => { $('pitchOut').textContent = pitch().toFixed(2).replace('.', ','); });
+piperSection({ select: 'piperVoice', load: 'piperLoad', state: 'piperState', bar: 'piperBar', status: 'piperStatus',
+  list: 'piperList', texts: FR, rate: pitch });
+// Mots anglais : voix naturelle, sans effet.
+piperSection({ select: 'enVoice', load: 'enLoad', state: 'enState', bar: 'enBar', status: 'enStatus',
+  list: 'enList', texts: EN, rate: () => 1 });
+// Comparaison avec la voix anglaise du téléphone.
+for (const box of $('enList').querySelectorAll('.sentence')) {
+  const b = document.createElement('button');
+  b.textContent = '▶ Téléphone';
+  b.addEventListener('click', () => speakPhone(box.querySelector('.text').textContent, 'en'));
+  box.querySelector('.row').append(b);
+}
+</script>
+</body>
+</html>
