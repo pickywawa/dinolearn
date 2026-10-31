@@ -140,7 +140,7 @@ describe('contenus', () => {
     const rng = mulberry32(4);
     const expectedCount = (gameId: string, id: string, level: number, refLevel: number) => {
       const expert = id.endsWith(':x');
-      if (gameId.startsWith('TR-')) return 1;
+      if (gameId.startsWith('TR-') || gameId === 'LO-10' || gameId === 'EN-3') return 1;
       if (gameId === 'MO-6') return id.endsWith(':flag') ? 3 : /hard6|capital6|neighbour6/.test(id) ? 6 : 4;
       if (gameId === 'EN-1') return expert ? 4 : 2;
       if (gameId === 'EN-2') return Number(id.split(':')[1]) <= 10 ? 3 : 4;
@@ -843,5 +843,35 @@ describe('écoute l\'histoire', () => {
     const pigs = STORIES.findIndex(([, , q]) => q === 'Combien y a-t-il de cochons ?');
     const count = game.build({ id: `FR-8:${pigs}`, level: 10 }, 10, mulberry32(1));
     expect(count.answer).toEqual({ id: 'n3', count: 3 });
+  });
+});
+
+describe('memory', () => {
+  it('6 cartes au début (3 ans), puis de plus en plus, jusqu\'à 20 ; en anglais dès 5 ans', async () => {
+    const { memoryPairs } = await import('../src/content/games');
+    expect(gamesForAge(3).map((g) => g.id)).toContain('LO-10');
+    expect(gamesForAge(4).map((g) => g.id)).not.toContain('EN-3');
+    expect(gamesForAge(5).map((g) => g.id)).toContain('EN-3');
+    expect(memoryPairs(1)).toBe(3);
+    expect(memoryPairs(20)).toBe(10);
+    for (let l = 2; l <= 20; l++) expect(memoryPairs(l)).toBeGreaterThanOrEqual(memoryPairs(l - 1));
+    for (const id of ['LO-10', 'EN-3']) {
+      const game = gameById(id);
+      expect(game.memory).toBe(true);
+      for (const ref of game.questions) {
+        const q = game.build(ref, ref.level, mulberry32(ref.level));
+        if (q.show?.kind !== 'memory') throw new Error(ref.id);
+        // Toutes les images différentes (pas deux fois le même mot), avec une image qui existe.
+        expect(q.show.images, ref.id).toHaveLength(memoryPairs(ref.level));
+        const words = q.show.images.map((i) => (id === 'EN-3' ? conceptById(i).en.word : conceptById(i).fr.word));
+        expect(new Set(words).size, ref.id).toBe(words.length);
+        for (const i of q.show.images) expect(existsSync(`public/img/${i}.svg`), i).toBe(true);
+        if (id === 'EN-3') expect(q.show.images.every((i) => conceptById(i).levels['EN-1'] !== undefined)).toBe(true);
+      }
+    }
+    // Une série de memory : 3 plateaux, quel que soit l'âge.
+    const p = new Progress(new MemoryStore());
+    p.age = 7;
+    expect(new Series(gameById('LO-10'), p, mulberry32(1)).items).toHaveLength(3);
   });
 });

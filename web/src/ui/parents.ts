@@ -28,6 +28,7 @@ const TITLES: Record<string, string> = {
   'MO-6': 'Monde — Mon pays', 'TR-1': 'Écriture — Trace les formes', 'TR-2': 'Écriture — Trace les lettres et les chiffres',
   'FR-5': 'Français — Lis et touche l\'image', 'FR-6': 'Français — La phrase à trou (images)',
   'FR-7': 'Français — La phrase à trou (mots écrits)', 'FR-8': 'Français — Écoute l\'histoire',
+  'LO-10': 'Logique — Memory', 'EN-3': 'Anglais — Memory en anglais',
   'VO-1': 'Voix haute — Comment ça s\'appelle ?', 'VO-2': 'Voix haute — Say it in English!',
   'VO-3': 'Voix haute — Lis à voix haute', 'VO-4': 'Voix haute — Devinettes : les animaux',
   'VO-5': 'Voix haute — Devinettes : les métiers', 'VO-6': 'Voix haute — Devinettes : le sport',

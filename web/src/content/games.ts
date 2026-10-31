@@ -59,6 +59,8 @@ export type Show =
   | { kind: 'image'; image: string }
   /** Un texte à lire (un mot, une phrase à trou). */
   | { kind: 'text'; value: string; script: Script }
+  /** Memory (scène à part) : les images des paires, dites en français ou en anglais quand on les retourne. */
+  | { kind: 'memory'; images: string[]; lang: 'fr' | 'en' }
   /** Un modèle à tracer avec le doigt (jeux de tracé, scène à part). */
   | { kind: 'trace'; model: string; mode: TraceMode }
   /**
@@ -92,6 +94,10 @@ export interface GameDef {
   category: 'foreign_language' | 'world' | 'logic' | 'french' | 'writing';
   /** Jeu de tracé : il se joue dans sa propre scène, pas dans les séries mélangées. */
   trace?: boolean;
+  /** Memory : il se joue dans sa propre scène, pas dans les séries mélangées. */
+  memory?: boolean;
+  /** Nombre de questions d'une série, s'il ne dépend pas de l'âge (un plateau de memory est long). */
+  seriesLength?: number;
   /** Âge minimum de l'enfant pour que le jeu soit proposé (3 par défaut). */
   minAge?: number;
   /** Jeu à voix haute : langue du pack de reconnaissance vocale nécessaire. */
@@ -1857,10 +1863,85 @@ const myCountry: GameDef = {
   build: (ref, _level, rng) => buildCountry(ref, rng),
 };
 
+// ---- Memory (dès 3 ans) et memory en anglais (dès 5 ans) ----
+
+/** Nombre de paires selon le niveau : 3 (6 cartes) au début, jusqu'à 10 (20 cartes) au niveau CP. */
+export const memoryPairs = (level: number) => (level <= 3 ? 3 : level <= 6 ? 4 : level <= 10 ? 6 : level <= 15 ? 8 : 10);
+
+/** Familles d'images des plateaux : des faciles d'abord, puis toutes. */
+const MEMORY_THEMES = ['farm', 'fruit', 'wild', 'vehicle', 'toy', 'sea', 'meal', 'forest', 'veg', 'home', 'sky', 'bug', 'tool'];
+
+function memoryQuestions(gameId: string): QuestionRef[] {
+  const refs: QuestionRef[] = [];
+  for (let level = 1; level <= 20; level++) {
+    // Trois plateaux par niveau, chacun d'une famille.
+    const themes = MEMORY_THEMES.slice(0, level <= 4 ? 6 : MEMORY_THEMES.length);
+    for (let k = 0; k < 3; k++) refs.push({ id: `${gameId}:${level}:${themes[(level * 3 + k) % themes.length]}`, level });
+  }
+  return refs;
+}
+
+function buildMemory(ref: QuestionRef, rng: Rng, lang: 'fr' | 'en'): BuiltQuestion {
+  const [, level, theme] = ref.id.split(':');
+  const pairs = memoryPairs(Number(level));
+  const usable = (c: Concept) => c.group !== 'color' && (lang === 'fr' || c.levels['EN-1'] !== undefined);
+  // La famille du plateau ; complétée par d'autres images s'il en manque (sans deux fois le même mot).
+  const pool = [...shuffle(CONCEPTS.filter((c) => c.category === theme && usable(c)), rng),
+    ...shuffle(CONCEPTS.filter((c) => c.category !== theme && usable(c)), rng)];
+  const words = new Set<string>();
+  const chosen: Concept[] = [];
+  for (const c of pool) {
+    const word = lang === 'en' ? c.en.word : c.fr.word;
+    if (chosen.length >= pairs || words.has(word)) continue;
+    words.add(word);
+    chosen.push(c);
+  }
+  return {
+    answer: { id: 'ok' },
+    distractors: [],
+    show: { kind: 'memory', images: chosen.map((c) => c.id), lang },
+    prompt: [{ text: lang === 'en'
+      ? oneOf(rng, ['Retourne deux cartes, et trouve les paires ! J\'écoute… en anglais !', 'Trouve les paires, et écoute les mots anglais !'])
+      : oneOf(rng, ['Retourne deux cartes. Si ce sont les mêmes, tu gagnes la paire !', 'Trouve toutes les paires !']), lang: 'fr' }],
+    reinforce: [{ text: oneOf(rng, ['Bravo, tu as trouvé toutes les paires !', 'Quelle mémoire ! Toutes les paires !',
+      'Toutes les paires ! Tu es un champion du memory !']), lang: 'fr' }],
+    hints: [{ text: 'Souviens-toi bien où sont les images que tu as déjà vues !', lang: 'fr' }],
+  };
+}
+
+const memory: GameDef = {
+  id: 'LO-10',
+  category: 'logic',
+  memory: true,
+  seriesLength: 3,
+  icon: 'memory',
+  color: 0x7c3aed,
+  introLine: 'intro.LO-10',
+  homeLine: 'home.LO-10',
+  shortLine: 'short.LO-10',
+  questions: memoryQuestions('LO-10'),
+  build: (ref, _level, rng) => buildMemory(ref, rng, 'fr'),
+};
+
+const memoryEnglish: GameDef = {
+  id: 'EN-3',
+  category: 'foreign_language',
+  memory: true,
+  seriesLength: 3,
+  minAge: 5,
+  icon: 'memory-en',
+  color: 0x2563eb,
+  introLine: 'intro.EN-3',
+  homeLine: 'home.EN-3',
+  shortLine: 'short.EN-3',
+  questions: memoryQuestions('EN-3'),
+  build: (ref, _level, rng) => buildMemory(ref, rng, 'en'),
+};
+
 export const GAMES: GameDef[] = [
   listenTap, englishNumbers, showMe, riddles, shadows, together, bigger, myCountry, missingWord, missingWordRead, listenStory, sounds,
   syllables, readWord, readPicture, letters, oddOneOut, shapesGame, counting, numbers, sequence, most, calc,
-  clockGame, moneyGame, traceShapes, traceLetters, ...VOICE_GAMES,
+  clockGame, moneyGame, memory, memoryEnglish, traceShapes, traceLetters, ...VOICE_GAMES,
 ];
 
 /** Jeux proposés à un enfant de cet âge. */

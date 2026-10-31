@@ -1,43 +1,32 @@
-## DinoLearn 0.7.0 — l'œuf à casser, les jeux à voix haute et la planète
+## DinoLearn 0.8.0 — le memory, les histoires et le vestiaire
 
-### L'éclosion et la présentation
-- **L'œuf tremble** : il faut le toucher 4 fois. À chaque toucher, il se fissure un peu plus et le
-  téléphone vibre ; puis la coquille s'ouvre en deux (vibrations) et le bébé dino en sort.
-- **Le dino se présente** : il explique comment l'enfant va l'aider (jouer à plein de jeux, gagner des
-  fruits, le nourrir pour qu'il grandisse, l'habiller ; « Mon rêve, c'est de devenir le plus grand
-  dinosaure du monde ! »), en montrant les jeux, le panier de fruits et les cadeaux.
-- Au premier lancement, il demande ensuite à l'enfant **son prénom et son âge, à voix haute** (sans micro,
-  l'âge se choisit avec des gâteaux), puis de **donner le téléphone à un parent** : la fiche de l'enfant
-  est déjà remplie, le parent la corrige si besoin et crée son code. Un nouvel enfant ajouté plus tard
-  casse lui aussi son œuf et voit la présentation.
+### Nouveaux jeux
+- **Memory** (dès 3 ans) : retourner les cartes deux par deux pour retrouver les paires ; le dino dit
+  le nom de chaque image. 6 cartes au début, puis 8, 12, 16 et jusqu'à 20 au niveau CP. Une série,
+  c'est 3 plateaux ; le fruit est gagné sans trop d'erreurs.
+- **Memory en anglais** (dès 5 ans) : le même jeu, et chaque image retournée est dite en anglais.
+- **Écoute l'histoire** (dès 3 ans) : le dino raconte une petite histoire puis pose une question ;
+  on touche l'image de la réponse. 52 histoires, de 3 phrases (3 ans) à 8 phrases (niveau CP), avec des
+  pièges : d'autres choses entendues dans l'histoire, l'ordre (« en premier », « à la fin »), la
+  négation (« n'a PAS pris »), compter et calculer.
+
+### Le vestiaire
+- Un cadeau ne se met plus tout seul : quand le dino grandit, l'enfant va au vestiaire, choisit son
+  cadeau, puis **habille lui-même son dino** en faisant glisser l'objet sur lui.
+- Pour enlever un objet, on le fait glisser du dino vers le côté.
+
+### Le décor
+- Chaque série a un **décor tiré au hasard** : fougères, palmiers, cailloux, montagnes au loin, et
+  parfois un **caméléon** qui roule des yeux, sort la langue et change de couleur (touche-le !).
 
 ### L'accueil
-- La **planète Terre** remplace le gros bouton vert : elle tourne doucement, ses volcans fument, et
-  la toucher lance une série tout mélangée (les volcans crachent de la lave).
-- **Le ciel s'anime** : météorites, oiseaux, et parfois le soleil, ou la pluie suivie d'un arc-en-ciel.
-  La nuit : des étoiles filantes.
-- **Des mouches** viennent tourner autour du dino : si l'une passe tout près, il l'attrape d'un coup de
-  langue.
-- **Espace parents** : un simple toucher sur le nouveau cadenas en haut à gauche, puis le code (plus
-  d'appui long ni de glissé). Le bouton de la musique quitte l'accueil (réglage dans l'espace parents).
-
-### Le repas
-- Après un bon repas, le dino **rote ou pète** (le téléphone vibre) et s'excuse : « Oups, pardon ! ».
-- S'il attend trop son panier, il **réclame**, chaque fois autrement : ventre qui gargouille, il lorgne
-  les fruits, il supplie, il ouvre grand la bouche…
-
-### 12 jeux à voix haute
-- L'enfant répond **en parlant**, en touchant un gros bouton micro : **Comment ça s'appelle ?** (dès
-  3 ans), **Say it in English!**, **Lis à voix haute**, et des **devinettes par thème** (animaux, métiers,
-  sport, espace, saisons et météo, formes et couleurs, pays et peuples, mon pays, nature).
-- La reconnaissance vocale se fait **entièrement sur l'appareil** : la voix n'est ni enregistrée, ni
-  envoyée. Le micro s'autorise dans la fiche de l'enfant ou l'espace parents ; un pack par langue
-  (≈ 40 Mo, français et anglais) se télécharge une fois.
-- Un « pas entendu » ne compte jamais comme une erreur ; après deux essais, l'enfant répond au doigt.
+- Le bouton « choisir son jeu » est **masqué par défaut** : l'enfant joue avec la planète, qui mélange
+  tous les jeux. Les parents peuvent le réactiver (espace parents, section Jeux) ; il donne aussi
+  accès aux jeux à voix haute.
 
 ### Installer / tester
 - En ligne : https://pickywawa.github.io/dinolearn/
-- Archive `dinolearn-web-v0.7.0.zip` : le jeu compilé, pour tout hébergement web statique (sans les
+- Archive `dinolearn-web-v0.8.0.zip` : le jeu compilé, pour tout hébergement web statique (sans les
   packs de reconnaissance vocale : `npm run voice-packs` pour les ajouter).
 - En local : `cd web && npm install && npm run dev`.
 

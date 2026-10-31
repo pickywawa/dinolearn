@@ -52,7 +52,7 @@ En ligne : https://pickywawa.github.io/dinolearn/
   lui en ce moment ; après deux erreurs, la bonne carte brille et le dino la montre.
 - **Musique de fond** douce, créée par le jeu, qui se fait discrète quand le dino parle.
 
-## Les 39 jeux
+## Les 41 jeux
 Chaque jeu a 20 niveaux : 1–10 maternelle, 11–20 niveau CP (6 images, leurres piégeux, nombres
 jusqu'à 100). La difficulté s'adapte toute seule ; certains jeux n'apparaissent qu'à partir d'un âge.
 
@@ -84,6 +84,8 @@ jusqu'à 100). La difficulté s'adapte toute seule ; certains jeux n'apparaissen
 | Logique | Les nombres | 4 ans | « Touche le nombre soixante-douze » (pièges 27 / 72) |
 | Logique | Calcul | 5 ans | additions et soustractions en images, puis écrites, compléments à 10 |
 | Logique | L'heure | 5 ans | trouve le réveil qui montre « trois heures et demie », puis « quinze heures trente » |
+| Logique | Memory | 3 ans | retrouver les paires d'images (le dino dit leur nom) : 6 cartes au début, jusqu'à 20 |
+| Anglais | Memory en anglais | 5 ans | le memory, et chaque image retournée est dite en anglais |
 | Logique | La monnaie | 5 ans | trouve les pièces et billets qui font « deux euros cinquante » |
 | Voix haute | Comment ça s'appelle ? | 3 ans | l'image s'affiche, l'enfant dit son nom (après une erreur, il répète après le dino) |
 | Voix haute | Say it in English! | 5 ans | dire le mot en anglais (« Répète après moi : dog ») |

@@ -77,7 +77,7 @@ export class Series {
     this.mixed = list.length > 1;
     for (const game of list) this.levels.set(game.id, this.levelFor(game));
 
-    const count = seriesLengthFor(progress.age, b);
+    const count = (!this.mixed && list[0].seriesLength) || seriesLengthFor(progress.age, b);
     const picks: { game: GameDef; question: { id: string; level: number }; isReview: boolean; due?: boolean }[] = [];
     if (this.mixed) {
       // Une question par tirage, jamais deux fois le même jeu de suite.
