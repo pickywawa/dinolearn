@@ -2,7 +2,6 @@ import Phaser from 'phaser';
 import { app } from '../core/app';
 import { Sfx } from '../core/sfx';
 import { applyChildSettings, playableGames, switchChild } from '../core/app';
-import { chooseGifts } from '../ui/gifts';
 import { openParents } from '../ui/parents';
 import { askParentCode, childForm, createParentCode, unlockNight, unlockPlayTime } from '../ui/pin';
 import { colorSuffix } from '../dino/parts';
@@ -27,7 +26,7 @@ export class HomeScene extends BaseScene {
   private dino!: Dino;
   private guide!: Guide;
   private play!: Planet;
-  private choose!: Phaser.GameObjects.Container;
+  private choose?: Phaser.GameObjects.Container;
   private dinoBase = 0;
   private gift?: Bubble;
   private childSwitch?: Bubble;
@@ -66,9 +65,9 @@ export class HomeScene extends BaseScene {
     const big = portrait ? { x: W / 2, y: H * 0.34, r: u * 0.2 } : { x: W * 0.3, y: H * 0.46, r: u * 0.2 };
     this.play = new Planet(this, big.x, big.y, big.r, () => this.playRandom());
 
-    // Petit bouton : choisir son jeu (mosaïque des jeux).
+    // Petit bouton : choisir son jeu (mosaïque des jeux), seulement si les parents l'ont activé.
     const small = portrait ? { x: W * 0.14, y: H * 0.56 } : { x: W * 0.08, y: H * 0.82 };
-    this.choose = this.makeChooseButton(small.x, small.y, u * 0.075);
+    this.choose = app.progress.settings.chooseGames ? this.makeChooseButton(small.x, small.y, u * 0.075) : undefined;
 
     const ar = u * 0.06;
     // En haut à gauche : le cadenas des parents (code parent), puis le dino de l'enfant suivant.
@@ -83,12 +82,9 @@ export class HomeScene extends BaseScene {
     }, 0.7);
     if (app.progress.collection.pending > 0) {
       this.gift = new Bubble(this, W / 2 + u * 0.17, u * 0.1, u * 0.065, 0xfff3c4, 'ui-gift', () => {
+        // Le cadeau se choisit au vestiaire, où l'enfant habille son dino.
         this.clearIdle();
-        app.voice.stop();
-        this.run(async () => {
-          await chooseGifts(this, this.dino);
-          this.scene.restart({});
-        });
+        goTo(this, 'Wardrobe');
       }, 0.75);
       this.tweens.add({ targets: this.gift, angle: { from: -10, to: 10 }, duration: 260, yoyo: true, repeat: -1 });
     }
@@ -148,9 +144,11 @@ export class HomeScene extends BaseScene {
     this.guide.tap(this.play);
     await this.say('home.play');
     this.play.highlight(false);
-    this.dino.pointAt(this.choose.x, this.choose.y);
-    this.guide.tap(this.choose);
-    await this.say('home.categories');
+    if (this.choose) {
+      this.dino.pointAt(this.choose.x, this.choose.y);
+      this.guide.tap(this.choose);
+      await this.say('home.categories');
+    }
     this.guide.hide();
     this.armIdle([[9000, () => this.run(() => this.reminder())]]);
   }

@@ -1,6 +1,5 @@
 import Phaser from 'phaser';
 import { app, switchChild } from '../core/app';
-import { chooseGifts } from '../ui/gifts';
 import { Leftover } from '../core/progress';
 import { SeriesResult } from '../core/series';
 import { vibrate } from '../core/haptics';
@@ -241,11 +240,13 @@ export class EndScene extends BaseScene {
       this.dino.react('levelUp');
       await this.say('level_up');
     }
-    // Chaque niveau gagné : un objet à choisir pour le dino.
+    // Chaque niveau gagné : un objet à choisir, au vestiaire (l'enfant y habille son dino).
     if (app.progress.collection.pending > 0) {
       this.again.setVisible(false);
-      await chooseGifts(this, this.dino);
-      if (!this.alive) return;
+      this.dino.react('cheer');
+      await this.say('gift.go');
+      goTo(this, 'Wardrobe');
+      return;
     }
     await this.showAgain();
   }

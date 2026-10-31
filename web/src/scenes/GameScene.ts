@@ -12,6 +12,7 @@ import { Heard, Verdict, canRecognize, grammarFor, judge } from '../domain/speec
 import { Dino } from '../dino/Dino';
 import { Guide } from '../ui/Guide';
 import { MicButton } from '../ui/MicButton';
+import { drawVegetation } from '../ui/vegetation';
 import { drawScenery, goTo, homeButton, isPortrait, unit } from '../ui/scenery';
 import { BaseScene } from './BaseScene';
 
@@ -90,6 +91,8 @@ export class GameScene extends BaseScene {
     const tint = Phaser.Display.Color.IntegerToColor(this.mixed ? 0x9fd8ff : games[0].color);
     const light = Phaser.Display.Color.Interpolate.ColorWithColor(tint, new Phaser.Display.Color(255, 255, 255), 100, 75);
     drawScenery(this, Phaser.Display.Color.GetColor(light.r, light.g, light.b), 0xf4fbff, 0);
+    // Un décor différent à chaque série (fougères, palmiers, cailloux, montagnes, caméléon…).
+    drawVegetation(this, app.rng, isPortrait(this) ? [0.04, 0.36] : [0, 0.22]);
 
     const { width: W, height: H } = this.scale;
     const u = unit(this);

@@ -329,8 +329,17 @@ export function openParents(onClose: () => void) {
         tooYoung ? '' : el('div', { class: 'row', style: 'margin-top:8px' }, level),
       ));
     }
+    const choose = el('input', { type: 'checkbox', 'aria-label': 'Bouton pour choisir son jeu' }) as HTMLInputElement;
+    choose.checked = p.settings.chooseGames;
+    choose.addEventListener('change', () => p.updateSettings({ chooseGames: choose.checked }));
     return el('section', {},
       el('h2', {}, 'Jeux'),
+      el('div', { class: 'row', style: 'justify-content:space-between' },
+        el('span', {}, 'Bouton « choisir son jeu » sur l\'accueil'),
+        el('label', { class: 'switch' }, choose, el('span')),
+      ),
+      el('p', { class: 'help', style: 'margin-top:6px' }, 'Désactivé, l\'enfant joue avec la planète : chaque série mélange tous '
+        + 'les jeux de son âge. Activé, il peut aussi choisir un jeu précis (et les jeux à voix haute, qui ne se mélangent pas aux autres).'),
       el('p', { class: 'help' }, 'Désactivez un jeu pour qu\'il ne soit plus proposé. Le niveau (1 à 20, 11 à 20 = CP) '
         + 'est le point de départ de la prochaine série ; « auto » le calcule d\'après l\'âge, le dino et les réussites.'),
       list,
@@ -408,7 +417,8 @@ export function openParents(onClose: () => void) {
       el('h2', {}, 'Micro (jeux à voix haute)'),
       el('p', { class: 'help' }, 'Dans les jeux à voix haute, l\'enfant répond en parlant : il nomme les images, dit les mots '
         + 'en anglais, lit à voix haute, répond aux devinettes. Tout reste sur cet appareil : la voix n\'est ni enregistrée, '
-        + 'ni envoyée. Le micro ne s\'allume que quand l\'enfant touche le gros bouton micro.'),
+        + 'ni envoyée. Le micro ne s\'allume que quand l\'enfant touche le gros bouton micro. Ces jeux sont dans le '
+        + 'choix des jeux : activez le bouton « choisir son jeu » (section Jeux).'),
     );
     if (!voiceSupported()) {
       section.append(el('p', {}, 'Ce navigateur ne permet pas d\'utiliser le micro dans le jeu.'));

@@ -40,6 +40,8 @@ export class Dino extends Phaser.GameObjects.Container {
   private busy = false;
   private unsubscribe: (() => void)[] = [];
   private accessories: Phaser.GameObjects.Image[] = [];
+  /** Objet porté de chaque image d'accessoire (les ailes ont deux images). */
+  private accessoryIds = new Map<Phaser.GameObjects.Image, string>();
 
   static readonly HEIGHT = 500;
 
@@ -92,6 +94,7 @@ export class Dino extends Phaser.GameObjects.Container {
   dress(ids: readonly string[]) {
     this.accessories.forEach((a) => a.destroy());
     this.accessories = [];
+    this.accessoryIds.clear();
     for (const id of ids) {
       const item = itemById(id);
       if (!item || !this.scene.textures.exists(itemTexture(id))) continue;
@@ -102,8 +105,22 @@ export class Dino extends Phaser.GameObjects.Container {
         else if (item.slot === 'back') this.rig.addAt(img, 0);
         else this.rig.add(img);
         this.accessories.push(img);
+        this.accessoryIds.set(img, id);
       }
     }
+  }
+
+  /** L'objet porté sous ce point de l'écran (le plus en avant), pour le retirer en le faisant glisser. */
+  accessoryAt(x: number, y: number): { id: string; image: Phaser.GameObjects.Image } | undefined {
+    for (const image of [...this.accessories].reverse()) {
+      if (image.visible && image.getBounds().contains(x, y)) return { id: this.accessoryIds.get(image)!, image };
+    }
+    return undefined;
+  }
+
+  /** Images d'un objet porté (pour les cacher pendant qu'on le retire). */
+  accessoryImages(id: string) {
+    return this.accessories.filter((a) => this.accessoryIds.get(a) === id);
   }
 
   /** Le dino s'endort : yeux fermés et petits « z » qui s'envolent. */

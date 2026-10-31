@@ -16,10 +16,11 @@ interface Slot {
 }
 
 /**
- * Le dressing : le dino en gros plan et tous les objets en dessous. On fait
- * glisser un objet gagné jusqu'au dino pour le lui mettre (il remplace celui
- * du même emplacement) ; toucher un objet porté le lui enlève. Les objets pas
- * encore gagnés sont en ombre.
+ * Le dressing : le dino en gros plan et tous les objets en dessous. C'est
+ * l'enfant qui habille son dino : il fait glisser un objet gagné jusqu'au dino
+ * pour le lui mettre (il remplace celui du même emplacement), et fait glisser
+ * un objet porté loin du dino pour le lui enlever. Les objets pas encore
+ * gagnés sont en ombre. Les cadeaux se choisissent ici, quand le dino a grandi.
  */
 export class WardrobeScene extends BaseScene {
   private dino!: Dino;
@@ -65,8 +66,17 @@ export class WardrobeScene extends BaseScene {
 
     this.run(async () => {
       await this.wait(300);
-      if (app.progress.collection.pending > 0) await chooseGifts(this, this.dino);
+      const received = app.progress.collection.pending > 0 ? await chooseGifts(this, this.dino) : [];
       this.refresh();
+      // Le nouveau cadeau n'est pas mis tout seul : on montre comment le faire glisser sur le dino.
+      const gift = received.length ? this.slots.find((s) => s.item.id === received[received.length - 1].id) : undefined;
+      if (gift) {
+        this.tweens.add({ targets: gift.cell, scale: 1.25, duration: 300, yoyo: true, repeat: 2 });
+        this.guide.drag(gift.cell, { x: this.dino.x, y: this.dino.y - this.dinoHeight * 0.6 });
+        await this.say('wardrobe.new');
+        this.guide.hide();
+        return;
+      }
       const owned = this.slots.filter((s) => app.progress.collection.owned.includes(s.item.id));
       if (owned.length === 0) {
         await this.say('wardrobe.empty');
@@ -107,6 +117,7 @@ export class WardrobeScene extends BaseScene {
   }
 
   private setupDrag() {
+    this.setupTakeOff();
     let moved = false;
     this.input.on('dragstart', (_p: Phaser.Input.Pointer, obj: Phaser.GameObjects.Container) => {
       moved = false;
@@ -152,14 +163,60 @@ export class WardrobeScene extends BaseScene {
       reactions[Math.floor(app.rng() * reactions.length)]}`, lang: 'fr' }]);
   }
 
-  /** Toucher : un objet porté s'enlève ; sinon le dino montre qu'il faut le faire glisser. */
-  private tapped(slot: Slot) {
-    if (app.progress.collection.worn.includes(slot.item.id)) {
-      app.progress.takeOff(slot.item.id);
-      this.refresh();
+  /**
+   * Retirer un objet : on le prend sur le dino et on le fait glisser loin de
+   * lui ; lâché sur le dino, il reste en place.
+   */
+  private setupTakeOff() {
+    let held: { id: string; ghost: Phaser.GameObjects.Image; dx: number; dy: number; hidden: Phaser.GameObjects.Image[] } | undefined;
+    this.input.on('pointerdown', (p: Phaser.Input.Pointer, over: Phaser.GameObjects.GameObject[]) => {
+      if (held || over.some((o) => this.slotOf(o))) return;
+      const hit = this.dino.accessoryAt(p.x, p.y);
+      if (!hit) return;
+      this.guide.hide();
+      const m = hit.image.getWorldTransformMatrix();
+      const ghost = this.add.image(m.tx, m.ty, hit.image.texture.key).setDepth(50)
+        .setScale(Math.abs(m.scaleX), Math.abs(m.scaleY)).setRotation(m.rotation).setFlipX(hit.image.flipX);
+      const hidden = this.dino.accessoryImages(hit.id);
+      hidden.forEach((i) => i.setVisible(false));
+      held = { id: hit.id, ghost, dx: m.tx - p.x, dy: m.ty - p.y, hidden };
       Sfx.play('pop');
+    });
+    this.input.on('pointermove', (p: Phaser.Input.Pointer) => {
+      if (held && p.isDown) held.ghost.setPosition(p.x + held.dx, p.y + held.dy);
+    });
+    this.input.on('pointerup', (p: Phaser.Input.Pointer) => {
+      if (!held) return;
+      const { id, ghost, hidden } = held;
+      held = undefined;
+      if (this.onDino(p.x, p.y)) {
+        // Lâché sur le dino : l'objet reste.
+        ghost.destroy();
+        hidden.forEach((i) => i.setVisible(true));
+        return;
+      }
+      app.progress.takeOff(id);
+      this.refresh();
+      const slot = this.slots.find((s) => s.item.id === id);
+      this.tweens.add({
+        targets: ghost, x: slot?.home.x ?? ghost.x, y: slot?.home.y ?? ghost.y, scale: 0.3, alpha: 0.3, duration: 350,
+        ease: 'Quad.easeIn', onComplete: () => ghost.destroy(),
+      });
       this.dino.react('oops');
       this.run(() => this.say('wardrobe.off'));
+    });
+  }
+
+  /** Toucher un objet : le dino montre qu'il faut le faire glisser (sur lui pour le mettre, loin de lui pour l'enlever). */
+  private tapped(slot: Slot) {
+    if (app.progress.collection.worn.includes(slot.item.id)) {
+      const image = this.dino.accessoryImages(slot.item.id)[0];
+      const from = image ? image.getBounds() : undefined;
+      if (from) this.guide.drag({ x: from.centerX, y: from.centerY }, { x: slot.home.x, y: slot.home.y });
+      this.run(async () => {
+        await this.say('wardrobe.take_off');
+        this.guide.hide();
+      });
       return;
     }
     this.guide.drag(slot.cell, { x: this.dino.x, y: this.dino.y - this.dinoHeight * 0.6 });

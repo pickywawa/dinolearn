@@ -651,9 +651,13 @@ describe('code parent et collection', () => {
     const choices = giftChoices(p.collection.owned, mulberry32(1));
     expect(choices).toHaveLength(4);
     expect(new Set(choices.map((c) => c.slot)).size).toBe(4);
-    p.own('billed-cap', sameSlot('billed-cap'));
+    p.own('billed-cap');
     expect(p.collection.pending).toBe(1);
-    p.own('sunglasses', sameSlot('sunglasses'));
+    p.own('sunglasses');
+    // Un cadeau n'est pas mis tout seul : l'enfant le fait glisser sur son dino.
+    expect(p.collection.worn).toEqual([]);
+    p.wear('billed-cap', sameSlot('billed-cap'));
+    p.wear('sunglasses', sameSlot('sunglasses'));
     expect(p.collection.worn).toEqual(['billed-cap', 'sunglasses']);
     // Le chapeau remplace la casquette, pas les lunettes.
     p.wear('top-hat', sameSlot('top-hat'));

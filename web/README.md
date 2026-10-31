@@ -14,7 +14,7 @@ En ligne : https://pickywawa.github.io/dinolearn/
   - la **planète Terre**, qui tourne doucement avec ses volcans qui fument, lance une série **tout
     mélangée** (chaque question vient d'un jeu au hasard) ;
   - un **petit bouton** (mosaïque) ouvre le choix d'un jeu précis (les jeux à voix haute sont derrière
-    une bulle micro) ;
+    une bulle micro) — masqué par défaut, il s'active dans l'espace parents ;
   - le **chapeau** ouvre le dressing du dino, le **cadeau** apparaît quand un objet est à choisir ;
   - avec plusieurs enfants, la **tête du dino** de l'enfant suivant passe la main.
 - **L'éclosion** : l'œuf tremble ; il faut le toucher 4 fois pour le faire éclore : il se fissure un
@@ -42,9 +42,12 @@ En ligne : https://pickywawa.github.io/dinolearn/
   trop son panier, il réclame, chaque fois autrement : ventre qui gargouille, il lorgne les fruits,
   supplie, ouvre grand la bouche…
 - **Collection et dressing** : 23 objets (chapeaux, casquette, couronne, lunettes, nœud papillon,
-  écharpe, capes, ailes, ballon, baguette magique…), portés partout. Dans le dressing, le dino est en
-  gros plan : on fait glisser un objet sur lui pour le lui mettre (un chapeau remplace la casquette),
-  on touche un objet porté pour l'enlever.
+  écharpe, capes, ailes, ballon, baguette magique…), portés partout. Le cadeau se choisit au dressing,
+  et le dino ne le met pas tout seul : c'est l'enfant qui l'habille, en faisant glisser un objet sur
+  lui (un chapeau remplace la casquette), et qui le déshabille en faisant glisser un objet porté loin
+  de lui.
+- **Décor des séries** : à chaque série, un décor tiré au hasard — fougères, palmiers, cailloux,
+  montagnes au loin, et parfois un caméléon qui roule des yeux, sort la langue et change de couleur.
 - **Indices** : après une erreur, quand l'enfant hésite, ou tout de suite si le jeu est difficile pour
   lui en ce moment ; après deux erreurs, la bonne carte brille et le dino la montre.
 - **Musique de fond** douce, créée par le jeu, qui se fait discrète quand le dino parle.

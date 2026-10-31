@@ -8,6 +8,7 @@ import { foodImage } from '../domain/models';
 import { Point, resample, scoreTrace } from '../domain/trace';
 import { Dino } from '../dino/Dino';
 import { Bubble } from '../ui/Bubble';
+import { drawVegetation } from '../ui/vegetation';
 import { drawScenery, goTo, homeButton, isPortrait, unit } from '../ui/scenery';
 import { BaseScene } from './BaseScene';
 
@@ -52,6 +53,7 @@ export class TraceScene extends BaseScene {
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.savePlayTime());
     const game = gameById(data.gameId);
     drawScenery(this, 0xe0f7fa, 0xf8fdff, 0);
+    drawVegetation(this, app.rng, isPortrait(this) ? [0.04, 0.32] : [0, 0.2]);
     const { width: W, height: H } = this.scale;
     const u = unit(this);
     const portrait = isPortrait(this);

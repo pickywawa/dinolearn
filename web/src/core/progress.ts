@@ -83,6 +83,8 @@ export interface Settings {
   voice: boolean;
   /** Packs de reconnaissance vocale téléchargés (« fr », « en »). */
   voicePacks: string[];
+  /** Bouton « choisir son jeu » sur l'accueil (masqué par défaut : la planète mélange tous les jeux). */
+  chooseGames: boolean;
 }
 
 /** Clé du premier enfant (et de la progression d'avant les profils). */
@@ -104,7 +106,7 @@ const empty = (): Data => ({
   feedLog: {},
   seriesPlayed: 0,
   seenTutorial: false,
-  settings: { disabledGames: [], dailyMinutes: 0, sfx: true, music: true, nightTime: '', country: 'fr', voice: false, voicePacks: [] },
+  settings: { disabledGames: [], dailyMinutes: 0, sfx: true, music: true, nightTime: '', country: 'fr', voice: false, voicePacks: [], chooseGames: false },
   playLog: {},
   bonusLog: {},
   collection: { owned: [], worn: [], pending: 0 },
@@ -311,12 +313,13 @@ export class Progress {
   get collection(): Readonly<Collection> { return this.data.collection; }
 
   /** Ajoute un objet à la collection et le met au dino (il remplace ceux de `replaced`). */
-  own(id: string, replaced: string[]) {
+  own(id: string) {
     const c = this.data.collection;
     if (!c.owned.includes(id)) c.owned = [...c.owned, id];
     c.pending = Math.max(0, c.pending - 1);
     this.data.collection = c;
-    this.wear(id, replaced);
+    // Pas mis tout de suite : c'est l'enfant qui habille son dino, au vestiaire.
+    this.save();
   }
 
   /** Met un objet au dino ; les objets du même emplacement (`replaced`) sont enlevés. */

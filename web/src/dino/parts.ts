@@ -243,6 +243,52 @@ export const DINO_PARTS: DinoPart[] = [
         stroke-linejoin="round" clip-path="url(#c)"/>`),
   })),
   {
+    // Caméléon tourné vers la droite (sa branche est dessinée à part), très clair : il change de couleur avec une teinte.
+    // L'œil (centre 212, 86) et la langue (bout de la bouche 243, 99) sont dessinés à part pour bouger.
+    key: 'chameleon',
+    width: 260,
+    height: 170,
+    svg: svg(260, 170, `
+      <path d="M86 108 C56 118 30 104 32 80 C34 60 60 56 66 74 C70 86 56 92 50 82" fill="none" stroke="${OUTLINE}"
+        stroke-width="22" stroke-linecap="round"/>
+      <path d="M86 108 C56 118 30 104 32 80 C34 60 60 56 66 74 C70 86 56 92 50 82" fill="none" stroke="#f4fff0"
+        stroke-width="11" stroke-linecap="round"/>
+      <path d="M102 116 L92 148 M152 116 L162 148" stroke="${OUTLINE}" stroke-width="15" stroke-linecap="round"/>
+      <path d="M102 116 L92 148 M152 116 L162 148" stroke="#f4fff0" stroke-width="6" stroke-linecap="round"/>
+      <path d="M84 110 C80 72 120 52 160 60 C185 64 198 80 198 96 C198 118 170 128 140 126 C110 126 88 124 84 110 Z"
+        fill="#f4fff0" stroke="${OUTLINE}" stroke-width="6"/>
+      <path d="M100 74 L106 62 L114 70 L122 58 L130 66 L138 55 L146 63 L154 54 L162 62" fill="none" stroke="${OUTLINE}"
+        stroke-width="5" stroke-linejoin="round"/>
+      <ellipse cx="128" cy="96" rx="12" ry="7" fill="#cfe3c8"/><ellipse cx="160" cy="104" rx="9" ry="6" fill="#cfe3c8"/>
+      <ellipse cx="104" cy="100" rx="8" ry="5" fill="#cfe3c8"/>
+      <path d="M180 70 C200 56 236 70 246 92 C248 104 232 112 210 112 C192 112 182 104 180 96 Z" fill="#f4fff0"
+        stroke="${OUTLINE}" stroke-width="6"/>
+      <path d="M182 74 C184 52 206 46 216 64" fill="#f4fff0" stroke="${OUTLINE}" stroke-width="6"/>
+      <path d="M216 104 L244 99" stroke="${OUTLINE}" stroke-width="4" stroke-linecap="round"/>`),
+  },
+  {
+    key: 'rocks',
+    width: 160,
+    height: 92,
+    svg: svg(160, 92, `
+      <path d="M8 88 C6 62 28 42 56 46 C74 30 104 34 112 56 C130 50 154 62 152 88 Z" fill="#b5ada6" stroke="${OUTLINE}"
+        stroke-width="6" stroke-linejoin="round"/>
+      <path d="M56 46 C62 60 60 76 66 88 M112 56 C108 68 112 80 108 88" fill="none" stroke="${OUTLINE}" stroke-width="4" opacity=".5"/>
+      <path d="M26 62 C34 54 46 54 52 60 M76 46 C84 42 96 44 100 50" stroke="#fff" stroke-width="6" stroke-linecap="round"
+        opacity=".45" fill="none"/>`),
+  },
+  {
+    key: 'mountains',
+    width: 520,
+    height: 220,
+    svg: svg(520, 220, `
+      <path d="M0 220 L130 60 L200 140 L300 20 L420 150 L470 100 L520 160 L520 220 Z" fill="#9db3d4" stroke="${OUTLINE}"
+        stroke-width="6" stroke-linejoin="round"/>
+      <path d="M300 20 L262 66 L282 60 L300 76 L318 60 L338 66 Z M130 60 L104 92 L120 86 L134 98 L150 84 Z"
+        fill="#ffffff" stroke="${OUTLINE}" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M200 140 L240 210 M420 150 L380 210" stroke="${OUTLINE}" stroke-width="4" opacity=".35"/>`),
+  },
+  {
     key: 'volcano',
     width: 420,
     height: 300,
