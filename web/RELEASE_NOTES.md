@@ -1,41 +1,39 @@
-## DinoLearn 0.6.0 — 26 jeux, lecture et écriture, plusieurs enfants
+## DinoLearn 0.7.0 — Des fiches à imprimer, avec son dino
 
-### Pour la famille
-- **Plusieurs enfants** : au premier lancement, un parent crée un code à 4 chiffres puis la fiche de
-  l'enfant (prénom, âge, pays, temps de jeu, heure du coucher). L'enfant fait éclore son œuf : un dino
-  d'une couleur au hasard parmi 10, plus ou moins grand selon son âge, qui l'appelle par son prénom.
-  On ajoute d'autres enfants dans l'espace parents ; les séries peuvent **alterner** entre eux.
-- **Espace parents** (appui long sur le cadenas puis glisser vers le haut, puis le code) : fiche de
-  chaque enfant, niveau du dino et de chaque jeu, jeux activés, suivi, questions à réviser, sons.
-- **Temps de jeu par jour** : le jeu se bloque une fois le temps atteint ; le code ajoute du temps.
-- **Mode nuit** : après l'heure du coucher, une dernière série, puis le dino s'endort.
-- **Musique de fond** douce, avec un bouton pour la couper.
-- L'écran de choix de l'âge et le gâteau de l'accueil disparaissent : l'âge est dans la fiche.
+### Pour l'enfant : une enveloppe surprise chaque jour
+- Quand le **temps de jeu du jour** est fini (ou le soir, avant que le dino s'endorme), le dino offre
+  **trois enveloppes surprises**. L'image sur chacune montre ce qu'elle contient ; l'enfant en choisit
+  une, elle s'ouvre et la fiche en sort : « Demande à papa ou maman de l'imprimer ! »
+- Une enveloppe par jour. Sans limite de temps ni heure du coucher, elle arrive après 4 séries.
+- Un **diplôme** à imprimer tous les 5 niveaux du dino.
 
-### Nouveaux jeux (26 en tout, 20 niveaux chacun, jusqu'au niveau CP)
-- **Lecture** : Lis le mot (capitales puis écriture attachée), Lis et touche l'image, Les lettres
-  et syllabes, La phrase à trou (en images dès 3 ans, en mots écrits dès 5 ans), Les sons, Les syllabes.
-- **Écriture** : Trace les formes, Trace les lettres et les chiffres — sur pointillés, puis points
-  légers, puis tout seul ; correction tolérante, et le dino montre comment faire.
-- **Logique** : Calcul, Les nombres, Formes et couleurs, L'heure (réveils à aiguilles), La monnaie.
-- **Monde** : Ça va ensemble, Le plus grand, Mon pays (drapeau, monuments, spécialités… pour la
-  France, la Belgique, la Suisse, le Canada ou le Luxembourg).
-- **Anglais** : Numbers.
-- Les jeux plus avancés (anglais, calcul, lecture…) n'apparaissent qu'à partir de 4 ou 5 ans.
+### 16 fiches, toujours avec le dino de l'enfant
+Chaque fiche est dessinée par le jeu, au format A4, avec **son dino** (sa couleur, ses objets) et son
+prénom, et s'adapte à son âge et à ses progrès dans les jeux.
+- **Coloriages** : son dino dans un paysage préhistorique ; coloriage magique (chiffres, puis calculs).
+- **Réflexion** : labyrinthe (de 4×5 à 14×18 cases), points à relier (de 10 à 40 points), jeu des
+  différences (de 3 à 7).
+- **Écriture** : graphisme, son prénom à repasser, les chiffres et les lettres ratées dans les jeux.
+- **À découper** : masque, puzzle (de 6 à 30 pièces, avec plateau pour les petits), dino articulé,
+  marionnettes à doigts, couronne à son prénom.
+- **Jeux** : jeu de l'oie du dino (avec le dé à monter et les dinos de la famille comme pions),
+  memory, loto, dominos — des images pour les petits, puis des quantités, des nombres, des mots et des
+  calculs.
 
-### Le dino
-- Voix plus naturelle et moins aiguë ; la bouche ne bouge que pendant le son, mot par mot.
-- **Collection** : à chaque niveau, un cadeau à choisir parmi 4 objets (chapeaux, lunettes, capes,
-  ailes…) ; le **dressing** permet de l'habiller en faisant glisser les objets sur lui.
-- Niveaux 1 à 40 ; de nouvelles répliques, avec le prénom de l'enfant.
-- **Révision espacée** : une question ratée revient le lendemain, puis 3 jours et 7 jours plus tard.
+### Pour les parents
+- Nouvel onglet **« À imprimer »** dans l'espace parents : les fiches gagnées, les nouvelles en
+  premier.
+- Pour chaque fiche, des **conseils** : ce qu'elle fait travailler, comment en parler pendant
+  l'activité, comment prolonger sans écran, le matériel, et la solution.
+- Boutons **Imprimer** (A4), **Version à colorier** (fiches à découper), **Autre version**, **Supprimer**.
 
 ### Installer / tester
 - En ligne : https://pickywawa.github.io/dinolearn/
-- Archive `dinolearn-web-v0.6.0.zip` : le jeu compilé, pour tout hébergement web statique.
+- Archive `dinolearn-web-v0.7.0.zip` : le jeu compilé, pour tout hébergement web statique.
 - En local : `cd web && npm install && npm run dev`.
 
 ### Limites connues
+- À l'impression, choisir « Taille réelle » (ou 100 %) et désactiver les en-têtes du navigateur.
 - La voix dépend des voix installées sur l'appareil ; certaines vues web intégrées (dont l'aperçu
   dans l'appli Claude) n'ont pas de synthèse vocale.
-- Les profils et la progression restent sur l'appareil.
+- Les profils, la progression et les fiches restent sur l'appareil.
