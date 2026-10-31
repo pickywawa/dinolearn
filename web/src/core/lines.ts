@@ -52,6 +52,7 @@ export const LINES: Record<string, string[]> = {
   'home.FR-4': ['Les lettres : trouve les lettres et les syllabes !'],
   'home.FR-5': ['Les yeux : lis le mot, et trouve l\'image !'],
   'home.FR-6': ['La bulle : trouve le mot qui manque !'],
+  'home.FR-8': ['Les livres : écoute mes histoires !'],
   'home.FR-7': ['La feuille : complète la phrase avec le bon mot écrit !'],
   'home.LO-7': ['La palette : les formes et les couleurs !'],
   'home.LO-8': ['Le réveil : quelle heure est-il ?'],
@@ -84,6 +85,7 @@ export const LINES: Record<string, string[]> = {
   'short.FR-4': ['Les lettres !', 'Lis bien !'],
   'short.FR-5': ['Lis le mot !', 'Qu\'est-ce qui est écrit ?'],
   'short.FR-6': ['Le mot qui manque !', 'Une phrase à trou !'],
+  'short.FR-8': ['Une histoire !', 'Écoute bien l\'histoire !'],
   'short.FR-7': ['Complète la phrase !'],
   'short.LO-7': ['Les formes !', 'Formes et couleurs !'],
   'short.LO-8': ['Quelle heure est-il ?', 'L\'heure !'],
@@ -175,6 +177,10 @@ export const LINES: Record<string, string[]> = {
   'intro.FR-6': [
     'Je dis une phrase, mais il manque un mot ! Touche l\'image du mot qui manque.',
     'Oh non, j\'ai oublié un mot dans ma phrase ! Tu m\'aides à le retrouver ?',
+  ],
+  'intro.FR-8': [
+    'Je vais te raconter une petite histoire. Écoute bien, et après, je te pose une question !',
+    'C\'est l\'heure de l\'histoire ! Ouvre grand tes oreilles : à la fin, il y a une question.',
   ],
   'intro.FR-7': [
     'Il manque un mot dans la phrase. Lis bien les mots, et touche le bon !',

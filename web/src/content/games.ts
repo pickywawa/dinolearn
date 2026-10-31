@@ -9,6 +9,7 @@ import { LETTER_LEVELS, LETTER_NAMES, LOOKALIKE_LETTERS, READ_WORDS, SYLLABLES_T
 import { RIDDLES, excludedFor } from './riddles';
 import { BANKNOTES, CELEBRATIONS, COUNTRIES, Country, FAR_FLAGS, FOREIGN_FOODS, OTHER_ANIMALS, currentCountry } from './countries';
 import { SENTENCES } from './sentences';
+import { STORIES } from './stories';
 import { LETTER_MODELS, SHAPE_MODELS, TRACE_MODES, TraceMode, TraceModel, traceModel } from './tracing';
 import { ONSETS, RHYMES } from './sounds';
 import { VOICE_GAMES } from './voiceGames';
@@ -79,6 +80,8 @@ export interface BuiltQuestion {
   say?: SayTarget;
   /** Jeu à voix haute, quand on passe aux cartes : autre consigne, et `show` caché s'il donne la réponse. */
   fallback?: { prompt?: Speech[]; hideShow?: boolean };
+  /** Consigne courte pour relancer ou après une erreur (la question sans toute l'histoire). */
+  repeat?: Speech[];
   /** Jeu à voix haute : le dino dit la réponse et l'enfant la répète (après une erreur). */
   repeatAfterMe?: Speech[];
 }
@@ -1308,6 +1311,58 @@ const missingWord: GameDef = {
   },
 };
 
+// ---- Français : « Écoute l'histoire » (compréhension orale) ----
+
+const storyPool = CONCEPTS.filter((c) => c.group !== 'color');
+const storyChoice = (key: string): Choice => {
+  const n = /^n(\d+)$/.exec(key);
+  return n ? { id: key, count: Number(n[1]) } : conceptChoice(conceptById(key));
+};
+
+const listenStory: GameDef = {
+  id: 'FR-8',
+  category: 'french',
+  icon: 'story',
+  color: 0xc2410c,
+  introLine: 'intro.FR-8',
+  homeLine: 'home.FR-8',
+  shortLine: 'short.FR-8',
+  questions: STORIES.map(([level], i) => ({ id: `FR-8:${i}`, level })),
+  build(ref, _level, rng) {
+    const [level, lines, question, answer, traps, key] = STORIES[Number(idOf(ref))];
+    // 3 images au début, 4 ensuite, 6 au niveau CP ; d'abord les pièges (des choses entendues dans l'histoire).
+    const count = level <= 2 ? 2 : level >= 15 ? 5 : 3;
+    const keys = shuffle(traps.filter((t) => t !== answer), rng).slice(0, count);
+    const number = /^n(\d+)$/.exec(answer);
+    if (number) {
+      for (const k of shuffle([1, 2, 3, 4, 5, 6], rng)) {
+        if (keys.length >= count) break;
+        if (`n${k}` !== answer && !keys.includes(`n${k}`)) keys.push(`n${k}`);
+      }
+    } else {
+      const used = new Set([answer, ...keys].flatMap((k) => (/^n\d/.test(k) ? [] : [conceptById(k).fr.word])));
+      const fill = pickDistractors(conceptById(answer), storyPool, 12, 'same_group', rng)
+        .filter((c) => !used.has(c.fr.word));
+      for (const c of fill) {
+        if (keys.length >= count) break;
+        keys.push(c.id);
+      }
+    }
+    return {
+      answer: storyChoice(answer),
+      distractors: keys.map(storyChoice),
+      // L'histoire, phrase par phrase, puis la question.
+      prompt: [
+        ...lines.map((text): Speech => ({ text, lang: 'fr', pauseAfter: 550 })),
+        { text: question, lang: 'fr' },
+      ],
+      repeat: [{ text: question, lang: 'fr' }],
+      reinforce: [{ text: number ? `Oui, ${frNumber(Number(number[1]))} !` : `Oui ! ${lines[key]}`, lang: 'fr' }],
+      hints: [{ text: `Indice : écoute encore cette phrase. ${lines[key]}`, lang: 'fr' }],
+    };
+  },
+};
+
 const missingWordRead: GameDef = {
   id: 'FR-7',
   category: 'french',
@@ -1803,7 +1858,7 @@ const myCountry: GameDef = {
 };
 
 export const GAMES: GameDef[] = [
-  listenTap, englishNumbers, showMe, riddles, shadows, together, bigger, myCountry, missingWord, missingWordRead, sounds,
+  listenTap, englishNumbers, showMe, riddles, shadows, together, bigger, myCountry, missingWord, missingWordRead, listenStory, sounds,
   syllables, readWord, readPicture, letters, oddOneOut, shapesGame, counting, numbers, sequence, most, calc,
   clockGame, moneyGame, traceShapes, traceLetters, ...VOICE_GAMES,
 ];

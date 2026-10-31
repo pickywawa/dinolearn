@@ -149,6 +149,7 @@ describe('contenus', () => {
       if (gameId === 'FR-3' || gameId === 'FR-5') return refLevel <= 3 ? 3 : refLevel >= 16 ? 6 : 4;
       if (gameId === 'FR-6') return refLevel <= 2 ? 3 : refLevel >= 16 ? 6 : 4;
       if (gameId === 'FR-7') return refLevel >= 16 ? 6 : 4;
+      if (gameId === 'FR-8') return refLevel <= 2 ? 3 : refLevel >= 15 ? 6 : 4;
       if (gameId === 'LO-7') return refLevel <= 2 ? 3 : refLevel >= 18 ? 6 : 4;
       if (gameId === 'LO-8') return refLevel <= 2 ? 3 : refLevel >= 17 ? 6 : 4;
       if (gameId === 'LO-9') return refLevel <= 2 ? 3 : refLevel >= 17 ? 6 : 4;
@@ -811,5 +812,32 @@ describe('enfants', () => {
     lines.name = () => 'Léa';
     expect(lines.pick('hi')).toBe('Coucou Léa !');
     expect(lines.pick('bravo')).toBe('Bravo, Léa !');
+  });
+});
+
+describe('écoute l\'histoire', () => {
+  it('des histoires de plus en plus longues, avec des pièges entendus dans l\'histoire', async () => {
+    const { STORIES, storyLength } = await import('../src/content/stories');
+    const game = gameById('FR-8');
+    expect(game.minAge ?? 3).toBe(3);
+    STORIES.forEach(([level, lines, question, answer, traps, key], i) => {
+      expect(lines, `histoire ${i}`).toHaveLength(storyLength(level));
+      expect(key, `histoire ${i}`).toBeLessThan(lines.length);
+      expect(question.endsWith('?')).toBe(true);
+      for (const k of [answer, ...traps]) if (!/^n\d+$/.test(k)) expect(() => conceptById(k), `${i} ${k}`).not.toThrow();
+      expect(traps).not.toContain(answer);
+      const q = game.build({ id: `FR-8:${i}`, level }, level, mulberry32(i));
+      // Le dino raconte toute l'histoire, puis pose la question.
+      expect(q.prompt.map((s) => s.text)).toEqual([...lines, question]);
+      // Les pièges sont proposés en premier.
+      const trapCards = q.distractors.filter((c) => traps.includes(c.id));
+      expect(trapCards.length, `histoire ${i}`).toBe(Math.min(traps.length, q.distractors.length));
+    });
+    // Les histoires s'allongent avec le niveau : 3 phrases au début, 8 au niveau CP.
+    expect(STORIES.filter(([l]) => l <= 2).every(([, lines]) => lines.length === 3)).toBe(true);
+    expect(STORIES.filter(([l]) => l >= 15).every(([, lines]) => lines.length === 8)).toBe(true);
+    const pigs = STORIES.findIndex(([, , q]) => q === 'Combien y a-t-il de cochons ?');
+    const count = game.build({ id: `FR-8:${pigs}`, level: 10 }, 10, mulberry32(1));
+    expect(count.answer).toEqual({ id: 'n3', count: 3 });
   });
 });

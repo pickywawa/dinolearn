@@ -205,8 +205,15 @@ export class GameScene extends BaseScene {
       if (this.voiceActive() && index < 2 && this.phase === 'asking') await this.say('voice.tap_mic');
       // Si ce jeu est difficile en ce moment, un indice tout de suite.
       if (this.struggling() && this.phase === 'asking') await this.giveHint();
+      // Les relances ne commencent qu'une fois la consigne finie (une histoire peut être longue).
+      if (this.phase === 'asking') this.armReminders();
     });
-    this.armReminders();
+  }
+
+  /** Pour relancer ou après une erreur : la question seule (sans toute l'histoire). */
+  private shortPrompt(): Speech[] {
+    const item = this.series.current;
+    return this.voiceActive() || !item.repeat ? this.currentPrompt() : item.repeat;
   }
 
   // ---- Jeux à voix haute ----
@@ -381,7 +388,7 @@ export class GameScene extends BaseScene {
         if (this.phase !== 'asking') return;
         this.run(async () => {
           this.dino.react('think');
-          await app.voice.say(this.currentPrompt());
+          await app.voice.say(this.shortPrompt());
           if (this.phase !== 'asking' || !this.mic) return;
           this.guide.tap(this.mic);
           await this.say('voice.tap_mic');
@@ -397,7 +404,7 @@ export class GameScene extends BaseScene {
           this.dino.react('think');
           await this.say('idle');
           if (this.phase !== 'asking') return;
-          await app.voice.say(this.currentPrompt());
+          await app.voice.say(this.shortPrompt());
           // L'enfant hésite : un indice.
           if (this.phase === 'asking') await this.giveHint();
           if (!this.replayExplained && this.phase === 'asking') {
@@ -444,7 +451,7 @@ export class GameScene extends BaseScene {
           await this.say('wrong');
           await this.giveHint();
         }
-        await app.voice.say(this.currentPrompt());
+        await app.voice.say(this.shortPrompt());
         this.phase = 'asking';
         this.armReminders();
       });

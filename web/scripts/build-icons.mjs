@@ -77,6 +77,7 @@ write('ui-lock', noto, 'locked-with-key');
 write('read-picture', noto, 'eyes');
 write('missing-word', noto, 'speech-balloon');
 write('missing-word-read', noto, 'memo');
+write('story', noto, 'books');
 write('shapes', noto, 'artist-palette');
 write('clock', noto, 'alarm-clock');
 write('money', noto, 'euro-banknote');

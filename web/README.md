@@ -49,7 +49,7 @@ En ligne : https://pickywawa.github.io/dinolearn/
   lui en ce moment ; après deux erreurs, la bonne carte brille et le dino la montre.
 - **Musique de fond** douce, créée par le jeu, qui se fait discrète quand le dino parle.
 
-## Les 38 jeux
+## Les 39 jeux
 Chaque jeu a 20 niveaux : 1–10 maternelle, 11–20 niveau CP (6 images, leurres piégeux, nombres
 jusqu'à 100). La difficulté s'adapte toute seule ; certains jeux n'apparaissent qu'à partir d'un âge.
 
@@ -65,6 +65,7 @@ jusqu'à 100). La difficulté s'adapte toute seule ; certains jeux n'apparaissen
 | Monde | Mon pays | 5 ans | le pays de l'enfant : drapeau, symboles, spécialités, fête nationale, monnaie, monument, capitale, voisins |
 | Français | La phrase à trou | 3 ans | « Le soir, je dors dans mon… » → l'image du lit |
 | Français | La phrase à trou (mots écrits) | 5 ans | la même chose, en choisissant le mot écrit |
+| Français | Écoute l'histoire | 3 ans | le dino raconte une histoire (3 phrases, puis jusqu'à 8) et pose une question ; pièges : choses entendues dans l'histoire, « en premier », « n'a PAS », compter |
 | Français | Les sons | 5 ans | qu'est-ce qui rime avec « bateau » ? qui commence comme « chapeau » ? |
 | Français | Les syllabes | 5 ans | on tape dans les mains (« pa-pi-llon : trois ») |
 | Français | Lis le mot | 5 ans | « Trouve le mot MAMAN » : 70 mots en CAPITALES puis en écriture attachée |
