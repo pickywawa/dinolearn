@@ -123,3 +123,12 @@ for (const icon of UI_ICONS) write(`ui-${icon}`, plush, icon);
 for (const flag of FLAGS) write(`flag-${flag}`, flags, flag);
 
 console.log(`${concepts.length} concepts, ${FRUITS.length + 1} aliments, ${UI_ICONS.length} icônes → public/img/`);
+// Fiches à imprimer : l'image de chaque enveloppe, et l'enveloppe elle-même.
+const PRINT_ICONS = {
+  coloring: 'crayon', magic: 'artist-palette', maze: 'footprints', dots: 'pencil', differences: 'magnifying-glass-tilted-right',
+  writing: 'writing-hand', mask: 'performing-arts', puzzle: 'puzzle-piece', puppet: 'sauropod', finger: 'hand-with-fingers-splayed',
+  crown: 'crown', goose: 'game-die', memory: 'flower-playing-cards', loto: 'ticket', dominoes: 'input-numbers', diploma: 'scroll',
+};
+for (const [name, icon] of Object.entries(PRINT_ICONS)) write(`pr-${name}`, noto, icon);
+write('ui-envelope', noto, 'envelope');
+write('ui-printer', noto, 'printer');

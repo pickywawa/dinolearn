@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { app } from '../core/app';
 import { Sfx } from '../core/sfx';
 import { applyChildSettings, playableGames, switchChild } from '../core/app';
+import { chooseEnvelope } from '../ui/envelopes';
 import { chooseGifts } from '../ui/gifts';
 import { Music } from '../core/music';
 import { openParents } from '../ui/parents';
@@ -259,7 +260,7 @@ export class HomeScene extends BaseScene {
   private sleeping() {
     const u = unit(this);
     this.hideButtons();
-    this.dino.sleep();
+    if (!app.progress.envelopeDue()) this.dino.sleep();
     const unlock = new Bubble(this, this.play.x, this.play.y, u * 0.11, 0xffffff, 'ui-parents', () => {
       this.run(async () => {
         app.voice.stop();
@@ -273,7 +274,17 @@ export class HomeScene extends BaseScene {
       fontFamily: 'Arial, sans-serif', fontSize: `${Math.round(u * 0.036)}px`, color: '#ffffff', align: 'center',
       backgroundColor: '#2d3354cc', padding: { x: 14, y: 10 },
     }).setOrigin(0.5, 0);
-    this.time.delayedCall(500, () => this.run(() => this.say('night.sleep')));
+    this.run(async () => {
+      // Fin de la soirée : d'abord l'enveloppe surprise du jour, puis dodo.
+      if (app.progress.envelopeDue()) {
+        await this.wait(500);
+        await chooseEnvelope(this, this.dino);
+        if (!this.alive) return;
+        this.dino.sleep();
+      }
+      await this.wait(500);
+      await this.say('night.sleep');
+    });
   }
 
   private hideButtons() {
@@ -296,15 +307,25 @@ export class HomeScene extends BaseScene {
         if (ok) this.scene.restart({});
       });
     }, 0.6);
-    this.add.text(unlock.x, unlock.y + u * 0.19, 'Temps de jeu terminé.\nUn parent peut débloquer avec son code.', {
+    const note = this.add.text(unlock.x, unlock.y + u * 0.19, 'Temps de jeu terminé.\nUn parent peut débloquer avec son code.', {
       fontFamily: 'Arial, sans-serif', fontSize: `${Math.round(u * 0.036)}px`, color: '#ffffff', align: 'center',
       backgroundColor: '#2d3354cc', padding: { x: 14, y: 10 },
     }).setOrigin(0.5, 0);
-    const sleep = () => this.run(async () => {
+    this.run(async () => {
+      // Le temps de jeu est fini : l'enveloppe surprise du jour (le cadenas attend derrière), puis dodo.
+      if (app.progress.envelopeDue()) {
+        unlock.setVisible(false);
+        note.setVisible(false);
+        await this.wait(400);
+        await chooseEnvelope(this, this.dino);
+        if (!this.alive) return;
+        unlock.setVisible(true);
+        note.setVisible(true);
+      }
+      await this.wait(400);
       this.dino.react('yawn');
       await this.say('bedtime');
     });
-    this.time.delayedCall(400, sleep);
     this.time.addEvent({ delay: 9000, loop: true, callback: () => this.dino.react('yawn') });
   }
 

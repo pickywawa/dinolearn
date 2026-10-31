@@ -343,6 +343,11 @@ export const LINES: Record<string, string[]> = {
     'Bravo ! Maintenant, je vais faire de beaux rêves. Bonne nuit, à demain !',
   ],
   'night.sleep': ['Chut… je dors. Zzz… À demain !'],
+  'envelope.intro': [
+    'Tu as super bien joué aujourd\'hui ! J\'ai trois enveloppes surprises pour toi. Choisis-en une !',
+    'Pour te dire merci, j\'ai des enveloppes surprises ! Touche celle que tu veux !',
+    'Regarde ! Trois enveloppes ! Il y a une surprise à imprimer dans chacune. Laquelle tu choisis ?',
+  ],
   bedtime: [
     'On a bien joué aujourd\'hui ! Maintenant, je vais faire dodo. On rejoue demain ?',
     'C\'est l\'heure de me reposer ! À demain, mon copain !',

@@ -76,7 +76,7 @@ export const DINO_COLORS: DinoColor[] = [
 export const colorSuffix = (index: number) => (index > 0 ? `-c${index}` : '');
 
 /** Les pièces qui changent de couleur : queue, corps, pattes, bras, tête. */
-function skinParts(c: DinoColor, suffix: string): DinoPart[] {
+export function skinParts(c: DinoColor, suffix = ''): DinoPart[] {
   return [
     {
       key: `dino-tail${suffix}`,
@@ -264,3 +264,8 @@ export const DINO_PARTS: DinoPart[] = [
 
 /** Résolution de rendu des SVG (×2 pour un affichage net sur mobile). */
 export const PART_RESOLUTION = 2;
+
+/** Contenu d'une pièce, sans la balise `<svg>` qui l'entoure (pour l'assembler dans une page à imprimer). */
+export const partBody = (part: DinoPart) => part.svg.replace(/^<svg[^>]*>/, '').replace(/<\/svg>$/, '');
+
+export const OUTLINE_COLOR = OUTLINE;

@@ -82,6 +82,35 @@ comptent pas. Après deux essais, la main du dino montre le tracé.
   acquise.
 - Le dino peut manger l'équivalent d'une dizaine de séries par jour ; au-delà, les fruits sont gardés.
 
+## Fiches à imprimer (récompense de fin de journée)
+Quand le temps de jeu du jour est fini (ou le soir, avant que le dino s'endorme), le dino offre
+**trois enveloppes surprises**. Chacune montre ce qu'elle contient (un crayon, un dé, des ciseaux…)
+et l'enfant en choisit une. Elle s'ouvre, la fiche en sort, et le dino dit de demander à un grand de
+l'imprimer. Une enveloppe par jour ; sans limite de temps ni heure du coucher, elle arrive après
+4 séries dans la journée. Un **diplôme** arrive aussi tous les 5 niveaux du dino.
+
+Toutes les fiches sont **dessinées par le code** (`src/print/`), en SVG au format A4, avec **le dino
+de l'enfant** (sa couleur, ses objets), son prénom, et un contenu adapté à son âge et à ses progrès
+dans les jeux. La même graine redonne la même fiche ; « Autre version » en tire une nouvelle.
+
+| Famille | Fiche | Ce qui change avec l'âge et les progrès |
+|---|---|---|
+| Coloriage | Coloriage de son dino, dans un paysage préhistorique, prénom en lettres creuses | plus de détails à colorier |
+| Coloriage | Coloriage magique (dès 4 ans) : grille en pixels (dino, volcan, œuf) | chiffres, puis additions, puis soustractions (selon le jeu Calcul) |
+| Réflexion | Labyrinthe : aider le dino à retrouver son œuf, ses fruits, son copain | de 4 × 5 à 14 × 18 cases ; solution pour les parents |
+| Réflexion | Points à relier : étoile, maison, poisson, cœur, diplodocus | de 10 à 40 points (plus selon le jeu Les nombres) |
+| Réflexion | Jeu des différences : la même scène deux fois | de 3 à 7 différences ; solution pour les parents |
+| Écriture | Graphisme (3 ans), puis son prénom à repasser, les chiffres et les lettres ratées dans les jeux | modèle avec point de départ et ordre des traits, pointillés, puis seul |
+| Découpage | Masque, puzzle (avec plateau pour les petits), dino articulé (attaches parisiennes), marionnettes à doigts, couronne à son nom | 6 à 30 pièces de puzzle ; version à colorier |
+| Jeux | Jeu de l'oie du dino (dé à monter, pions des dinos de la famille), memory, loto, dominos | images → quantités → nombres → mots et calculs |
+| Diplôme | Tous les 5 niveaux du dino | — |
+
+Dans l'espace parents, l'onglet **À imprimer** liste les fiches (les nouvelles en premier, avec une
+pastille). L'aperçu donne pour chaque fiche des **conseils** : ce qu'elle fait travailler, comment en
+parler pendant l'activité, comment prolonger sans écran, le matériel, et la solution. Les boutons :
+**Imprimer** (A4, seules les pages sortent), **Version à colorier** (fiches à découper), **Autre
+version**, **Supprimer**.
+
 ## Pour les parents
 - **Premier lancement** : le dino demande d'aller chercher un parent, qui crée un **code à 4 chiffres**
   puis la **fiche de l'enfant** (prénom, âge, pays, temps de jeu par jour, heure du coucher).
@@ -92,6 +121,7 @@ comptent pas. Après deux essais, la main du dino montre le tracé.
   - niveau du dino (1 à 40) et niveau de départ de chaque jeu (ou automatique), jeux activés ;
   - temps de jeu par jour et graphique de la semaine, heure du coucher ;
   - suivi par jeu (réponses, réussite, questions acquises) et questions à réviser avec leur date ;
+  - les **fiches à imprimer** gagnées par l'enfant, avec un aperçu et des conseils ;
   - bruitages, musique, test de la voix, changement du code, tout recommencer.
 - **Temps de jeu** : une fois atteint, l'enfant finit sa série puis le jeu se bloque ; le code ajoute
   15 ou 30 minutes ou débloque la journée.
@@ -122,7 +152,10 @@ illustration utilisée vers `public/img/`, et le jeu les charge à la demande.
 - `src/content/` : contenus des jeux (mots, devinettes, phrases, pays, modèles de tracé…) et
   construction des questions.
 - `src/core/` : profils des enfants, progression, voix, répliques, sons, musique.
-- `src/scenes/` et `src/ui/` : écrans Phaser, espace parents et clavier du code (HTML).
+- `src/print/` : les fiches à imprimer (une page A4 en SVG par fonction, le dino sur papier, le
+  décor, les conseils) ; `src/domain/printables.ts` : quand gagner une enveloppe, lesquelles proposer.
+- `src/scenes/` et `src/ui/` : écrans Phaser, enveloppes, espace parents, aperçu avant impression et
+  clavier du code (HTML).
 
 ## Lancer
 ```bash

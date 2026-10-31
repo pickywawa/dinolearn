@@ -8,6 +8,8 @@ import { baseLevel } from '../domain/difficulty';
 import { mulberry32 } from '../domain/models';
 import { COUNTRIES } from '../content/countries';
 import { childForm, createParentCode } from './pin';
+import { printKind } from '../print/catalog';
+import { openPrintView, thumbnail } from './printView';
 
 /**
  * Espace parents : une page HTML classique posée sur le jeu (lisible et
@@ -79,6 +81,16 @@ const CSS = `
 .parents ul.fails { margin: 0; padding-left: 18px; }
 .parents ul.fails li { margin: 6px 0; }
 .parents ul.fails small { color: #6b7280; }
+.parents .prints { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
+.parents .print { position: relative; display: flex; flex-direction: column; gap: 6px; padding: 8px; border-radius: 12px;
+  background: #f4f6fb; border: 0; text-align: left; cursor: pointer; min-height: 0; }
+.parents .print .thumb { background: #fff; aspect-ratio: 210 / 297; border-radius: 6px; overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+.parents .print .thumb svg { display: block; width: 100%; height: 100%; }
+.parents .print b { font-size: 14px; line-height: 1.25; }
+.parents .print small { color: #6b7280; font-size: 12px; }
+.parents .print .new { position: absolute; top: 4px; right: 4px; background: #e5484d; color: #fff; font-size: 12px;
+  font-weight: 700; border-radius: 10px; padding: 2px 8px; }
 `;
 
 const minutes = (ms: number) => Math.round(ms / 60_000);
@@ -115,7 +127,7 @@ export function openParents(onClose: () => void) {
 
   const render = () => {
     main.replaceChildren(
-      childrenSection(), levelSection(), timeSection(), codeSection(), gamesSection(), failuresSection(), soundSection(),
+      childrenSection(), printSection(), levelSection(), timeSection(), codeSection(), gamesSection(), failuresSection(), soundSection(),
       dataSection(),
     );
   };
@@ -199,6 +211,41 @@ export function openParents(onClose: () => void) {
           el('span', {}, 'Alterner les séries : après chaque série, c\'est au tour de l\'enfant suivant'),
           el('label', { class: 'switch' }, alternate, el('span')))
         : '',
+    );
+  }
+
+  // ---- Fiches à imprimer ----
+  let showAllPrints = false;
+  function printSection() {
+    const records = p.printables;
+    const shown = showAllPrints ? records : records.slice(0, 8);
+    const grid = el('div', { class: 'prints' });
+    for (const record of shown) {
+      const kind = printKind(record.kind);
+      if (!kind) continue;
+      const card = el('button', { class: 'print', type: 'button', 'aria-label': `Voir ${kind.title}` });
+      const thumb = el('div', { class: 'thumb' });
+      const svg = thumbnail(p, record);
+      if (svg) thumb.append(svg);
+      const label = record.kind === 'diploma' ? `Diplôme du niveau ${record.param ?? ''}` : kind.title;
+      card.append(thumb, el('b', {}, label), el('small', {}, new Date(record.at).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })));
+      if (!record.printed) card.append(el('span', { class: 'new' }, 'Nouveau'));
+      card.addEventListener('click', () => openPrintView(p, record, render));
+      grid.append(card);
+    }
+    const more = el('button', {}, `Voir les ${records.length} fiches`);
+    more.addEventListener('click', () => {
+      showAllPrints = true;
+      render();
+    });
+    return el('section', {},
+      el('h2', {}, `À imprimer${p.newPrintables ? ` (${p.newPrintables} nouvelle${p.newPrintables > 1 ? 's' : ''})` : ''}`),
+      el('p', { class: 'help' }, 'À la fin du temps de jeu (ou à l\'heure du coucher), le dino offre trois enveloppes '
+        + 'surprises ; l\'enfant en choisit une, une fois par jour. La fiche arrive ici, avec son dino, adaptée à son âge '
+        + 'et à ses progrès, et des conseils pour vous. Sans limite de temps ni heure du coucher : après 4 séries. '
+        + 'Un diplôme tous les 5 niveaux du dino.'),
+      records.length ? grid : el('p', {}, 'Pas encore de fiche : la première enveloppe arrivera à la fin du temps de jeu.'),
+      records.length > shown.length ? el('div', { class: 'row', style: 'margin-top:12px' }, more) : '',
     );
   }
 

@@ -1,5 +1,6 @@
 import { BALANCE } from '../domain/balance';
 import { AnswerRecord, DinoState, Food } from '../domain/models';
+import { ENVELOPE_SERIES, MAX_PRINTABLES, diplomasBetween } from '../domain/printables';
 
 /** Aliment gagné mais pas encore mangé (ventre plein), gardé pour plus tard. */
 export interface Leftover {
@@ -42,6 +43,24 @@ interface Data {
   collection: Collection;
   /** Mode nuit du soir en cours : dernière série jouée (`done`) ou débloqué par un parent. */
   night?: { day: string; state: 'done' | 'unlocked' };
+  /** Fiches à imprimer gagnées (enveloppes, diplômes), de la plus récente à la plus ancienne. */
+  printables: PrintRecord[];
+  /** Jour de la dernière enveloppe ouverte (une par jour). */
+  envelopeDay?: string;
+  /** Séries jouées aujourd'hui. */
+  seriesDay?: { day: string; count: number };
+}
+
+/** Une fiche à imprimer : son type et la graine qui la fabrique (la même graine redonne la même fiche). */
+export interface PrintRecord {
+  id: string;
+  kind: string;
+  seed: number;
+  at: number;
+  /** Paramètre propre à la fiche (niveau du diplôme). */
+  param?: number;
+  /** Déjà imprimée (ou au moins ouverte pour l'impression) par un parent. */
+  printed?: boolean;
 }
 
 export interface Collection {
@@ -104,6 +123,7 @@ const empty = (): Data => ({
   playLog: {},
   bonusLog: {},
   collection: { owned: [], worn: [], pending: 0 },
+  printables: [],
 });
 
 export const dayKey = (d = new Date()) =>
@@ -376,20 +396,79 @@ export class Progress {
     this.data.gameLevels[gameId] = level;
     this.data.seriesPlayed++;
     this.data.lastSeriesDay = dayKey(now);
+    const day = dayKey(now);
+    this.data.seriesDay = { day, count: (this.data.seriesDay?.day === day ? this.data.seriesDay.count : 0) + 1 };
     this.save();
   }
 
   saveFeeding(dino: DinoState, xpEatenToday: number, now = new Date()) {
     // Chaque niveau gagné en mangeant donne un cadeau à choisir.
     if (dino.level > this.data.dino.level) this.data.collection.pending += dino.level - this.data.dino.level;
+    // Certains niveaux donnent un diplôme à imprimer.
+    for (const level of diplomasBetween(this.data.dino.level, dino.level)) this.addPrintable('diploma', now.getTime(), now, level, false);
     this.data.dino = dino;
     this.data.feedLog = { [dayKey(now)]: xpEatenToday };
     this.save();
   }
 
+  // ---- Fiches à imprimer ----
+
+  get printables(): readonly PrintRecord[] { return this.data.printables; }
+
+  seriesToday(now = new Date()) {
+    return this.data.seriesDay?.day === dayKey(now) ? this.data.seriesDay.count : 0;
+  }
+
+  /**
+   * Une enveloppe à ouvrir ? Une par jour, quand le temps de jeu est fini (ou
+   * que le dino va dormir le soir). Sans limite ni heure du coucher, après
+   * quelques séries dans la journée.
+   */
+  envelopeDue(now = new Date()) {
+    if (this.data.envelopeDay === dayKey(now)) return false;
+    const s = this.data.settings;
+    if (this.timeIsUp(now) || this.isSleeping(now)) return true;
+    return s.dailyMinutes === 0 && !s.nightTime && this.seriesToday(now) >= ENVELOPE_SERIES;
+  }
+
+  /** L'enfant a choisi son enveloppe : la fiche est gardée pour les parents. */
+  openEnvelope(kind: string, seed: number, now = new Date()): PrintRecord {
+    this.data.envelopeDay = dayKey(now);
+    return this.addPrintable(kind, seed, now);
+  }
+
+  addPrintable(kind: string, seed: number, now = new Date(), param?: number, save = true): PrintRecord {
+    const record: PrintRecord = {
+      id: `${now.getTime().toString(36)}-${Math.floor(seed % 1e6).toString(36)}-${kind}${param ?? ''}`, kind, seed, at: now.getTime(),
+    };
+    if (param !== undefined) record.param = param;
+    this.data.printables = [record, ...this.data.printables].slice(0, MAX_PRINTABLES);
+    if (save) this.save();
+    return record;
+  }
+
+  /** Nouvelle version d'une fiche (autre graine). */
+  renewPrintable(id: string, seed: number) {
+    this.data.printables = this.data.printables.map((r) => (r.id === id ? { ...r, seed, printed: false } : r));
+    this.save();
+  }
+
+  markPrinted(id: string) {
+    this.data.printables = this.data.printables.map((r) => (r.id === id ? { ...r, printed: true } : r));
+    this.save();
+  }
+
+  removePrintable(id: string) {
+    this.data.printables = this.data.printables.filter((r) => r.id !== id);
+    this.save();
+  }
+
+  /** Fiches pas encore imprimées (pastille dans l'espace parents). */
+  get newPrintables() { return this.data.printables.filter((r) => !r.printed).length; }
+
   reset() {
-    const { name, color, age, ageChosen, settings } = this.data;
-    this.data = { ...empty(), name, color, age, ageChosen, settings, collection: { owned: [], worn: [], pending: 0 } };
+    const { name, color, age, ageChosen, settings, printables } = this.data;
+    this.data = { ...empty(), name, color, age, ageChosen, settings, printables, collection: { owned: [], worn: [], pending: 0 } };
     this.save();
   }
 }

@@ -750,6 +750,12 @@ mono 48 kbit/s (AAC `.m4a` pour iOS si nécessaire), ≈ 5–10 Ko par mot.
   - téléchargement anticipé de tous les contenus (pour un voyage) et taille du cache ;
   - réinitialiser un profil (avec double confirmation).
 - **Conseils** : petits textes pédagogiques sur chaque jeu (objectif, comment prolonger hors écran).
+- **Fiches à imprimer** (version web) : à la fin du temps de jeu du jour (ou au coucher), l'enfant
+  choisit une enveloppe parmi trois (familles différentes : coloriage, réflexion, écriture, découpage,
+  jeu). La fiche, générée en SVG A4 avec le dino de l'enfant et adaptée à son âge et à ses progrès,
+  attend les parents dans l'onglet « À imprimer », avec ses conseils (ce qu'elle fait travailler,
+  comment en parler, comment prolonger, matériel, solution). Un diplôme tous les 5 niveaux du dino.
+  Détail : `web/README.md`, code : `web/src/print/`.
 
 ---
 

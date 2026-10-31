@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { app, switchChild } from '../core/app';
+import { chooseEnvelope } from '../ui/envelopes';
 import { chooseGifts } from '../ui/gifts';
 import { Leftover } from '../core/progress';
 import { SeriesResult } from '../core/series';
@@ -215,6 +216,13 @@ export class EndScene extends BaseScene {
   /** Le dino montre le bouton vert pour rejouer (le soir : il dit bonne nuit et va se coucher). */
   private async showAgain() {
     this.clearIdle();
+    // Sans limite de temps ni heure du coucher : l'enveloppe du jour arrive après quelques séries.
+    // (Quand le temps est fini ou le soir, elle attend l'enfant à l'accueil, avant le dodo.)
+    if (app.progress.envelopeDue() && !app.progress.timeIsUp() && !app.progress.isSleeping()) {
+      this.again.setVisible(false);
+      await chooseEnvelope(this, this.dino);
+      if (!this.alive) return;
+    }
     if (app.progress.isSleeping()) {
       this.dino.react('yawn');
       await this.say('night.goodnight');
