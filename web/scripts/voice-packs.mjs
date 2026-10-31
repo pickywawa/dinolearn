@@ -6,7 +6,7 @@
 //
 // Usage : npm run voice-packs   (VOICE_MODELS_URL pour une autre source que alphacephei.com)
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -22,7 +22,7 @@ mkdirSync(OUT, { recursive: true });
 for (const { lang, model } of PACKS) {
   const archive = join(OUT, `${model}.tar.gz`);
   const words = join(OUT, `${lang}.words.txt`);
-  if (existsSync(archive) && existsSync(words)) {
+  if (existsSync(archive)) {
     console.log(`${model} : déjà prêt.`);
     continue;
   }
@@ -35,12 +35,20 @@ for (const { lang, model } of PACKS) {
     execFileSync('unzip', ['-q', 'model.zip'], { cwd: work });
     // vosk-browser attend une archive .tar.gz avec un dossier au premier niveau.
     execFileSync('tar', ['-czf', archive, model], { cwd: work });
-    // Mots connus du modèle : le jeu ne lui demande que ceux-là.
-    const list = readFileSync(join(work, model, 'graph', 'words.txt'), 'utf8')
-      .split('\n').map((line) => line.split(' ')[0])
-      .filter((w) => w && !/^(<.*>|#\d+)$/.test(w));
-    writeFileSync(words, `${list.join('\n')}\n`);
-    console.log(`${model} : ${list.length} mots → public/voice/`);
+    // Mots connus du modèle : le jeu ne lui demande que ceux-là. Les petits modèles (graphe « lookahead »)
+    // n'ont pas cette liste : le pack est servi quand même, et le jeu propose alors tous les mots.
+    const wordsFile = join(work, model, 'graph', 'words.txt');
+    if (existsSync(wordsFile)) {
+      const list = readFileSync(wordsFile, 'utf8')
+        .split('\n').map((line) => line.split(' ')[0])
+        .filter((w) => w && !/^(<.*>|#\d+)$/.test(w));
+      writeFileSync(words, `${list.join('\n')}\n`);
+      console.log(`${model} : ${list.length} mots → public/voice/`);
+    } else {
+      rmSync(words, { force: true });
+      console.log(`${model} : pas de liste de mots dans ce modèle (graphe : ${readdirSync(join(work, model, 'graph')).join(', ')})`);
+    }
+    console.log(`${model} : ${(statSync(archive).size / 1e6).toFixed(1)} Mo → public/voice/`);
   } catch (e) {
     // Le jeu se déploie quand même : les parents verront que le pack n'est pas disponible.
     rmSync(archive, { force: true });

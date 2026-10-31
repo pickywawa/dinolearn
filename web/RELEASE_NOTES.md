@@ -1,4 +1,12 @@
-## DinoLearn 0.11.0 — Tout se mélange sur la planète
+## DinoLearn 0.11.1 — La reconnaissance vocale fonctionne en ligne
+
+### Correctif
+- Les **packs de reconnaissance vocale** (français et anglais) n'étaient en fait **jamais publiés** sur le
+  site : leur préparation échouait au déploiement, et leur téléchargement échouait donc partout, même
+  dans un navigateur normal. Ils sont maintenant publiés à côté du jeu.
+- Si un pack manque sur le site, l'espace parents le dit clairement au lieu d'un échec sans explication.
+
+## Rappel de la 0.11.0 — Tout se mélange sur la planète
 
 ### La planète
 - Une série de la planète mélange maintenant **tous les modes de jeu, question par question** :
@@ -28,7 +36,7 @@
 
 ### Installer / tester
 - En ligne : https://pickywawa.github.io/dinolearn/
-- Archive `dinolearn-web-v0.11.0.zip` : le jeu compilé, pour tout hébergement web statique (sans les
+- Archive `dinolearn-web-v0.11.1.zip` : le jeu compilé, pour tout hébergement web statique (sans les
   packs de reconnaissance vocale : `npm run voice-packs` pour les ajouter).
 - En local : `cd web && npm install && npm run dev`.
 

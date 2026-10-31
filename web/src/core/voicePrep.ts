@@ -21,7 +21,7 @@ function markInstalled(lang: SpeechLang) {
 let busy = false;
 
 /** Le pack est-il bien servi à côté du jeu ? (sinon certains serveurs renvoient la page du jeu à la place) */
-async function served(lang: SpeechLang): Promise<boolean> {
+export async function served(lang: SpeechLang): Promise<boolean> {
   try {
     const head = await fetch(new URL(VOICE_PACKS[lang].file, document.baseURI).href, { method: 'HEAD' });
     return head.ok && !head.headers.get('content-type')?.includes('html');

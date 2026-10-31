@@ -13,6 +13,7 @@ import { SpeechLang } from '../domain/speech';
 import { printKind } from '../print/catalog';
 import { openPrintView, thumbnail } from './printView';
 import { timeStepper } from './timeStepper';
+import { served } from '../core/voicePrep';
 
 /**
  * Espace parents : une page HTML classique posée sur le jeu (lisible et
@@ -499,6 +500,11 @@ export function openParents(onClose: () => void) {
       const button = el('button', { class: installed ? '' : 'primary' }, installed ? 'Vérifier' : 'Télécharger');
       button.addEventListener('click', async () => {
         button.setAttribute('disabled', '');
+        if (!installed && !await served(lang)) {
+          state.textContent = 'Ce pack n\'est pas disponible sur le site pour l\'instant. Réessayez plus tard.';
+          button.removeAttribute('disabled');
+          return;
+        }
         if (!installed && await storageRoom(lang) === 'full') {
           state.textContent = NO_ROOM_MESSAGE;
           button.removeAttribute('disabled');
