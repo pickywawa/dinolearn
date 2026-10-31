@@ -21,10 +21,10 @@ const FRUITS = [
   'watermelon', 'peach', 'pineapple', 'kiwi-fruit', 'mango', 'blueberries', 'melon',
   'green-apple', 'coconut',
 ];
-const DECOR = ['palm-tree', 'sauropod', 't-rex', 'herb', 'butterfly'];
+const DECOR = ['palm-tree', 'sauropod', 't-rex', 'herb', 'butterfly', 'fly', 'bird', 'sun', 'rainbow'];
 const FLAGS = [
   'gb', 'fr', 'be', 'ch', 'ca', 'lu', 'it', 'ie', 'nl', 'de', 'es', 'us', 'jp', 'br', 'cn', 'mx', 'at', 'ro', 'pe', 'dk',
-  'ru', 'td', 'li', 'in', 'sn', 'lb', 'to',
+  'ru', 'td', 'li', 'in', 'sn', 'lb', 'to', 'au', 'eg', 'gr', 'ma', 'pt',
 ];
 
 function write(name, set, icon) {
@@ -73,9 +73,13 @@ write('syllables', noto, 'clapping-hands');
 write('read', noto, 'open-book');
 write('letters', noto, 'input-latin-uppercase');
 write('ui-parents', noto, 'locked');
+write('ui-lock', noto, 'locked-with-key');
 write('read-picture', noto, 'eyes');
 write('missing-word', noto, 'speech-balloon');
 write('missing-word-read', noto, 'memo');
+write('story', noto, 'books');
+write('memory', noto, 'flower-playing-cards');
+write('memory-en', noto, 'joker');
 write('shapes', noto, 'artist-palette');
 write('clock', noto, 'alarm-clock');
 write('money', noto, 'euro-banknote');
@@ -123,6 +127,11 @@ for (const icon of UI_ICONS) write(`ui-${icon}`, plush, icon);
 for (const flag of FLAGS) write(`flag-${flag}`, flags, flag);
 
 console.log(`${concepts.length} concepts, ${FRUITS.length + 1} aliments, ${UI_ICONS.length} icônes → public/img/`);
+// Jeux à voix haute : bulles, et images `or-<nom Noto>` des devinettes (relevées dans le code des contenus).
+write('vo-micro', noto, 'studio-microphone');
+write('vo-name', noto, 'speaking-head');
+const oralSources = ['oral.ts', 'voiceGames.ts'].map((f) => readFileSync(new URL(`../src/content/${f}`, import.meta.url), 'utf8'));
+for (const icon of new Set(oralSources.join('\n').match(/(?<='or-)[a-z0-9-]+(?=')/g))) write(`or-${icon}`, noto, icon);
 // Fiches à imprimer : l'image de chaque enveloppe, et l'enveloppe elle-même.
 const PRINT_ICONS = {
   coloring: 'crayon', magic: 'artist-palette', maze: 'footprints', dots: 'pencil', differences: 'magnifying-glass-tilted-right',

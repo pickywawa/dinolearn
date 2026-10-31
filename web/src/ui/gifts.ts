@@ -1,26 +1,30 @@
 import Phaser from 'phaser';
-import { ITEMS, Item, giftChoices, itemTexture, sameSlot } from '../content/items';
+import { ITEMS, Item, giftChoices, itemTexture } from '../content/items';
 import { app } from '../core/app';
 import { Sfx } from '../core/sfx';
 import { Dino } from '../dino/Dino';
 import { unit } from './scenery';
 
 /**
- * Le dino a grandi : l'enfant choisit son cadeau parmi 4 objets. L'objet vole
- * jusqu'au dino, qui le met tout de suite. Recommence s'il reste des cadeaux.
+ * Le dino a grandi (au vestiaire) : l'enfant choisit son cadeau parmi 4 objets.
+ * L'objet vole jusqu'au dino, qui dit merci ; il ne le met pas tout seul :
+ * c'est l'enfant qui l'habille en faisant glisser l'objet sur lui. Recommence
+ * s'il reste des cadeaux. Renvoie les objets reçus.
  */
-export async function chooseGifts(scene: Phaser.Scene, dino: Dino): Promise<void> {
+export async function chooseGifts(scene: Phaser.Scene, dino: Dino): Promise<Item[]> {
   const p = app.progress;
+  const received: Item[] = [];
   p.limitPending(ITEMS.length - p.collection.owned.length);
   while (p.collection.pending > 0 && scene.scene.isActive()) {
     const item = await pickOne(scene, dino);
-    if (!item) return;
-    p.own(item.id, sameSlot(item.id));
-    dino.dress(p.collection.worn);
+    if (!item) break;
+    p.own(item.id);
+    received.push(item);
     dino.react('cheer');
     Sfx.play('levelUp');
-    await app.voice.say([{ text: `Oh, ${item.name} ! Merci ! Je suis trop beau !`, lang: 'fr' }]);
+    await app.voice.say([{ text: `Oh, ${item.name} ! Merci !`, lang: 'fr' }]);
   }
+  return received;
 }
 
 function pickOne(scene: Phaser.Scene, dino: Dino): Promise<Item | undefined> {

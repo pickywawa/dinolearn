@@ -1,16 +1,19 @@
 import Phaser from 'phaser';
 import { DINO_PARTS, PART_RESOLUTION } from '../dino/parts';
 import { FRUITS } from '../domain/models';
+import { GAMES } from '../content/games';
 import { ITEMS, itemTexture } from '../content/items';
 import { PRINT_KINDS } from '../print/catalog';
 
-export const UI_IMAGES = [
+export const UI_IMAGES = [...new Set([
   'ui-play', 'ui-home', 'ui-star', 'ui-sparkles', 'ui-globe', 'ui-cloud', 'ui-cake', 'flag-gb',
-  'decor-palm-tree', 'decor-sauropod', 'decor-t-rex', 'decor-butterfly', 'riddle', 'oddoneout', 'counting', 'shadow', 'sequence', 'most', 'calc', 'flag-fr', 'numbers', 'together', 'bigger', 'en-numbers', 'syllables', 'read', 'letters', 'ui-parents', 'read-picture', 'missing-word', 'missing-word-read', 'shapes', 'clock', 'money', 'ui-music', 'ui-music-off', 'ui-moon', 'trace-shapes', 'trace-letters', 'ui-eraser', 'my-country', 'ui-basket',
+  'decor-palm-tree', 'decor-sauropod', 'decor-t-rex', 'decor-butterfly', 'decor-fly', 'decor-bird', 'decor-sun', 'decor-rainbow', 'ui-lock', 'riddle', 'oddoneout', 'counting', 'shadow', 'sequence', 'most', 'calc', 'flag-fr', 'numbers', 'together', 'bigger', 'en-numbers', 'syllables', 'read', 'letters', 'ui-parents', 'read-picture', 'missing-word', 'missing-word-read', 'story', 'memory', 'memory-en', 'shapes', 'clock', 'money', 'ui-music', 'ui-music-off', 'ui-moon', 'trace-shapes', 'trace-letters', 'ui-eraser', 'my-country', 'ui-basket',
   ...[...FRUITS, 'cake'].map((f) => `food-${f}`),
   'ui-wardrobe', 'ui-gift', ...ITEMS.map((i) => itemTexture(i.id)),
   'ui-envelope', ...PRINT_KINDS.map((k) => k.icon),
-];
+  // Bulles des jeux à voix haute.
+  'vo-micro', ...GAMES.filter((g) => g.voice).map((g) => g.icon),
+])];
 
 /** Charge le dino, la main guide et les icônes d'interface. */
 export class BootScene extends Phaser.Scene {

@@ -1,15 +1,18 @@
 import { QuestionRef, Rng, mulberry32, shuffle } from '../domain/models';
+import { SayTarget, SpeechLang } from '../domain/speech';
 import {
-  CONCEPTS, Concept, DistractorStrategy, Speech, conceptById, conceptsFor, frWithArticle, pickDistractors,
+  CATEGORY_HINTS, CONCEPTS, Concept, DistractorStrategy, Speech, conceptById, conceptsFor, frWithArticle, pickDistractors,
 } from './content';
 import { PAIRS, SIZES, SYLLABLES, enNumber } from './extra';
 import { frNumber } from './numbers';
 import { LETTER_LEVELS, LETTER_NAMES, LOOKALIKE_LETTERS, READ_WORDS, SYLLABLES_TO_READ } from './reading';
-import { RIDDLES } from './riddles';
+import { RIDDLES, excludedFor } from './riddles';
 import { BANKNOTES, CELEBRATIONS, COUNTRIES, Country, FAR_FLAGS, FOREIGN_FOODS, OTHER_ANIMALS, currentCountry } from './countries';
 import { SENTENCES } from './sentences';
+import { STORIES } from './stories';
 import { LETTER_MODELS, SHAPE_MODELS, TRACE_MODES, TraceMode, TraceModel, traceModel } from './tracing';
 import { ONSETS, RHYMES } from './sounds';
+import { VOICE_GAMES } from './voiceGames';
 
 /** Une réponse possible : une image, un nombre (carte à points) ou un tas d'objets. */
 export interface Choice {
@@ -56,6 +59,8 @@ export type Show =
   | { kind: 'image'; image: string }
   /** Un texte à lire (un mot, une phrase à trou). */
   | { kind: 'text'; value: string; script: Script }
+  /** Memory (scène à part) : les images des paires, dites en français ou en anglais quand on les retourne. */
+  | { kind: 'memory'; images: string[]; lang: 'fr' | 'en' }
   /** Un modèle à tracer avec le doigt (jeux de tracé, scène à part). */
   | { kind: 'trace'; model: string; mode: TraceMode }
   /**
@@ -73,6 +78,14 @@ export interface BuiltQuestion {
   reinforce: Speech[];
   /** Indices donnés quand c'est difficile (après une erreur, ou si l'enfant hésite). */
   hints?: Speech[];
+  /** Jeu à voix haute : ce que l'enfant doit dire. Les cartes servent si le micro ne l'entend pas. */
+  say?: SayTarget;
+  /** Jeu à voix haute, quand on passe aux cartes : autre consigne, et `show` caché s'il donne la réponse. */
+  fallback?: { prompt?: Speech[]; hideShow?: boolean };
+  /** Consigne courte pour relancer ou après une erreur (la question sans toute l'histoire). */
+  repeat?: Speech[];
+  /** Jeu à voix haute : le dino dit la réponse et l'enfant la répète (après une erreur). */
+  repeatAfterMe?: Speech[];
 }
 
 export interface GameDef {
@@ -81,8 +94,14 @@ export interface GameDef {
   category: 'foreign_language' | 'world' | 'logic' | 'french' | 'writing';
   /** Jeu de tracé : il se joue dans sa propre scène, pas dans les séries mélangées. */
   trace?: boolean;
+  /** Memory : il se joue dans sa propre scène, pas dans les séries mélangées. */
+  memory?: boolean;
+  /** Nombre de questions d'une série, s'il ne dépend pas de l'âge (un plateau de memory est long). */
+  seriesLength?: number;
   /** Âge minimum de l'enfant pour que le jeu soit proposé (3 par défaut). */
   minAge?: number;
+  /** Jeu à voix haute : langue du pack de reconnaissance vocale nécessaire. */
+  voice?: SpeechLang;
   /** Image de la bulle du jeu. */
   icon: string;
   /** Couleur de la bulle et du décor. */
@@ -104,16 +123,6 @@ const idOf = (ref: QuestionRef) => ref.id.split(':')[1];
 /** Leurres selon le niveau : autre famille → même famille → même sous-famille. */
 const strategyFor = (level: number, sameGroupFrom: number, sameCategoryFrom: number): DistractorStrategy =>
   level >= sameCategoryFrom ? 'same_category' : level >= sameGroupFrom ? 'same_group' : 'other_group';
-
-/** Indice de famille, au singulier (« c'est un animal de la ferme »). */
-const CATEGORY_HINTS: Record<string, string> = {
-  farm: 'un animal de la ferme', sea: 'un animal de la mer', bird: 'un oiseau', bug: 'une petite bête',
-  wild: 'un animal sauvage', forest: 'un animal de la forêt', fruit: 'un fruit', veg: 'un légume',
-  meal: 'quelque chose qui se mange', vehicle: 'un véhicule', toy: 'un jouet', home: 'un objet de la maison',
-  clothes: 'quelque chose qu\'on porte', tool: 'un outil', kitchen: 'un objet de tous les jours',
-  music: 'un instrument de musique', sky: 'quelque chose qu\'on voit dans le ciel', plant: 'une plante',
-  body: 'une partie du corps', landscape: 'un endroit', color: 'une couleur', element: 'quelque chose de la nature',
-};
 
 const riddleText = new Map(RIDDLES.map(([id, , text]) => [id, text]));
 /** Concept d'une devinette (`whale~2` : deuxième devinette de la baleine). */
@@ -227,37 +236,6 @@ const showMe: GameDef = {
 // ---- Monde : « Devinettes » ----
 
 const riddlePool = CONCEPTS.filter((c) => c.group !== 'color');
-
-/**
- * Leurres interdits parce qu'ils répondraient aussi à la devinette
- * (« je brille la nuit » : la lune, mais aussi l'étoile). `cat:` = toute une sous-famille.
- */
-const RIDDLE_EXCLUDE: Record<string, string[]> = {
-  moon: ['star'], sun: ['star'], mouth: ['tooth'], tooth: ['mouth', 'tongue'], bat: ['owl'], owl: ['bat'], hat: ['cap'],
-  fish: ['cat:sea'], bird: ['cat:bird'], plane: ['helicopter', 'rocket'], helicopter: ['plane', 'rocket'],
-  wolf: ['dog', 'fox'], horse: ['zebra'], zebra: ['horse'], eye: ['glasses'], glasses: ['eye'],
-  socks: ['shoe'], cow: ['goat', 'ox'], guitar: ['violin'], drum: ['piano'], snail: ['turtle'], turtle: ['snail'],
-  fire: ['fire_engine', 'volcano'], volcano: ['fire', 'mountain'], milk: ['cheese', 'bottle'],
-  honey: ['bee'], bee: ['honey'], potato: ['fries'], fries: ['potato'], candle: ['cake', 'fire'],
-  window: ['mirror', 'glasses'], mirror: ['window', 'glasses'], seal: ['penguin', 'polar_bear'],
-  polar_bear: ['bear', 'seal', 'penguin'], bone: ['dog', 'tooth'], worm: ['snake', 'snail'], snake: ['worm'],
-  mosquito: ['bee', 'spider'], jellyfish: ['octopus'], lightning: ['rain', 'cloud'], comet: ['star', 'rocket'],
-  rocket: ['satellite', 'comet'], satellite: ['rocket'], parachute: ['plane', 'helicopter', 'balloon'],
-  axe: ['saw'], saw: ['axe'], octopus: ['squid', 'jellyfish'], kangaroo: ['koala'], clock: ['bell', 'hourglass'],
-  hourglass: ['clock'], snowman: ['snowflake'], bread: ['croissant', 'cake', 'sandwich'], dolphin: ['whale', 'seal'],
-  whale: ['dolphin'], compass: ['clock'], magnet: ['key'],
-  feather: ['bird', 'leaf'], koala: ['monkey', 'sloth'], sloth: ['koala', 'monkey'],
-  mammoth: ['elephant'], elephant: ['mammoth'], scorpion: ['crab', 'spider'], oyster: ['crab'],
-  lock: ['key', 'door'], key: ['lock', 'door'], bell: ['clock'], light_bulb: ['lamp', 'flashlight', 'candle'],
-  lamp: ['light_bulb', 'flashlight'], tongue: ['mouth'], rooster: ['hen', 'bird', 'turkey'],
-  hen: ['rooster', 'turkey'], turkey: ['hen', 'rooster'], donkey: ['horse'], onion: ['garlic'],
-  bucket: ['bottle'], brain: ['eye'], tornado: ['cloud'], paintbrush: ['pencil', 'crayon'],
-};
-
-const excludedFor = (answer: Concept) => {
-  const rules = RIDDLE_EXCLUDE[answer.id] ?? [];
-  return (c: Concept) => rules.some((r) => (r.startsWith('cat:') ? c.category === r.slice(4) : c.id === r));
-};
 
 const riddles: GameDef = {
   id: 'MO-2',
@@ -1339,6 +1317,58 @@ const missingWord: GameDef = {
   },
 };
 
+// ---- Français : « Écoute l'histoire » (compréhension orale) ----
+
+const storyPool = CONCEPTS.filter((c) => c.group !== 'color');
+const storyChoice = (key: string): Choice => {
+  const n = /^n(\d+)$/.exec(key);
+  return n ? { id: key, count: Number(n[1]) } : conceptChoice(conceptById(key));
+};
+
+const listenStory: GameDef = {
+  id: 'FR-8',
+  category: 'french',
+  icon: 'story',
+  color: 0xc2410c,
+  introLine: 'intro.FR-8',
+  homeLine: 'home.FR-8',
+  shortLine: 'short.FR-8',
+  questions: STORIES.map(([level], i) => ({ id: `FR-8:${i}`, level })),
+  build(ref, _level, rng) {
+    const [level, lines, question, answer, traps, key] = STORIES[Number(idOf(ref))];
+    // 3 images au début, 4 ensuite, 6 au niveau CP ; d'abord les pièges (des choses entendues dans l'histoire).
+    const count = level <= 2 ? 2 : level >= 15 ? 5 : 3;
+    const keys = shuffle(traps.filter((t) => t !== answer), rng).slice(0, count);
+    const number = /^n(\d+)$/.exec(answer);
+    if (number) {
+      for (const k of shuffle([1, 2, 3, 4, 5, 6], rng)) {
+        if (keys.length >= count) break;
+        if (`n${k}` !== answer && !keys.includes(`n${k}`)) keys.push(`n${k}`);
+      }
+    } else {
+      const used = new Set([answer, ...keys].flatMap((k) => (/^n\d/.test(k) ? [] : [conceptById(k).fr.word])));
+      const fill = pickDistractors(conceptById(answer), storyPool, 12, 'same_group', rng)
+        .filter((c) => !used.has(c.fr.word));
+      for (const c of fill) {
+        if (keys.length >= count) break;
+        keys.push(c.id);
+      }
+    }
+    return {
+      answer: storyChoice(answer),
+      distractors: keys.map(storyChoice),
+      // L'histoire, phrase par phrase, puis la question.
+      prompt: [
+        ...lines.map((text): Speech => ({ text, lang: 'fr', pauseAfter: 550 })),
+        { text: question, lang: 'fr' },
+      ],
+      repeat: [{ text: question, lang: 'fr' }],
+      reinforce: [{ text: number ? `Oui, ${frNumber(Number(number[1]))} !` : `Oui ! ${lines[key]}`, lang: 'fr' }],
+      hints: [{ text: `Indice : écoute encore cette phrase. ${lines[key]}`, lang: 'fr' }],
+    };
+  },
+};
+
 const missingWordRead: GameDef = {
   id: 'FR-7',
   category: 'french',
@@ -1833,10 +1863,85 @@ const myCountry: GameDef = {
   build: (ref, _level, rng) => buildCountry(ref, rng),
 };
 
+// ---- Memory (dès 3 ans) et memory en anglais (dès 5 ans) ----
+
+/** Nombre de paires selon le niveau : 3 (6 cartes) au début, jusqu'à 10 (20 cartes) au niveau CP. */
+export const memoryPairs = (level: number) => (level <= 3 ? 3 : level <= 6 ? 4 : level <= 10 ? 6 : level <= 15 ? 8 : 10);
+
+/** Familles d'images des plateaux : des faciles d'abord, puis toutes. */
+const MEMORY_THEMES = ['farm', 'fruit', 'wild', 'vehicle', 'toy', 'sea', 'meal', 'forest', 'veg', 'home', 'sky', 'bug', 'tool'];
+
+function memoryQuestions(gameId: string): QuestionRef[] {
+  const refs: QuestionRef[] = [];
+  for (let level = 1; level <= 20; level++) {
+    // Trois plateaux par niveau, chacun d'une famille.
+    const themes = MEMORY_THEMES.slice(0, level <= 4 ? 6 : MEMORY_THEMES.length);
+    for (let k = 0; k < 3; k++) refs.push({ id: `${gameId}:${level}:${themes[(level * 3 + k) % themes.length]}`, level });
+  }
+  return refs;
+}
+
+function buildMemory(ref: QuestionRef, rng: Rng, lang: 'fr' | 'en'): BuiltQuestion {
+  const [, level, theme] = ref.id.split(':');
+  const pairs = memoryPairs(Number(level));
+  const usable = (c: Concept) => c.group !== 'color' && (lang === 'fr' || c.levels['EN-1'] !== undefined);
+  // La famille du plateau ; complétée par d'autres images s'il en manque (sans deux fois le même mot).
+  const pool = [...shuffle(CONCEPTS.filter((c) => c.category === theme && usable(c)), rng),
+    ...shuffle(CONCEPTS.filter((c) => c.category !== theme && usable(c)), rng)];
+  const words = new Set<string>();
+  const chosen: Concept[] = [];
+  for (const c of pool) {
+    const word = lang === 'en' ? c.en.word : c.fr.word;
+    if (chosen.length >= pairs || words.has(word)) continue;
+    words.add(word);
+    chosen.push(c);
+  }
+  return {
+    answer: { id: 'ok' },
+    distractors: [],
+    show: { kind: 'memory', images: chosen.map((c) => c.id), lang },
+    prompt: [{ text: lang === 'en'
+      ? oneOf(rng, ['Retourne deux cartes, et trouve les paires ! J\'écoute… en anglais !', 'Trouve les paires, et écoute les mots anglais !'])
+      : oneOf(rng, ['Retourne deux cartes. Si ce sont les mêmes, tu gagnes la paire !', 'Trouve toutes les paires !']), lang: 'fr' }],
+    reinforce: [{ text: oneOf(rng, ['Bravo, tu as trouvé toutes les paires !', 'Quelle mémoire ! Toutes les paires !',
+      'Toutes les paires ! Tu es un champion du memory !']), lang: 'fr' }],
+    hints: [{ text: 'Souviens-toi bien où sont les images que tu as déjà vues !', lang: 'fr' }],
+  };
+}
+
+const memory: GameDef = {
+  id: 'LO-10',
+  category: 'logic',
+  memory: true,
+  seriesLength: 3,
+  icon: 'memory',
+  color: 0x7c3aed,
+  introLine: 'intro.LO-10',
+  homeLine: 'home.LO-10',
+  shortLine: 'short.LO-10',
+  questions: memoryQuestions('LO-10'),
+  build: (ref, _level, rng) => buildMemory(ref, rng, 'fr'),
+};
+
+const memoryEnglish: GameDef = {
+  id: 'EN-3',
+  category: 'foreign_language',
+  memory: true,
+  seriesLength: 3,
+  minAge: 5,
+  icon: 'memory-en',
+  color: 0x2563eb,
+  introLine: 'intro.EN-3',
+  homeLine: 'home.EN-3',
+  shortLine: 'short.EN-3',
+  questions: memoryQuestions('EN-3'),
+  build: (ref, _level, rng) => buildMemory(ref, rng, 'en'),
+};
+
 export const GAMES: GameDef[] = [
-  listenTap, englishNumbers, showMe, riddles, shadows, together, bigger, myCountry, missingWord, missingWordRead, sounds,
+  listenTap, englishNumbers, showMe, riddles, shadows, together, bigger, myCountry, missingWord, missingWordRead, listenStory, sounds,
   syllables, readWord, readPicture, letters, oddOneOut, shapesGame, counting, numbers, sequence, most, calc,
-  clockGame, moneyGame, traceShapes, traceLetters,
+  clockGame, moneyGame, memory, memoryEnglish, traceShapes, traceLetters, ...VOICE_GAMES,
 ];
 
 /** Jeux proposés à un enfant de cet âge. */

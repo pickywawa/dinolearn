@@ -10,32 +10,49 @@ En ligne : https://pickywawa.github.io/dinolearn/
 - **Le dino guide tout** : il présente chaque bouton en le montrant du bras, une main animée tapote
   l'endroit à toucher, les boutons à toucher pulsent, et il relance l'enfant s'il hésite. Toucher le
   dino pendant un jeu lui fait répéter la question. Il appelle l'enfant par son prénom.
-- **Menus réduits au minimum, sans texte** : un œuf à toucher (qui débloque le son), puis l'accueil :
-  - un **gros bouton vert** lance une série **tout mélangée** (chaque question vient d'un jeu au hasard) ;
-  - un **petit bouton** (mosaïque) ouvre le choix d'un jeu précis ;
+- **Menus réduits au minimum, sans texte** : un œuf à faire éclore, puis l'accueil :
+  - la **planète Terre**, qui tourne doucement avec ses volcans qui fument, lance une série **tout
+    mélangée** (chaque question vient d'un jeu au hasard) ;
+  - un **petit bouton** (mosaïque) ouvre le choix d'un jeu précis (les jeux à voix haute sont derrière
+    une bulle micro) — masqué par défaut, il s'active dans l'espace parents ;
   - le **chapeau** ouvre le dressing du dino, le **cadeau** apparaît quand un objet est à choisir ;
-  - la **note de musique** coupe ou remet la musique ;
   - avec plusieurs enfants, la **tête du dino** de l'enfant suivant passe la main.
-- **L'éclosion** : chaque enfant touche son œuf ; il en sort un dino d'une couleur au hasard parmi 10,
-  plus ou moins grand selon son âge (« Bonjour Léa ! Je suis ton dino ! Regarde, je suis tout bleu ! »).
+- **L'éclosion** : l'œuf tremble ; il faut le toucher 4 fois pour le faire éclore : il se fissure un
+  peu plus à chaque toucher (le téléphone vibre), puis la coquille s'ouvre en deux (vibrations) et un
+  dino d'une couleur au hasard parmi 10 en sort, plus ou moins grand selon l'âge de l'enfant.
+- **La présentation** : le bébé dino se présente et explique comment l'enfant va l'aider (jouer, gagner
+  des fruits, le nourrir pour qu'il grandisse, l'habiller ; « Mon rêve, c'est de devenir le plus grand
+  dinosaure du monde ! »). Au premier lancement, il demande ensuite à l'enfant **son prénom et son âge,
+  à voix haute** (gros bouton micro ; sans micro, l'âge se choisit avec des gâteaux), puis de donner le
+  téléphone à un parent : la fiche de l'enfant est **déjà remplie**, le parent corrige si besoin et
+  crée son code.
 - **Un dino vivant** : il respire, cligne des yeux, parle (la bouche suit la voix, mot par mot),
   salue, bâille, rugit, saute, danse, fait une pirouette pour un sans-faute.
 - **Décor préhistorique interactif** : volcan qui fume et entre en éruption quand on le touche,
-  ptérodactyle qui fait un looping, diplodocus qui rugit, bébé T-rex, papillons, fougères. Le soir,
-  ciel de nuit avec la lune et les étoiles.
+  ptérodactyle qui fait un looping, diplodocus qui rugit, bébé T-rex, papillons, fougères. Dans le ciel
+  de l'accueil passent des météorites et des oiseaux ; parfois le soleil se montre, ou un nuage apporte
+  la pluie, suivie d'un arc-en-ciel. Le soir, ciel de nuit avec la lune et des étoiles filantes.
+- **Les mouches** : de temps en temps, une mouche vient tourner autour du dino ; si elle passe tout
+  près de sa bouche, il l'attrape d'un coup de langue (« Slurp ! »). On peut aussi la chasser du doigt.
 - **Séries** de 6 à 10 questions. Une barre de fruits montre l'avancée ; chaque fruit est gagné si la
   réponse est trouvée du premier coup (+ un gâteau pour un sans-faute).
 - **Fin de série** : les fruits tombent dans un panier, l'enfant le donne au dino qui mange tout ; il
-  grandit (niveaux 1 à 40) et, à chaque niveau, l'enfant choisit **un cadeau parmi 4 objets**.
+  grandit (niveaux 1 à 40) et, à chaque niveau, l'enfant choisit **un cadeau parmi 4 objets**. Après
+  un bon repas, il rote ou il pète (le téléphone vibre) et s'excuse (« Oups, pardon ! »). S'il attend
+  trop son panier, il réclame, chaque fois autrement : ventre qui gargouille, il lorgne les fruits,
+  supplie, ouvre grand la bouche…
 - **Collection et dressing** : 23 objets (chapeaux, casquette, couronne, lunettes, nœud papillon,
-  écharpe, capes, ailes, ballon, baguette magique…), portés partout. Dans le dressing, le dino est en
-  gros plan : on fait glisser un objet sur lui pour le lui mettre (un chapeau remplace la casquette),
-  on touche un objet porté pour l'enlever.
+  écharpe, capes, ailes, ballon, baguette magique…), portés partout. Le cadeau se choisit au dressing,
+  et le dino ne le met pas tout seul : c'est l'enfant qui l'habille, en faisant glisser un objet sur
+  lui (un chapeau remplace la casquette), et qui le déshabille en faisant glisser un objet porté loin
+  de lui.
+- **Décor des séries** : à chaque série, un décor tiré au hasard — fougères, palmiers, cailloux,
+  montagnes au loin, et parfois un caméléon qui roule des yeux, sort la langue et change de couleur.
 - **Indices** : après une erreur, quand l'enfant hésite, ou tout de suite si le jeu est difficile pour
   lui en ce moment ; après deux erreurs, la bonne carte brille et le dino la montre.
 - **Musique de fond** douce, créée par le jeu, qui se fait discrète quand le dino parle.
 
-## Les 26 jeux
+## Les 41 jeux
 Chaque jeu a 20 niveaux : 1–10 maternelle, 11–20 niveau CP (6 images, leurres piégeux, nombres
 jusqu'à 100). La difficulté s'adapte toute seule ; certains jeux n'apparaissent qu'à partir d'un âge.
 
@@ -51,6 +68,7 @@ jusqu'à 100). La difficulté s'adapte toute seule ; certains jeux n'apparaissen
 | Monde | Mon pays | 5 ans | le pays de l'enfant : drapeau, symboles, spécialités, fête nationale, monnaie, monument, capitale, voisins |
 | Français | La phrase à trou | 3 ans | « Le soir, je dors dans mon… » → l'image du lit |
 | Français | La phrase à trou (mots écrits) | 5 ans | la même chose, en choisissant le mot écrit |
+| Français | Écoute l'histoire | 3 ans | le dino raconte une histoire (3 phrases, puis jusqu'à 8) et pose une question ; pièges : choses entendues dans l'histoire, « en premier », « n'a PAS », compter |
 | Français | Les sons | 5 ans | qu'est-ce qui rime avec « bateau » ? qui commence comme « chapeau » ? |
 | Français | Les syllabes | 5 ans | on tape dans les mains (« pa-pi-llon : trois ») |
 | Français | Lis le mot | 5 ans | « Trouve le mot MAMAN » : 70 mots en CAPITALES puis en écriture attachée |
@@ -66,7 +84,22 @@ jusqu'à 100). La difficulté s'adapte toute seule ; certains jeux n'apparaissen
 | Logique | Les nombres | 4 ans | « Touche le nombre soixante-douze » (pièges 27 / 72) |
 | Logique | Calcul | 5 ans | additions et soustractions en images, puis écrites, compléments à 10 |
 | Logique | L'heure | 5 ans | trouve le réveil qui montre « trois heures et demie », puis « quinze heures trente » |
+| Logique | Memory | 3 ans | retrouver les paires d'images (le dino dit leur nom) : 6 cartes au début, jusqu'à 20 |
+| Anglais | Memory en anglais | 5 ans | le memory, et chaque image retournée est dite en anglais |
 | Logique | La monnaie | 5 ans | trouve les pièces et billets qui font « deux euros cinquante » |
+| Voix haute | Comment ça s'appelle ? | 3 ans | l'image s'affiche, l'enfant dit son nom (après une erreur, il répète après le dino) |
+| Voix haute | Say it in English! | 5 ans | dire le mot en anglais (« Répète après moi : dog ») |
+| Voix haute | Lis à voix haute | 5 ans | lire un mot écrit (capitales, minuscules, attaché) |
+| Voix haute | Devinettes à voix haute (9 thèmes) | 5 ans | animaux, métiers, sport, espace, saisons et météo, formes et couleurs, pays et peuples, mon pays, nature |
+
+**Jeux à voix haute** : l'enfant touche un gros bouton micro et répond en parlant. La reconnaissance
+vocale ([Vosk](https://alphacephei.com/vosk/) en WebAssembly) se fait **entièrement sur l'appareil** :
+rien n'est enregistré ni envoyé, et le micro ne s'allume que pendant l'écoute. Elle ne choisit
+qu'entre quelques mots (la bonne réponse, les mauvaises réponses plausibles, un « bruit »), ce qui la
+rend fiable même avec une voix d'enfant. Un « pas entendu » ne compte jamais comme une erreur ; après
+deux essais, les cartes reviennent et l'enfant répond au doigt. Un pack de reconnaissance par langue
+(≈ 40 Mo, français et anglais) se télécharge une fois ; le français commence à se télécharger dès
+l'éclosion du premier œuf, pour que l'enfant puisse dire son prénom au dino.
 
 **Correction des tracés** (`src/domain/trace.ts`) : le modèle et le tracé sont découpés en points
 tous les 1 % ; il faut couvrir 93 % du modèle, que 90 % du tracé soit près du modèle (à moins d'un
@@ -112,17 +145,19 @@ parler pendant l'activité, comment prolonger sans écran, le matériel, et la s
 version**, **Supprimer**.
 
 ## Pour les parents
-- **Premier lancement** : le dino demande d'aller chercher un parent, qui crée un **code à 4 chiffres**
-  puis la **fiche de l'enfant** (prénom, âge, pays, temps de jeu par jour, heure du coucher).
-- **Espace parents** : rester appuyé sur le cadenas de l'accueil, glisser vers le haut, puis taper le
-  code. Un onglet par enfant :
+- **Premier lancement** : après l'éclosion et la présentation, le dino demande à l'enfant d'aller
+  chercher un parent, qui vérifie la **fiche de l'enfant** déjà remplie (prénom, âge, pays, temps de
+  jeu par jour, heure du coucher, micro) puis crée un **code à 4 chiffres**.
+- **Espace parents** : toucher le cadenas en haut à gauche de l'accueil, puis taper le code. Un onglet
+  par enfant :
   - modifier la fiche, **ajouter un enfant** (il ouvrira son œuf en sortant) ou en supprimer un ;
   - **alterner les séries** entre les enfants (« Bravo Léa ! Maintenant, c'est au tour de Tom ! ») ;
   - niveau du dino (1 à 40) et niveau de départ de chaque jeu (ou automatique), jeux activés ;
   - temps de jeu par jour et graphique de la semaine, heure du coucher ;
   - suivi par jeu (réponses, réussite, questions acquises) et questions à réviser avec leur date ;
   - les **fiches à imprimer** gagnées par l'enfant, avec un aperçu et des conseils ;
-  - bruitages, musique, test de la voix, changement du code, tout recommencer.
+  - micro (jeux à voix haute) et packs de reconnaissance vocale ;
+  - bruitages (et vibrations), musique, test de la voix, changement du code, tout recommencer.
 - **Temps de jeu** : une fois atteint, l'enfant finit sa série puis le jeu se bloque ; le code ajoute
   15 ou 30 minutes ou débloque la journée.
 - **Mode nuit** : après l'heure du coucher, le dino bâille, propose une dernière série, dit bonne nuit
@@ -135,6 +170,7 @@ version**, **Supprimer**.
 |--------|--------------|
 | Moteur de jeu, animations (tweens, particules) | [Phaser 3](https://phaser.io) |
 | Voix (synthèse vocale du navigateur, iOS/Android) | [easy-speech](https://github.com/leaonline/easy-speech) |
+| Reconnaissance vocale sur l'appareil | [vosk-browser](https://github.com/ccoreilly/vosk-browser) et les petits modèles [Vosk](https://alphacephei.com/vosk/models) français et anglais (Apache 2.0) |
 | Effets sonores générés (aucun fichier audio) | [ZzFX](https://github.com/KilledByAPixel/ZzFX) ; musique générée avec Web Audio |
 | Illustrations (questions, fruits, objets, décor) | [Noto](https://github.com/googlefonts/noto-emoji) (Google, Apache 2.0) via Iconify |
 | Monuments (tour Eiffel, statue de la Liberté, pyramide) | [OpenMoji](https://openmoji.org) (HfG Schwäbisch Gmünd, CC BY-SA 4.0) via Iconify |
@@ -164,11 +200,16 @@ npm install
 npm run dev        # serveur local, accessible depuis le téléphone sur le même Wi-Fi (adresse « Network »)
 npm run icons && npm test   # tests (Vitest) ; ils vérifient aussi que les images existent
 npm run build      # version de production dans dist/
+npm run voice-packs  # (facultatif) packs de reconnaissance vocale dans public/voice/ (≈ 80 Mo, non versionnés)
 ```
 
+Les packs de reconnaissance vocale ne sont pas dans le dépôt : le déploiement GitHub Pages les
+télécharge (modèles officiels Vosk) et les sert à côté du jeu. Sans eux, les jeux à voix haute se
+jouent au doigt.
+
 ## Mise en ligne
-- `.github/workflows/deploy-web.yml` publie le jeu sur **GitHub Pages** à chaque push
-  (à activer une fois : *Settings → Pages → Source : GitHub Actions*).
+- `.github/workflows/deploy-web.yml` publie le jeu sur **GitHub Pages** à chaque push, avec les packs
+  de reconnaissance vocale (à activer une fois : *Settings → Pages → Source : GitHub Actions*).
 - `.github/workflows/release.yml` crée la release (tag `v<version>` et archive du jeu) quand
   `web/RELEASE_NOTES.md` change.
 
@@ -178,3 +219,7 @@ npm run build      # version de production dans dist/
   l'aperçu dans l'appli Claude) n'ont pas de synthèse vocale.
 - Sur iPhone, désactiver le mode silencieux si on n'entend rien.
 - Les profils restent sur l'appareil : changer de téléphone recommence la partie.
+- La vibration ne marche pas sur iPhone (Safari ne la propose pas aux pages web).
+- Jeux à voix haute : la reconnaissance est moins sûre avec les plus petits et dans le bruit ; le jeu
+  passe alors aux cartes. L'archive des releases ne contient pas les packs vocaux
+  (`npm run voice-packs` pour un autre hébergement).

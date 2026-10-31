@@ -1,3 +1,5 @@
+import { Concept } from './content';
+
 /**
  * Devinettes du jeu « Devinettes » (catégorie Monde) : [concept, niveau, texte].
  * Niveaux 1–3 : cris d'animaux ; 4–6 : à quoi ça sert, à quoi ça ressemble ;
@@ -198,3 +200,34 @@ export const RIDDLES: [string, number, string][] = [
   ['brain~2', 20, 'Je suis caché dans ta tête, et je sers à penser et à apprendre. Qui suis-je ?'],
   ['bone~2', 20, 'Je suis dur et blanc, caché sous ta peau. Tu en as plus de deux cents ! Qui suis-je ?'],
 ];
+
+/**
+ * Leurres interdits parce qu'ils répondraient aussi à la devinette
+ * (« je brille la nuit » : la lune, mais aussi l'étoile). `cat:` = toute une sous-famille.
+ */
+export const RIDDLE_EXCLUDE: Record<string, string[]> = {
+  moon: ['star'], sun: ['star'], mouth: ['tooth'], tooth: ['mouth', 'tongue'], bat: ['owl'], owl: ['bat'], hat: ['cap'],
+  fish: ['cat:sea'], bird: ['cat:bird'], plane: ['helicopter', 'rocket'], helicopter: ['plane', 'rocket'],
+  wolf: ['dog', 'fox'], horse: ['zebra'], zebra: ['horse'], eye: ['glasses'], glasses: ['eye'],
+  socks: ['shoe'], cow: ['goat', 'ox'], guitar: ['violin'], drum: ['piano'], snail: ['turtle'], turtle: ['snail'],
+  fire: ['fire_engine', 'volcano'], volcano: ['fire', 'mountain'], milk: ['cheese', 'bottle'],
+  honey: ['bee'], bee: ['honey'], potato: ['fries'], fries: ['potato'], candle: ['cake', 'fire'],
+  window: ['mirror', 'glasses'], mirror: ['window', 'glasses'], seal: ['penguin', 'polar_bear'],
+  polar_bear: ['bear', 'seal', 'penguin'], bone: ['dog', 'tooth'], worm: ['snake', 'snail'], snake: ['worm'],
+  mosquito: ['bee', 'spider'], jellyfish: ['octopus'], lightning: ['rain', 'cloud'], comet: ['star', 'rocket'],
+  rocket: ['satellite', 'comet'], satellite: ['rocket'], parachute: ['plane', 'helicopter', 'balloon'],
+  axe: ['saw'], saw: ['axe'], octopus: ['squid', 'jellyfish'], kangaroo: ['koala'], clock: ['bell', 'hourglass'],
+  hourglass: ['clock'], snowman: ['snowflake'], bread: ['croissant', 'cake', 'sandwich'], dolphin: ['whale', 'seal'],
+  whale: ['dolphin'], compass: ['clock'], magnet: ['key'],
+  feather: ['bird', 'leaf'], koala: ['monkey', 'sloth'], sloth: ['koala', 'monkey'],
+  mammoth: ['elephant'], elephant: ['mammoth'], scorpion: ['crab', 'spider'], oyster: ['crab'],
+  lock: ['key', 'door'], key: ['lock', 'door'], bell: ['clock'], light_bulb: ['lamp', 'flashlight', 'candle'],
+  lamp: ['light_bulb', 'flashlight'], tongue: ['mouth'], rooster: ['hen', 'bird', 'turkey'],
+  hen: ['rooster', 'turkey'], turkey: ['hen', 'rooster'], donkey: ['horse'], onion: ['garlic'],
+  bucket: ['bottle'], brain: ['eye'], tornado: ['cloud'], paintbrush: ['pencil', 'crayon'],
+};
+
+export const excludedFor = (answer: Concept) => {
+  const rules = RIDDLE_EXCLUDE[answer.id] ?? [];
+  return (c: Concept) => rules.some((r) => (r.startsWith('cat:') ? c.category === r.slice(4) : c.id === r));
+};

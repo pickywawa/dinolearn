@@ -588,6 +588,29 @@ Code : `CAT-n`. ⭐ = inclus dans la version 1.0 (MVP).
 #### MO-8 « Les métiers »
 - « Qui soigne les animaux ? » ; 4 images de métiers ; outils associés aux métiers.
 
+### 8.4 bis Jeux à voix haute (VO-1 à VO-12)
+L'enfant répond **en parlant** : il touche un gros bouton micro (le micro ne s'allume qu'à ce moment),
+le dino écoute au plus 6 secondes, puis corrige.
+- **Reconnaissance sur l'appareil** (Vosk en WebAssembly) : aucune voix enregistrée ni envoyée (§14).
+  Elle choisit seulement entre la bonne réponse (avec ses variantes : féminin, synonymes), des mauvaises
+  réponses plausibles et « [unk] » (bruit, mot inconnu). Les petits mots (« c'est un… ») sont ignorés.
+- **Correction indulgente** : bonne réponse entendue (même entourée d'autres mots) → bravo ; autre réponse
+  entendue avec confiance ≥ 0,6 → erreur (« J'ai entendu : chat ») ; sinon « pas entendu », qui ne compte
+  pas. Après deux essais, ou si le modèle ne connaît pas le mot, la question se joue **au doigt** (cartes).
+  Trois questions de suite sans rien entendre : la fin de la série se joue au doigt.
+- **Aides** : après une erreur, le dino fait répéter (« Écoute bien : le chien. À toi ! » ; en anglais :
+  « Répète après moi : dog ») ou donne un indice (famille, première lettre).
+- **Packs** : un modèle par langue (≈ 40 Mo, français et anglais), facultatif, téléchargé une fois depuis
+  l'espace parents et gardé par le navigateur ; les jeux à voix haute n'apparaissent qu'avec le micro
+  autorisé et le pack de leur langue. Ils ne sont pas mélangés aux autres jeux.
+
+| Jeu | Âge | Contenu |
+|-----|-----|---------|
+| VO-1 Comment ça s'appelle ? | 3+ | Nommer l'image (vocabulaire de « Montre-moi ») |
+| VO-2 Say it in English! | 5+ | Dire le mot en anglais (pack anglais) |
+| VO-3 Lis à voix haute | 5+ | Lire un mot (capitales, minuscules, attaché) |
+| VO-4 à VO-12 | 5+ | Devinettes et questions par thème : animaux, métiers, sport, espace, saisons et météo, formes et couleurs, pays et peuples, mon pays, nature |
+
 ### 8.5 Moteur générique de mini-jeux
 Pour limiter le code, les jeux reposent sur un petit nombre de **gabarits** :
 
@@ -863,6 +886,8 @@ settings(profile_id NULL, key, value)
 - **Aucune publicité**, aucun SDK publicitaire ni de suivi tiers.
 - **Aucune donnée personnelle envoyée** : les seules requêtes réseau sont des téléchargements de
   fichiers statiques du CDN (sans identifiant).
+- **Micro** : désactivé par défaut, autorisé par le parent ; allumé seulement pendant l'écoute d'une
+  réponse ; le son est analysé sur l'appareil et jamais enregistré ni transmis.
 - Analyse d'usage éventuelle : uniquement agrégée, anonyme, **opt-in parental**, et via un outil
   compatible « Kids » (ou aucune en V1).
 - Conformité : **RGPD (art. 8, mineurs)**, **COPPA**, programme **Google Play « Conçu pour les

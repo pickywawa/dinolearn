@@ -8,6 +8,21 @@ const SPIKE = '#ff9f43';
 const CHEEK = '#ff8fa3';
 const W = 8; // épaisseur du contour
 
+/** L'œuf à pois (écran de départ). */
+const EGG = `
+      <path d="M110 10 C170 10 210 110 210 170 C210 230 166 262 110 262 C54 262 10 230 10 170 C10 110 50 10 110 10 Z"
+        fill="#fff8e7" stroke="${OUTLINE}" stroke-width="${W}"/>
+      <circle cx="70" cy="110" r="18" fill="#7bd45a" stroke="${OUTLINE}" stroke-width="5"/>
+      <circle cx="146" cy="80" r="12" fill="#ff9f43" stroke="${OUTLINE}" stroke-width="5"/>
+      <circle cx="150" cy="180" r="22" fill="#7bd45a" stroke="${OUTLINE}" stroke-width="5"/>
+      <circle cx="80" cy="210" r="12" fill="#ff8fa3" stroke="${OUTLINE}" stroke-width="5"/>
+      <ellipse cx="72" cy="60" rx="20" ry="10" fill="#fff" transform="rotate(-40 72 60)"/>`;
+
+/** Ligne de cassure de l'œuf (coordonnées de l'image 220 × 270), de gauche à droite. */
+export const EGG_ZIGZAG: [number, number][] = [
+  [0, 140], [22, 124], [44, 150], [66, 126], [88, 152], [110, 128], [132, 154], [154, 126], [176, 150], [198, 124], [220, 142],
+];
+
 const svg = (w: number, h: number, body: string) =>
   `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">${body}</svg>`;
 
@@ -213,14 +228,65 @@ export const DINO_PARTS: DinoPart[] = [
     key: 'egg',
     width: 220,
     height: 270,
-    svg: svg(220, 270, `
-      <path d="M110 10 C170 10 210 110 210 170 C210 230 166 262 110 262 C54 262 10 230 10 170 C10 110 50 10 110 10 Z"
-        fill="#fff8e7" stroke="${OUTLINE}" stroke-width="${W}"/>
-      <circle cx="70" cy="110" r="18" fill="#7bd45a" stroke="${OUTLINE}" stroke-width="5"/>
-      <circle cx="146" cy="80" r="12" fill="#ff9f43" stroke="${OUTLINE}" stroke-width="5"/>
-      <circle cx="150" cy="180" r="22" fill="#7bd45a" stroke="${OUTLINE}" stroke-width="5"/>
-      <circle cx="80" cy="210" r="12" fill="#ff8fa3" stroke="${OUTLINE}" stroke-width="5"/>
-      <ellipse cx="72" cy="60" rx="20" ry="10" fill="#fff" transform="rotate(-40 72 60)"/>`),
+    svg: svg(220, 270, EGG),
+  },
+  // Les deux moitiés de la coquille, coupées en zigzag (éclosion).
+  ...(['top', 'bottom'] as const).map((half) => ({
+    key: `egg-${half}`,
+    width: 220,
+    height: 270,
+    svg: svg(220, 270, `<defs><clipPath id="c"><polygon points="${half === 'top'
+      ? `0,0 220,0 ${[...EGG_ZIGZAG].reverse().map(([x, y]) => `${x},${y}`).join(' ')}`
+      : `${EGG_ZIGZAG.map(([x, y]) => `${x},${y}`).join(' ')} 220,270 0,270`}"/></clipPath></defs>
+      <g clip-path="url(#c)">${EGG}</g>
+      <polyline points="${EGG_ZIGZAG.map(([x, y]) => `${x},${y}`).join(' ')}" fill="none" stroke="${OUTLINE}" stroke-width="5"
+        stroke-linejoin="round" clip-path="url(#c)"/>`),
+  })),
+  {
+    // Caméléon tourné vers la droite (sa branche est dessinée à part), très clair : il change de couleur avec une teinte.
+    // L'œil (centre 212, 86) et la langue (bout de la bouche 243, 99) sont dessinés à part pour bouger.
+    key: 'chameleon',
+    width: 260,
+    height: 170,
+    svg: svg(260, 170, `
+      <path d="M86 108 C56 118 30 104 32 80 C34 60 60 56 66 74 C70 86 56 92 50 82" fill="none" stroke="${OUTLINE}"
+        stroke-width="22" stroke-linecap="round"/>
+      <path d="M86 108 C56 118 30 104 32 80 C34 60 60 56 66 74 C70 86 56 92 50 82" fill="none" stroke="#f4fff0"
+        stroke-width="11" stroke-linecap="round"/>
+      <path d="M102 116 L92 148 M152 116 L162 148" stroke="${OUTLINE}" stroke-width="15" stroke-linecap="round"/>
+      <path d="M102 116 L92 148 M152 116 L162 148" stroke="#f4fff0" stroke-width="6" stroke-linecap="round"/>
+      <path d="M84 110 C80 72 120 52 160 60 C185 64 198 80 198 96 C198 118 170 128 140 126 C110 126 88 124 84 110 Z"
+        fill="#f4fff0" stroke="${OUTLINE}" stroke-width="6"/>
+      <path d="M100 74 L106 62 L114 70 L122 58 L130 66 L138 55 L146 63 L154 54 L162 62" fill="none" stroke="${OUTLINE}"
+        stroke-width="5" stroke-linejoin="round"/>
+      <ellipse cx="128" cy="96" rx="12" ry="7" fill="#cfe3c8"/><ellipse cx="160" cy="104" rx="9" ry="6" fill="#cfe3c8"/>
+      <ellipse cx="104" cy="100" rx="8" ry="5" fill="#cfe3c8"/>
+      <path d="M180 70 C200 56 236 70 246 92 C248 104 232 112 210 112 C192 112 182 104 180 96 Z" fill="#f4fff0"
+        stroke="${OUTLINE}" stroke-width="6"/>
+      <path d="M182 74 C184 52 206 46 216 64" fill="#f4fff0" stroke="${OUTLINE}" stroke-width="6"/>
+      <path d="M216 104 L244 99" stroke="${OUTLINE}" stroke-width="4" stroke-linecap="round"/>`),
+  },
+  {
+    key: 'rocks',
+    width: 160,
+    height: 92,
+    svg: svg(160, 92, `
+      <path d="M8 88 C6 62 28 42 56 46 C74 30 104 34 112 56 C130 50 154 62 152 88 Z" fill="#b5ada6" stroke="${OUTLINE}"
+        stroke-width="6" stroke-linejoin="round"/>
+      <path d="M56 46 C62 60 60 76 66 88 M112 56 C108 68 112 80 108 88" fill="none" stroke="${OUTLINE}" stroke-width="4" opacity=".5"/>
+      <path d="M26 62 C34 54 46 54 52 60 M76 46 C84 42 96 44 100 50" stroke="#fff" stroke-width="6" stroke-linecap="round"
+        opacity=".45" fill="none"/>`),
+  },
+  {
+    key: 'mountains',
+    width: 520,
+    height: 220,
+    svg: svg(520, 220, `
+      <path d="M0 220 L130 60 L200 140 L300 20 L420 150 L470 100 L520 160 L520 220 Z" fill="#9db3d4" stroke="${OUTLINE}"
+        stroke-width="6" stroke-linejoin="round"/>
+      <path d="M300 20 L262 66 L282 60 L300 76 L318 60 L338 66 Z M130 60 L104 92 L120 86 L134 98 L150 84 Z"
+        fill="#ffffff" stroke="${OUTLINE}" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M200 140 L240 210 M420 150 L380 210" stroke="${OUTLINE}" stroke-width="4" opacity=".35"/>`),
   },
   {
     key: 'volcano',

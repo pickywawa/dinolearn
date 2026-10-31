@@ -12,7 +12,7 @@ const CSS = `
 .pin { position: fixed; inset: 0; z-index: 1100; display: flex; align-items: center; justify-content: center;
   padding: 16px; background: rgba(30, 34, 53, .72); font: 16px/1.45 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
 .pin .card { width: 100%; max-width: 380px; background: #fff; color: #1f2937; border-radius: 18px; padding: 20px;
-  box-shadow: 0 10px 40px rgba(0,0,0,.3); text-align: center; }
+  box-shadow: 0 10px 40px rgba(0,0,0,.3); text-align: center; max-height: calc(100dvh - 32px); overflow-y: auto; }
 .pin h2 { margin: 0 0 6px; font-size: 20px; }
 .pin p { margin: 0 0 14px; color: #4b5563; font-size: 15px; }
 .pin .dots { display: flex; justify-content: center; gap: 14px; margin: 8px 0 6px; }
@@ -238,6 +238,9 @@ const FORM_CSS = `
 .pin .seg { display: flex; flex-wrap: wrap; gap: 6px; }
 .pin .seg button { font-size: 15px; min-height: 40px; padding: 0 12px; font-weight: 500; }
 .pin .seg button.on { background: #2d3354; color: #fff; }
+.pin label.check { display: flex; gap: 10px; align-items: flex-start; margin-top: 14px; font-size: 15px; }
+.pin label.check input { width: 22px; height: 22px; margin-top: 2px; flex: none; }
+.pin label.check small { color: #6b7280; }
 .pin .card.wide { max-width: 460px; max-height: 92vh; overflow-y: auto; }
 `;
 
@@ -252,7 +255,7 @@ export function childForm(title: string, help: string, initial?: Partial<NewChil
     style.textContent = FORM_CSS;
     document.head.append(style);
   }
-  const value: NewChild = { name: '', age: 4, country: 'fr', dailyMinutes: 0, nightTime: '', ...initial };
+  const value: NewChild = { name: '', age: 4, country: 'fr', dailyMinutes: 0, nightTime: '', voice: false, ...initial };
   return new Promise((resolve) => {
     const { root, card } = mount();
     card.classList.add('wide');
@@ -284,6 +287,17 @@ export function childForm(title: string, help: string, initial?: Partial<NewChil
       draw();
       return row;
     };
+    // Micro (jeux à voix haute) : la voix reste sur l'appareil.
+    const mic = document.createElement('input');
+    mic.type = 'checkbox';
+    mic.checked = !!value.voice;
+    mic.addEventListener('change', () => { value.voice = mic.checked; });
+    const micLabel = document.createElement('label');
+    micLabel.className = 'check';
+    const micText = document.createElement('span');
+    micText.innerHTML = '<b>Autoriser le micro</b> (jeux à voix haute)<br><small>Tout reste sur cet appareil : la voix '
+      + 'n\'est ni enregistrée, ni envoyée.</small>';
+    micLabel.append(mic, micText);
     const error = document.createElement('div');
     error.className = 'error';
     const actions = document.createElement('div');
@@ -316,25 +330,41 @@ export function childForm(title: string, help: string, initial?: Partial<NewChil
       segment(DAILY_CHOICES.map((m) => [m, m ? `${m} min` : 'Illimité']), () => value.dailyMinutes, (v) => { value.dailyMinutes = v; }),
       field('Heure du coucher (mode nuit)'),
       segment(NIGHT_CHOICES.map((t) => [t, t ? t.replace(':', ' h ') : 'Aucune']), () => value.nightTime, (v) => { value.nightTime = v; }),
-      error, actions);
+      micLabel, error, actions);
     card.append(form);
     if (!initial?.name) setTimeout(() => name.focus(), 50);
   });
 }
 
-/** Premier lancement : le parent crée son code, puis la fiche de l'enfant. */
-export async function firstLaunchSetup() {
+/** Ce que l'enfant a dit au dino pendant la présentation (le parent peut le corriger). */
+export interface ChildIntro {
+  name?: string;
+  age?: number;
+  /** Le micro a fonctionné pendant la présentation. */
+  voice?: boolean;
+}
+
+/**
+ * Premier lancement, une fois l'œuf éclos et le dino présenté : le parent
+ * vérifie la fiche de l'enfant (prénom et âge déjà remplis s'il les a dits au
+ * dino), puis crée son code.
+ */
+export async function firstLaunchSetup(intro: ChildIntro = {}) {
+  if (app.profiles.count === 0) {
+    const child = await childForm('Bienvenue, parent !', intro.name || intro.age
+      ? 'Voici ce que votre enfant a dit au dino : corrigez si besoin. Vous pourrez ajouter d\'autres enfants et tout '
+        + 'modifier dans l\'espace parents (cadenas de l\'accueil).'
+      : 'Le prénom de votre enfant, son âge et ses réglages. Vous pourrez ajouter d\'autres enfants et tout modifier '
+        + 'dans l\'espace parents (cadenas de l\'accueil).',
+    { name: intro.name ?? '', age: intro.age ?? 4, voice: !!intro.voice });
+    switchChild(app.profiles.add(child!));
+  }
   if (!app.profiles.pin) {
     await createParentCode(
-      'Bienvenue, parent !',
-      'Choisissez un code à 4 chiffres. Il ouvre l\'espace parents et débloque le jeu quand le temps du jour est fini. '
-        + 'Ne le donnez pas à l\'enfant !',
+      'Votre code parent',
+      'Choisissez un code à 4 chiffres. Il ouvre l\'espace parents (cadenas de l\'accueil) et débloque le jeu quand le '
+        + 'temps du jour est fini. Ne le donnez pas à l\'enfant !',
     );
-  }
-  if (app.profiles.count === 0) {
-    const child = await childForm('Votre enfant', 'Son prénom, son âge et ses réglages. Vous pourrez ajouter d\'autres '
-      + 'enfants et tout modifier dans l\'espace parents (cadenas de l\'accueil).');
-    switchChild(app.profiles.add(child!));
   }
 }
 

@@ -1,20 +1,29 @@
 import Phaser from 'phaser';
 import { app, switchChild } from '../core/app';
 import { chooseEnvelope } from '../ui/envelopes';
-import { chooseGifts } from '../ui/gifts';
 import { Leftover } from '../core/progress';
 import { SeriesResult } from '../core/series';
+import { vibrate } from '../core/haptics';
 import { Sfx } from '../core/sfx';
 import { foodImage } from '../domain/models';
 import { feed, growthProgress } from '../domain/progression';
 import { foodXp } from '../domain/rewards';
-import { Dino } from '../dino/Dino';
+import { Dino, DinoReaction } from '../dino/Dino';
 import { Bubble } from '../ui/Bubble';
 import { Guide } from '../ui/Guide';
 import { drawScenery, goTo, homeButton, isPortrait, unit } from '../ui/scenery';
 import { BaseScene } from './BaseScene';
 
 const MAX_SHOWN = 10;
+
+/** Le dino réclame à manger, chaque fois d'une autre façon. */
+const HUNGER: { reaction: DinoReaction; line: string; look?: boolean }[] = [
+  { reaction: 'growl', line: 'hunger.growl' },
+  { reaction: 'lookAround', line: 'hunger.look', look: true },
+  { reaction: 'beg', line: 'hunger.beg' },
+  { reaction: 'gape', line: 'hunger.gape' },
+  { reaction: 'oops', line: 'hunger.sad' },
+];
 
 export interface EndData {
   result: SeriesResult;
@@ -35,6 +44,7 @@ export class EndScene extends BaseScene {
   private fruits: { leftover: Leftover; img: Phaser.GameObjects.Image }[] = [];
   private again!: Bubble;
   private feeding = false;
+  private eatenCount = 0;
 
   constructor() {
     super('End');
@@ -52,6 +62,7 @@ export class EndScene extends BaseScene {
     this.fruits = [];
     this.basket = undefined;
     this.feeding = false;
+    this.eatenCount = 0;
 
     homeButton(this, () => goTo(this, 'Home'));
     this.dino = new Dino(this, W / 2, H * (portrait ? 0.7 : 0.74), u * (portrait ? 0.62 : 0.5));
@@ -135,13 +146,35 @@ export class EndScene extends BaseScene {
     if (this.basket && !this.feeding) this.guide.tap(this.basket);
   }
 
-  private armFeedReminder() {
-    this.armIdle([[9000, () => this.run(async () => {
-      if (this.feeding) return;
+  /**
+   * Le panier n'arrive pas : le dino réclame, chaque fois autrement (ventre qui
+   * gargouille, il regarde les fruits, il supplie, il ouvre grand la bouche…).
+   */
+  private armFeedReminder(step = 0) {
+    this.armIdle([[step === 0 ? 6000 : 7000, () => this.run(async () => {
+      if (this.feeding || !this.basket) return;
+      const ask = HUNGER[step % HUNGER.length];
+      this.dino.react(ask.reaction);
+      if (ask.reaction === 'growl') {
+        Sfx.play('rumble');
+        vibrate(400);
+      }
+      if (ask.look) this.dino.pointAt(this.basket.x, this.basket.y);
       this.showBasketHint();
-      await this.say('end.feed_again');
-      this.armFeedReminder();
+      await this.say(ask.line);
+      this.armFeedReminder(step + 1);
     })]]);
+  }
+
+  /** Après un bon repas : un rot ou un prout (le téléphone vibre), et le dino s'excuse. */
+  private async afterMeal() {
+    await this.wait(400);
+    const burp = Math.random() < 0.5;
+    Sfx.play(burp ? 'burp' : 'fart');
+    vibrate(burp ? [250] : [90, 50, 300]);
+    this.dino.react(burp ? 'burp' : 'fart');
+    await this.wait(700);
+    await this.say(burp ? 'burp' : 'fart');
   }
 
   /** Le panier vient à la bouche du dino, qui mange les fruits un par un. */
@@ -186,6 +219,7 @@ export class EndScene extends BaseScene {
       this.fruits = this.fruits.filter((f) => f !== fruit);
       app.progress.leftovers = app.progress.leftovers.filter((l) => l !== fruit.leftover);
       app.progress.saveFeeding(result.dino, result.xpEatenToday);
+      this.eatenCount++;
       Sfx.play('chomp');
       this.dino.react('eat');
       this.dino.setBellyFill(growthProgress(result.dino));
@@ -193,22 +227,27 @@ export class EndScene extends BaseScene {
       await this.wait(420);
     }
     this.tweens.add({ targets: this.basket!, alpha: full ? 1 : 0, duration: 300 });
+    const eaten = Math.min(this.eatenCount, MAX_SHOWN);
     if (full) {
       this.dino.react('think');
       await this.say('full');
     } else {
       await this.say('eating');
     }
+    // Il a bien mangé (ou il a le ventre plein) : ça fait des bruits rigolos !
+    if (full || eaten >= 3) await this.afterMeal();
     if (leveledUp) {
       Sfx.play('levelUp');
       this.dino.react('levelUp');
       await this.say('level_up');
     }
-    // Chaque niveau gagné : un objet à choisir pour le dino.
+    // Chaque niveau gagné : un objet à choisir, au vestiaire (l'enfant y habille son dino).
     if (app.progress.collection.pending > 0) {
       this.again.setVisible(false);
-      await chooseGifts(this, this.dino);
-      if (!this.alive) return;
+      this.dino.react('cheer');
+      await this.say('gift.go');
+      goTo(this, 'Wardrobe');
+      return;
     }
     await this.showAgain();
   }

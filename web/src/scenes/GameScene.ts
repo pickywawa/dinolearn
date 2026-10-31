@@ -1,12 +1,18 @@
 import Phaser from 'phaser';
-import { app, playableGames } from '../core/app';
+import { app, playableGames, voiceAvailable } from '../core/app';
 import { Choice, Script, ShapeCard, Show, gameById } from '../content/games';
-import { Series } from '../core/series';
+import { Speech } from '../content/content';
+import { ears, packInstalled } from '../core/ears';
+import { Music } from '../core/music';
+import { Series, TapOutcome } from '../core/series';
 import { Sfx } from '../core/sfx';
 import { BALANCE } from '../domain/balance';
 import { foodImage } from '../domain/models';
+import { Heard, Verdict, canRecognize, grammarFor, judge } from '../domain/speech';
 import { Dino } from '../dino/Dino';
 import { Guide } from '../ui/Guide';
+import { MicButton } from '../ui/MicButton';
+import { drawVegetation } from '../ui/vegetation';
 import { drawScenery, goTo, homeButton, isPortrait, unit } from '../ui/scenery';
 import { BaseScene } from './BaseScene';
 
@@ -17,13 +23,15 @@ interface Card {
   size: number;
 }
 
-type Phase = 'loading' | 'intro' | 'asking' | 'feedback' | 'done';
+type Phase = 'loading' | 'intro' | 'asking' | 'listening' | 'feedback' | 'done';
 
 /**
  * Gabarit commun à tous les jeux : la consigne est dite, l'enfant touche la
  * bonne réponse parmi 2 à 4 cartes (images, nombres, tas de fruits).
  * En mode « tout mélangé », chaque question vient d'un jeu différent.
  * Toucher le dino fait répéter la consigne ; des indices aident quand c'est difficile.
+ * Jeux à voix haute : un gros bouton micro remplace les cartes ; si le dino
+ * n'entend pas l'enfant (ou après deux erreurs), les cartes reviennent.
  */
 export class GameScene extends BaseScene {
   private series!: Series;
@@ -41,6 +49,18 @@ export class GameScene extends BaseScene {
   private hintsGiven = 0;
   /** Temps de jeu pas encore enregistré (pour la limite quotidienne des parents). */
   private playMs = 0;
+  /** Jeu à voix haute : le micro est utilisable pendant cette série. */
+  private voiceOn = false;
+  /** Question en cours passée aux cartes (micro qui n'entend pas, ou deux erreurs). */
+  private cardMode = false;
+  private voiceMisses = 0;
+  private onlyUnheard = true;
+  /** Questions de suite où le micro n'a rien entendu : à 3, on joue au doigt jusqu'à la fin. */
+  private unheardInARow = 0;
+  private mic?: MicButton;
+  /** Où sont les cartes (la bonne réponse y apparaît quand elle est dite à voix haute). */
+  private answerSpot = { x: 0, y: 0, size: 0 };
+  private vocab?: Set<string>;
 
   constructor() {
     super('Game');
@@ -62,14 +82,21 @@ export class GameScene extends BaseScene {
       this.scene.start('Trace', data);
       return;
     }
+    if (data.gameId && gameById(data.gameId).memory) {
+      this.scene.start('Memory', data);
+      return;
+    }
     this.initBase();
     this.playMs = 0;
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.savePlayTime());
     this.mixed = !!data.mixed || !data.gameId;
-    const games = this.mixed ? playableGames().filter((g) => !g.trace) : [gameById(data.gameId!)];
+    // Les jeux à voix haute ne se mélangent pas aux autres.
+    const games = this.mixed ? playableGames().filter((g) => !g.trace && !g.voice && !g.memory) : [gameById(data.gameId!)];
     const tint = Phaser.Display.Color.IntegerToColor(this.mixed ? 0x9fd8ff : games[0].color);
     const light = Phaser.Display.Color.Interpolate.ColorWithColor(tint, new Phaser.Display.Color(255, 255, 255), 100, 75);
     drawScenery(this, Phaser.Display.Color.GetColor(light.r, light.g, light.b), 0xf4fbff, 0);
+    // Un décor différent à chaque série (fougères, palmiers, cailloux, montagnes, caméléon…).
+    drawVegetation(this, app.rng, isPortrait(this) ? [0.04, 0.36] : [0, 0.22]);
 
     const { width: W, height: H } = this.scale;
     const u = unit(this);
@@ -78,7 +105,16 @@ export class GameScene extends BaseScene {
     this.replayExplained = false;
     this.shown = [];
     this.series = new Series(this.mixed ? games : games[0], app.progress, app.rng);
-    this.tutorial = !app.progress.seenTutorial && this.series.items.length > 1;
+    const lang = this.mixed ? undefined : games[0].voice;
+    this.voiceOn = !!lang && voiceAvailable(games[0]);
+    this.unheardInARow = 0;
+    this.mic = undefined;
+    this.vocab = undefined;
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      ears.stop();
+      Music.hush(false);
+    });
+    this.tutorial = !this.voiceOn && !lang && !app.progress.seenTutorial && this.series.items.length > 1;
 
     homeButton(this, () => this.leave());
     this.drawSteps();
@@ -102,12 +138,25 @@ export class GameScene extends BaseScene {
         toLoad++;
       }
     }
-    const begin = () => this.run(() => this.intro());
-    if (toLoad === 0) begin();
-    else {
-      this.load.once(Phaser.Loader.Events.COMPLETE, begin);
-      this.load.start();
-    }
+    // Jeu à voix haute : le pack doit être dans le navigateur (sinon, on joue au doigt).
+    const voiceReady = this.voiceOn && lang
+      ? packInstalled(lang).then(async (installed) => {
+        this.voiceOn = installed;
+        if (!installed) return;
+        void ears.load(lang).catch(() => undefined);
+        this.vocab = await ears.vocab(lang);
+      })
+      : Promise.resolve();
+    const images = new Promise<void>((resolve) => {
+      if (toLoad === 0) resolve();
+      else {
+        this.load.once(Phaser.Loader.Events.COMPLETE, () => resolve());
+        this.load.start();
+      }
+    });
+    void Promise.all([images, voiceReady]).then(() => {
+      if (this.alive) this.run(() => this.intro());
+    });
   }
 
   // ---- Déroulé ----
@@ -115,6 +164,7 @@ export class GameScene extends BaseScene {
   private async intro() {
     this.phase = 'intro';
     const allReview = this.series.items.every((i) => i.isReview);
+    this.resetVoice();
     this.showCards();
     if (allReview) await this.say('review');
     await this.say(this.mixed ? 'intro.MIX' : this.series.current.game.introLine);
@@ -157,11 +207,151 @@ export class GameScene extends BaseScene {
       if (item.due && app.rng() < 0.6) await this.say('review_due');
       // Mode mélangé : le dino annonce le jeu quand il change.
       if (this.mixed && this.series.gameChanged) await this.say(item.game.shortLine);
-      await app.voice.say(item.prompt);
+      await app.voice.say(this.currentPrompt());
+      // Les premières fois, le dino rappelle comment répondre à voix haute.
+      if (this.voiceActive() && index < 2 && this.phase === 'asking') await this.say('voice.tap_mic');
       // Si ce jeu est difficile en ce moment, un indice tout de suite.
       if (this.struggling() && this.phase === 'asking') await this.giveHint();
+      // Les relances ne commencent qu'une fois la consigne finie (une histoire peut être longue).
+      if (this.phase === 'asking') this.armReminders();
     });
+  }
+
+  /** Pour relancer ou après une erreur : la question seule (sans toute l'histoire). */
+  private shortPrompt(): Speech[] {
+    const item = this.series.current;
+    return this.voiceActive() || !item.repeat ? this.currentPrompt() : item.repeat;
+  }
+
+  // ---- Jeux à voix haute ----
+
+  /** Consigne de la question : celle des cartes si on y est passé. */
+  private currentPrompt(): Speech[] {
+    const item = this.series.current;
+    return this.voiceActive() || !item.say ? item.prompt : item.fallback?.prompt ?? item.prompt;
+  }
+
+  /** Vrai si l'enfant répond à cette question avec sa voix (et pas au doigt). */
+  private voiceActive(): boolean {
+    return this.voiceOn && !this.cardMode && !!this.series.current.say;
+  }
+
+  /** Nouvelle question : on repart avec le micro (sauf si le modèle ne connaît pas la réponse). */
+  private resetVoice() {
+    const say = this.series.current.say;
+    this.voiceMisses = 0;
+    this.onlyUnheard = true;
+    this.cardMode = !say || !canRecognize(say, this.vocab);
+  }
+
+  /** L'enfant a touché le micro : le dino écoute, puis corrige. */
+  private onMic() {
+    const mic = this.mic;
+    const target = this.series.current.say;
+    if (this.phase !== 'asking' || !mic || !target) return;
+    this.phase = 'listening';
+    this.clearIdle();
+    this.guide.hide();
+    app.voice.stop();
+    // Dans le geste de l'enfant : iOS n'autorise le son qu'ainsi.
+    ears.wake();
+    this.run(async () => {
+      let heard: Heard;
+      try {
+        mic.setMode('loading');
+        const loading = ears.load(target.lang);
+        const ready = await Promise.race([loading.then(() => true), this.wait(600).then(() => false)]);
+        if (!ready) await this.say('voice.loading');
+        await loading;
+        if (!this.alive) return;
+        // Pas de musique pendant l'écoute : le micro l'entendrait.
+        Music.hush(true);
+        mic.setMode('listening');
+        this.dino.react('think');
+        heard = await ears.listen(target.lang, grammarFor(target, this.vocab), {
+          maxMs: 6000,
+          onLevel: (level) => mic.active && mic.setLevel(level),
+          decisive: (h) => judge(h, target).kind !== 'unheard',
+        });
+      } catch (e) {
+        // Micro refusé ou moteur en panne : on joue au doigt jusqu'à la fin.
+        if (!this.alive) return;
+        console.warn('Micro indisponible', e);
+        this.voiceOn = false;
+        Music.hush(false);
+        await this.say('voice.no_mic');
+        await this.toCards(false);
+        return;
+      } finally {
+        Music.hush(false);
+      }
+      if (!this.alive) return;
+      mic.setMode('idle');
+      this.onHeard(judge(heard, target));
+    });
+  }
+
+  private onHeard(verdict: Verdict) {
+    const item = this.series.current;
+    if (verdict.kind === 'correct') {
+      const outcome = this.series.tap(item.answer);
+      if (outcome.kind !== 'correct') return;
+      this.unheardInARow = 0;
+      this.succeed(outcome, this.revealAnswer());
+      return;
+    }
+    this.phase = 'feedback';
+    this.voiceMisses++;
+    if (verdict.kind === 'wrong') {
+      // Une vraie mauvaise réponse compte comme une erreur ; un « pas entendu » ne compte pas.
+      this.onlyUnheard = false;
+      this.series.tap({ id: `miss-${this.series.wrongAttempts}` });
+      Sfx.play('wrong');
+      this.dino.react('oops');
+    } else {
+      this.dino.react('think');
+    }
+    this.run(async () => {
+      if (verdict.kind === 'wrong') await app.voice.say([{ text: `J'ai entendu : ${verdict.heard}.`, lang: 'fr', pauseAfter: 300 }]);
+      if (this.voiceMisses >= 2) {
+        if (this.onlyUnheard && ++this.unheardInARow >= 3) {
+          this.voiceOn = false;
+          await this.say('voice.give_up');
+        }
+        await this.toCards(this.voiceOn);
+        return;
+      }
+      if (verdict.kind === 'wrong') {
+        await this.say('voice.wrong');
+        // Un coup de pouce avant le deuxième essai : répéter après le dino, ou un indice.
+        if (item.repeatAfterMe) await app.voice.say(item.repeatAfterMe);
+        else await this.giveHint();
+      } else {
+        await this.say('voice.unheard');
+      }
+      this.phase = 'asking';
+      this.armReminders();
+    });
+  }
+
+  /** Le micro n'a pas suffi : l'enfant répond en touchant une carte. */
+  private async toCards(announce: boolean) {
+    this.cardMode = true;
+    if (announce) await this.say('voice.cards');
+    this.showCards();
+    await app.voice.say(this.currentPrompt());
+    this.phase = 'asking';
     this.armReminders();
+  }
+
+  /** Bonne réponse dite à voix haute : sa carte apparaît à la place du micro. */
+  private revealAnswer(): Card {
+    this.mic?.destroy();
+    this.mic = undefined;
+    const { x, y, size } = this.answerSpot;
+    const card = this.makeCard(this.series.current.answer, x, y, size, 0);
+    this.cards.push(card);
+    return card;
   }
 
   /** Vrai si l'enfant rate souvent ce jeu ces derniers temps. */
@@ -184,7 +374,7 @@ export class GameScene extends BaseScene {
     if (this.phase !== 'asking') return;
     this.guide.hide();
     this.dino.react('think');
-    void app.voice.say(this.series.current.prompt);
+    void app.voice.say(this.currentPrompt());
     this.armReminders();
   }
 
@@ -199,6 +389,21 @@ export class GameScene extends BaseScene {
 
   /** Relances : le dino répète (et rappelle qu'on peut le toucher), puis la main fait le tour des cartes. */
   private armReminders() {
+    if (this.voiceActive()) {
+      // Voix haute : le dino répète, et la main montre le micro.
+      this.armIdle([[BALANCE.idleReminderMs, () => {
+        if (this.phase !== 'asking') return;
+        this.run(async () => {
+          this.dino.react('think');
+          await app.voice.say(this.shortPrompt());
+          if (this.phase !== 'asking' || !this.mic) return;
+          this.guide.tap(this.mic);
+          await this.say('voice.tap_mic');
+          if (this.phase === 'asking') this.guide.hide();
+        });
+      }]]);
+      return;
+    }
     this.armIdle([
       [BALANCE.idleReminderMs, () => {
         if (this.phase !== 'asking') return;
@@ -206,7 +411,7 @@ export class GameScene extends BaseScene {
           this.dino.react('think');
           await this.say('idle');
           if (this.phase !== 'asking') return;
-          await app.voice.say(this.series.current.prompt);
+          await app.voice.say(this.shortPrompt());
           // L'enfant hésite : un indice.
           if (this.phase === 'asking') await this.giveHint();
           if (!this.replayExplained && this.phase === 'asking') {
@@ -253,13 +458,21 @@ export class GameScene extends BaseScene {
           await this.say('wrong');
           await this.giveHint();
         }
-        await app.voice.say(this.series.current.prompt);
+        await app.voice.say(this.shortPrompt());
         this.phase = 'asking';
         this.armReminders();
       });
       return;
     }
 
+    this.succeed(outcome, card);
+  }
+
+  /** Bonne réponse (touchée ou dite) : bravo, puis question suivante. */
+  private succeed(outcome: Extract<TapOutcome, { kind: 'correct' }>, card: Card) {
+    this.clearIdle();
+    this.guide.hide();
+    this.phase = 'feedback';
     Sfx.play('correct');
     this.celebrateCard(card);
     this.updateSteps(true);
@@ -277,6 +490,7 @@ export class GameScene extends BaseScene {
         this.phase = 'done';
         goTo(this, 'End', { result: this.series.result, mixed: this.mixed });
       } else {
+        this.resetVoice();
         this.showCards();
         this.ask();
       }
@@ -334,26 +548,41 @@ export class GameScene extends BaseScene {
     this.shown.forEach((o) => o.destroy());
     this.shown = [];
     this.counted = [];
+    this.mic = undefined;
     const item = this.series.current;
+    const voice = this.voiceActive();
+    // Voix haute sans image à nommer (devinettes) : l'emblème du jeu ; aux cartes, l'image qui donnerait la réponse est cachée.
+    const show: Show | undefined = this.cardMode && item.fallback?.hideShow
+      ? undefined
+      : item.show ?? (voice ? { kind: 'image', image: item.game.icon } : undefined);
     const { width: W, height: H } = this.scale;
     const portrait = isPortrait(this);
     let top = H * (portrait ? 0.17 : 0.2);
     let left = portrait ? W * 0.05 : W * 0.22;
-    if (item.show) {
+    if (show) {
       // Zone des objets à compter : en haut (portrait) ou à gauche (paysage).
       const area = portrait
         ? { x: W * 0.05, y: H * 0.14, w: W * 0.9, h: H * 0.28 }
         : { x: W * 0.2, y: H * 0.17, w: W * 0.36, h: H * 0.68 };
-      this.drawShow(item.show, area);
+      this.drawShow(show, area);
       if (portrait) top = H * 0.44;
       else left = W * 0.6;
     }
-    const n = item.choices.length;
-    // 6 cartes (niveau CP) : 3 par ligne.
-    const perRow = n > 4 ? 3 : portrait || item.show ? 2 : n;
-    const rows = Math.ceil(n / perRow);
     const bottom = H * (portrait ? 0.76 : 0.84);
     const right = W * 0.95;
+    if (voice) {
+      // Le gros micro à la place des cartes.
+      const x = (left + right) / 2;
+      const y = (top + bottom) / 2;
+      this.answerSpot = { x, y, size: Math.min(right - left, bottom - top, Math.min(W, H) * 0.42) * 0.8 };
+      this.mic = new MicButton(this, x, y, Math.min(W, H) * 0.13, () => this.onMic());
+      this.shown.push(this.mic);
+      return;
+    }
+    const n = item.choices.length;
+    // 6 cartes (niveau CP) : 3 par ligne.
+    const perRow = n > 4 ? 3 : portrait || show ? 2 : n;
+    const rows = Math.ceil(n / perRow);
     const gap = Math.min(W, H) * 0.04;
     const size = Math.min(
       (right - left - gap * (perRow - 1)) / perRow,
@@ -461,7 +690,7 @@ export class GameScene extends BaseScene {
       this.drawSum(show, area, pop);
       return;
     }
-    if (show.kind === 'trace') return;
+    if (show.kind === 'trace' || show.kind === 'memory') return;
 
     // Objets à compter : on mélange les groupes (aux niveaux difficiles, il y a des intrus).
     const items = Phaser.Utils.Array.Shuffle(show.groups.flatMap((g, gi) =>
@@ -800,6 +1029,7 @@ function showImages(show?: Show): (string | undefined)[] {
   if (show.kind === 'silhouette' || show.kind === 'image') return [show.image];
   if (show.kind === 'sum') return [show.image];
   if (show.kind === 'text' || show.kind === 'trace') return [];
+  if (show.kind === 'memory') return show.images;
   if (show.kind === 'sequence') return show.images.map((i) => i ?? undefined);
   return [];
 }

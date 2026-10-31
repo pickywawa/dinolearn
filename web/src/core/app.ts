@@ -6,6 +6,7 @@ import { Profiles } from './profiles';
 import { Sfx } from './sfx';
 import { KeyValueStore, MemoryStore, Progress } from './progress';
 import { Voice } from './voice';
+import { voiceSupported } from './ears';
 
 function storage(): KeyValueStore {
   try {
@@ -47,10 +48,19 @@ export function switchChild(id: string) {
 
 applyChildSettings();
 
-/** Jeux proposés à l'enfant : ceux de son âge, sauf ceux que les parents ont désactivés. */
+/** Jeu à voix haute jouable : micro autorisé par les parents et pack de la langue téléchargé. */
+export function voiceAvailable(game: GameDef): boolean {
+  const { voice, voicePacks } = app.progress.settings;
+  return !!game.voice && voice && voicePacks.includes(game.voice) && voiceSupported();
+}
+
+/**
+ * Jeux proposés à l'enfant : ceux de son âge, sauf ceux que les parents ont désactivés
+ * (et les jeux à voix haute sans micro autorisé ni pack de langue).
+ */
 export function playableGames(): GameDef[] {
   const p = app.progress;
-  const forAge = gamesForAge(p.age);
+  const forAge = gamesForAge(p.age).filter((g) => !g.voice || voiceAvailable(g));
   const enabled = forAge.filter((g) => !p.settings.disabledGames.includes(g.id) && g.questions.length > 0);
   return enabled.length > 0 ? enabled : forAge;
 }

@@ -140,7 +140,7 @@ describe('contenus', () => {
     const rng = mulberry32(4);
     const expectedCount = (gameId: string, id: string, level: number, refLevel: number) => {
       const expert = id.endsWith(':x');
-      if (gameId.startsWith('TR-')) return 1;
+      if (gameId.startsWith('TR-') || gameId === 'LO-10' || gameId === 'EN-3') return 1;
       if (gameId === 'MO-6') return id.endsWith(':flag') ? 3 : /hard6|capital6|neighbour6/.test(id) ? 6 : 4;
       if (gameId === 'EN-1') return expert ? 4 : 2;
       if (gameId === 'EN-2') return Number(id.split(':')[1]) <= 10 ? 3 : 4;
@@ -149,6 +149,7 @@ describe('contenus', () => {
       if (gameId === 'FR-3' || gameId === 'FR-5') return refLevel <= 3 ? 3 : refLevel >= 16 ? 6 : 4;
       if (gameId === 'FR-6') return refLevel <= 2 ? 3 : refLevel >= 16 ? 6 : 4;
       if (gameId === 'FR-7') return refLevel >= 16 ? 6 : 4;
+      if (gameId === 'FR-8') return refLevel <= 2 ? 3 : refLevel >= 15 ? 6 : 4;
       if (gameId === 'LO-7') return refLevel <= 2 ? 3 : refLevel >= 18 ? 6 : 4;
       if (gameId === 'LO-8') return refLevel <= 2 ? 3 : refLevel >= 17 ? 6 : 4;
       if (gameId === 'LO-9') return refLevel <= 2 ? 3 : refLevel >= 17 ? 6 : 4;
@@ -157,6 +158,8 @@ describe('contenus', () => {
       return 4;
     };
     for (const game of GAMES) {
+      // Jeux à voix haute : vérifiés à part (test/voice.test.ts).
+      if (game.voice) continue;
       // « Mon pays » : une quinzaine de questions sur le pays de l'enfant.
       expect(game.questions.length).toBeGreaterThan(game.id === 'MO-6' ? 10 : 40);
       // Chaque niveau de 1 à 20 a des questions.
@@ -648,9 +651,13 @@ describe('code parent et collection', () => {
     const choices = giftChoices(p.collection.owned, mulberry32(1));
     expect(choices).toHaveLength(4);
     expect(new Set(choices.map((c) => c.slot)).size).toBe(4);
-    p.own('billed-cap', sameSlot('billed-cap'));
+    p.own('billed-cap');
     expect(p.collection.pending).toBe(1);
-    p.own('sunglasses', sameSlot('sunglasses'));
+    p.own('sunglasses');
+    // Un cadeau n'est pas mis tout seul : l'enfant le fait glisser sur son dino.
+    expect(p.collection.worn).toEqual([]);
+    p.wear('billed-cap', sameSlot('billed-cap'));
+    p.wear('sunglasses', sameSlot('sunglasses'));
     expect(p.collection.worn).toEqual(['billed-cap', 'sunglasses']);
     // Le chapeau remplace la casquette, pas les lunettes.
     p.wear('top-hat', sameSlot('top-hat'));
@@ -809,5 +816,62 @@ describe('enfants', () => {
     lines.name = () => 'Léa';
     expect(lines.pick('hi')).toBe('Coucou Léa !');
     expect(lines.pick('bravo')).toBe('Bravo, Léa !');
+  });
+});
+
+describe('écoute l\'histoire', () => {
+  it('des histoires de plus en plus longues, avec des pièges entendus dans l\'histoire', async () => {
+    const { STORIES, storyLength } = await import('../src/content/stories');
+    const game = gameById('FR-8');
+    expect(game.minAge ?? 3).toBe(3);
+    STORIES.forEach(([level, lines, question, answer, traps, key], i) => {
+      expect(lines, `histoire ${i}`).toHaveLength(storyLength(level));
+      expect(key, `histoire ${i}`).toBeLessThan(lines.length);
+      expect(question.endsWith('?')).toBe(true);
+      for (const k of [answer, ...traps]) if (!/^n\d+$/.test(k)) expect(() => conceptById(k), `${i} ${k}`).not.toThrow();
+      expect(traps).not.toContain(answer);
+      const q = game.build({ id: `FR-8:${i}`, level }, level, mulberry32(i));
+      // Le dino raconte toute l'histoire, puis pose la question.
+      expect(q.prompt.map((s) => s.text)).toEqual([...lines, question]);
+      // Les pièges sont proposés en premier.
+      const trapCards = q.distractors.filter((c) => traps.includes(c.id));
+      expect(trapCards.length, `histoire ${i}`).toBe(Math.min(traps.length, q.distractors.length));
+    });
+    // Les histoires s'allongent avec le niveau : 3 phrases au début, 8 au niveau CP.
+    expect(STORIES.filter(([l]) => l <= 2).every(([, lines]) => lines.length === 3)).toBe(true);
+    expect(STORIES.filter(([l]) => l >= 15).every(([, lines]) => lines.length === 8)).toBe(true);
+    const pigs = STORIES.findIndex(([, , q]) => q === 'Combien y a-t-il de cochons ?');
+    const count = game.build({ id: `FR-8:${pigs}`, level: 10 }, 10, mulberry32(1));
+    expect(count.answer).toEqual({ id: 'n3', count: 3 });
+  });
+});
+
+describe('memory', () => {
+  it('6 cartes au début (3 ans), puis de plus en plus, jusqu\'à 20 ; en anglais dès 5 ans', async () => {
+    const { memoryPairs } = await import('../src/content/games');
+    expect(gamesForAge(3).map((g) => g.id)).toContain('LO-10');
+    expect(gamesForAge(4).map((g) => g.id)).not.toContain('EN-3');
+    expect(gamesForAge(5).map((g) => g.id)).toContain('EN-3');
+    expect(memoryPairs(1)).toBe(3);
+    expect(memoryPairs(20)).toBe(10);
+    for (let l = 2; l <= 20; l++) expect(memoryPairs(l)).toBeGreaterThanOrEqual(memoryPairs(l - 1));
+    for (const id of ['LO-10', 'EN-3']) {
+      const game = gameById(id);
+      expect(game.memory).toBe(true);
+      for (const ref of game.questions) {
+        const q = game.build(ref, ref.level, mulberry32(ref.level));
+        if (q.show?.kind !== 'memory') throw new Error(ref.id);
+        // Toutes les images différentes (pas deux fois le même mot), avec une image qui existe.
+        expect(q.show.images, ref.id).toHaveLength(memoryPairs(ref.level));
+        const words = q.show.images.map((i) => (id === 'EN-3' ? conceptById(i).en.word : conceptById(i).fr.word));
+        expect(new Set(words).size, ref.id).toBe(words.length);
+        for (const i of q.show.images) expect(existsSync(`public/img/${i}.svg`), i).toBe(true);
+        if (id === 'EN-3') expect(q.show.images.every((i) => conceptById(i).levels['EN-1'] !== undefined)).toBe(true);
+      }
+    }
+    // Une série de memory : 3 plateaux, quel que soit l'âge.
+    const p = new Progress(new MemoryStore());
+    p.age = 7;
+    expect(new Series(gameById('LO-10'), p, mulberry32(1)).items).toHaveLength(3);
   });
 });

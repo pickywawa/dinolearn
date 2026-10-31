@@ -20,6 +20,8 @@ export interface NewChild {
   country: string;
   dailyMinutes: number;
   nightTime: string;
+  /** Micro autorisé (jeux à voix haute). */
+  voice?: boolean;
 }
 
 export class Profiles {
@@ -89,7 +91,11 @@ export class Profiles {
     const p = this.progressOf(id);
     p.name = child.name;
     p.age = child.age;
-    p.updateSettings({ country: child.country, dailyMinutes: child.dailyMinutes, nightTime: child.nightTime });
+    // Les packs de reconnaissance vocale sont sur l'appareil : communs à tous les enfants.
+    const packs = this.data.children.length ? this.progressOf(this.data.children[0]).settings.voicePacks : [];
+    p.updateSettings({
+      country: child.country, dailyMinutes: child.dailyMinutes, nightTime: child.nightTime, voice: !!child.voice, voicePacks: packs,
+    });
     this.data.children = [...this.data.children, id];
     if (!this.data.active) this.data.active = id;
     this.save();
