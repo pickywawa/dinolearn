@@ -42,6 +42,28 @@ export function voiceSupported(): boolean {
     && typeof WebAssembly === 'object' && !!AudioCtx() && typeof Worker !== 'undefined' && typeof indexedDB !== 'undefined';
 }
 
+/**
+ * Place pour un pack dans le navigateur. En navigation privée, les navigateurs
+ * gardent très peu de place (ou rien) : le pack ne peut pas s'installer.
+ * `unknown` : le navigateur ne dit pas combien de place il reste.
+ */
+export async function storageRoom(lang: SpeechLang): Promise<'ok' | 'full' | 'unknown'> {
+  try {
+    const estimate = await navigator.storage?.estimate?.();
+    if (!estimate?.quota) return 'unknown';
+    // Le pack est stocké décompressé : il faut environ trois fois sa taille.
+    const needed = VOICE_PACKS[lang].sizeMb * 3 * 1e6;
+    return estimate.quota - (estimate.usage ?? 0) >= needed ? 'ok' : 'full';
+  } catch {
+    return 'unknown';
+  }
+}
+
+/** Message pour les parents quand un pack ne peut pas s'installer. */
+export const NO_ROOM_MESSAGE = 'Pas assez de place dans ce navigateur pour la reconnaissance vocale. En navigation privée, '
+  + 'les navigateurs ne gardent presque rien : ouvrez le jeu dans une fenêtre normale. Les jeux à voix haute se jouent '
+  + 'alors au doigt.';
+
 /** Demande l'accès au micro (pour que la question soit posée au parent), puis le referme. */
 export async function askMicPermission(): Promise<boolean> {
   try {

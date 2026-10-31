@@ -11,9 +11,9 @@ En ligne : https://pickywawa.github.io/dinolearn/
   l'endroit à toucher, les boutons à toucher pulsent, et il relance l'enfant s'il hésite. Toucher le
   dino pendant un jeu lui fait répéter la question. Il appelle l'enfant par son prénom.
 - **Menus réduits au minimum, sans texte** : un œuf à faire éclore, puis l'accueil :
-  - la **planète Terre**, qui tourne doucement avec ses volcans qui fument, lance une série : le plus
-    souvent des questions de tous les jeux, et une fois sur trois un jeu à part (memory, tracé, jeux à
-    voix haute), pour que l'enfant les découvre aussi ;
+  - la **planète Terre**, qui tourne doucement avec ses volcans qui fument, lance une série où tout se
+    mélange : questions à cartes, plateaux de memory, tracés et questions à voix haute, d'une question à
+    l'autre ;
   - un **petit bouton** (mosaïque) ouvre le choix d'un jeu précis (les jeux à voix haute sont derrière
     une bulle micro) — masqué par défaut, il s'active dans l'espace parents ;
   - le **chapeau** ouvre le dressing du dino, le **cadeau** apparaît quand un objet est à choisir ; une
@@ -23,10 +23,11 @@ En ligne : https://pickywawa.github.io/dinolearn/
   peu plus à chaque toucher (le téléphone vibre), puis la coquille s'ouvre en deux (vibrations) et un
   dino d'une couleur au hasard parmi 10 en sort, plus ou moins grand selon l'âge de l'enfant.
 - **La présentation**, en quelques phrases : on va jouer ensemble, chaque bonne réponse donne un
-  fruit, le dino mange les fruits pour grandir, et il y a des récompenses. Au premier lancement, il demande ensuite à l'enfant **son prénom et son âge,
-  à voix haute** (gros bouton micro ; sans micro, l'âge se choisit avec des gâteaux), puis de donner le
-  téléphone à un parent : la fiche de l'enfant est **déjà remplie**, le parent corrige si besoin et
-  crée son code.
+  fruit, le dino mange les fruits pour grandir, et il y a des récompenses. Au premier lancement, si la
+  reconnaissance vocale est prête, il demande à l'enfant **son prénom et son âge, à voix haute** ;
+  sinon, il ne parle ni de prénom ni d'âge. Puis il demande de donner le téléphone à un parent, qui
+  complète la fiche et crée son code (tapé une seule fois). L'œuf d'un frère ou d'une sœur ajouté plus
+  tard donne juste une salutation, sans toute la présentation.
 - **Un dino vivant** : il respire, cligne des yeux, parle (la bouche suit la voix, mot par mot),
   salue, bâille, rugit, saute, danse, fait une pirouette pour un sans-faute.
 - **Décor préhistorique interactif** : volcan qui fume et entre en éruption quand on le touche,
@@ -75,7 +76,7 @@ jusqu'à 100). La difficulté s'adapte toute seule ; certains jeux n'apparaissen
 | Français | Lis le mot | 5 ans | « Trouve le mot MAMAN » : 70 mots en CAPITALES puis en écriture attachée |
 | Français | Lis et touche l'image | 5 ans | le mot est écrit sans être dit : il faut le lire |
 | Français | Les lettres | 5 ans | lettres (capitales, minuscules, attaché ; pièges b/d/p/q), puis syllabes |
-| Écriture | Trace les formes | 3 ans | sur des pointillés, puis des points légers, puis tout seul |
+| Écriture | Trace les formes | 3 ans | sur des pointillés, puis des points légers, puis tout seul ; on commence toujours par des traits et des ronds, et à 3 ans on reste sur des formes simples |
 | Écriture | Trace les lettres et les chiffres | 4 ans | les 26 capitales et les 10 chiffres, de la même façon |
 | Logique | L'intrus | 3 ans | une seule image n'est pas de la même famille |
 | Logique | Formes et couleurs | 3 ans | « le triangle bleu », « le petit cœur rouge », « le carré qui n'est pas bleu » |
@@ -158,7 +159,8 @@ version**, **Supprimer**.
   - suivi par jeu (réponses, réussite, questions acquises) et questions à réviser avec leur date ;
   - les **fiches à imprimer** gagnées par l'enfant, avec un aperçu et des conseils ;
   - micro (jeux à voix haute, activés par défaut) et packs de reconnaissance vocale (téléchargés
-    automatiquement : le français dès l'ouverture du jeu, l'anglais ensuite) ;
+    automatiquement : le français dès l'ouverture du jeu, l'anglais ensuite ; en navigation privée, le
+    navigateur n'a pas la place : le jeu le dit, et les questions à voix haute se jouent au doigt) ;
   - bruitages (et vibrations), musique, test de la voix, changement du code, tout recommencer.
 - **Temps de jeu** : réglé avec − et + (par 5 minutes, 15 minutes par défaut, ou illimité), le même
   réglage dans la fiche de l'enfant et dans l'espace parents. Une fois atteint, l'enfant finit sa série

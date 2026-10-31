@@ -1,5 +1,5 @@
 import { app } from './app';
-import { VOICE_PACKS, ears, packInstalled, voiceSupported } from './ears';
+import { VOICE_PACKS, ears, packInstalled, storageRoom, voiceSupported } from './ears';
 import { SpeechLang } from '../domain/speech';
 
 /**
@@ -33,14 +33,15 @@ async function served(lang: SpeechLang): Promise<boolean> {
 /** Le moteur français, chargé (vrai) ou impossible (pack absent, appareil incompatible). */
 export async function loadFrench(): Promise<boolean> {
   if (!voiceSupported()) return false;
-  if (!await packInstalled('fr') && !await served('fr')) return false;
+  if (!await packInstalled('fr') && (!await served('fr') || await storageRoom('fr') === 'full')) return false;
   return ears.load('fr').then(() => true, () => false);
 }
 
 /** Charge le moteur français en mémoire (l'œuf éclôt : le dino va bientôt demander le prénom). */
 export async function preloadFrench(): Promise<void> {
   if (!voiceSupported()) return;
-  if (await packInstalled('fr') || await served('fr')) await ears.load('fr').catch(() => undefined);
+  if (await packInstalled('fr')) await ears.load('fr').catch(() => undefined);
+  else if (await served('fr') && await storageRoom('fr') !== 'full') await ears.load('fr').catch(() => undefined);
 }
 
 async function ensure(lang: SpeechLang): Promise<boolean> {
@@ -49,6 +50,8 @@ async function ensure(lang: SpeechLang): Promise<boolean> {
     return true;
   }
   if (!await served(lang)) return false;
+  // Navigation privée (ou appareil plein) : pas de téléchargement voué à l'échec.
+  if (await storageRoom(lang) === 'full') return false;
   await ears.install(lang);
   markInstalled(lang);
   return true;

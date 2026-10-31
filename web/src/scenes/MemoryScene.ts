@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { conceptById, frWithArticle } from '../content/content';
 import { gameById } from '../content/games';
 import { app } from '../core/app';
-import { Series } from '../core/series';
+import { Series, sceneOf } from '../core/series';
 import { Sfx } from '../core/sfx';
 import { foodImage } from '../domain/models';
 import { Dino } from '../dino/Dino';
@@ -29,8 +29,8 @@ interface Card {
  * plateau est gagné sans trop d'erreurs (pas plus que de paires).
  */
 export class MemoryScene extends BaseScene {
-  /** Série lancée par la planète : « rejouer » repasse par la planète. */
-  private planet = false;
+  /** Série de la planète, partagée avec les autres scènes : une fois la question faite, on passe la main. */
+  private shared = false;
   private series!: Series;
   private dino!: Dino;
   private cards: Card[] = [];
@@ -54,17 +54,17 @@ export class MemoryScene extends BaseScene {
     this.playMs = 0;
   }
 
-  create(data: { gameId: string; planet?: boolean }) {
-    this.planet = !!data.planet;
+  create(data: { gameId?: string; series?: Series }) {
+    this.shared = !!data.series;
     this.initBase();
     this.playMs = 0;
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.savePlayTime());
-    const game = gameById(data.gameId);
+    const game = data.series ? data.series.current.game : gameById(data.gameId!);
     drawScenery(this, 0xede4ff, 0xfaf7ff, 0);
     drawVegetation(this, app.rng, isPortrait(this) ? [0.04, 0.36] : [0, 0.22]);
     const { width: W, height: H } = this.scale;
     const u = unit(this);
-    this.series = new Series(game, app.progress, app.rng);
+    this.series = data.series ?? new Series(game, app.progress, app.rng);
     this.cards = [];
     homeButton(this, () => {
       this.series.abandon();
@@ -93,7 +93,7 @@ export class MemoryScene extends BaseScene {
     }
     const begin = () => this.run(async () => {
       await this.wait(300);
-      await this.say(game.introLine);
+      await this.say(this.shared ? game.shortLine : game.introLine);
       this.deal();
     });
     if (toLoad === 0) begin();
@@ -267,7 +267,12 @@ export class MemoryScene extends BaseScene {
     await this.wait(400);
     this.series.next();
     if (this.series.finished) {
-      goTo(this, 'End', { result: this.series.result, mixed: this.planet });
+      goTo(this, 'End', { result: this.series.result, mixed: this.shared });
+      return;
+    }
+    if (sceneOf(this.series.current.game) !== 'Memory') {
+      // Série de la planète : la question suivante se joue ailleurs.
+      goTo(this, sceneOf(this.series.current.game), { series: this.series });
       return;
     }
     this.tweens.add({ targets: this.cards.map((c) => c.container), scale: 0, duration: 250 });
@@ -284,7 +289,11 @@ export class MemoryScene extends BaseScene {
     const n = this.series.items.length;
     this.steps = this.series.items.map((item, i) => {
       const step = this.add.image(W / 2 + (i - (n - 1) / 2) * size * 1.12, u * 0.1, foodImage(item.fruit));
-      return step.setScale(size / step.width).setTintFill(0x8fa6c4).setAlpha(0.75);
+      step.setScale(size / step.width);
+      // Série partagée : les fruits déjà gagnés (ou perdus) gardent leur état.
+      if (item.firstTry === undefined) step.setTintFill(0x8fa6c4).setAlpha(0.75);
+      else if (!item.firstTry) step.setTintFill(0xc9d1dc).setAlpha(0.4);
+      return step;
     });
   }
 

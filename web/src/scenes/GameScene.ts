@@ -4,7 +4,7 @@ import { Choice, Script, ShapeCard, Show, gameById } from '../content/games';
 import { Speech } from '../content/content';
 import { ears, packInstalled } from '../core/ears';
 import { Music } from '../core/music';
-import { Series, TapOutcome } from '../core/series';
+import { Series, TapOutcome, sceneOf, startWithCards } from '../core/series';
 import { Sfx } from '../core/sfx';
 import { BALANCE } from '../domain/balance';
 import { foodImage } from '../domain/models';
@@ -46,8 +46,10 @@ export class GameScene extends BaseScene {
   /** Objets comptés (ils sautent pendant que le dino compte). */
   private counted: Phaser.GameObjects.Image[] = [];
   private mixed = false;
-  /** Série lancée par la planète (un seul jeu) : « rejouer » repasse par la planète. */
-  private planet = false;
+  /** Série reprise après une question de memory ou de tracé (série de la planète). */
+  private resumed = false;
+  /** Langues dont le pack de reconnaissance est prêt. */
+  private langs = new Set<string>();
   private hintsGiven = 0;
   /** Temps de jeu pas encore enregistré (pour la limite quotidienne des parents). */
   private playMs = 0;
@@ -62,7 +64,7 @@ export class GameScene extends BaseScene {
   private mic?: MicButton;
   /** Où sont les cartes (la bonne réponse y apparaît quand elle est dite à voix haute). */
   private answerSpot = { x: 0, y: 0, size: 0 };
-  private vocab?: Set<string>;
+  private vocabs = new Map<string, Set<string> | undefined>();
 
   constructor() {
     super('Game');
@@ -78,23 +80,24 @@ export class GameScene extends BaseScene {
     this.playMs = 0;
   }
 
-  create(data: { gameId?: string; mixed?: boolean; planet?: boolean }) {
-    // Les jeux de tracé ont leur propre scène.
-    if (data.gameId && gameById(data.gameId).trace) {
+  create(data: { gameId?: string; mixed?: boolean; series?: Series }) {
+    // Les jeux de tracé et le memory ont leur propre scène.
+    if (!data.series && data.gameId && gameById(data.gameId).trace) {
       this.scene.start('Trace', data);
       return;
     }
-    if (data.gameId && gameById(data.gameId).memory) {
+    if (!data.series && data.gameId && gameById(data.gameId).memory) {
       this.scene.start('Memory', data);
       return;
     }
     this.initBase();
     this.playMs = 0;
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.savePlayTime());
-    this.mixed = !!data.mixed || !data.gameId;
-    this.planet = !!data.planet;
-    // Les jeux à voix haute ne se mélangent pas aux autres.
-    const games = this.mixed ? playableGames().filter((g) => !g.trace && !g.voice && !g.memory) : [gameById(data.gameId!)];
+    // Série de la planète : tous les jeux (questions, memory, tracés, jeux à voix haute) se mélangent.
+    // Une série partagée revient ici après une question de memory ou de tracé.
+    this.resumed = !!data.series;
+    this.mixed = this.resumed || !!data.mixed || !data.gameId;
+    const games = this.mixed ? playableGames() : [gameById(data.gameId!)];
     const tint = Phaser.Display.Color.IntegerToColor(this.mixed ? 0x9fd8ff : games[0].color);
     const light = Phaser.Display.Color.Interpolate.ColorWithColor(tint, new Phaser.Display.Color(255, 255, 255), 100, 75);
     drawScenery(this, Phaser.Display.Color.GetColor(light.r, light.g, light.b), 0xf4fbff, 0);
@@ -107,17 +110,24 @@ export class GameScene extends BaseScene {
     this.cards = [];
     this.replayExplained = false;
     this.shown = [];
-    this.series = new Series(this.mixed ? games : games[0], app.progress, app.rng);
+    if (data.series) this.series = data.series;
+    else {
+      this.series = new Series(this.mixed ? games : games[0], app.progress, app.rng);
+      if (this.mixed) startWithCards(this.series);
+    }
     const lang = this.mixed ? undefined : games[0].voice;
-    this.voiceOn = !!lang && voiceAvailable(games[0]);
+    // Langues des questions à voix haute de la série (micro autorisé et pack téléchargé).
+    const langs = [...new Set(this.series.items.filter((i) => i.game.voice && voiceAvailable(i.game)).map((i) => i.game.voice!))];
+    this.voiceOn = langs.length > 0;
     this.unheardInARow = 0;
     this.mic = undefined;
-    this.vocab = undefined;
+    this.vocabs = new Map();
+    this.langs = new Set();
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       ears.stop();
       Music.hush(false);
     });
-    this.tutorial = !this.voiceOn && !lang && !app.progress.seenTutorial && this.series.items.length > 1;
+    this.tutorial = !this.resumed && !this.voiceOn && !lang && !app.progress.seenTutorial && this.series.items.length > 1;
 
     homeButton(this, () => this.leave());
     this.drawSteps();
@@ -142,14 +152,15 @@ export class GameScene extends BaseScene {
       }
     }
     // Jeu à voix haute : le pack doit être dans le navigateur (sinon, on joue au doigt).
-    const voiceReady = this.voiceOn && lang
-      ? packInstalled(lang).then(async (installed) => {
-        this.voiceOn = installed;
-        if (!installed) return;
-        void ears.load(lang).catch(() => undefined);
-        this.vocab = await ears.vocab(lang);
-      })
-      : Promise.resolve();
+    const voiceReady = Promise.all(langs.map(async (l) => {
+      if (!await packInstalled(l)) return;
+      this.langs.add(l);
+      this.vocabs.set(l, await ears.vocab(l));
+    })).then(() => {
+      this.voiceOn = this.langs.size > 0;
+      const first = this.series.items.find((i) => i.say && this.langs.has(i.say.lang))?.say?.lang;
+      if (first) void ears.load(first).catch(() => undefined);
+    });
     const images = new Promise<void>((resolve) => {
       if (toLoad === 0) resolve();
       else {
@@ -166,6 +177,13 @@ export class GameScene extends BaseScene {
 
   private async intro() {
     this.phase = 'intro';
+    // Retour d'une question de memory ou de tracé : on enchaîne directement.
+    if (this.resumed) {
+      this.resetVoice();
+      this.showCards();
+      this.ask();
+      return;
+    }
     const allReview = this.series.items.every((i) => i.isReview);
     this.resetVoice();
     this.showCards();
@@ -244,7 +262,7 @@ export class GameScene extends BaseScene {
     const say = this.series.current.say;
     this.voiceMisses = 0;
     this.onlyUnheard = true;
-    this.cardMode = !say || !canRecognize(say, this.vocab);
+    this.cardMode = !say || !this.langs.has(say.lang) || !canRecognize(say, this.vocabs.get(say.lang));
   }
 
   /** L'enfant a touché le micro : le dino écoute, puis corrige. */
@@ -271,7 +289,7 @@ export class GameScene extends BaseScene {
         Music.hush(true);
         mic.setMode('listening');
         this.dino.react('think');
-        heard = await ears.listen(target.lang, grammarFor(target, this.vocab), {
+        heard = await ears.listen(target.lang, grammarFor(target, this.vocabs.get(target.lang)), {
           maxMs: 6000,
           onLevel: (level) => mic.active && mic.setLevel(level),
           decisive: (h) => judge(h, target).kind !== 'unheard',
@@ -491,7 +509,11 @@ export class GameScene extends BaseScene {
       this.series.next();
       if (this.series.finished) {
         this.phase = 'done';
-        goTo(this, 'End', { result: this.series.result, mixed: this.mixed || this.planet });
+        goTo(this, 'End', { result: this.series.result, mixed: this.mixed });
+      } else if (sceneOf(this.series.current.game) !== 'Game') {
+        // Série de la planète : la question suivante est un memory ou un tracé.
+        this.phase = 'done';
+        goTo(this, sceneOf(this.series.current.game), { series: this.series });
       } else {
         this.resetVoice();
         this.showCards();

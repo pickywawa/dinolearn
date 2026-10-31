@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { gameById } from '../content/games';
 import { TraceMode, TraceModel, traceModel } from '../content/tracing';
 import { app } from '../core/app';
-import { Series } from '../core/series';
+import { Series, sceneOf } from '../core/series';
 import { Sfx } from '../core/sfx';
 import { foodImage } from '../domain/models';
 import { Point, resample, scoreTrace } from '../domain/trace';
@@ -19,8 +19,8 @@ import { BaseScene } from './BaseScene';
  * comptent). Après deux essais ratés, le dino montre comment faire.
  */
 export class TraceScene extends BaseScene {
-  /** Série lancée par la planète : « rejouer » repasse par la planète. */
-  private planet = false;
+  /** Série de la planète, partagée avec les autres scènes : une fois la question faite, on passe la main. */
+  private shared = false;
   private series!: Series;
   private dino!: Dino;
   private model!: TraceModel;
@@ -49,18 +49,18 @@ export class TraceScene extends BaseScene {
     this.playMs = 0;
   }
 
-  create(data: { gameId: string; planet?: boolean }) {
-    this.planet = !!data.planet;
+  create(data: { gameId?: string; series?: Series }) {
+    this.shared = !!data.series;
     this.initBase();
     this.playMs = 0;
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.savePlayTime());
-    const game = gameById(data.gameId);
+    const game = data.series ? data.series.current.game : gameById(data.gameId!);
     drawScenery(this, 0xe0f7fa, 0xf8fdff, 0);
     drawVegetation(this, app.rng, isPortrait(this) ? [0.04, 0.32] : [0, 0.2]);
     const { width: W, height: H } = this.scale;
     const u = unit(this);
     const portrait = isPortrait(this);
-    this.series = new Series(game, app.progress, app.rng);
+    this.series = data.series ?? new Series(game, app.progress, app.rng);
     this.phase = 'asking';
     homeButton(this, () => {
       this.series.abandon();
@@ -95,7 +95,7 @@ export class TraceScene extends BaseScene {
     this.setupInput();
     this.run(async () => {
       await this.wait(300);
-      await this.say(game.introLine);
+      await this.say(this.shared ? game.shortLine : game.introLine);
       this.ask();
     });
   }
@@ -153,7 +153,11 @@ export class TraceScene extends BaseScene {
       this.series.next();
       if (this.series.finished) {
         this.phase = 'done';
-        goTo(this, 'End', { result: this.series.result, mixed: this.planet });
+        goTo(this, 'End', { result: this.series.result, mixed: this.shared });
+      } else if (sceneOf(this.series.current.game) !== 'Trace') {
+        // Série de la planète : la question suivante se joue ailleurs.
+        this.phase = 'done';
+        goTo(this, sceneOf(this.series.current.game), { series: this.series });
       } else {
         this.ask();
       }

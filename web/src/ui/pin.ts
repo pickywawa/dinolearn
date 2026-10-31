@@ -184,17 +184,11 @@ export function choose(title: string, help: string, labels: string[], cancel?: s
 
 /** Crée (ou change) le code : on le tape deux fois. Renvoie faux si annulé. */
 export async function createParentCode(title: string, help: string, cancel?: string): Promise<boolean> {
-  for (;;) {
-    const first = await pad({ title, help, cancel }, () => true);
-    if (first === null) return false;
-    const again = await pad({ title: 'Confirmez le code', help: 'Tapez le même code une deuxième fois.', cancel },
-      (v) => (v === first ? true : 'Les deux codes sont différents. Recommencez.'));
-    if (again === first) {
-      app.profiles.setPin(first);
-      return true;
-    }
-    if (again === null) return false;
-  }
+  // Une seule saisie : en cas d'oubli, « Code oublié ? » permet d'en créer un nouveau.
+  const code = await pad({ title, help: `${help} Retenez-le bien.`, cancel }, () => true);
+  if (code === null) return false;
+  app.profiles.setPin(code);
+  return true;
 }
 
 /** Code oublié : un calcul d'adulte, puis un nouveau code. */

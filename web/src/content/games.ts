@@ -92,9 +92,9 @@ export interface GameDef {
   id: string;
   /** Catégorie de la spécification (île) : sert aussi au calcul de difficulté. */
   category: 'foreign_language' | 'world' | 'logic' | 'french' | 'writing';
-  /** Jeu de tracé : il se joue dans sa propre scène, pas dans les séries mélangées. */
+  /** Jeu de tracé : il se joue dans sa propre scène (dans une série de la planète, le temps d'une question). */
   trace?: boolean;
-  /** Memory : il se joue dans sa propre scène, pas dans les séries mélangées. */
+  /** Memory : il se joue dans sa propre scène (dans une série de la planète, le temps d'un plateau). */
   memory?: boolean;
   /** Nombre de questions d'une série, s'il ne dépend pas de l'âge (un plateau de memory est long). */
   seriesLength?: number;

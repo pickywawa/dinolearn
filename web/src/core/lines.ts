@@ -479,7 +479,11 @@ export const LINES: Record<string, string[]> = {
   'hello.name_later': ['Tu me diras ton prénom plus tard : ton papa ou ta maman va l\'écrire pour moi !'],
   'hello.age': ['Et toi, {name}, tu as quel âge ? Touche le micro, et dis-le moi !'],
   'hello.age_again': ['Je n\'ai pas bien entendu. Tu as quel âge ? Touche le micro !'],
-  'hello.age_cakes': ['Alors touche le gâteau avec ton âge !'],
+  'hello.age_later': ['Ce n\'est pas grave : ton papa ou ta maman me le diront !'],
+  'hello.sibling': [
+    'Coucou {name} ! Je suis ton dino, un bébé dinosaure tout {color} ! On va bien s\'amuser ensemble !',
+    'Bonjour {name} ! C\'est moi, ton dino tout {color} ! Tu m\'aides à grandir ?',
+  ],
   'hello.mic_allow': ['Si un message apparaît sur l\'écran, demande à un grand de toucher « Autoriser » !'],
   'hello.parent': [
     'Maintenant, va donner le téléphone à ton papa ou à ta maman ! Ils vont choisir un code secret, rien que pour moi.',

@@ -233,3 +233,37 @@ describe('temps de jeu par jour', () => {
     expect(minutesLabel(120)).toBe('2 h');
   });
 });
+
+describe('série de la planète et tracés', () => {
+  it('tous les modes se mélangent dans une même série, qui commence par une question à cartes', async () => {
+    const { Series, sceneOf, startWithCards } = await import('../src/core/series');
+    const { gameById } = await import('../src/content/games');
+    const p = new Progress(new MemoryStore());
+    p.age = 4;
+    const games = ['TR-1', 'LO-10', 'LO-2', 'MO-1'].map((id) => gameById(id));
+    const scenes = new Set<string>();
+    for (let seed = 1; seed <= 20; seed++) {
+      const s = new Series(games, p, mulberry32(seed));
+      startWithCards(s);
+      expect(sceneOf(s.items[0].game)).toBe('Game');
+      for (const item of s.items) scenes.add(sceneOf(item.game));
+    }
+    expect([...scenes].sort()).toEqual(['Game', 'Memory', 'Trace']);
+  });
+
+  it('les tracés commencent simples et restent simples à 3 ans, même avec un grand dino', async () => {
+    const { Series, traceLevelCap } = await import('../src/core/series');
+    const { gameById } = await import('../src/content/games');
+    const p = new Progress(new MemoryStore());
+    p.age = 3;
+    p.setDinoLevel(30);
+    const trace = new Series(gameById('TR-1'), p, mulberry32(1));
+    expect(trace.level).toBe(1);
+    // Un ancien niveau élevé est ramené au plafond de l'âge.
+    p.setGameLevel('TR-1', 15);
+    expect(new Series(gameById('TR-1'), p, mulberry32(2)).level).toBeLessThanOrEqual(traceLevelCap(3));
+    expect(traceLevelCap(3)).toBeLessThan(traceLevelCap(6));
+    // Les autres jeux suivent toujours le niveau du dino.
+    expect(new Series(gameById('LO-2'), p, mulberry32(3)).level).toBeGreaterThan(5);
+  });
+});

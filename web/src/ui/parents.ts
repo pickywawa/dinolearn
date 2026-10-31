@@ -8,7 +8,7 @@ import { baseLevel } from '../domain/difficulty';
 import { mulberry32 } from '../domain/models';
 import { COUNTRIES } from '../content/countries';
 import { childForm, createParentCode } from './pin';
-import { VOICE_PACKS, askMicPermission, ears, packInstalled, voiceSupported } from '../core/ears';
+import { NO_ROOM_MESSAGE, VOICE_PACKS, askMicPermission, ears, packInstalled, storageRoom, voiceSupported } from '../core/ears';
 import { SpeechLang } from '../domain/speech';
 import { printKind } from '../print/catalog';
 import { openPrintView, thumbnail } from './printView';
@@ -458,8 +458,8 @@ export function openParents(onClose: () => void) {
       el('h2', {}, 'Micro (jeux à voix haute)'),
       el('p', { class: 'help' }, 'Dans les jeux à voix haute, l\'enfant répond en parlant : il nomme les images, dit les mots '
         + 'en anglais, lit à voix haute, répond aux devinettes. Tout reste sur cet appareil : la voix n\'est ni enregistrée, '
-        + 'ni envoyée. Le micro ne s\'allume que quand l\'enfant touche le gros bouton micro. Ces jeux sont dans le '
-        + 'choix des jeux : activez le bouton « choisir son jeu » (section Jeux).'),
+        + 'ni envoyée. Le micro ne s\'allume que quand l\'enfant touche le gros bouton micro. Ces questions arrivent '
+        + 'mélangées aux autres quand l\'enfant touche la planète.'),
     );
     if (!voiceSupported()) {
       section.append(el('p', {}, 'Ce navigateur ne permet pas d\'utiliser le micro dans le jeu.'));
@@ -499,6 +499,11 @@ export function openParents(onClose: () => void) {
       const button = el('button', { class: installed ? '' : 'primary' }, installed ? 'Vérifier' : 'Télécharger');
       button.addEventListener('click', async () => {
         button.setAttribute('disabled', '');
+        if (!installed && await storageRoom(lang) === 'full') {
+          state.textContent = NO_ROOM_MESSAGE;
+          button.removeAttribute('disabled');
+          return;
+        }
         state.textContent = installed ? 'Vérification…' : 'Téléchargement et installation… (une à trois minutes)';
         try {
           if (installed && await packInstalled(lang)) {
@@ -519,7 +524,8 @@ export function openParents(onClose: () => void) {
             const child = app.profiles.progressOf(id);
             child.updateSettings({ voicePacks: child.settings.voicePacks.filter((l) => l !== lang) });
           }
-          state.textContent = 'Le téléchargement a échoué. Vérifiez la connexion, puis réessayez.';
+          state.textContent = 'Le téléchargement a échoué. Vérifiez la connexion, puis réessayez. En navigation privée, '
+            + 'le navigateur n\'a souvent pas assez de place : ouvrez le jeu dans une fenêtre normale.';
           button.removeAttribute('disabled');
         }
       });

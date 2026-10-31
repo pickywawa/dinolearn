@@ -118,6 +118,19 @@ export class Series {
 
   private levelFor(game: GameDef): number {
     const p = this.progress;
+    // Tracés : on commence toujours par les plus simples (traits, ronds), puis on monte d'un niveau
+    // par série selon les réussites dans ce jeu seulement, sans dépasser le plafond de l'âge.
+    if (game.trace) {
+      const level = computeLevel({
+        experienceLevel: 1,
+        age: p.age,
+        gameAnswers: p.answers({ gameId: game.id }),
+        categoryAnswers: [],
+        allAnswers: [],
+        previousLevel: p.gameLevel(game.id),
+      }, this.b);
+      return Math.min(level, traceLevelCap(p.age));
+    }
     return computeLevel({
       experienceLevel: p.dino.level,
       age: p.age,
@@ -215,4 +228,23 @@ export class Series {
       firstTrySuccesses: this.firstTrySuccesses, stars, earned,
     };
   }
+}
+
+/**
+ * Niveau maximal des tracés selon l'âge : à 3 ans, des formes simples sur pointillés
+ * (traits, rond, croix, carré, triangle, vagues) ; les points légers et le dessin libre viennent plus tard.
+ */
+export const traceLevelCap = (age: number) => ({ 3: 5, 4: 8, 5: 12 } as Record<number, number>)[age] ?? 20;
+
+/** Scène qui affiche une question de ce jeu : cartes (et voix), tracé, ou memory. */
+export type SeriesScene = 'Game' | 'Trace' | 'Memory';
+export const sceneOf = (game: GameDef): SeriesScene => (game.trace ? 'Trace' : game.memory ? 'Memory' : 'Game');
+
+/**
+ * Série de la planète : les questions de tous les modes se suivent. On met en
+ * premier une question à cartes (la série démarre sur l'écran principal).
+ */
+export function startWithCards(series: Series) {
+  const first = series.items.findIndex((i) => sceneOf(i.game) === 'Game');
+  if (first > 0) [series.items[0], series.items[first]] = [series.items[first], series.items[0]];
 }

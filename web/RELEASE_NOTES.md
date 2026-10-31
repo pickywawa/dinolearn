@@ -1,41 +1,39 @@
-## DinoLearn 0.10.0 — Plus simple au démarrage, tous les jeux sur la planète
+## DinoLearn 0.11.0 — Tout se mélange sur la planète
 
-### La planète montre tous les jeux
-- Le **memory** (et le memory en anglais), les **jeux de tracé** et les **jeux à voix haute** n'apparaissaient
-  que derrière le bouton « choisir son jeu », masqué par défaut : on ne les voyait jamais. Désormais, la
-  planète lance une fois sur trois un de ces jeux ; les autres fois, des questions de tous les jeux.
-- Le dino ne dit plus que les questions sont « mélangées » : il dit juste « C'est parti ! ».
+### La planète
+- Une série de la planète mélange maintenant **tous les modes de jeu, question par question** :
+  questions à cartes, plateaux de **memory**, **tracés** et questions **à voix haute** s'enchaînent dans
+  la même série (au lieu d'une série entière d'un seul mode).
 
-### Les cadeaux et l'alternance des enfants
-- Quand le dino a grandi, l'enfant va au vestiaire choisir son cadeau. **Dès que le cadeau est mis au
-  dino, on revient à l'accueil** ; si les enfants alternent, le dino passe la main à l'enfant suivant
-  (« Bravo Léa ! Maintenant, c'est au tour de Tom ! »). Avant, on restait bloqué au vestiaire et
-  l'alternance ne se faisait pas.
+### Les tracés
+- On commence toujours par les plus simples (traits, ronds), puis ça devient plus dur au fil des
+  réussites. **À 3 ans, on reste sur des formes simples, sur pointillés.**
 
-### La voix, activée par défaut
-- Les **jeux à voix haute** sont activés par défaut (le parent peut les couper dans l'espace parents).
-- Le **pack de reconnaissance français se télécharge dès l'ouverture du jeu** : quand l'enfant fait
-  éclore son œuf, le dino peut entendre son prénom et son âge. Le pack anglais suit, depuis l'accueil.
+### L'éclosion
+- **Sans reconnaissance vocale**, le dino ne parle plus de prénom et ne fait plus choisir d'âge : après
+  sa présentation, il demande simplement de passer le téléphone à un parent.
+- Avec la reconnaissance vocale, il demande toujours le prénom et l'âge ; s'il ne comprend pas, ce sont
+  les parents qui les écrivent (plus de gâteaux à toucher).
+- Le **code parent ne se tape qu'une seule fois** (en cas d'oubli : « Code oublié ? »).
+- L'œuf d'un **deuxième enfant** ne relance plus toute la présentation : le dino le salue par son prénom.
 
-### Une présentation plus courte
-- Le bébé dino se présente en quelques phrases : on va jouer, chaque bonne réponse donne un fruit, il
-  mange les fruits pour grandir, et il y a des récompenses.
+### Navigation privée
+- Les packs de reconnaissance vocale ne peuvent pas s'installer en navigation privée (le navigateur
+  garde trop peu de place). Le jeu ne tente plus le téléchargement, et l'espace parents explique
+  pourquoi ; les questions à voix haute se jouent alors au doigt.
 
-### Le temps de jeu
-- Le temps de jeu par jour se règle avec **−** et **+** (par 5 minutes) ou **Illimité**, de la même façon
-  au premier lancement et dans l'espace parents. **15 minutes par défaut.**
-
-### Toujours là (0.9.0)
-- Les **enveloppes surprises** en fin de temps de jeu et les **16 fiches à imprimer** avec le dino de
-  l'enfant (coloriages, labyrinthes, écriture, découpages, jeux de société, diplômes).
+### Toujours là
+- Les enveloppes surprises et les fiches à imprimer, le vestiaire, l'alternance des enfants, le temps
+  de jeu réglable avec − et +.
 
 ### Installer / tester
 - En ligne : https://pickywawa.github.io/dinolearn/
-- Archive `dinolearn-web-v0.10.0.zip` : le jeu compilé, pour tout hébergement web statique (sans les
+- Archive `dinolearn-web-v0.11.0.zip` : le jeu compilé, pour tout hébergement web statique (sans les
   packs de reconnaissance vocale : `npm run voice-packs` pour les ajouter).
 - En local : `cd web && npm install && npm run dev`.
 
 ### Limites connues
+- En navigation privée, la reconnaissance vocale n'est pas disponible (le navigateur ne garde pas les packs).
 - À l'impression, choisir « Taille réelle » (ou 100 %) et désactiver les en-têtes du navigateur.
 - La vibration ne marche pas sur iPhone (Safari ne la propose pas aux pages web).
 - La reconnaissance vocale est moins sûre avec les plus petits et dans le bruit : le jeu passe alors aux

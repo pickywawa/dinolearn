@@ -65,19 +65,9 @@ export function playableGames(): GameDef[] {
   return enabled.length > 0 ? enabled : forAge;
 }
 
-/** Une série lancée par la planète. */
-export type PlanetSeries = { mixed: true } | { gameId: string; planet: true };
-
-/**
- * La planète de l'accueil : le plus souvent une série de questions de tous les
- * jeux ; une fois sur trois, un jeu qui ne se mélange pas aux autres (memory,
- * tracé, jeux à voix haute), pour que l'enfant les découvre aussi.
- */
-export function planetSeries(rng: () => number = app.rng): PlanetSeries {
-  const special = playableGames().filter((g) => g.memory || g.trace || g.voice);
-  if (special.length === 0 || rng() >= 1 / 3) return { mixed: true };
-  return { gameId: special[Math.floor(rng() * special.length)].id, planet: true };
-}
+/** Une série lancée par la planète : questions, memory, tracés et jeux à voix haute, mélangés. */
+export type PlanetSeries = { mixed: true };
+export const planetSeries = (): PlanetSeries => ({ mixed: true });
 
 // La musique se fait toute petite quand le dino parle ; le prénom de l'enfant dans les répliques.
 app.voice.onTalk((talking) => Music.duck(talking));

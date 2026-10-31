@@ -14,7 +14,6 @@ import { MicButton } from '../ui/MicButton';
 import { firstLaunchSetup } from '../ui/pin';
 import { drawPrehistoric } from '../ui/prehistoric';
 import { ageSize, drawScenery, goTo, isPortrait, unit } from '../ui/scenery';
-import { makeCake } from '../ui/cake';
 import { BaseScene } from './BaseScene';
 
 /**
@@ -60,14 +59,17 @@ export class HelloScene extends BaseScene {
 
   private async script() {
     await this.wait(300);
-    await this.present();
-    // Nouvel enfant : sa fiche est déjà remplie par les parents.
+    // Nouvel enfant (un frère, une sœur) : sa fiche est déjà remplie, une salutation suffit.
     if (!this.setup) {
+      await this.greetSibling();
       goTo(this, 'Home', { hatched: true });
       return;
     }
-    const name = await this.askName();
-    const age = await this.askAge();
+    await this.present();
+    // Prénom et âge à voix haute, seulement si le dino peut entendre ; sinon, c'est le parent qui les écrit.
+    this.voiceWorks = await this.voiceReady();
+    const name = this.voiceWorks ? await this.askName() : undefined;
+    const age = this.voiceWorks ? await this.askAge() : undefined;
     // Au tour des parents.
     this.dino.react('wave');
     await this.say('hello.parent');
@@ -86,6 +88,15 @@ export class HelloScene extends BaseScene {
   }
 
   // ---- La présentation ----
+
+  /** Un nouvel enfant de la famille : le dino le salue par son prénom, sans toute la présentation. */
+  private async greetSibling() {
+    this.dino.react('wave');
+    await app.voice.say([{ text: app.voice.lines.pick('hello.sibling').replace('{color}', DINO_COLORS[app.progress.color].name), lang: 'fr' }]);
+    if (!this.alive) return;
+    this.dino.react('cheer');
+    await this.wait(400);
+  }
 
   private async present() {
     const { width: W, height: H } = this.scale;
@@ -229,11 +240,6 @@ export class HelloScene extends BaseScene {
   }
 
   private async askName(): Promise<string | undefined> {
-    this.voiceWorks = await this.voiceReady();
-    if (!this.voiceWorks) {
-      await this.say('hello.name_later');
-      return undefined;
-    }
     this.dino.react('happy');
     await this.say('hello.name');
     await this.say('hello.mic_allow');
@@ -258,59 +264,26 @@ export class HelloScene extends BaseScene {
     return undefined;
   }
 
+  /** L'âge à voix haute ; pas compris, le parent l'écrira dans la fiche. */
   private async askAge(): Promise<number | undefined> {
-    if (this.voiceWorks) {
-      this.dino.react('happy');
-      await this.say('hello.age');
-      const grammar = AGE_GRAMMAR.filter((w) => w === '[unk]' || !this.vocab || this.vocab.has(w));
-      for (let attempt = 0; attempt < 2; attempt++) {
-        const heard = await this.listen(grammar, (h) => findAge(h) !== undefined);
-        if (!heard) break;
-        const said = findAge(heard);
-        if (said !== undefined) {
-          const age = Phaser.Math.Clamp(said, 3, 7);
-          this.dino.react('cheer');
-          await this.say(`age.${age}`);
-          return age;
-        }
-        this.dino.react('think');
-        if (attempt === 0) await this.say('hello.age_again');
+    if (!this.voiceWorks) return undefined;
+    this.dino.react('happy');
+    await this.say('hello.age');
+    const grammar = AGE_GRAMMAR.filter((w) => w === '[unk]' || !this.vocab || this.vocab.has(w));
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const heard = await this.listen(grammar, (h) => findAge(h) !== undefined);
+      if (!heard) return undefined;
+      const said = findAge(heard);
+      if (said !== undefined) {
+        const age = Phaser.Math.Clamp(said, 3, 7);
+        this.dino.react('cheer');
+        await this.say(`age.${age}`);
+        return age;
       }
-      await this.say('hello.age_cakes');
-    } else {
-      await this.say('age.ask');
+      this.dino.react('think');
+      if (attempt === 0) await this.say('hello.age_again');
     }
-    return this.chooseCake();
-  }
-
-  /** Sans micro : un gâteau par âge, avec ses bougies. */
-  private chooseCake(): Promise<number> {
-    const { width: W, height: H } = this.scale;
-    const u = unit(this);
-    const portrait = isPortrait(this);
-    const size = portrait ? Math.min(W * 0.18, u * 0.18) : Math.min(W * 0.14, u * 0.26);
-    return new Promise((resolve) => {
-      let chosen = false;
-      const cakes = [3, 4, 5, 6, 7].map((age, i) => {
-        const cake = makeCake(this, W / 2 + (i - 2) * size * 1.12, H * (portrait ? 0.3 : 0.28), size, age);
-        cake.on('pointerup', () => {
-          if (chosen) return;
-          chosen = true;
-          Sfx.play('star');
-          cakes.filter((c) => c !== cake).forEach((c) => c.setAlpha(0.35));
-          this.dino.react('cheer');
-          this.run(async () => {
-            await this.say(`age.${age}`);
-            cakes.forEach((c) => c.destroy());
-            resolve(age);
-          });
-        });
-        return cake;
-      });
-      this.armIdle([[8000, () => this.run(async () => {
-        this.guide.tour(cakes, 900);
-        await this.say('age.ask');
-      })]]);
-    });
+    await this.say('hello.age_later');
+    return undefined;
   }
 }
