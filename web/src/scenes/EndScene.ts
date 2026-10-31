@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
-import { app, switchChild } from '../core/app';
+import { app, planetSeries } from '../core/app';
+import { handOver, shouldHandOver } from '../ui/handover';
 import { chooseEnvelope } from '../ui/envelopes';
 import { Leftover } from '../core/progress';
 import { SeriesResult } from '../core/series';
@@ -27,7 +28,7 @@ const HUNGER: { reaction: DinoReaction; line: string; look?: boolean }[] = [
 
 export interface EndData {
   result: SeriesResult;
-  /** Partie lancée par le gros bouton : « rejouer » relance une série tout mélangée. */
+  /** Partie lancée par la planète : « rejouer » relance une série de la planète. */
   mixed?: boolean;
 }
 
@@ -71,7 +72,7 @@ export class EndScene extends BaseScene {
     this.again = new Bubble(this, W - u * 0.15, u * 0.15, u * 0.11, 0x43b649, 'ui-play', () => {
       // Temps de jeu du jour atteint : retour à l'accueil, où le dino va se coucher.
       if (app.progress.timeIsUp()) goTo(this, 'Home');
-      else goTo(this, 'Game', data.mixed ? { mixed: true } : { gameId: r.gameId });
+      else goTo(this, 'Game', data.mixed ? planetSeries() : { gameId: r.gameId });
     });
     this.again.setVisible(false);
 
@@ -246,7 +247,8 @@ export class EndScene extends BaseScene {
       this.again.setVisible(false);
       this.dino.react('cheer');
       await this.say('gift.go');
-      goTo(this, 'Wardrobe');
+      // Au vestiaire, une fois le cadeau mis, retour à l'accueil (et au tour de l'enfant suivant si on alterne).
+      goTo(this, 'Wardrobe', { afterSeries: true });
       return;
     }
     await this.showAgain();
@@ -269,18 +271,10 @@ export class EndScene extends BaseScene {
       return;
     }
     // Plusieurs enfants qui alternent : c'est au tour du suivant.
-    if (app.profiles.alternate && app.profiles.count > 1) {
-      const current = app.progress.name;
-      const next = app.profiles.progressOf(app.profiles.nextId()).name;
+    if (shouldHandOver()) {
       this.dino.react('wave');
-      const lines = [
-        `Bravo ${current} ! Maintenant, c'est au tour de ${next} !`,
-        `Merci ${current} ! ${next}, à toi de jouer !`,
-        `Super partie, ${current} ! Passe la main à ${next} !`,
-      ];
-      await app.voice.say([{ text: lines[Math.floor(app.rng() * lines.length)], lang: 'fr' }]);
+      await handOver();
       if (!this.alive) return;
-      switchChild(app.profiles.nextId());
       goTo(this, 'Home', { switched: true });
       return;
     }

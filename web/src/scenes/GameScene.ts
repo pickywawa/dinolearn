@@ -46,6 +46,8 @@ export class GameScene extends BaseScene {
   /** Objets comptés (ils sautent pendant que le dino compte). */
   private counted: Phaser.GameObjects.Image[] = [];
   private mixed = false;
+  /** Série lancée par la planète (un seul jeu) : « rejouer » repasse par la planète. */
+  private planet = false;
   private hintsGiven = 0;
   /** Temps de jeu pas encore enregistré (pour la limite quotidienne des parents). */
   private playMs = 0;
@@ -76,7 +78,7 @@ export class GameScene extends BaseScene {
     this.playMs = 0;
   }
 
-  create(data: { gameId?: string; mixed?: boolean }) {
+  create(data: { gameId?: string; mixed?: boolean; planet?: boolean }) {
     // Les jeux de tracé ont leur propre scène.
     if (data.gameId && gameById(data.gameId).trace) {
       this.scene.start('Trace', data);
@@ -90,6 +92,7 @@ export class GameScene extends BaseScene {
     this.playMs = 0;
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.savePlayTime());
     this.mixed = !!data.mixed || !data.gameId;
+    this.planet = !!data.planet;
     // Les jeux à voix haute ne se mélangent pas aux autres.
     const games = this.mixed ? playableGames().filter((g) => !g.trace && !g.voice && !g.memory) : [gameById(data.gameId!)];
     const tint = Phaser.Display.Color.IntegerToColor(this.mixed ? 0x9fd8ff : games[0].color);
@@ -488,7 +491,7 @@ export class GameScene extends BaseScene {
       this.series.next();
       if (this.series.finished) {
         this.phase = 'done';
-        goTo(this, 'End', { result: this.series.result, mixed: this.mixed });
+        goTo(this, 'End', { result: this.series.result, mixed: this.mixed || this.planet });
       } else {
         this.resetVoice();
         this.showCards();

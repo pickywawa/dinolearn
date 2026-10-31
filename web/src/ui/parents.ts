@@ -12,6 +12,7 @@ import { VOICE_PACKS, askMicPermission, ears, packInstalled, voiceSupported } fr
 import { SpeechLang } from '../domain/speech';
 import { printKind } from '../print/catalog';
 import { openPrintView, thumbnail } from './printView';
+import { timeStepper } from './timeStepper';
 
 /**
  * Espace parents : une page HTML classique posée sur le jeu (lisible et
@@ -40,7 +41,6 @@ const TITLES: Record<string, string> = {
 };
 export const gameTitle = (g: GameDef) => TITLES[g.id] ?? g.id;
 
-const DAILY_CHOICES = [0, 10, 20, 30, 45, 60, 90];
 
 const CSS = `
 .parents { position: fixed; inset: 0; z-index: 1000; overflow-y: auto; -webkit-overflow-scrolling: touch;
@@ -288,15 +288,8 @@ export function openParents(onClose: () => void) {
 
   // ---- Temps de jeu ----
   function timeSection() {
-    const choices = el('div', { class: 'row' });
-    for (const m of DAILY_CHOICES) {
-      const b = el('button', { class: p.settings.dailyMinutes === m ? 'on' : '' }, m === 0 ? 'Illimité' : `${m} min`);
-      b.addEventListener('click', () => {
-        p.updateSettings({ dailyMinutes: m });
-        render();
-      });
-      choices.append(b);
-    }
+    // Le même réglage que dans la fiche de l'enfant : − et + par 5 minutes, ou illimité.
+    const choices = timeStepper(() => p.settings.dailyMinutes, (m) => p.updateSettings({ dailyMinutes: m }));
     const nights = el('div', { class: 'row', style: 'margin-top:12px' });
     for (const t of ['', '18:30', '19:00', '19:30', '20:00', '20:30', '21:00']) {
       const b = el('button', { class: p.settings.nightTime === t ? 'on' : '' }, t ? t.replace(':', ' h ') : 'Pas de mode nuit');

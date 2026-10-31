@@ -11,18 +11,19 @@ En ligne : https://pickywawa.github.io/dinolearn/
   l'endroit à toucher, les boutons à toucher pulsent, et il relance l'enfant s'il hésite. Toucher le
   dino pendant un jeu lui fait répéter la question. Il appelle l'enfant par son prénom.
 - **Menus réduits au minimum, sans texte** : un œuf à faire éclore, puis l'accueil :
-  - la **planète Terre**, qui tourne doucement avec ses volcans qui fument, lance une série **tout
-    mélangée** (chaque question vient d'un jeu au hasard) ;
+  - la **planète Terre**, qui tourne doucement avec ses volcans qui fument, lance une série : le plus
+    souvent des questions de tous les jeux, et une fois sur trois un jeu à part (memory, tracé, jeux à
+    voix haute), pour que l'enfant les découvre aussi ;
   - un **petit bouton** (mosaïque) ouvre le choix d'un jeu précis (les jeux à voix haute sont derrière
     une bulle micro) — masqué par défaut, il s'active dans l'espace parents ;
-  - le **chapeau** ouvre le dressing du dino, le **cadeau** apparaît quand un objet est à choisir ;
+  - le **chapeau** ouvre le dressing du dino, le **cadeau** apparaît quand un objet est à choisir ; une
+    fois le cadeau mis au dino, retour à l'accueil (et, si les enfants alternent, au tour du suivant) ;
   - avec plusieurs enfants, la **tête du dino** de l'enfant suivant passe la main.
 - **L'éclosion** : l'œuf tremble ; il faut le toucher 4 fois pour le faire éclore : il se fissure un
   peu plus à chaque toucher (le téléphone vibre), puis la coquille s'ouvre en deux (vibrations) et un
   dino d'une couleur au hasard parmi 10 en sort, plus ou moins grand selon l'âge de l'enfant.
-- **La présentation** : le bébé dino se présente et explique comment l'enfant va l'aider (jouer, gagner
-  des fruits, le nourrir pour qu'il grandisse, l'habiller ; « Mon rêve, c'est de devenir le plus grand
-  dinosaure du monde ! »). Au premier lancement, il demande ensuite à l'enfant **son prénom et son âge,
+- **La présentation**, en quelques phrases : on va jouer ensemble, chaque bonne réponse donne un
+  fruit, le dino mange les fruits pour grandir, et il y a des récompenses. Au premier lancement, il demande ensuite à l'enfant **son prénom et son âge,
   à voix haute** (gros bouton micro ; sans micro, l'âge se choisit avec des gâteaux), puis de donner le
   téléphone à un parent : la fiche de l'enfant est **déjà remplie**, le parent corrige si besoin et
   crée son code.
@@ -156,10 +157,12 @@ version**, **Supprimer**.
   - temps de jeu par jour et graphique de la semaine, heure du coucher ;
   - suivi par jeu (réponses, réussite, questions acquises) et questions à réviser avec leur date ;
   - les **fiches à imprimer** gagnées par l'enfant, avec un aperçu et des conseils ;
-  - micro (jeux à voix haute) et packs de reconnaissance vocale ;
+  - micro (jeux à voix haute, activés par défaut) et packs de reconnaissance vocale (téléchargés
+    automatiquement : le français dès l'ouverture du jeu, l'anglais ensuite) ;
   - bruitages (et vibrations), musique, test de la voix, changement du code, tout recommencer.
-- **Temps de jeu** : une fois atteint, l'enfant finit sa série puis le jeu se bloque ; le code ajoute
-  15 ou 30 minutes ou débloque la journée.
+- **Temps de jeu** : réglé avec − et + (par 5 minutes, 15 minutes par défaut, ou illimité), le même
+  réglage dans la fiche de l'enfant et dans l'espace parents. Une fois atteint, l'enfant finit sa série
+  puis le jeu se bloque ; le code ajoute 15 ou 30 minutes ou débloque la journée.
 - **Mode nuit** : après l'heure du coucher, le dino bâille, propose une dernière série, dit bonne nuit
   et dort jusqu'au matin (le code permet de jouer encore).
 - « **Code oublié ?** » : nouveau code après une question pour adulte.

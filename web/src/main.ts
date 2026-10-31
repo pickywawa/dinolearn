@@ -2,6 +2,7 @@ import '@fontsource/andika/700.css';
 import '@fontsource/playwrite-fr-moderne/400.css';
 import Phaser from 'phaser';
 import { app } from './core/app';
+import { prepareVoiceAtStart } from './core/voicePrep';
 import { BootScene } from './scenes/BootScene';
 import { ChooseScene } from './scenes/ChooseScene';
 import { EndScene } from './scenes/EndScene';
@@ -37,6 +38,9 @@ const game = new Phaser.Game({
   scene: [BootScene, StartScene, HelloScene, HomeScene, ChooseScene, GameScene, EndScene, WardrobeScene, TraceScene, MemoryScene],
 });
 
+// En développement seulement : accès au jeu depuis la console (tests dans le navigateur).
+if (import.meta.env.DEV) (window as unknown as { game: Phaser.Game }).game = game;
+
 // Rotation de l'écran : on adapte la taille logique et on relance la scène active.
 let portrait = size.height >= size.width;
 window.addEventListener('resize', () => {
@@ -52,3 +56,5 @@ window.addEventListener('resize', () => {
 });
 
 void app.voice.init();
+// Jeux à voix haute activés par défaut : le pack français se télécharge dès l'ouverture.
+prepareVoiceAtStart();

@@ -1,35 +1,37 @@
-## DinoLearn 0.9.0 — Des fiches à imprimer, avec son dino
+## DinoLearn 0.10.0 — Plus simple au démarrage, tous les jeux sur la planète
 
-### Pour l'enfant : une enveloppe surprise chaque jour
-- Quand le **temps de jeu du jour** est fini (ou le soir, avant que le dino s'endorme), le dino offre
-  **trois enveloppes surprises**. L'image sur chacune montre ce qu'elle contient ; l'enfant en choisit
-  une, elle s'ouvre et la fiche en sort : « Demande à papa ou maman de l'imprimer ! »
-- Une enveloppe par jour. Sans limite de temps ni heure du coucher, elle arrive après 4 séries.
-- Un **diplôme** à imprimer tous les 5 niveaux du dino.
+### La planète montre tous les jeux
+- Le **memory** (et le memory en anglais), les **jeux de tracé** et les **jeux à voix haute** n'apparaissaient
+  que derrière le bouton « choisir son jeu », masqué par défaut : on ne les voyait jamais. Désormais, la
+  planète lance une fois sur trois un de ces jeux ; les autres fois, des questions de tous les jeux.
+- Le dino ne dit plus que les questions sont « mélangées » : il dit juste « C'est parti ! ».
 
-### 16 fiches, toujours avec le dino de l'enfant
-Chaque fiche est dessinée par le jeu, au format A4, avec **son dino** (sa couleur, ses objets) et son
-prénom, et s'adapte à son âge et à ses progrès dans les jeux.
-- **Coloriages** : son dino dans un paysage préhistorique ; coloriage magique (chiffres, puis calculs).
-- **Réflexion** : labyrinthe (de 4×5 à 14×18 cases), points à relier (de 10 à 40 points), jeu des
-  différences (de 3 à 7).
-- **Écriture** : graphisme, son prénom à repasser, les chiffres et les lettres ratées dans les jeux.
-- **À découper** : masque, puzzle (de 6 à 30 pièces, avec plateau pour les petits), dino articulé,
-  marionnettes à doigts, couronne à son prénom.
-- **Jeux de société** : jeu de l'oie du dino (avec le dé à monter et les dinos de la famille comme
-  pions), memory, loto, dominos — des images pour les petits, puis des quantités, des nombres, des mots
-  et des calculs.
+### Les cadeaux et l'alternance des enfants
+- Quand le dino a grandi, l'enfant va au vestiaire choisir son cadeau. **Dès que le cadeau est mis au
+  dino, on revient à l'accueil** ; si les enfants alternent, le dino passe la main à l'enfant suivant
+  (« Bravo Léa ! Maintenant, c'est au tour de Tom ! »). Avant, on restait bloqué au vestiaire et
+  l'alternance ne se faisait pas.
 
-### Pour les parents
-- Nouvelle section **« À imprimer »** dans l'espace parents : les fiches gagnées, les nouvelles en
-  premier.
-- Pour chaque fiche, des **conseils** : ce qu'elle fait travailler, comment en parler pendant
-  l'activité, comment prolonger sans écran, le matériel, et la solution.
-- Boutons **Imprimer** (A4), **Version à colorier** (fiches à découper), **Autre version**, **Supprimer**.
+### La voix, activée par défaut
+- Les **jeux à voix haute** sont activés par défaut (le parent peut les couper dans l'espace parents).
+- Le **pack de reconnaissance français se télécharge dès l'ouverture du jeu** : quand l'enfant fait
+  éclore son œuf, le dino peut entendre son prénom et son âge. Le pack anglais suit, depuis l'accueil.
+
+### Une présentation plus courte
+- Le bébé dino se présente en quelques phrases : on va jouer, chaque bonne réponse donne un fruit, il
+  mange les fruits pour grandir, et il y a des récompenses.
+
+### Le temps de jeu
+- Le temps de jeu par jour se règle avec **−** et **+** (par 5 minutes) ou **Illimité**, de la même façon
+  au premier lancement et dans l'espace parents. **15 minutes par défaut.**
+
+### Toujours là (0.9.0)
+- Les **enveloppes surprises** en fin de temps de jeu et les **16 fiches à imprimer** avec le dino de
+  l'enfant (coloriages, labyrinthes, écriture, découpages, jeux de société, diplômes).
 
 ### Installer / tester
 - En ligne : https://pickywawa.github.io/dinolearn/
-- Archive `dinolearn-web-v0.9.0.zip` : le jeu compilé, pour tout hébergement web statique (sans les
+- Archive `dinolearn-web-v0.10.0.zip` : le jeu compilé, pour tout hébergement web statique (sans les
   packs de reconnaissance vocale : `npm run voice-packs` pour les ajouter).
 - En local : `cd web && npm install && npm run dev`.
 

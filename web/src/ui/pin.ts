@@ -1,5 +1,6 @@
 import { app, switchChild } from '../core/app';
 import { NewChild } from '../core/profiles';
+import { DEFAULT_DAILY_MINUTES, timeStepper } from './timeStepper';
 
 /**
  * Code parent : un clavier à 4 chiffres posé sur le jeu. Il sert à ouvrir
@@ -224,7 +225,6 @@ export async function askParentCode(title: string, help: string): Promise<boolea
   return forgot ? forgotten() : false;
 }
 
-export const DAILY_CHOICES = [0, 15, 30, 45, 60, 90];
 export const NIGHT_CHOICES = ['', '18:30', '19:00', '19:30', '20:00', '20:30', '21:00'];
 export const COUNTRY_CHOICES: [string, string][] = [
   ['fr', 'France'], ['be', 'Belgique'], ['ch', 'Suisse'], ['ca', 'Canada'], ['lu', 'Luxembourg'], ['other', 'Autre pays'],
@@ -255,7 +255,7 @@ export function childForm(title: string, help: string, initial?: Partial<NewChil
     style.textContent = FORM_CSS;
     document.head.append(style);
   }
-  const value: NewChild = { name: '', age: 4, country: 'fr', dailyMinutes: 0, nightTime: '', voice: false, ...initial };
+  const value: NewChild = { name: '', age: 4, country: 'fr', dailyMinutes: DEFAULT_DAILY_MINUTES, nightTime: '', voice: true, ...initial };
   return new Promise((resolve) => {
     const { root, card } = mount();
     card.classList.add('wide');
@@ -327,7 +327,7 @@ export function childForm(title: string, help: string, initial?: Partial<NewChil
       field('Pays (jeu « Mon pays », dès 5 ans)'),
       segment(COUNTRY_CHOICES.map(([c, n]) => [c, n]), () => value.country, (v) => { value.country = v; }),
       field('Temps de jeu par jour'),
-      segment(DAILY_CHOICES.map((m) => [m, m ? `${m} min` : 'Illimité']), () => value.dailyMinutes, (v) => { value.dailyMinutes = v; }),
+      timeStepper(() => value.dailyMinutes, (v) => { value.dailyMinutes = v; }),
       field('Heure du coucher (mode nuit)'),
       segment(NIGHT_CHOICES.map((t) => [t, t ? t.replace(':', ' h ') : 'Aucune']), () => value.nightTime, (v) => { value.nightTime = v; }),
       micLabel, error, actions);
@@ -356,7 +356,7 @@ export async function firstLaunchSetup(intro: ChildIntro = {}) {
         + 'modifier dans l\'espace parents (cadenas de l\'accueil).'
       : 'Le prénom de votre enfant, son âge et ses réglages. Vous pourrez ajouter d\'autres enfants et tout modifier '
         + 'dans l\'espace parents (cadenas de l\'accueil).',
-    { name: intro.name ?? '', age: intro.age ?? 4, voice: !!intro.voice });
+    { name: intro.name ?? '', age: intro.age ?? 4, voice: intro.voice ?? true });
     switchChild(app.profiles.add(child!));
   }
   if (!app.profiles.pin) {

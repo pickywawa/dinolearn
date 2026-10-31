@@ -29,6 +29,8 @@ interface Card {
  * plateau est gagné sans trop d'erreurs (pas plus que de paires).
  */
 export class MemoryScene extends BaseScene {
+  /** Série lancée par la planète : « rejouer » repasse par la planète. */
+  private planet = false;
   private series!: Series;
   private dino!: Dino;
   private cards: Card[] = [];
@@ -52,7 +54,8 @@ export class MemoryScene extends BaseScene {
     this.playMs = 0;
   }
 
-  create(data: { gameId: string }) {
+  create(data: { gameId: string; planet?: boolean }) {
+    this.planet = !!data.planet;
     this.initBase();
     this.playMs = 0;
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.savePlayTime());
@@ -264,7 +267,7 @@ export class MemoryScene extends BaseScene {
     await this.wait(400);
     this.series.next();
     if (this.series.finished) {
-      goTo(this, 'End', { result: this.series.result, mixed: false });
+      goTo(this, 'End', { result: this.series.result, mixed: this.planet });
       return;
     }
     this.tweens.add({ targets: this.cards.map((c) => c.container), scale: 0, duration: 250 });

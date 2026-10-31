@@ -19,6 +19,8 @@ import { BaseScene } from './BaseScene';
  * comptent). Après deux essais ratés, le dino montre comment faire.
  */
 export class TraceScene extends BaseScene {
+  /** Série lancée par la planète : « rejouer » repasse par la planète. */
+  private planet = false;
   private series!: Series;
   private dino!: Dino;
   private model!: TraceModel;
@@ -47,7 +49,8 @@ export class TraceScene extends BaseScene {
     this.playMs = 0;
   }
 
-  create(data: { gameId: string }) {
+  create(data: { gameId: string; planet?: boolean }) {
+    this.planet = !!data.planet;
     this.initBase();
     this.playMs = 0;
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.savePlayTime());
@@ -150,7 +153,7 @@ export class TraceScene extends BaseScene {
       this.series.next();
       if (this.series.finished) {
         this.phase = 'done';
-        goTo(this, 'End', { result: this.series.result, mixed: false });
+        goTo(this, 'End', { result: this.series.result, mixed: this.planet });
       } else {
         this.ask();
       }

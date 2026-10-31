@@ -4,6 +4,7 @@ import { app } from '../core/app';
 import { ears, packInstalled, voiceSupported } from '../core/ears';
 import { Music } from '../core/music';
 import { Sfx } from '../core/sfx';
+import { loadFrench } from '../core/voicePrep';
 import { foodImage, FRUITS } from '../domain/models';
 import { AGE_GRAMMAR, Heard, findAge, findName, nameGrammar } from '../domain/speech';
 import { Dino } from '../dino/Dino';
@@ -17,9 +18,9 @@ import { makeCake } from '../ui/cake';
 import { BaseScene } from './BaseScene';
 
 /**
- * Juste après l'éclosion (premier lancement) : le bébé dino se présente et
- * explique comment l'enfant va l'aider (jouer, gagner des fruits, le nourrir
- * pour qu'il grandisse, l'habiller). Puis il demande à l'enfant son prénom et
+ * Juste après l'éclosion (premier lancement) : le bébé dino se présente, en
+ * quelques phrases : on joue, on gagne des fruits, on le nourrit pour qu'il
+ * grandisse, et il y a des récompenses. Puis il demande à l'enfant son prénom et
  * son âge, à voix haute (sinon, l'âge se choisit avec les gâteaux), et lui
  * demande d'aller chercher un parent : le formulaire est déjà rempli, le parent
  * corrige si besoin et crée son code.
@@ -71,7 +72,8 @@ export class HelloScene extends BaseScene {
     this.dino.react('wave');
     await this.say('hello.parent');
     this.input.enabled = false;
-    await firstLaunchSetup({ name, age, voice: this.voiceWorks });
+    // Jeux à voix haute activés par défaut (si l'appareil sait écouter), même si le micro n'a pas servi ici.
+    await firstLaunchSetup({ name, age, voice: voiceSupported() });
     // Le pack français déjà téléchargé sert aux jeux à voix haute.
     if (await packInstalled('fr')) {
       app.progress.updateSettings({ voicePacks: [...new Set([...app.progress.settings.voicePacks, 'fr'])] });
@@ -92,10 +94,6 @@ export class HelloScene extends BaseScene {
     this.dino.react('wave');
     await app.voice.say([{ text: app.voice.lines.pick('hello.1').replace('{color}', DINO_COLORS[app.progress.color].name), lang: 'fr' }]);
     if (!this.alive) return;
-    this.dino.react('lookAround');
-    await this.say('hello.2');
-    this.dino.react('happy');
-    await this.say('hello.3');
 
     // Les jeux : des bulles qui apparaissent autour du dino.
     this.dino.react('cheer');
@@ -137,16 +135,12 @@ export class HelloScene extends BaseScene {
     await this.waitForVoice();
     this.clearShown();
 
-    // Les cadeaux : le dino essaie une couronne, des lunettes et une cape.
-    this.dino.dress(['crown', 'sunglasses', 'cape-red']);
+    // Les récompenses (sans détailler lesquelles).
     this.dino.react('spin');
-    this.popIcons(['acc-top-hat', 'acc-billed-cap', 'acc-wing', 'acc-magic-wand'], H * 0.24);
+    this.popIcons(['ui-gift', 'ui-star', 'ui-envelope'], H * 0.24);
     await this.say('hello.7');
     this.clearShown();
-    this.dino.dress(app.progress.collection.worn);
 
-    this.dino.react('roar');
-    await this.wait(500);
     this.dino.react('cheer');
     await this.say('hello.8');
     this.tweens.add({ targets: this.dino, scale: baseScale, duration: 600 });
@@ -186,14 +180,15 @@ export class HelloScene extends BaseScene {
 
   // ---- Le prénom et l'âge, à voix haute ----
 
-  /** Le pack français (téléchargé pendant l'éclosion) est-il prêt ? On l'attend un peu. */
+  /** Le pack français (téléchargé dès l'ouverture du jeu) est-il prêt ? On l'attend un peu. */
   private async voiceReady(): Promise<boolean> {
     if (!voiceSupported()) return false;
-    const loading = ears.load('fr').then(() => true, () => false);
+    const loading = loadFrench();
     let ready = await Promise.race([loading, this.wait(600).then(() => undefined)]);
     if (ready === undefined) {
       await this.say('voice.loading');
-      ready = await Promise.race([loading, this.wait(12000).then(() => false)]);
+      // Le pack se télécharge depuis l'ouverture du jeu : on lui laisse le temps de finir.
+      ready = await Promise.race([loading, this.wait(30000).then(() => false)]);
     }
     if (ready) this.vocab = await ears.vocab('fr');
     return ready;

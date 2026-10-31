@@ -5,6 +5,7 @@ import { Sfx } from '../core/sfx';
 import { Dino } from '../dino/Dino';
 import { Guide } from '../ui/Guide';
 import { chooseGifts } from '../ui/gifts';
+import { handOver, shouldHandOver } from '../ui/handover';
 import { drawScenery, goTo, homeButton, isPortrait, makeTickable, unit } from '../ui/scenery';
 import { BaseScene } from './BaseScene';
 
@@ -27,18 +28,26 @@ export class WardrobeScene extends BaseScene {
   private guide!: Guide;
   private slots: Slot[] = [];
   private dinoHeight = 0;
+  /** Venu de la fin d'une série pour un cadeau : une fois le cadeau mis, on repart. */
+  private afterSeries = false;
+  /** Cadeau qui vient d'être choisi, pas encore mis au dino. */
+  private newGift?: string;
+  private leaving = false;
 
   constructor() {
     super('Wardrobe');
   }
 
-  create() {
+  create(data: { afterSeries?: boolean } = {}) {
     this.initBase();
+    this.afterSeries = !!data.afterSeries;
+    this.newGift = undefined;
+    this.leaving = false;
     drawScenery(this, 0xffe9f3, 0xfff8e7, 2);
     const { width: W, height: H } = this.scale;
     const u = unit(this);
     const portrait = isPortrait(this);
-    homeButton(this, () => goTo(this, 'Home'));
+    homeButton(this, () => this.run(() => this.leave()));
 
     this.dinoHeight = portrait ? H * 0.42 : H * 0.78;
     this.dino = new Dino(this, portrait ? W / 2 : W * 0.27, portrait ? H * 0.6 : H * 0.94, this.dinoHeight);
@@ -71,6 +80,7 @@ export class WardrobeScene extends BaseScene {
       // Le nouveau cadeau n'est pas mis tout seul : on montre comment le faire glisser sur le dino.
       const gift = received.length ? this.slots.find((s) => s.item.id === received[received.length - 1].id) : undefined;
       if (gift) {
+        this.newGift = gift.item.id;
         this.tweens.add({ targets: gift.cell, scale: 1.25, duration: 300, yoyo: true, repeat: 2 });
         this.guide.drag(gift.cell, { x: this.dino.x, y: this.dino.y - this.dinoHeight * 0.6 });
         await this.say('wardrobe.new');
@@ -159,8 +169,33 @@ export class WardrobeScene extends BaseScene {
     Sfx.play('star');
     this.dino.react(replaced.length ? 'dance' : 'happy');
     const reactions = ['Trop beau !', 'J\'adore !', 'Je suis magnifique !', 'Qu\'est-ce que je suis chic !'];
-    void app.voice.say([{ text: `${item.name.charAt(0).toUpperCase()}${item.name.slice(1)} ! ${
+    const said = app.voice.say([{ text: `${item.name.charAt(0).toUpperCase()}${item.name.slice(1)} ! ${
       reactions[Math.floor(app.rng() * reactions.length)]}`, lang: 'fr' }]);
+    // Le nouveau cadeau est mis : retour à l'accueil (après une série, au tour de l'enfant suivant si on alterne).
+    if (item.id === this.newGift) {
+      this.newGift = undefined;
+      this.run(async () => {
+        await said;
+        await this.wait(600);
+        await this.leave();
+      });
+    }
+  }
+
+  /** Quitte le vestiaire ; après une série, c'est au tour de l'enfant suivant si on alterne. */
+  private async leave() {
+    if (this.leaving) return;
+    this.leaving = true;
+    this.guide.hide();
+    if (this.afterSeries && shouldHandOver()) {
+      this.input.enabled = false;
+      this.dino.react('wave');
+      await handOver();
+      if (!this.alive) return;
+      goTo(this, 'Home', { switched: true });
+      return;
+    }
+    goTo(this, 'Home');
   }
 
   /**

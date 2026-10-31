@@ -13,6 +13,7 @@ import { memoryPairs, pips } from '../src/print/games';
 import { dotCount, dotsAlong, generateMaze, mazeSize, solveMaze } from '../src/print/puzzles';
 import { PrintContext } from '../src/print/types';
 import { nameGlyphs } from '../src/print/writing';
+import { DEFAULT_DAILY_MINUTES, minutesLabel, stepMinutes } from '../src/ui/timeStepper';
 
 const ctxFor = (age: number, extra: Partial<PrintContext> = {}): PrintContext => ({
   name: 'Léa', age, color: 3, worn: ['crown', 'scarf', 'wing'], level: 12,
@@ -172,6 +173,7 @@ describe('enveloppes et diplômes', () => {
     expect(p.envelopeDue(evening)).toBe(true);
 
     const free = new Progress(new MemoryStore());
+    free.updateSettings({ dailyMinutes: 0 });
     const day = new Date(2026, 9, 31, 10);
     for (let i = 0; i < ENVELOPE_SERIES; i++) {
       expect(free.envelopeDue(day)).toBe(false);
@@ -213,5 +215,21 @@ describe('enveloppes et diplômes', () => {
     expect(sheet?.pages[0]).toContain('LÉA');
     p.renewPrintable(record.id, 100);
     expect(buildSheet(p, profiles, p.printables[0])?.pages[0]).not.toBe(sheet?.pages[0]);
+  });
+});
+
+describe('temps de jeu par jour', () => {
+  it('− et + par 5 minutes, 15 minutes par défaut, et illimité', () => {
+    expect(DEFAULT_DAILY_MINUTES).toBe(15);
+    expect(new Progress(new MemoryStore()).settings.dailyMinutes).toBe(15);
+    expect(stepMinutes(15, 1)).toBe(20);
+    expect(stepMinutes(15, -1)).toBe(10);
+    expect(stepMinutes(5, -1)).toBe(5);
+    expect(stepMinutes(180, 1)).toBe(180);
+    expect(stepMinutes(0, 1)).toBe(15);
+    expect(minutesLabel(0)).toBe('Illimité');
+    expect(minutesLabel(45)).toBe('45 min');
+    expect(minutesLabel(90)).toBe('1 h 30');
+    expect(minutesLabel(120)).toBe('2 h');
   });
 });

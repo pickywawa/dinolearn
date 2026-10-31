@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { app } from '../core/app';
-import { ears, voiceSupported } from '../core/ears';
+import { preloadFrench } from '../core/voicePrep';
 import { vibrate } from '../core/haptics';
 import { Music } from '../core/music';
 import { Sfx } from '../core/sfx';
@@ -110,7 +110,7 @@ export class StartScene extends BaseScene {
     zone.on('pointerdown', () => {
       if (hatching) return;
       // Le dino demandera son prénom à l'enfant : le pack de reconnaissance (français) se télécharge pendant ce temps.
-      if (setup && taps === 0 && voiceSupported()) void ears.load('fr').catch(() => undefined);
+      if (setup && taps === 0) void preloadFrench();
       this.wake();
       this.guide.hide();
       taps++;
