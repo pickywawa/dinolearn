@@ -33,6 +33,9 @@ type Phase = 'loading' | 'intro' | 'asking' | 'listening' | 'feedback' | 'done';
  * Jeux à voix haute : un gros bouton micro remplace les cartes ; si le dino
  * n'entend pas l'enfant (ou après deux erreurs), les cartes reviennent.
  */
+/** Après une erreur, on peut retoucher une carte au bout de ce délai (pas besoin d'attendre la fin de l'indice). */
+const WRONG_LOCK_MS = 350;
+
 export class GameScene extends BaseScene {
   private series!: Series;
   private dino!: Dino;
@@ -48,6 +51,8 @@ export class GameScene extends BaseScene {
   private mixed = false;
   /** Série reprise après une question de memory ou de tracé (série de la planète). */
   private resumed = false;
+  /** Change à chaque toucher : ce que le dino disait pour un toucher précédent s'arrête. */
+  private feedbackToken = 0;
   /** Langues dont le pack de reconnaissance est prêt. */
   private langs = new Set<string>();
   private hintsGiven = 0;
@@ -457,6 +462,9 @@ export class GameScene extends BaseScene {
     if (this.phase !== 'asking') return;
     const outcome = this.series.tap(card.choice);
     if (outcome.kind === 'ignored') return;
+    // Un nouveau toucher coupe ce que le dino disait après l'erreur précédente.
+    const token = ++this.feedbackToken;
+    app.voice.stop();
     this.clearIdle();
     this.guide.hide();
     this.phase = 'feedback';
@@ -465,6 +473,11 @@ export class GameScene extends BaseScene {
       Sfx.play('wrong');
       this.dimCard(card);
       this.dino.react('oops');
+      // On peut retoucher une carte presque tout de suite, sans attendre que le dino ait fini de parler.
+      this.time.delayedCall(WRONG_LOCK_MS, () => {
+        if (token === this.feedbackToken && this.phase === 'feedback') this.phase = 'asking';
+      });
+      const current = () => token === this.feedbackToken;
       this.run(async () => {
         if (outcome.hint) {
           // Dernier recours : la bonne carte brille et le dino la montre.
@@ -473,14 +486,18 @@ export class GameScene extends BaseScene {
           this.dino.pointAt(good.container.x, good.container.y);
           this.guide.tap(good.container);
           await this.giveHint();
+          if (!current()) return;
           await this.say('hint');
         } else {
           // Après une erreur : un indice parlé plutôt que la réponse.
           await this.say('wrong');
+          if (!current()) return;
           await this.giveHint();
         }
+        if (!current()) return;
         await app.voice.say(this.shortPrompt());
-        this.phase = 'asking';
+        if (!current()) return;
+        if (this.phase === 'feedback') this.phase = 'asking';
         this.armReminders();
       });
       return;

@@ -1,3 +1,9 @@
+## DinoLearn 0.12.3 — Réessayer tout de suite
+
+- Après une mauvaise réponse, l'enfant peut **retoucher une carte presque aussitôt** (au bout d'un
+  tiers de seconde), sans attendre que le dino ait fini de parler : s'il touche pendant l'indice, le
+  dino s'arrête net.
+
 ## DinoLearn 0.12.2 — Les silences et les bruits d'animaux
 
 - **Les silences sont respectés** : le dino marque une vraie pause après les « … » et entre les phrases
@@ -32,7 +38,7 @@
 
 ### Installer / tester
 - En ligne : https://pickywawa.github.io/dinolearn/
-- Archive `dinolearn-web-v0.12.2.zip` : le jeu compilé, pour tout hébergement web statique (sans les
+- Archive `dinolearn-web-v0.12.3.zip` : le jeu compilé, pour tout hébergement web statique (sans les
   packs de reconnaissance vocale : `npm run voice-packs` pour les ajouter).
 - En local : `cd web && npm install && npm run dev`.
 
