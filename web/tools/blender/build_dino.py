@@ -147,7 +147,7 @@ def build_head():
         ((-0.25, -0.2, 1.3), 0.22, (1, 1, 1)),           # joue D
         ((0, 0.0, 1.08), 0.28, (1.1, 1, 0.7)),           # menton / cou
     ]
-    head = metaball_mesh('head', elems, resolution=0.03)
+    head = metaball_mesh('skin.head', elems, resolution=0.03)
     head.data.materials.append(M['skin'])
     return head
 
@@ -166,7 +166,7 @@ def build_body():
         ((0.33, 0.96, 0.4), 0.085, (1, 1, 1)),
         ((0.4, 1.0, 0.46), 0.065, (1, 1, 1)),
     ]
-    body = metaball_mesh('body', elems, resolution=0.03)
+    body = metaball_mesh('skin.body', elems, resolution=0.03)
     body.data.materials.append(M['skin'])
     return body
 
@@ -183,7 +183,7 @@ def build_arm(side):
         ((0.48 * s, -0.12, 0.72), 0.1, (1, 1, 1)),
         ((0.54 * s, -0.17, 0.62), 0.115, (1, 1, 1.05)),  # main
     ]
-    arm = metaball_mesh(f'arm.{side}', elems, resolution=0.02)
+    arm = metaball_mesh(f'skin.arm.{side}', elems, resolution=0.02)
     arm.data.materials.append(M['skin'])
     return arm
 
@@ -194,7 +194,7 @@ def build_leg(side):
         ((0.22 * s, 0.02, 0.24), 0.17, (1, 1, 1)),
         ((0.24 * s, -0.08, 0.09), 0.15, (1.0, 1.4, 0.62)),  # pied
     ]
-    leg = metaball_mesh(f'leg.{side}', elems, resolution=0.02)
+    leg = metaball_mesh(f'skin.leg.{side}', elems, resolution=0.02)
     leg.data.materials.append(M['skin'])
     return leg
 
@@ -240,7 +240,13 @@ def build_spikes(tree, bones_for):
     """Piquants coniques arrondis, plantés perpendiculairement au dos."""
     out = []
     for i, (p, size) in enumerate(SPIKE_PATH):
-        center = Vector((p[0] * 0.3, p[1] - 0.5, p[2]))
+        # Rayon tiré depuis l'intérieur de la partie concernée (tête, corps ou queue).
+        if p[2] > 1.1:
+            center = Vector((0, 0.02, 1.45))
+        elif p[1] < 0.55:
+            center = Vector((0, 0.03, 0.6))
+        else:
+            center = Vector((p[0] * 0.6, p[1] - 0.1, p[2] - 0.15))
         loc, normal = project_toward(tree, p, center=center, offset=-size * 0.25)
         if loc is None:
             continue
@@ -251,10 +257,12 @@ def build_spikes(tree, bones_for):
         # Bout arrondi : on aplatit légèrement en cône « bonbon ».
         for v in bm.verts:
             v.co.x *= 0.7
-        me = bpy.data.meshes.new(f'spike{i}')
+        # Les piquants de la tête se cachent sous les chapeaux.
+        name = f'spike.head{i}' if p[2] > 1.1 else f'spike{i}'
+        me = bpy.data.meshes.new(name)
         bm.to_mesh(me)
         bm.free()
-        obj = bpy.data.objects.new(f'spike{i}', me)
+        obj = bpy.data.objects.new(name, me)
         bpy.context.collection.objects.link(obj)
         # Les piquants penchent un peu vers l'arrière.
         up = (normal + Vector((0, 0.35, -0.15))).normalized()

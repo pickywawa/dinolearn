@@ -3,6 +3,9 @@ import { itemById, type Slot } from '../content/items';
 import { ITEMS_URL, loadedGltf, type DinoModel } from './model';
 
 /** L'os qui porte chaque emplacement : l'objet suit ses mouvements. */
+/** Objets de tête qui ne couvrent pas le crâne : les piquants restent visibles. */
+const KEEP_SPIKES = ['hibiscus', 'headphone'];
+
 const SLOT_BONE: Record<Slot, string> = {
   head: 'head',
   eyes: 'head',
@@ -35,6 +38,10 @@ export class Accessories {
   }
 
   dress(ids: readonly string[]) {
+    const hat = ids.some((id) => itemById(id)?.slot === 'head' && !KEEP_SPIKES.includes(id));
+    for (const [name, part] of Object.entries(this.model.parts)) {
+      if (name.startsWith('spikehead')) part.visible = !hat;
+    }
     for (const [id, node] of this.worn) {
       if (!ids.includes(id)) {
         node.removeFromParent();
