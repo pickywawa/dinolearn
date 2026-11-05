@@ -1,8 +1,11 @@
 import Phaser from 'phaser';
+import * as THREE from 'three';
 import { app } from '../core/app';
 import { Sfx } from '../core/sfx';
-import { itemById, itemTexture } from '../content/items';
-import { PART_RESOLUTION, colorSuffix } from './parts';
+import { Accessories } from '../dino3d/accessories';
+import { createDino } from '../dino3d/model';
+import { DinoRig, type Mouth, type Pose } from '../dino3d/rig';
+import { Stage } from '../dino3d/stage';
 
 export type DinoReaction =
   | 'happy' | 'cheer' | 'dance' | 'oops' | 'think' | 'eat' | 'levelUp' | 'tickle'
@@ -12,70 +15,100 @@ export type DinoReaction =
 /** Petites animations jouées au hasard quand le dino attend. */
 const IDLE_FUN: DinoReaction[] = ['wave', 'yawn', 'roar', 'lookAround', 'hop', 'spin'];
 
-const S = 1 / PART_RESOLUTION;
-const MOUTHS = ['dino-mouth-open', 'dino-mouth-wide', 'dino-mouth-o', 'dino-mouth-open'];
+const MOUTHS: Mouth[] = ['open', 'wide', 'o', 'open'];
+
+/** Taille du modèle 3D (des pieds au haut de la tête), en unités 3D. */
+const MODEL_HEIGHT = 2.05;
+/** Hauteur visible par la caméra : de la place pour les sauts, les bras levés et les chapeaux. */
+const VIEW_HEIGHT = 3.2;
+const VIEW_ASPECT = 0.95;
+
+let uid = 0;
 
 /**
- * Le dino animé : pièces SVG assemblées dans des conteneurs Phaser et
- * animées par les tweens de Phaser (respiration, clignements, bouche qui
- * parle au rythme de la voix, réactions, bras qui montre où toucher).
+ * Le dino en 3D (Three.js), affiché dans Phaser comme une image : chaque
+ * image du rendu 3D est copiée dans une texture. Le dino est animé par les
+ * tweens de Phaser, qui font varier les curseurs de sa pose (bras, tête,
+ * saut…) ; il parle au rythme de la voix, cligne des yeux, regarde où on
+ * touche, porte ses objets (accrochés à ses os) et peut tourner sur lui-même.
+ *
  * L'origine du conteneur est entre les pieds du dino ; hauteur ≈ 500 unités.
  */
 export class Dino extends Phaser.GameObjects.Container {
-  private rig: Phaser.GameObjects.Container;
-  private head: Phaser.GameObjects.Container;
-  private body_: Phaser.GameObjects.Image;
-  private tail: Phaser.GameObjects.Image;
-  private armL: Phaser.GameObjects.Image;
-  private armR: Phaser.GameObjects.Image;
-  private eyes: Phaser.GameObjects.Image[];
-  private mouth: Phaser.GameObjects.Image;
-  private belly: Phaser.GameObjects.Graphics;
+  static readonly HEIGHT = 500;
+
+  private stage: Stage;
+  private rig: DinoRig;
+  private view: Phaser.GameObjects.Image;
+  private texKey: string;
+  private glTex?: Phaser.Renderer.WebGL.Wrappers.WebGLTextureWrapper;
+  /** Pixels du canvas → unités du conteneur. */
+  private px: number;
+  private feet: { x: number; y: number };
+  private shadow: THREE.Mesh;
+  private wear: Accessories;
   private bellyFill: number | null = null;
-  private eyeMode: 'open' | 'happy' | 'closed' = 'open';
   private talkTimer?: Phaser.Time.TimerEvent;
-  /** Vrai dès que la voix signale ses mots : la bouche suit alors chaque mot. */
   private wordSync = false;
   private wordTimers: Phaser.Time.TimerEvent[] = [];
   private busy = false;
   private unsubscribe: (() => void)[] = [];
-  private accessories: Phaser.GameObjects.Image[] = [];
-  /** Objet porté de chaque image d'accessoire (les ailes ont deux images). */
-  private accessoryIds = new Map<Phaser.GameObjects.Image, string>();
-
-  static readonly HEIGHT = 500;
+  private lastRender = -1;
+  /** Orientation de repos : légèrement tourné vers le centre de l'écran. */
+  private baseYaw: number;
+  private mouthMarker = new THREE.Object3D();
+  private handMarker = { L: new THREE.Object3D(), R: new THREE.Object3D() };
 
   /** `color` : couleur du dino (0 à 9), par défaut celle de l'enfant qui joue. */
   constructor(scene: Phaser.Scene, x: number, y: number, height: number, color = app.progress.color) {
     super(scene, x, y);
-    this.rig = scene.add.container(0, 0);
-    this.add(this.rig);
 
-    const img = (key: string, px: number, py: number, ox = 0.5, oy = 0.5) =>
-      scene.add.image(px, py, key).setOrigin(ox, oy).setScale(S);
+    // Résolution du rendu : celle de l'affichage (un peu plus pour la netteté).
+    const ch = Phaser.Math.Clamp(Math.round(height * (VIEW_HEIGHT / MODEL_HEIGHT) * 1.25), 240, 1100);
+    const cw = Math.round(ch * VIEW_ASPECT);
+    this.stage = new Stage(cw, ch, VIEW_HEIGHT);
+    const model = createDino(color);
+    this.rig = new DinoRig(model);
+    this.stage.scene.add(this.rig.pivot);
+    this.wear = new Accessories(model);
+    this.shadow = this.makeShadow();
+    this.stage.scene.add(this.shadow);
 
-    const c = colorSuffix(color);
-    this.tail = img(`dino-tail${c}`, 80, -120, 0.08, 0.72);
-    const legL = img(`dino-leg${c}`, -62, -36);
-    const legR = img(`dino-leg${c}`, 62, -36).setFlipX(true);
-    this.body_ = img(`dino-body${c}`, 0, -135);
-    this.belly = scene.add.graphics();
-    this.armL = img(`dino-arm${c}`, -96, -190, 0.4, 0.12);
-    this.armR = img(`dino-arm${c}`, 96, -190, 0.4, 0.12).setFlipX(true);
+    // Repères accrochés aux os (bouche, mains) pour viser depuis Phaser.
+    this.attachMarker('head', this.mouthMarker, 0, 1.22, 0.6);
+    this.attachMarker('armL', this.handMarker.L, 0.55, 0.6, 0.18);
+    this.attachMarker('armR', this.handMarker.R, -0.55, 0.6, 0.18);
 
-    this.head = scene.add.container(0, -250);
-    const headImg = img(`dino-head${c}`, 0, 0, 0.5, 0.85);
-    this.eyes = [img('dino-eye', -52, -112), img('dino-eye', 52, -112)];
-    this.mouth = img('dino-mouth-smile', 0, -40, 0.5, 0.3);
-    this.head.add([headImg, ...this.eyes, this.mouth]);
+    // Où tombent les pieds et le haut de la tête dans le canvas, au repos.
+    const feet = this.stage.project(new THREE.Vector3(0, 0, 0));
+    const top = this.stage.project(new THREE.Vector3(0, MODEL_HEIGHT, 0));
+    this.feet = feet;
+    this.px = Dino.HEIGHT / (feet.y - top.y);
 
-    this.rig.add([this.tail, legL, legR, this.body_, this.belly, this.armL, this.armR, this.head]);
+    this.texKey = `dino3d-${uid++}`;
+    // Texture WebGL de Phaser, remplie directement depuis le canvas du rendu 3D.
+    const gl = scene.renderer as Phaser.Renderer.WebGL.WebGLRenderer;
+    this.stage.render();
+    this.glTex = gl.canvasToTexture(this.stage.canvas, undefined, true);
+    scene.textures.addGLTexture(this.texKey, this.glTex);
+    this.view = scene.add.image(0, 0, this.texKey)
+      .setOrigin(feet.x / cw, feet.y / ch)
+      .setScale(this.px);
+    this.add(this.view);
+
+    this.baseYaw = x < scene.scale.width * 0.4 ? 0.38 : x > scene.scale.width * 0.6 ? -0.38 : 0;
+    this.rig.pose.yaw = this.baseYaw;
+
     this.dress(app.progress.collection.worn);
     this.setHeight(height);
     scene.add.existing(this);
 
     this.startIdle();
+    this.renderNow();
+    const onUpdate = () => this.renderFrame();
+    scene.events.on(Phaser.Scenes.Events.POST_UPDATE, onUpdate);
     this.unsubscribe.push(
+      () => scene.events.off(Phaser.Scenes.Events.POST_UPDATE, onUpdate),
       app.voice.onTalk((talking) => this.setTalking(talking)),
       app.voice.onBoundary((ms) => this.sayWord(ms)),
     );
@@ -83,59 +116,168 @@ export class Dino extends Phaser.GameObjects.Container {
       this.unsubscribe.forEach((fn) => fn());
       this.talkTimer?.remove();
       this.clearWordTimers();
+      scene.tweens.killTweensOf(this.rig.pose);
+      this.stage.dispose();
+      if (scene.textures.exists(this.texKey)) scene.textures.remove(this.texKey);
+      this.glTex = undefined;
     });
     if (app.voice.talking) this.setTalking(true);
   }
 
-  /**
-   * Habille le dino avec ses objets : chapeaux et lunettes dans la tête (ils
-   * bougent avec elle), capes et ailes derrière le corps, le reste devant.
-   */
+  /** Arrête les animations qui touchent ces curseurs de la pose (les autres continuent). */
+  private stopPose(keys: string[]) {
+    const touches = (tw: Phaser.Tweens.BaseTween): boolean => {
+      const data = (tw as unknown as { data?: unknown[] }).data ?? [];
+      return data.some((d) => {
+        const key = (d as { key?: string }).key;
+        if (key !== undefined) return keys.includes(key);
+        return d instanceof Phaser.Tweens.BaseTween && touches(d);
+      });
+    };
+    for (const tw of this.scene.tweens.getTweensOf(this.rig.pose)) if (touches(tw)) tw.stop();
+  }
+
+  /** La pose du dino (pour des animations sur mesure depuis une scène). */
+  get pose(): Pose { return this.rig.pose; }
+
+  private attachMarker(bone: string, marker: THREE.Object3D, x: number, y: number, z: number) {
+    const b = this.rig.model.bones[bone];
+    this.rig.pivot.updateMatrixWorld(true);
+    marker.position.set(x, y, z);
+    this.rig.pivot.add(marker);
+    marker.updateMatrixWorld(true);
+    b?.attach(marker);
+  }
+
+  private makeShadow() {
+    const c = document.createElement('canvas');
+    c.width = c.height = 64;
+    const g = c.getContext('2d')!;
+    const grad = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+    grad.addColorStop(0, 'rgba(20,30,40,0.45)');
+    grad.addColorStop(0.6, 'rgba(20,30,40,0.25)');
+    grad.addColorStop(1, 'rgba(20,30,40,0)');
+    g.fillStyle = grad;
+    g.fillRect(0, 0, 64, 64);
+    const mat = new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false });
+    mat.userData.outlineParameters = { visible: false };
+    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 1.1), mat);
+    mesh.rotation.x = -Math.PI / 2;
+    mesh.position.y = 0.002;
+    return mesh;
+  }
+
+  // ---- Rendu ----
+
+  private renderFrame() {
+    if (!this.active || !this.visible) return;
+    // ~40 images par seconde suffisent pour un personnage ; moins si l'appareil peine.
+    const now = this.scene.time.now;
+    if (now - this.lastRender < 24) return;
+    this.lastRender = now;
+    this.renderNow();
+  }
+
+  private renderNow() {
+    const p = this.rig.pose;
+    this.rig.apply();
+    // L'ombre reste au sol et rétrécit quand le dino saute.
+    const s = Phaser.Math.Clamp(1 - p.y * 0.6, 0.4, 1.2) * p.grow;
+    this.shadow.scale.set(s, s, 1);
+    this.shadow.position.x = p.x;
+    this.wear.update();
+    this.stage.render();
+    if (this.glTex) (this.scene.renderer as Phaser.Renderer.WebGL.WebGLRenderer).updateCanvasTexture(this.stage.canvas, this.glTex, false, true);
+  }
+
+  /** Point du modèle 3D (monde Three) → coordonnées du monde Phaser. */
+  private toScreen(v: THREE.Vector3) {
+    const c = this.stage.project(v);
+    const lx = (c.x - this.feet.x) * this.px;
+    const ly = (c.y - this.feet.y) * this.px;
+    const m = this.getWorldTransformMatrix();
+    return new Phaser.Math.Vector2(m.getX(lx, ly), m.getY(lx, ly));
+  }
+
+  /** Coordonnées du monde Phaser → rayon dans la scène 3D. */
+  private rayAt(x: number, y: number) {
+    const m = this.getWorldTransformMatrix();
+    const local = m.applyInverse(x, y);
+    const cx = local.x / this.px + this.feet.x;
+    const cy = local.y / this.px + this.feet.y;
+    const ndc = new THREE.Vector2(cx / this.stage.canvas.width * 2 - 1, 1 - cy / this.stage.canvas.height * 2);
+    const ray = new THREE.Raycaster();
+    ray.setFromCamera(ndc, this.stage.camera);
+    return ray;
+  }
+
+  // ---- Habits ----
+
+  /** Habille le dino avec ses objets (accrochés à la tête, au cou, au dos ou à la main). */
   dress(ids: readonly string[]) {
-    this.accessories.forEach((a) => a.destroy());
-    this.accessories = [];
-    this.accessoryIds.clear();
-    for (const id of ids) {
-      const item = itemById(id);
-      if (!item || !this.scene.textures.exists(itemTexture(id))) continue;
-      for (const x of item.mirror !== undefined ? [item.x, item.mirror] : [item.x]) {
-        const img = this.scene.add.image(x, item.y, itemTexture(id)).setAngle(item.angle ?? 0);
-        img.setScale(item.w / img.width).setFlipX(item.mirror !== undefined && x === item.mirror);
-        if (item.parent === 'head') this.head.add(img);
-        else if (item.slot === 'back') this.rig.addAt(img, 0);
-        else this.rig.add(img);
-        this.accessories.push(img);
-        this.accessoryIds.set(img, id);
-      }
-    }
+    this.wear.dress(ids);
+    if (this.glTex) this.renderNow();
   }
 
   /** L'objet porté sous ce point de l'écran (le plus en avant), pour le retirer en le faisant glisser. */
-  accessoryAt(x: number, y: number): { id: string; image: Phaser.GameObjects.Image } | undefined {
-    for (const image of [...this.accessories].reverse()) {
-      if (image.visible && image.getBounds().contains(x, y)) return { id: this.accessoryIds.get(image)!, image };
-    }
-    return undefined;
+  accessoryAt(x: number, y: number): { id: string; x: number; y: number } | undefined {
+    this.rig.pivot.updateMatrixWorld(true);
+    const id = this.wear.hit(this.rayAt(x, y));
+    if (!id) return undefined;
+    const p = this.accessoryPoint(id)!;
+    return { id, x: p.x, y: p.y };
   }
 
-  /** Images d'un objet porté (pour les cacher pendant qu'on le retire). */
-  accessoryImages(id: string) {
-    return this.accessories.filter((a) => this.accessoryIds.get(a) === id);
+  /** Centre à l'écran d'un objet porté. */
+  accessoryPoint(id: string) {
+    const c = this.wear.center(id);
+    return c ? this.toScreen(c) : undefined;
+  }
+
+  /** Cache ou remontre un objet porté (pendant qu'on le retire). */
+  hideAccessory(id: string, hidden: boolean) {
+    this.wear.setHidden(id, hidden);
+    this.renderNow();
+  }
+
+  // ---- Rotation au doigt ----
+
+  /** Tourne le dino d'un glissé horizontal (en pixels d'écran). */
+  turnBy(dx: number) {
+    this.stopPose(['yaw']);
+    this.rig.pose.yaw += dx * 0.012;
+  }
+
+  /** Revient doucement à son orientation de repos (ou à `yaw`). */
+  turnBack(yaw = this.baseYaw) {
+    const p = this.rig.pose;
+    // On repart du tour le plus proche, pour ne pas faire plusieurs tours à l'envers.
+    p.yaw = yaw + Phaser.Math.Angle.Wrap(p.yaw - yaw);
+    this.scene.tweens.add({ targets: p, yaw, duration: 700, ease: 'Back.easeOut' });
+  }
+
+  /** Oriente le dino (0 = de face). */
+  face(yaw: number, duration = 400) {
+    this.baseYaw = yaw;
+    this.scene.tweens.add({ targets: this.rig.pose, yaw, duration, ease: 'Sine.easeInOut' });
   }
 
   /** Le dino s'endort : yeux fermés et petits « z » qui s'envolent. */
   sleep() {
-    this.setEyes('closed');
-    this.mouth.setTexture('dino-mouth-smile');
+    this.sleeping = true;
+    this.rig.setEyes('closed');
+    this.rig.setMouth('smile');
+    this.busy = true;
+    this.scene.tweens.add({ targets: this.rig.pose, headTilt: 0.18, headNod: 0.12, duration: 800 });
     this.scene.time.addEvent({
       delay: 1400, loop: true, callback: () => {
         if (!this.active) return;
-        const z = this.scene.add.text(70, -470, 'z', {
-          fontFamily: 'Arial Rounded MT Bold, Arial, sans-serif', fontSize: '64px', color: '#ffffff', fontStyle: 'bold',
+        const z = this.scene.add.text(90, -470, 'z', {
+          fontFamily: 'Baloo, Arial Rounded MT Bold, Arial, sans-serif', fontSize: '64px', color: '#ffffff', fontStyle: 'bold',
           stroke: '#2d3354', strokeThickness: 8,
         }).setOrigin(0.5);
         this.add(z);
-        this.scene.tweens.add({ targets: z, x: 150, y: -620, alpha: 0, scale: 1.6, duration: 2200, onComplete: () => z.destroy() });
+        this.scene.tweens.add({ targets: z, x: 170, y: -620, alpha: 0, scale: 1.6, duration: 2200, onComplete: () => z.destroy() });
       },
     });
   }
@@ -148,36 +290,52 @@ export class Dino extends Phaser.GameObjects.Container {
 
   /** Position du centre de la bouche (pour y amener la nourriture). */
   mouthWorldPoint(): Phaser.Math.Vector2 {
-    return new Phaser.Math.Vector2(this.x, this.y - 285 * this.scale);
+    this.rig.pivot.updateMatrixWorld(true);
+    return this.toScreen(this.mouthMarker.getWorldPosition(new THREE.Vector3()));
   }
 
   // ---- Animations permanentes ----
 
   private startIdle() {
     const t = this.scene.tweens;
-    t.add({ targets: this.body_, scaleY: S * 1.025, duration: 1100, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
-    t.add({ targets: this.head, y: -255, duration: 1100, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
-    t.add({ targets: this.tail, angle: { from: -6, to: 8 }, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
-    t.add({ targets: this.armL, angle: { from: 4, to: -6 }, duration: 1300, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
-    t.add({ targets: this.armR, angle: { from: -4, to: 6 }, duration: 1300, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    const p = this.rig.pose;
+    t.add({ targets: p, breath: { from: -1, to: 1 }, duration: 1300, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    t.add({ targets: p, tail: { from: -0.25, to: 0.25 }, duration: 1100, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    this.idleArms();
     this.scheduleBlink();
+  }
+
+  /** Les bras se balancent doucement (à relancer après une animation des bras). */
+  private idleArms() {
+    const t = this.scene.tweens;
+    const p = this.rig.pose;
+    this.stopPose(['armL', 'armR']);
+    t.add({ targets: p, armL: 0, armR: 0, duration: 250 }).once('complete', () => {
+      if (!this.active) return;
+      t.add({ targets: p, armL: { from: 0, to: 0.12 }, armR: { from: 0.12, to: 0 }, duration: 1500, yoyo: true,
+        repeat: -1, ease: 'Sine.easeInOut' });
+    });
   }
 
   private scheduleBlink() {
     this.scene.time.delayedCall(Phaser.Math.Between(1800, 4500), () => {
       if (!this.active) return;
-      if (this.eyeMode === 'open') {
-        this.eyes.forEach((e) => e.setTexture('dino-eye-closed'));
-        this.scene.time.delayedCall(130, () => this.eyeMode === 'open' && this.setEyes('open'));
+      if (this.rig.currentEyes === 'open') {
+        this.rig.setEyes('closed');
+        this.scene.time.delayedCall(120, () => this.rig.currentEyes === 'closed' && this.eyesOpenIfFree());
       }
       this.scheduleBlink();
     });
   }
 
+  private eyesOpenIfFree() {
+    if (!this.sleeping) this.rig.setEyes('open');
+  }
+
+  private sleeping = false;
+
   private setEyes(mode: 'open' | 'happy' | 'closed') {
-    this.eyeMode = mode;
-    const key = mode === 'open' ? 'dino-eye' : mode === 'happy' ? 'dino-eye-happy' : 'dino-eye-closed';
-    this.eyes.forEach((e) => e.setTexture(key));
+    this.rig.setEyes(mode);
   }
 
   /**
@@ -191,21 +349,29 @@ export class Dino extends Phaser.GameObjects.Container {
     this.clearWordTimers();
     this.wordSync = false;
     if (!talking) {
-      if (!this.busy) this.mouth.setTexture('dino-mouth-smile');
+      if (!this.busy) this.rig.setMouth('smile');
       return;
     }
-    // On laisse un court instant au premier mot pour arriver avant de battre au hasard.
     this.talkTimer = this.scene.time.delayedCall(120, () => {
       if (this.wordSync || !app.voice.talking) return;
       this.talkTimer = this.scene.time.addEvent({
         delay: 110,
         loop: true,
         callback: () => {
-          const open = this.mouth.texture.key !== 'dino-mouth-small';
-          this.mouth.setTexture(open ? 'dino-mouth-small' : Phaser.Math.RND.pick(MOUTHS));
+          const open = this.rig.currentMouth !== 'small';
+          this.rig.setMouth(open ? 'small' : Phaser.Math.RND.pick(MOUTHS));
+          this.nod();
         },
       });
     });
+  }
+
+  /** Petit mouvement de tête en parlant. */
+  private nod() {
+    if (this.busy) return;
+    const p = this.rig.pose;
+    this.scene.tweens.add({ targets: p, headNod: Phaser.Math.FloatBetween(-0.06, 0.08),
+      headTilt: Phaser.Math.FloatBetween(-0.08, 0.08), duration: 180, ease: 'Sine.easeOut' });
   }
 
   /** Un mot commence : la bouche s'ouvre et se ferme à chaque syllabe, puis se referme. */
@@ -219,14 +385,16 @@ export class Dino extends Phaser.GameObjects.Container {
     this.clearWordTimers();
     const syllables = Math.max(1, Math.round(ms / 170));
     const step = ms / syllables;
+    this.nod();
     for (let i = 0; i < syllables; i++) {
       this.wordTimers.push(
-        this.scene.time.delayedCall(i * step, () => this.mouth.setTexture(Phaser.Math.RND.pick(MOUTHS))),
-        this.scene.time.delayedCall(i * step + step * 0.6, () => this.mouth.setTexture('dino-mouth-small')),
+        this.scene.time.delayedCall(i * step, () => this.rig.setMouth(Phaser.Math.RND.pick(MOUTHS))),
+        this.scene.time.delayedCall(i * step + step * 0.6, () => this.rig.setMouth('small')),
       );
     }
     this.wordTimers.push(this.scene.time.delayedCall(ms, () => {
-      if (!this.busy) this.mouth.setTexture('dino-mouth-smile');
+      if (!this.busy) this.rig.setMouth('smile');
+      this.scene.tweens.add({ targets: this.rig.pose, headNod: 0, headTilt: 0, duration: 250 });
     }));
   }
 
@@ -239,42 +407,66 @@ export class Dino extends Phaser.GameObjects.Container {
 
   react(reaction: DinoReaction) {
     const t = this.scene.tweens;
-    t.killTweensOf(this.rig);
-    this.rig.setPosition(0, 0).setAngle(0).setScale(1);
+    const p = this.rig.pose;
+    this.stopPose(['x', 'y', 'spin', 'lean', 'bow', 'squash', 'grow', 'headTilt', 'headNod', 'headTurn',
+      'headScale', 'armLFwd', 'armRFwd', 'legL', 'legR', 'tailLift', 'eyeX', 'eyeY']);
+    Object.assign(p, { x: 0, y: 0, spin: 0, lean: 0, bow: 0, squash: 1, grow: 1, headScale: 1, armLFwd: 0, armRFwd: 0 });
     const happyFor = (ms: number) => {
       this.setEyes('happy');
-      this.scene.time.delayedCall(ms, () => this.setEyes('open'));
+      this.scene.time.delayedCall(ms, () => this.rig.currentEyes === 'happy' && this.eyesOpenIfFree());
     };
-    const armsUp = (ms: number, repeat = 0) => {
-      t.add({ targets: this.armL, angle: 140, duration: ms, yoyo: true, repeat, ease: 'Back.easeOut' });
-      t.add({ targets: this.armR, angle: -140, duration: ms, yoyo: true, repeat, ease: 'Back.easeOut' });
+    const armsUp = (ms: number, repeat = 0, lift = 2.3) => {
+      this.stopPose(['armL', 'armR']);
+      t.add({ targets: p, armL: lift, armR: lift, duration: ms, yoyo: true, repeat, ease: 'Back.easeOut',
+        onComplete: () => this.idleArms() });
     };
+    /** Saut : accroupi, envol, réception écrasée. */
+    const jump = (height: number, ms: number, repeat = 0) => {
+      t.chain({
+        targets: p,
+        repeat,
+        tweens: [
+          { squash: 0.85, duration: 90, ease: 'Quad.easeOut' },
+          { squash: 1.1, y: height, duration: ms, ease: 'Quad.easeOut' },
+          { squash: 1, y: 0, duration: ms, ease: 'Quad.easeIn' },
+          { squash: 0.88, duration: 70, yoyo: true, ease: 'Quad.easeOut' },
+        ],
+      });
+    };
+    const shake = (amp: number, times: number, ms = 50) =>
+      t.add({ targets: p, x: amp, duration: ms, yoyo: true, repeat: times, onComplete: () => (p.x = 0) });
+
     switch (reaction) {
       case 'happy':
         happyFor(900);
         armsUp(220);
-        t.add({ targets: this.rig, y: -50, duration: 220, yoyo: true, ease: 'Quad.easeOut' });
+        jump(0.22, 200);
         break;
       case 'cheer':
         happyFor(1400);
         armsUp(200, 1);
-        t.add({ targets: this.rig, y: -70, duration: 230, yoyo: true, repeat: 1, ease: 'Quad.easeOut' });
+        jump(0.3, 210, 1);
         break;
       case 'dance':
         happyFor(2200);
         armsUp(260, 3);
-        t.add({ targets: this.rig, angle: { from: -10, to: 10 }, duration: 260, yoyo: true, repeat: 3, ease: 'Sine.easeInOut',
-          onComplete: () => this.rig.setAngle(0) });
-        t.add({ targets: this.rig, y: -30, duration: 130, yoyo: true, repeat: 7, ease: 'Quad.easeOut' });
+        t.add({ targets: p, lean: { from: -0.18, to: 0.18 }, headTilt: { from: 0.15, to: -0.15 }, duration: 260,
+          yoyo: true, repeat: 3, ease: 'Sine.easeInOut', onComplete: () => { p.lean = 0; p.headTilt = 0; } });
+        t.add({ targets: p, y: 0.12, duration: 130, yoyo: true, repeat: 7, ease: 'Quad.easeOut' });
+        t.add({ targets: p, spin: Math.PI * 2, duration: 1000, delay: 1000, ease: 'Sine.easeInOut',
+          onComplete: () => (p.spin = 0) });
         break;
       case 'oops':
-        this.flashMouth('dino-mouth-o', 700);
-        t.add({ targets: this.head, angle: 12, duration: 200, yoyo: true, hold: 300, ease: 'Sine.easeInOut' });
-        t.add({ targets: this.rig, x: 10, duration: 60, yoyo: true, repeat: 3 });
+        this.flashMouth('o', 700);
+        t.add({ targets: p, headTilt: 0.3, bow: -0.08, duration: 200, yoyo: true, hold: 300, ease: 'Sine.easeInOut' });
+        shake(0.04, 3, 60);
         break;
       case 'think':
-        t.add({ targets: this.head, angle: -10, duration: 300, yoyo: true, hold: 600, ease: 'Sine.easeInOut' });
-        t.add({ targets: this.eyes, y: '-=6', duration: 300, yoyo: true, hold: 600 });
+        t.add({ targets: p, headTilt: -0.22, headTurn: 0.2, eyeY: 1, eyeX: -0.6, duration: 300, yoyo: true, hold: 700,
+          ease: 'Sine.easeInOut' });
+        this.stopPose(['armR']);
+        t.add({ targets: p, armR: 1.2, armRFwd: 1.2, duration: 300, yoyo: true, hold: 700,
+          onComplete: () => this.idleArms() });
         break;
       case 'eat': {
         this.busy = true;
@@ -283,136 +475,132 @@ export class Dino extends Phaser.GameObjects.Container {
         this.scene.time.addEvent({
           delay: 140, repeat: 7,
           callback: () => {
-            this.mouth.setTexture(n++ % 2 === 0 ? 'dino-mouth-wide' : 'dino-mouth-smile');
+            this.rig.setMouth(n++ % 2 === 0 ? 'wide' : 'smile');
             if (n === 8) this.busy = false;
           },
         });
-        t.add({ targets: this.rig, scaleY: 0.95, duration: 140, yoyo: true, repeat: 3 });
+        t.add({ targets: p, squash: 0.94, headNod: 0.1, duration: 140, yoyo: true, repeat: 3 });
         break;
       }
       case 'levelUp':
         happyFor(1800);
         armsUp(400);
-        t.add({ targets: this.rig, scale: 1.25, duration: 500, yoyo: true, hold: 500, ease: 'Back.easeOut' });
+        t.add({ targets: p, grow: 1.25, duration: 500, yoyo: true, hold: 500, ease: 'Back.easeOut' });
+        t.add({ targets: p, spin: Math.PI * 2, duration: 1200, ease: 'Sine.easeInOut', onComplete: () => (p.spin = 0) });
         this.sparkle();
         break;
       case 'tickle':
         happyFor(1000);
-        this.flashMouth('dino-mouth-wide', 900);
-        t.add({ targets: this.rig, x: 8, duration: 40, yoyo: true, repeat: 9 });
+        this.flashMouth('wide', 900);
+        shake(0.03, 9, 40);
+        t.add({ targets: p, lean: 0.12, duration: 120, yoyo: true, repeat: 3 });
         break;
       case 'wave':
-        // Coucou de la main : le bras droit se lève et s'agite.
         happyFor(1400);
-        t.killTweensOf(this.armR);
+        this.stopPose(['armL', 'armR']);
         t.chain({
-          targets: this.armR,
+          targets: p,
           tweens: [
-            { angle: -150, duration: 250, ease: 'Back.easeOut' },
-            { angle: -110, duration: 180, yoyo: true, repeat: 3, ease: 'Sine.easeInOut' },
-            { angle: 0, duration: 300 },
+            { armL: 2.5, duration: 250, ease: 'Back.easeOut' },
+            { armL: 1.9, duration: 180, yoyo: true, repeat: 3, ease: 'Sine.easeInOut' },
+            { armL: 0, duration: 300 },
           ],
-          // Puis le bras reprend son balancement habituel.
-          onComplete: () => t.add({
-            targets: this.armR, angle: { from: -4, to: 6 }, duration: 1300, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
-          }),
+          onComplete: () => this.idleArms(),
         });
+        t.add({ targets: p, headTilt: -0.15, duration: 300, yoyo: true, hold: 900 });
         break;
       case 'spin':
-        // Saut avec pirouette.
         happyFor(1200);
         armsUp(300);
-        t.add({ targets: this.rig, y: -90, duration: 350, yoyo: true, ease: 'Quad.easeOut' });
-        t.add({ targets: this.rig, angle: 360, duration: 700, ease: 'Sine.easeInOut', onComplete: () => this.rig.setAngle(0) });
+        jump(0.35, 330);
+        t.add({ targets: p, spin: Math.PI * 2, duration: 760, ease: 'Sine.easeInOut', onComplete: () => (p.spin = 0) });
         break;
       case 'yawn':
-        // Bâillement : yeux fermés, grande bouche, bras qui s'étirent.
         this.setEyes('closed');
-        this.flashMouth('dino-mouth-o', 1300);
-        this.scene.time.delayedCall(1300, () => this.setEyes('open'));
-        armsUp(650);
-        t.add({ targets: this.rig, scaleY: 1.06, duration: 650, yoyo: true, ease: 'Sine.easeInOut' });
+        this.flashMouth('o', 1300);
+        this.scene.time.delayedCall(1300, () => this.eyesOpenIfFree());
+        armsUp(650, 0, 2.6);
+        t.add({ targets: p, squash: 1.06, headNod: -0.25, duration: 650, yoyo: true, ease: 'Sine.easeInOut' });
         break;
       case 'roar':
-        // Petit rugissement : la tête avance, la bouche s'ouvre en grand.
         Sfx.play('roar');
-        this.flashMouth('dino-mouth-wide', 900);
-        t.add({ targets: this.head, scale: 1.12, duration: 200, yoyo: true, hold: 500, ease: 'Back.easeOut' });
-        t.add({ targets: this.rig, x: 5, duration: 45, yoyo: true, repeat: 7 });
+        this.flashMouth('wide', 900);
+        t.add({ targets: p, headScale: 1.1, headNod: -0.15, bow: 0.12, duration: 200, yoyo: true, hold: 500,
+          ease: 'Back.easeOut' });
+        this.stopPose(['armL', 'armR']);
+        t.add({ targets: p, armL: 1.3, armR: 1.3, armLFwd: 0.9, armRFwd: 0.9, duration: 200, yoyo: true, hold: 500,
+          onComplete: () => this.idleArms() });
+        shake(0.02, 7, 45);
         break;
       case 'lookAround':
-        // Il regarde à gauche, puis à droite, la tête suit.
         t.chain({
-          targets: this.eyes,
+          targets: p,
           tweens: [
-            { x: '-=10', duration: 250, hold: 500 },
-            { x: '+=20', duration: 400, hold: 500 },
-            { x: '-=10', duration: 250 },
-          ],
-        });
-        t.chain({
-          targets: this.head,
-          tweens: [
-            { angle: -8, duration: 250, hold: 500 },
-            { angle: 8, duration: 400, hold: 500 },
-            { angle: 0, duration: 250 },
+            { headTurn: -0.5, eyeX: -1, duration: 300, hold: 500, ease: 'Sine.easeInOut' },
+            { headTurn: 0.5, eyeX: 1, duration: 500, hold: 500, ease: 'Sine.easeInOut' },
+            { headTurn: 0, eyeX: 0, duration: 300, ease: 'Sine.easeInOut' },
           ],
         });
         break;
       case 'hop':
-        // Trois petits sauts sur place.
-        t.add({ targets: this.rig, y: -35, duration: 160, yoyo: true, repeat: 2, ease: 'Quad.easeOut' });
+        jump(0.15, 150, 2);
         break;
       case 'burp': {
-        // Rot : la tête part en avant, la bouche en « o », une bulle s'envole.
-        this.flashMouth('dino-mouth-o', 800);
-        t.add({ targets: this.head, angle: -10, y: -270, duration: 160, yoyo: true, hold: 350, ease: 'Back.easeOut' });
-        t.add({ targets: this.rig, scaleY: 1.05, duration: 160, yoyo: true });
-        const bubble = this.scene.add.circle(10, -300, 18, 0xbfe6ff, 0.7).setStrokeStyle(4, 0xffffff);
+        this.flashMouth('o', 800);
+        t.add({ targets: p, headNod: -0.2, headScale: 1.05, duration: 160, yoyo: true, hold: 350, ease: 'Back.easeOut' });
+        t.add({ targets: p, squash: 1.05, duration: 160, yoyo: true });
+        const m = this.mouthLocal();
+        const bubble = this.scene.add.circle(m.x, m.y, 18, 0xbfe6ff, 0.7).setStrokeStyle(4, 0xffffff);
         this.add(bubble);
-        t.add({ targets: bubble, y: -460, x: 60, scale: 2.2, duration: 900, ease: 'Sine.easeOut',
+        t.add({ targets: bubble, y: m.y - 160, x: m.x + 60, scale: 2.2, duration: 900, ease: 'Sine.easeOut',
           onComplete: () => t.add({ targets: bubble, scale: 3, alpha: 0, duration: 120, onComplete: () => bubble.destroy() }) });
         this.scene.time.delayedCall(900, () => this.react('oops'));
         break;
       }
       case 'fart': {
-        // Prout : petit saut surpris, nuages verts derrière la queue, yeux fermés (gêné).
         this.setEyes('closed');
-        this.scene.time.delayedCall(1100, () => this.setEyes('open'));
-        this.flashMouth('dino-mouth-small', 1100);
-        t.add({ targets: this.rig, y: -45, duration: 150, yoyo: true, ease: 'Quad.easeOut' });
-        t.add({ targets: this.tail, angle: 30, duration: 120, yoyo: true, repeat: 1 });
+        this.scene.time.delayedCall(1100, () => this.eyesOpenIfFree());
+        this.flashMouth('small', 1100);
+        jump(0.18, 150);
+        t.add({ targets: p, tailLift: 0.8, duration: 120, yoyo: true, repeat: 1 });
+        const back = p.yaw >= 0 ? -1 : 1;
         for (let i = 0; i < 4; i++) {
-          const puff = this.scene.add.circle(150 + i * 12, -60 - i * 6, 26, 0xa5d36b, 0.75);
+          const puff = this.scene.add.circle(back * (120 + i * 12), -60 - i * 6, 26, 0xa5d36b, 0.75);
           this.addAt(puff, 0);
-          t.add({ targets: puff, x: 230 + i * 30, y: -80 - i * 25, scale: 2.4, alpha: 0, duration: 1300, delay: i * 120,
-            onComplete: () => puff.destroy() });
+          t.add({ targets: puff, x: back * (220 + i * 30), y: -80 - i * 25, scale: 2.4, alpha: 0, duration: 1300,
+            delay: i * 120, onComplete: () => puff.destroy() });
         }
         break;
       }
       case 'growl':
-        // Ventre qui gargouille : le corps tremble, il se tient le ventre.
-        this.flashMouth('dino-mouth-small', 900);
-        t.add({ targets: this.body_, scaleX: S * 1.06, duration: 90, yoyo: true, repeat: 5 });
-        t.add({ targets: [this.armL, this.armR], angle: 0, duration: 200, yoyo: true, hold: 600 });
-        t.add({ targets: this.head, angle: 8, duration: 250, yoyo: true, hold: 400 });
+        this.flashMouth('small', 900);
+        t.add({ targets: p, squash: 0.96, duration: 90, yoyo: true, repeat: 5 });
+        this.stopPose(['armL', 'armR']);
+        t.add({ targets: p, armL: 0.5, armR: 0.5, armLFwd: 1.1, armRFwd: 1.1, duration: 200, yoyo: true, hold: 600,
+          onComplete: () => this.idleArms() });
+        t.add({ targets: p, headTilt: 0.2, headNod: 0.2, duration: 250, yoyo: true, hold: 400 });
         break;
       case 'beg':
-        // « S'il te plaît ! » : petits sauts, bras en l'air, yeux tout contents.
         happyFor(1200);
-        armsUp(180, 3);
-        t.add({ targets: this.rig, y: -25, duration: 140, yoyo: true, repeat: 3, ease: 'Quad.easeOut' });
+        armsUp(180, 3, 1.8);
+        t.add({ targets: p, y: 0.1, duration: 140, yoyo: true, repeat: 3, ease: 'Quad.easeOut' });
         break;
       case 'gape':
-        // Grande bouche ouverte : « Aaaah ! »
-        this.flashMouth('dino-mouth-wide', 1600);
-        t.add({ targets: this.head, angle: -14, duration: 300, yoyo: true, hold: 1000, ease: 'Sine.easeInOut' });
+        this.flashMouth('wide', 1600);
+        t.add({ targets: p, headNod: -0.3, duration: 300, yoyo: true, hold: 1000, ease: 'Sine.easeInOut' });
         break;
     }
   }
 
   /** Vrai si le dino est libre (ne parle pas, ne mange pas, ne fait pas une grimace). */
   get free() { return !this.busy && !app.voice.talking; }
+
+  /** Bouche, en coordonnées du conteneur. */
+  private mouthLocal() {
+    const w = this.mouthWorldPoint();
+    const local = this.getWorldTransformMatrix().applyInverse(w.x, w.y);
+    return { x: local.x, y: local.y };
+  }
 
   /**
    * Coup de langue : la langue rose part de la bouche jusqu'à la cible (une
@@ -425,7 +613,7 @@ export class Dino extends Phaser.GameObjects.Container {
     const to = new Phaser.Math.Vector2(target.x, target.y);
     const width = Math.max(6, 34 * this.scale);
     this.busy = true;
-    this.mouth.setTexture('dino-mouth-wide');
+    this.rig.setMouth('wide');
     this.lookAt(to.x, to.y, 400);
     Sfx.play('slurp');
     const drawTo = (t: number) => {
@@ -463,12 +651,12 @@ export class Dino extends Phaser.GameObjects.Container {
     this.react(Phaser.Math.RND.pick(IDLE_FUN));
   }
 
-  private flashMouth(key: string, ms: number) {
+  private flashMouth(mouth: Mouth, ms: number) {
     this.busy = true;
-    this.mouth.setTexture(key);
+    this.rig.setMouth(mouth);
     this.scene.time.delayedCall(ms, () => {
       this.busy = false;
-      if (!app.voice.talking) this.mouth.setTexture('dino-mouth-smile');
+      if (!app.voice.talking) this.rig.setMouth('smile');
     });
   }
 
@@ -488,43 +676,39 @@ export class Dino extends Phaser.GameObjects.Container {
   /** Le dino tend le bras vers un point de l'écran et le regarde. */
   pointAt(x: number, y: number, holdMs = 1400) {
     const right = x >= this.x;
-    const arm = right ? this.armR : this.armL;
-    const shoulder = arm.getWorldTransformMatrix();
-    // Bras au repos vers le bas (angle 0) : on le tourne vers la cible.
-    const angle = Phaser.Math.RadToDeg(Math.atan2(y - shoulder.ty, x - shoulder.tx)) - 90;
-    this.scene.tweens.killTweensOf(arm);
-    this.scene.tweens.add({
-      targets: arm, angle, duration: 250, ease: 'Back.easeOut', yoyo: true, hold: holdMs,
-      onComplete: () => this.scene.tweens.add({
-        targets: arm, angle: { from: right ? -4 : 4, to: right ? 6 : -6 },
-        duration: 1300, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
-      }),
-    });
+    // Le bras gauche du dino est du côté droit de l'écran.
+    const arm = right ? 'armL' : 'armR';
+    const fwd = right ? 'armLFwd' : 'armRFwd';
+    const shoulder = this.toScreen(this.rig.worldPoint(arm));
+    // Angle à l'écran depuis la verticale vers le bas : 0 = bras baissé, π/2 = horizontal, π = en l'air.
+    const a = Math.atan2(Math.abs(x - shoulder.x), shoulder.y - y + 1e-3);
+    const lift = Phaser.Math.Clamp(Math.PI - a, 0.4, 2.8);
+    const t = this.scene.tweens;
+    const p = this.rig.pose;
+    this.stopPose(['armL', 'armR', 'armLFwd', 'armRFwd']);
+    t.add({ targets: p, [arm]: lift, [fwd]: 0.25, duration: 250, ease: 'Back.easeOut', yoyo: true, hold: holdMs,
+      onComplete: () => this.idleArms() });
+    // Le dino se tourne un peu vers ce qu'il montre.
+    t.add({ targets: p, yaw: this.baseYaw + (right ? 0.25 : -0.25), duration: 300, yoyo: true, hold: holdMs });
     this.lookAt(x, y, holdMs);
   }
 
   lookAt(x: number, y: number, holdMs = 1200) {
-    const dx = Phaser.Math.Clamp((x - this.x) / 40, -8, 8);
-    const dy = Phaser.Math.Clamp((y - (this.y - 350 * this.scale)) / 60, -6, 6);
-    this.eyes.forEach((eye, i) => this.scene.tweens.add({
-      targets: eye, x: (i === 0 ? -52 : 52) + dx, y: -112 + dy, duration: 200, yoyo: true, hold: holdMs,
-    }));
+    const eye = this.toScreen(this.rig.worldPoint('eyeL'));
+    const h = Dino.HEIGHT * this.scale;
+    const dx = Phaser.Math.Clamp((x - eye.x) / (h * 0.8), -1, 1);
+    const dy = Phaser.Math.Clamp((eye.y - y) / (h * 0.8), -1, 1);
+    this.scene.tweens.add({
+      targets: this.rig.pose, eyeX: dx, eyeY: dy, headTurn: dx * 0.35, headNod: -dy * 0.2,
+      duration: 220, yoyo: true, hold: holdMs, ease: 'Sine.easeOut',
+    });
   }
 
   /** Jauge de croissance dessinée sur le ventre (null = masquée). */
   setBellyFill(fill: number | null) {
     this.bellyFill = fill;
-    this.belly.clear();
-    if (fill === null) return;
-    const cx = 0, cy = -114, rx = 62, ry = 66;
-    const cut = cy + ry - 2 * ry * Phaser.Math.Clamp(fill, 0, 1);
-    const points: Phaser.Math.Vector2[] = [];
-    for (let i = 0; i < 64; i++) {
-      const a = (i / 64) * Math.PI * 2;
-      points.push(new Phaser.Math.Vector2(cx + rx * Math.cos(a), Math.max(cut, cy + ry * Math.sin(a))));
-    }
-    this.belly.fillStyle(0xffb84d, 0.9).fillPoints(points, true);
-    this.belly.lineStyle(5, 0xe0902d, 1).strokeEllipse(cx, cy, rx * 2, ry * 2);
+    this.wear.setBellyFill(fill);
+    this.renderNow();
   }
 
   get bellyValue() { return this.bellyFill; }

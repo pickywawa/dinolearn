@@ -4,6 +4,7 @@ import { FRUITS } from '../domain/models';
 import { GAMES } from '../content/games';
 import { ITEMS, itemTexture } from '../content/items';
 import { PRINT_KINDS } from '../print/catalog';
+import { preloadModels } from '../dino3d/model';
 
 export const UI_IMAGES = [...new Set([
   'ui-play', 'ui-home', 'ui-star', 'ui-sparkles', 'ui-globe', 'ui-cloud', 'ui-cake', 'flag-gb',
@@ -38,6 +39,7 @@ export class BootScene extends Phaser.Scene {
   }
 
   create() {
-    this.scene.start('Start');
+    // Les modèles 3D (dino et objets) doivent être prêts avant le premier dino.
+    void preloadModels().then(() => this.scene.start('Start'));
   }
 }

@@ -203,31 +203,42 @@ export class WardrobeScene extends BaseScene {
    * lui ; lâché sur le dino, il reste en place.
    */
   private setupTakeOff() {
-    let held: { id: string; ghost: Phaser.GameObjects.Image; dx: number; dy: number; hidden: Phaser.GameObjects.Image[] } | undefined;
+    let held: { id: string; ghost: Phaser.GameObjects.Image; dx: number; dy: number } | undefined;
+    // Glisser sur le dino (pas sur un objet) le fait tourner sur lui-même.
+    let turning: { x: number } | undefined;
     this.input.on('pointerdown', (p: Phaser.Input.Pointer, over: Phaser.GameObjects.GameObject[]) => {
       if (held || over.some((o) => this.slotOf(o))) return;
       const hit = this.dino.accessoryAt(p.x, p.y);
-      if (!hit) return;
+      if (!hit) {
+        if (this.onDino(p.x, p.y)) turning = { x: p.x };
+        return;
+      }
       this.guide.hide();
-      const m = hit.image.getWorldTransformMatrix();
-      const ghost = this.add.image(m.tx, m.ty, hit.image.texture.key).setDepth(50)
-        .setScale(Math.abs(m.scaleX), Math.abs(m.scaleY)).setRotation(m.rotation).setFlipX(hit.image.flipX);
-      const hidden = this.dino.accessoryImages(hit.id);
-      hidden.forEach((i) => i.setVisible(false));
-      held = { id: hit.id, ghost, dx: m.tx - p.x, dy: m.ty - p.y, hidden };
+      const ghost = this.add.image(hit.x, hit.y, itemTexture(hit.id)).setDepth(50);
+      ghost.setScale((this.dinoHeight * 0.32) / ghost.width);
+      this.dino.hideAccessory(hit.id, true);
+      held = { id: hit.id, ghost, dx: hit.x - p.x, dy: hit.y - p.y };
       Sfx.play('pop');
     });
     this.input.on('pointermove', (p: Phaser.Input.Pointer) => {
       if (held && p.isDown) held.ghost.setPosition(p.x + held.dx, p.y + held.dy);
+      if (turning && p.isDown) {
+        this.dino.turnBy(p.x - turning.x);
+        turning.x = p.x;
+      }
     });
     this.input.on('pointerup', (p: Phaser.Input.Pointer) => {
+      if (turning) {
+        turning = undefined;
+        this.time.delayedCall(1500, () => this.dino.active && !turning && this.dino.turnBack());
+      }
       if (!held) return;
-      const { id, ghost, hidden } = held;
+      const { id, ghost } = held;
       held = undefined;
       if (this.onDino(p.x, p.y)) {
         // Lâché sur le dino : l'objet reste.
         ghost.destroy();
-        hidden.forEach((i) => i.setVisible(true));
+        this.dino.hideAccessory(id, false);
         return;
       }
       app.progress.takeOff(id);
@@ -245,9 +256,8 @@ export class WardrobeScene extends BaseScene {
   /** Toucher un objet : le dino montre qu'il faut le faire glisser (sur lui pour le mettre, loin de lui pour l'enlever). */
   private tapped(slot: Slot) {
     if (app.progress.collection.worn.includes(slot.item.id)) {
-      const image = this.dino.accessoryImages(slot.item.id)[0];
-      const from = image ? image.getBounds() : undefined;
-      if (from) this.guide.drag({ x: from.centerX, y: from.centerY }, { x: slot.home.x, y: slot.home.y });
+      const from = this.dino.accessoryPoint(slot.item.id);
+      if (from) this.guide.drag({ x: from.x, y: from.y }, { x: slot.home.x, y: slot.home.y });
       this.run(async () => {
         await this.say('wardrobe.take_off');
         this.guide.hide();

@@ -39,7 +39,7 @@ const game = new Phaser.Game({
 });
 
 // En développement seulement : accès au jeu depuis la console (tests dans le navigateur).
-if (import.meta.env.DEV) (window as unknown as { game: Phaser.Game }).game = game;
+if (import.meta.env.DEV) Object.assign(window, { game, app });
 
 // Rotation de l'écran : on adapte la taille logique et on relance la scène active.
 let portrait = size.height >= size.width;
