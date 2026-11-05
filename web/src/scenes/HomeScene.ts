@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { app } from '../core/app';
-import { applyChildSettings, planetSeries, playableGames, switchChild } from '../core/app';
+import { applyChildSettings, planetSeries, switchChild } from '../core/app';
 import { chooseEnvelope } from '../ui/envelopes';
 import { openParents } from '../ui/parents';
 import { askParentCode, childForm, createParentCode, unlockNight, unlockPlayTime } from '../ui/pin';
