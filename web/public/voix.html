@@ -10,7 +10,8 @@
   navigateur. Rien n'est intégré au jeu tant qu'une voix n'a pas été choisie.
   Piper (MIT) est chargé depuis jsDelivr, avec onnxruntime-web 1.18.0 ; les
   voix (≈ 30 à 75 Mo) viennent de HuggingFace et restent ensuite dans le
-  navigateur (OPFS). Aucune donnée n'est envoyée : le texte est calculé ici.
+  navigateur (OPFS). eSpeak-NG (GPL-3, portage WebAssembly ianmarmour/espeak-ng.js, ≈ 18 Mo) vient aussi de
+  jsDelivr. Aucune donnée n'est envoyée : le texte est calculé ici.
 -->
 <script type="importmap">
 { "imports": { "onnxruntime-web/wasm": "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.18.0/dist/esm/ort.wasm.min.js" } }
@@ -120,6 +121,33 @@
     <div class="bar"><span id="enBar"></span></div>
     <div class="status" id="enStatus"></div>
     <div id="enList" style="margin-top:8px"></div>
+  </section>
+
+  <section>
+    <h2>4. eSpeak-NG (voix de synthèse à règles)</h2>
+    <p class="help">Une autre famille de moteur : pas de voix enregistrée, la voix est calculée par des règles de
+      prononciation et d'intonation. Elle sonne plus « robot », mais l'intonation est toujours la même et les
+      <b>questions montent toute seules</b>. Très rapide, même sur un vieux téléphone. Un seul téléchargement
+      d'environ 18 Mo (toutes les langues), puis il reste dans le navigateur.</p>
+    <label class="slider" style="margin-top:0">Voix :
+      <select id="esVoice">
+        <option value="fr+f3">Femme (f3) ★</option>
+        <option value="fr+f4">Femme (f4)</option>
+        <option value="fr+Annie">Annie</option>
+        <option value="fr+Andrea">Andrea</option>
+        <option value="fr+Tweaky">Tweaky (rigolote)</option>
+        <option value="fr+m3">Homme (m3)</option>
+        <option value="fr">Voix de base</option>
+      </select>
+    </label>
+    <label class="slider">Hauteur : <b id="esPitchOut">70</b>
+      <input type="range" id="esPitch" min="20" max="99" step="1" value="70">
+    </label>
+    <label class="slider">Vitesse (mots par minute) : <b id="esSpeedOut">145</b>
+      <input type="range" id="esSpeed" min="100" max="200" step="5" value="145">
+    </label>
+    <div class="status" id="esStatus"></div>
+    <div id="esList" style="margin-top:8px"></div>
   </section>
 
   <section>
@@ -388,6 +416,61 @@ for (const box of $('enList').querySelectorAll('.sentence')) {
   b.addEventListener('click', () => speakPhone(box.querySelector('.text').textContent, 'en'));
   box.querySelector('.row').append(b);
 }
+// ---- 4. eSpeak-NG (WebAssembly, GPL-3) : voix à règles, intonation stable ----
+// Portage d'eSpeak-NG compilé en WebAssembly (dépôt GitHub ianmarmour/espeak-ng.js), chargé depuis jsDelivr.
+// Une seule instance : on appelle le programme pour chaque phrase, il écrit un fichier WAV en mémoire.
+let espeak;
+async function espeakInstance() {
+  if (!espeak) {
+    espeak = (async () => {
+      $('esStatus').textContent = 'Téléchargement du moteur (≈ 18 Mo, une seule fois)…';
+      const t0 = performance.now();
+      const { default: ESpeakNG } = await import('https://cdn.jsdelivr.net/npm/espeak-ng@1.0.2/dist/espeak-ng.js');
+      const inst = await ESpeakNG({ noInitialRun: true, print: () => {}, printErr: () => {} });
+      $('esStatus').textContent = `Moteur prêt en ${((performance.now() - t0) / 1000).toFixed(1)} s.`;
+      return inst;
+    })();
+    espeak.catch(() => { espeak = undefined; });
+  }
+  return espeak;
+}
+async function espeakWav(text, voice) {
+  const args = ['-v', voice, '-p', $('esPitch').value, '-s', $('esSpeed').value, '-w', '/out.wav', text];
+  const run = (inst) => {
+    try {
+      inst.callMain(args);
+    } catch (e) {
+      // Le programme peut se terminer par exit(0) : ce n'est pas une erreur.
+      if (e?.name !== 'ExitStatus') throw e;
+    }
+    return new Blob([inst.FS.readFile('/out.wav')], { type: 'audio/wav' });
+  };
+  try {
+    return run(await espeakInstance());
+  } catch {
+    // Certains portages n'aiment pas être relancés : on recrée une instance et on réessaie une fois.
+    espeak = undefined;
+    return run(await espeakInstance());
+  }
+}
+for (const [id, out] of [['esPitch', 'esPitchOut'], ['esSpeed', 'esSpeedOut']]) {
+  $(id).addEventListener('input', () => { $(out).textContent = $(id).value; });
+}
+sentenceList($('esList'), FR, [['▶ Écouter', async (text, meta, button) => {
+  button.disabled = true;
+  meta.textContent = 'Calcul…';
+  try {
+    const t0 = performance.now();
+    const wav = await espeakWav(text, $('esVoice').value);
+    const calc = (performance.now() - t0) / 1000;
+    const dur = await playWav(wav, 1);
+    meta.textContent = `${$('esVoice').value} · calculée en ${calc.toFixed(2)} s pour ${dur.toFixed(1)} s de parole`;
+  } catch (e) {
+    meta.textContent = `Erreur : ${e?.message ?? e}`;
+    $('esStatus').textContent = '';
+  }
+  button.disabled = false;
+}]]);
 </script>
 </body>
 </html>
