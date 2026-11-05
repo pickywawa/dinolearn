@@ -145,7 +145,7 @@ export class StartScene extends BaseScene {
   private drawCracks(g: Phaser.GameObjects.Graphics, stage: number) {
     g.clear();
     for (const line of CRACKS[stage - 1]) {
-      g.lineStyle(7, 0x2d3354, 1).beginPath();
+      g.lineStyle(6, 0x9c7445, 1).beginPath();
       line.forEach(([x, y], i) => (i === 0 ? g.moveTo(x - 110, y - 135) : g.lineTo(x - 110, y - 135)));
       g.strokePath();
     }

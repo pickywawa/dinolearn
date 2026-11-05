@@ -14,6 +14,7 @@ import { openPrintView, thumbnail } from './printView';
 import { timeStepper } from './timeStepper';
 import { packsPanel } from './packsPanel';
 import { TITLES } from '../content/gameTitles';
+import { dinoPortrait } from '../dino3d/portrait';
 
 /**
  * Espace parents : une page HTML classique posée sur le jeu (lisible et
@@ -83,6 +84,38 @@ const CSS = `
   font-weight: 700; border-radius: 10px; padding: 2px 8px; }
 `;
 
+// Habillage « île aux dinos » (maquette) : en-tête bleu nuit, colonne des enfants, cartes arrondies.
+const THEME = `
+.parents { background: linear-gradient(#eef6ff, #f7f3ea); }
+.parents h1, .parents h2, .parents .kid-name, .parents .tiles b { font-family: 'Baloo 2', system-ui, sans-serif; }
+.parents header { padding: 12px 20px; box-shadow: 0 4px 14px rgba(30,40,80,.25); }
+.parents header h1 { font-size: 26px; display: flex; align-items: center; gap: 12px; }
+.parents header h1 .icon { display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: 50%;
+  background: #fff; color: #2d3354; font-size: 24px; }
+.parents header button.primary { border-radius: 999px; padding: 10px 22px; font-family: 'Baloo 2', sans-serif; font-size: 18px;
+  font-weight: 800; background: linear-gradient(#5fd34a, #34a52a); box-shadow: 0 3px 0 #237a1a; }
+.parents main { max-width: 1180px; display: grid; grid-template-columns: 230px 1fr; gap: 18px; align-items: start; }
+.parents aside { position: sticky; top: 86px; background: #fff; border-radius: 18px; padding: 14px;
+  box-shadow: 0 2px 10px rgba(30,40,80,.08); display: flex; flex-direction: column; gap: 10px; }
+.parents aside button { display: flex; align-items: center; gap: 10px; text-align: left; border-radius: 12px; font-weight: 700;
+  background: #f1f4f9; }
+.parents aside button img { width: 34px; height: 34px; border-radius: 50%; background: #fff; }
+.parents aside button.on { background: #2d3354; color: #fff; }
+.parents aside button.add { background: #e7f8df; color: #2a7f1d; border: 2px dashed #8fd47a; }
+.parents section { border-radius: 18px; box-shadow: 0 2px 10px rgba(30,40,80,.08); }
+.parents .kid { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.parents .kid img.avatar { width: 112px; height: 112px; border-radius: 50%; background: radial-gradient(#fff, #ffe3f0);
+  box-shadow: 0 3px 10px rgba(30,40,80,.15); }
+.parents .kid-name { font-size: 24px; font-weight: 800; margin: 0; }
+.parents .kid small { color: #6b7280; }
+.parents .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-top: 14px; }
+.parents .tiles div { background: #f6f8fc; border: 1px solid #e3e9f2; border-radius: 14px; padding: 12px; text-align: center;
+  color: #4b5563; font-size: 14px; }
+.parents .tiles b { display: block; font-size: 28px; color: #2d3354; line-height: 1.1; }
+.parents button.edit { border-radius: 999px; background: #eef1f6; font-weight: 700; }
+@media (max-width: 760px) { .parents main { grid-template-columns: 1fr; } .parents aside { position: static; } }
+`;
+
 const minutes = (ms: number) => Math.round(ms / 60_000);
 const percent = (x: number) => `${Math.round(x * 100)} %`;
 
@@ -100,7 +133,7 @@ export function openParents(onClose: () => void) {
   let p = app.profiles.progressOf(selected);
   let added: string | undefined;
   if (!document.getElementById('parents-css')) {
-    document.head.append(el('style', { id: 'parents-css' }, CSS));
+    document.head.append(el('style', { id: 'parents-css' }, CSS + THEME));
   }
   const root = el('div', { class: 'parents', role: 'dialog', 'aria-label': 'Espace parents' });
   const close = el('button', { class: 'primary' }, 'Retour au jeu');
@@ -110,15 +143,16 @@ export function openParents(onClose: () => void) {
     else applyChildSettings();
     onClose();
   });
-  root.append(el('header', {}, el('h1', {}, 'Espace parents'), close));
+  root.append(el('header', {}, el('h1', {}, el('span', { class: 'icon' }, '👨‍👩‍👧'), 'Espace parents'), close));
   const main = el('main');
   root.append(main);
   document.body.append(root);
 
   const render = () => {
     main.replaceChildren(
-      childrenSection(), printSection(), levelSection(), timeSection(), codeSection(), voiceSection(), packsSection(), gamesSection(),
-      failuresSection(), soundSection(), dataSection(),
+      el('aside', {}, ...childTabs()),
+      el('div', { class: 'content' }, childrenSection(), printSection(), levelSection(), timeSection(), codeSection(), voiceSection(), packsSection(), gamesSection(),
+      failuresSection(), soundSection(), dataSection()),
     );
   };
 
@@ -129,16 +163,19 @@ export function openParents(onClose: () => void) {
     render();
   };
 
-  /** Onglets des enfants, fiche de l'enfant choisi, ajout et suppression, alternance. */
-  function childrenSection() {
-    const tabs = el('div', { class: 'row' });
+  /** Colonne des enfants (avec le portrait de leur dino) et bouton d'ajout. */
+  function childTabs(): Node[] {
+    const out: Node[] = [];
     for (const id of app.profiles.ids) {
       const child = app.profiles.progressOf(id);
-      const b = el('button', { class: id === selected ? 'on' : '' }, child.name || 'Sans prénom');
+      const face = child.hatched ? dinoPortrait(child.color, 96) : undefined;
+      const b = el('button', { class: id === selected ? 'on' : '' });
+      if (face) b.append(el('img', { src: face, alt: '' }));
+      b.append(child.name || 'Sans prénom');
       b.addEventListener('click', () => select(id));
-      tabs.append(b);
+      out.push(b);
     }
-    const add = el('button', { class: 'primary' }, '+ Ajouter un enfant');
+    const add = el('button', { class: 'add' }, '+ Ajouter un enfant');
     add.addEventListener('click', async () => {
       const child = await childForm('Nouvel enfant', 'En quittant l\'espace parents, le nouvel enfant touchera son œuf '
         + 'pour faire éclore son propre dino.', undefined, 'Annuler');
@@ -146,9 +183,14 @@ export function openParents(onClose: () => void) {
       added = app.profiles.add(child);
       select(added);
     });
-    tabs.append(add);
+    out.push(add);
+    return out;
+  }
 
-    const edit = el('button', {}, 'Modifier la fiche');
+  /** Fiche de l'enfant choisi : portrait, chiffres clés, modification, suppression, alternance. */
+  function childrenSection() {
+
+    const edit = el('button', { class: 'edit' }, '✏️ Modifier la fiche');
     edit.addEventListener('click', async () => {
       const s = p.settings;
       const child = await childForm(`Fiche de ${p.name || 'l\'enfant'}`, 'Prénom, âge et réglages.', {
@@ -182,20 +224,22 @@ export function openParents(onClose: () => void) {
     (alternate as HTMLInputElement).checked = app.profiles.alternate;
     alternate.addEventListener('change', () => app.profiles.setAlternate((alternate as HTMLInputElement).checked));
 
+    const face = p.hatched ? dinoPortrait(p.color, 224, 'happy') : undefined;
     return el('section', {},
-      el('h2', {}, 'Enfants'),
-      el('p', { class: 'help' }, 'Chaque enfant a son dino, sa progression et ses réglages. Les réglages ci-dessous '
-        + 'concernent l\'enfant choisi.'),
-      tabs,
-      el('p', { style: 'margin:14px 0 0' }, el('b', {}, p.name || 'Sans prénom'),
-        ` · ${p.age} ans · ${country ? country.name.replace(/^(la|le) /, '') : 'autre pays'} · ${dino}`),
-      actions,
-      el('div', { class: 'stat', style: 'margin-top:12px' },
+      el('div', { class: 'kid' },
+        face ? el('img', { class: 'avatar', src: face, alt: dino }) : '',
+        el('div', {},
+          el('p', { class: 'kid-name' }, `${p.name || 'Sans prénom'} · ${p.age} ans`),
+          el('small', {}, `${country ? country.name.replace(/^(la|le) /, '') : 'autre pays'} · ${dino}`))),
+      el('div', { class: 'tiles' },
         el('div', {}, el('b', {}, String(p.seriesPlayed)), 'séries jouées'),
         el('div', {}, el('b', {}, String(answers.length)), 'réponses'),
-        el('div', {}, el('b', {}, last100.length ? percent(rate) : '—'), 'réussite du 1er coup (100 dernières)'),
+        el('div', {}, el('b', {}, last100.length ? percent(rate) : '—'), 'de réussite du 1er coup'),
         el('div', {}, el('b', {}, `${minutes(p.playMsToday())} min`), 'de jeu aujourd\'hui'),
       ),
+      el('p', { class: 'help', style: 'margin:10px 0 0' }, 'Chaque enfant a son dino, sa progression et ses réglages. '
+        + 'Les réglages ci-dessous concernent l\'enfant choisi.'),
+      actions,
       app.profiles.count > 1
         ? el('div', { class: 'row', style: 'justify-content:space-between;margin-top:14px' },
           el('span', {}, 'Alterner les séries : après chaque série, c\'est au tour de l\'enfant suivant'),

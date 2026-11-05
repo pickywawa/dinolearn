@@ -10,6 +10,25 @@ const W = 8; // épaisseur du contour
 
 /** L'œuf à pois (écran de départ). */
 const EGG = `
+      <defs>
+        <radialGradient id="eggShade" cx="0.38" cy="0.3" r="0.8">
+          <stop offset="0" stop-color="#ffffff"/><stop offset="0.55" stop-color="#fff6e2"/><stop offset="1" stop-color="#ecd3a6"/>
+        </radialGradient>
+        <radialGradient id="spotG" cx="0.35" cy="0.3" r="0.8"><stop offset="0" stop-color="#b4ef8f"/><stop offset="1" stop-color="#55b83a"/></radialGradient>
+        <radialGradient id="spotO" cx="0.35" cy="0.3" r="0.8"><stop offset="0" stop-color="#ffd08a"/><stop offset="1" stop-color="#f08a1c"/></radialGradient>
+        <radialGradient id="spotP" cx="0.35" cy="0.3" r="0.8"><stop offset="0" stop-color="#ffc2cf"/><stop offset="1" stop-color="#ee6f8c"/></radialGradient>
+      </defs>
+      <path d="M110 10 C170 10 210 110 210 170 C210 230 166 262 110 262 C54 262 10 230 10 170 C10 110 50 10 110 10 Z"
+        fill="url(#eggShade)" stroke="#d9b98a" stroke-width="4"/>
+      <circle cx="70" cy="110" r="18" fill="url(#spotG)"/>
+      <circle cx="146" cy="80" r="12" fill="url(#spotO)"/>
+      <circle cx="150" cy="180" r="22" fill="url(#spotG)"/>
+      <circle cx="80" cy="210" r="12" fill="url(#spotP)"/>
+      <circle cx="118" cy="140" r="9" fill="url(#spotO)"/>
+      <ellipse cx="72" cy="60" rx="20" ry="10" fill="#fff" opacity="0.9" transform="rotate(-40 72 60)"/>`;
+
+/** L'œuf des fiches à imprimer : contour net (coloriages). */
+const EGG_PRINT = `
       <path d="M110 10 C170 10 210 110 210 170 C210 230 166 262 110 262 C54 262 10 230 10 170 C10 110 50 10 110 10 Z"
         fill="#fff8e7" stroke="${OUTLINE}" stroke-width="${W}"/>
       <circle cx="70" cy="110" r="18" fill="#7bd45a" stroke="${OUTLINE}" stroke-width="5"/>
@@ -230,6 +249,7 @@ export const DINO_PARTS: DinoPart[] = [
     height: 270,
     svg: svg(220, 270, EGG),
   },
+  { key: 'egg-print', width: 220, height: 270, svg: svg(220, 270, EGG_PRINT) },
   // Les deux moitiés de la coquille, coupées en zigzag (éclosion).
   ...(['top', 'bottom'] as const).map((half) => ({
     key: `egg-${half}`,
@@ -239,7 +259,7 @@ export const DINO_PARTS: DinoPart[] = [
       ? `0,0 220,0 ${[...EGG_ZIGZAG].reverse().map(([x, y]) => `${x},${y}`).join(' ')}`
       : `${EGG_ZIGZAG.map(([x, y]) => `${x},${y}`).join(' ')} 220,270 0,270`}"/></clipPath></defs>
       <g clip-path="url(#c)">${EGG}</g>
-      <polyline points="${EGG_ZIGZAG.map(([x, y]) => `${x},${y}`).join(' ')}" fill="none" stroke="${OUTLINE}" stroke-width="5"
+      <polyline points="${EGG_ZIGZAG.map(([x, y]) => `${x},${y}`).join(' ')}" fill="none" stroke="#c9a46f" stroke-width="5"
         stroke-linejoin="round" clip-path="url(#c)"/>`),
   })),
   {

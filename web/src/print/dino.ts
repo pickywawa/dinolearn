@@ -44,6 +44,8 @@ function skin(look: DinoLook): Record<PartName, DinoPart & { body: string }> {
 }
 
 const fixed = (key: string) => {
+  // L'œuf du jeu est dégradé ; les fiches gardent l'œuf au contour net.
+  if (key === 'egg') key = 'egg-print';
   const part = DINO_PARTS.find((p) => p.key === key);
   if (!part) throw new Error(`Pièce introuvable : ${key}`);
   return { ...part, body: partBody(part) };
