@@ -1,4 +1,8 @@
-## DinoLearn 0.12.0 — La nouvelle voix du dino
+## DinoLearn 0.12.1 — La voix anglaise aussi aiguë
+
+- Les mots anglais sont dits avec la même voix aiguë que le dino (× 1,40, sans accélérer).
+
+## Rappel de la 0.12.0 — La nouvelle voix du dino
 
 ### Une vraie voix pour le dino
 - Le dino parle avec une **voix naturelle** (Piper, voix française UPMC « Jessica »), calculée sur
@@ -20,7 +24,7 @@
 
 ### Installer / tester
 - En ligne : https://pickywawa.github.io/dinolearn/
-- Archive `dinolearn-web-v0.12.0.zip` : le jeu compilé, pour tout hébergement web statique (sans les
+- Archive `dinolearn-web-v0.12.1.zip` : le jeu compilé, pour tout hébergement web statique (sans les
   packs de reconnaissance vocale : `npm run voice-packs` pour les ajouter).
 - En local : `cd web && npm install && npm run dev`.
 

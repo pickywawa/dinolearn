@@ -155,7 +155,7 @@ continuent si on ferme la fenêtre pour jouer. La fenêtre ne revient plus ; tou
 l'espace parents (« Voix et téléchargements »).
 
 La voix du dino est calculée sur l'appareil à chaque phrase (aucune phrase enregistrée), un peu plus
-aiguë sans être accélérée (× 1,40). Les phrases déjà dites sont gardées en mémoire, et la suivante se
+aiguë sans être accélérée (× 1,40), en français comme pour les mots anglais. Les phrases déjà dites sont gardées en mémoire, et la suivante se
 prépare pendant que le dino parle. Tant que la voix n'est pas téléchargée, ou si elle tarde, le dino
 parle avec la voix du téléphone. Seul le français a aujourd'hui tous ses contenus : les autres langues
 apparaissent « bientôt » dans la liste. Si la langue est l'anglais, le pack anglais n'est pas proposé
