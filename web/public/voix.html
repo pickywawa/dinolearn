@@ -566,8 +566,12 @@ async function stFetch(name, file, onBytes) {
   return buf.buffer;
 }
 
+/** Moteur de calcul : carte graphique (WebGPU) si possible ; processeur (WebAssembly) en secours. */
+let stBackend = navigator.gpu ? 'webgpu' : 'wasm';
 function stLoad(name) {
-  if (!stModels.has(name)) {
+  const key = `${name}:${stBackend}`;
+  const backendWanted = stBackend;
+  if (!stModels.has(key)) {
     const ready = (async () => {
       const t0 = performance.now();
       const ort = await ortModule();
@@ -582,13 +586,15 @@ function stLoad(name) {
       const files = ['duration_predictor', 'text_encoder', 'vector_estimator', 'vocoder'];
       const buffers = await Promise.all(files.map((f) => stFetch(name, `onnx/${f}.onnx`, tick)));
       $('stStatus').textContent = 'Préparation du modèle…';
-      const providers = navigator.gpu ? ['webgpu', 'wasm'] : ['wasm'];
+      let backend = backendWanted;
       let sessions;
-      let backend = providers[0];
       try {
-        sessions = await Promise.all(buffers.map((b) => ort.InferenceSession.create(new Uint8Array(b), { executionProviders: providers })));
-      } catch {
+        sessions = await Promise.all(buffers.map((b) => ort.InferenceSession.create(new Uint8Array(b), { executionProviders: [backend] })));
+      } catch (e) {
+        if (backend === 'wasm') throw e;
+        console.warn('WebGPU indisponible, processeur à la place', e);
         backend = 'wasm';
+        stBackend = 'wasm';
         sessions = await Promise.all(buffers.map((b) => ort.InferenceSession.create(new Uint8Array(b), { executionProviders: ['wasm'] })));
       }
       const [dp, enc, est, voc] = sessions;
@@ -597,13 +603,16 @@ function stLoad(name) {
       return { ort, cfg, indexer, dp, enc, est, voc, styles: new Map() };
     })();
     ready.catch((e) => {
-      stModels.delete(name);
-      $('stStatus').textContent = `Erreur : ${e?.message ?? e}`;
+      stModels.delete(key);
+      $('stStatus').textContent = `Erreur : ${errorText(e)}`;
     });
-    stModels.set(name, ready);
+    stModels.set(key, ready);
   }
-  return stModels.get(name);
+  return stModels.get(key);
 }
+
+/** Message d'erreur complet (à copier pour le diagnostic). */
+const errorText = (e) => `${e?.name ?? ''} ${e?.message ?? e}`.trim().slice(0, 400);
 
 async function stStyle(m, name, voice) {
   if (!m.styles.has(voice)) {
@@ -630,7 +639,20 @@ function gaussian() {
   return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * Math.random());
 }
 
+/** Une phrase ; si le calcul échoue sur la carte graphique, on recommence sur le processeur. */
 async function stSynth(text, lang) {
+  try {
+    return await stSynthOnce(text, lang);
+  } catch (e) {
+    if (stBackend !== 'webgpu') throw e;
+    console.warn('Calcul impossible avec WebGPU, essai sur le processeur', e);
+    stBackend = 'wasm';
+    $('stStatus').textContent = 'La carte graphique n\'y arrive pas : préparation sur le processeur…';
+    return stSynthOnce(text, lang);
+  }
+}
+
+async function stSynthOnce(text, lang) {
   const name = $('stModel').value;
   const m = await stLoad(name);
   const { ort, cfg, indexer } = m;
@@ -680,7 +702,7 @@ function pcmToWav(pcm, sr) {
 for (const [id, out, digits] of [['stSteps', 'stStepsOut', 0], ['stSpeed', 'stSpeedOut', 2], ['stPitch', 'stPitchOut', 2]]) {
   $(id).addEventListener('input', () => { $(out).textContent = Number($(id).value).toFixed(digits).replace('.', ','); });
 }
-const stSetState = () => { $('stState').textContent = stModels.has($('stModel').value) ? 'chargé' : 'pas chargé'; };
+const stSetState = () => { $('stState').textContent = stModels.has(`${$('stModel').value}:${stBackend}`) ? `chargé (${stBackend})` : 'pas chargé'; };
 $('stModel').addEventListener('change', () => { $('stBar').style.width = '0'; $('stStatus').textContent = ''; stSetState(); });
 $('stLoad').addEventListener('click', async () => {
   audio();
@@ -696,9 +718,10 @@ const stButton = (lang) => [['▶ Écouter', async (text, meta, button) => {
   try {
     const { pcm, sr, calc } = await stSynth(text, lang);
     const dur = await playWav(pcmToWav(pcm, sr), Number($('stPitch').value));
-    meta.textContent = `${$('stModel').value} ${$('stVoice').value} · calculée en ${calc.toFixed(2)} s pour ${dur.toFixed(1)} s de parole`;
+    meta.textContent = `${$('stModel').value} ${$('stVoice').value} (${stBackend}) · calculée en ${calc.toFixed(2)} s pour ${dur.toFixed(1)} s de parole`;
   } catch (e) {
-    meta.textContent = `Erreur : ${e?.message ?? e}`;
+    console.error(e);
+    meta.textContent = `Erreur (${stBackend}) : ${errorText(e)}`;
   }
   button.disabled = false;
   stSetState();
