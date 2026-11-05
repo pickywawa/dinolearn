@@ -57,3 +57,33 @@ describe('téléchargements', () => {
     expect(formatRemaining(3700)).toBe('≈ 1 h 01');
   });
 });
+
+describe('répliques pour la voix neuronale', async () => {
+  const { respell, spokenSegments } = await import('../src/domain/sayable');
+  it('les onomatopées sont réécrites pour être dites comme des sons', () => {
+    expect(respell('Qui fait bzzz, et fabrique du miel ?')).toBe('Qui fait beuzzz, et fabrique du miel ?');
+    expect(respell('Chut… je dors. Zzz… À demain !')).toBe('Chut… je dors. rron, rron… À demain !');
+    expect(respell('Qui fait sss ?')).toBe('Qui fait sssi ?');
+    expect(respell('Psst ! C\'est celle qui brille !')).toBe('pssit ! C\'est celle qui brille !');
+    expect(respell('Hmm, regarde bien…')).toBe('Hmm, regarde bien…');
+    expect(respell('Hmmm, c\'est bon !')).toBe('hmm, c\'est bon !');
+    expect(respell('Mmmh… ces fruits')).toBe('mmmeu… ces fruits');
+    expect(respell('Grrr… c\'est mon ventre')).toBe('greuh… c\'est mon ventre');
+    expect(respell('Hihi ! Hihihi !')).toBe('hi hi ! hi hi hi !');
+    expect(respell('Qui fait hi-han ?')).toBe('Qui fait hi han ?');
+    expect(respell('Qui fait hiiii, et galope ?')).toBe('Qui fait hi hi hi, et galope ?');
+    // Les vrais mots ne bougent pas.
+    expect(respell('Miam miam ! Coin coin, cocorico, ouaf ouaf, meuh, hibou, Hugo')).toBe('Miam miam ! Coin coin, cocorico, ouaf ouaf, meuh, hibou, Hugo');
+  });
+
+  it('un vrai silence après les « … » et les fins de phrase', () => {
+    expect(spokenSegments('Chut… je dors. Zzz… À demain !')).toEqual([
+      { text: 'Chut…', pauseMs: 450 },
+      { text: 'je dors.', pauseMs: 300 },
+      { text: 'rron, rron…', pauseMs: 450 },
+      { text: 'À demain !', pauseMs: 0 },
+    ]);
+    expect(spokenSegments('Coucou Léa')).toEqual([{ text: 'Coucou Léa', pauseMs: 0 }]);
+    expect(spokenSegments('Bravo ! Tu as trouvé...')).toEqual([{ text: 'Bravo !', pauseMs: 300 }, { text: 'Tu as trouvé…', pauseMs: 0 }]);
+  });
+});

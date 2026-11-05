@@ -1,3 +1,11 @@
+## DinoLearn 0.12.2 — Les silences et les bruits d'animaux
+
+- **Les silences sont respectés** : le dino marque une vraie pause après les « … » et entre les phrases
+  (la voix les sautait).
+- **Les onomatopées sont dites comme des sons**, plus lettre par lettre : l'abeille fait « beu-zzz »,
+  le serpent « sssi », le dino qui dort ronfle, « Psst », « Grrr », « Mmmh », « Hihi », « hi-han » et le
+  cheval sont corrigés.
+
 ## DinoLearn 0.12.1 — La voix anglaise aussi aiguë
 
 - Les mots anglais sont dits avec la même voix aiguë que le dino (× 1,40, sans accélérer).
@@ -24,7 +32,7 @@
 
 ### Installer / tester
 - En ligne : https://pickywawa.github.io/dinolearn/
-- Archive `dinolearn-web-v0.12.1.zip` : le jeu compilé, pour tout hébergement web statique (sans les
+- Archive `dinolearn-web-v0.12.2.zip` : le jeu compilé, pour tout hébergement web statique (sans les
   packs de reconnaissance vocale : `npm run voice-packs` pour les ajouter).
 - En local : `cd web && npm install && npm run dev`.
 

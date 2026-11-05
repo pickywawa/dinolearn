@@ -1,5 +1,6 @@
 import { pitchShift } from './pitch';
 import { loadVoice, synthesize } from './piper';
+import { spokenSegments } from '../domain/sayable';
 
 /**
  * Lecture des voix neuronales (Piper) : un seul AudioContext, débloqué au
@@ -62,7 +63,7 @@ export function render(lang: Lang, text: string): Promise<AudioBuffer> | undefin
     rendered.set(key, p);
     return p;
   }
-  p = synthesize(voiceId, text).then(({ pcm, sampleRate }) => {
+  p = synthesizeWithPauses(voiceId, text).then(({ pcm, sampleRate }) => {
     // Le dino garde sa voix aiguë dans les deux langues (mots anglais compris).
     const samples = pitchShift(pcm, sampleRate, DINO_PITCH);
     const buffer = c.createBuffer(1, Math.max(1, samples.length), sampleRate);
@@ -73,6 +74,24 @@ export function render(lang: Lang, text: string): Promise<AudioBuffer> | undefin
   rendered.set(key, p);
   while (rendered.size > MAX_CACHED) rendered.delete(rendered.keys().next().value!);
   return p;
+}
+
+/**
+ * Une réplique morceau par morceau (fins de phrase, « … ») avec de vrais
+ * silences entre eux, et les onomatopées réécrites pour être dites comme des sons.
+ */
+async function synthesizeWithPauses(voiceId: string, text: string): Promise<{ pcm: Float32Array; sampleRate: number }> {
+  const pieces: Float32Array[] = [];
+  let sampleRate = 22050;
+  for (const segment of spokenSegments(text)) {
+    const out = await synthesize(voiceId, segment.text);
+    sampleRate = out.sampleRate;
+    pieces.push(out.pcm, new Float32Array(Math.round((segment.pauseMs / 1000) * sampleRate)));
+  }
+  const pcm = new Float32Array(pieces.reduce((n, p) => n + p.length, 0));
+  let at = 0;
+  for (const p of pieces) { pcm.set(p, at); at += p.length; }
+  return { pcm, sampleRate };
 }
 
 /** Joue un son ; renvoie de quoi l'arrêter et une promesse de fin. */
