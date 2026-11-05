@@ -2,7 +2,6 @@ import Phaser from 'phaser';
 import { app } from '../core/app';
 import { Sfx } from '../core/sfx';
 import { applyChildSettings, planetSeries, playableGames, switchChild } from '../core/app';
-import { prepareEnglishPack } from '../core/voicePrep';
 import { chooseEnvelope } from '../ui/envelopes';
 import { openParents } from '../ui/parents';
 import { askParentCode, childForm, createParentCode, unlockNight, unlockPlayTime } from '../ui/pin';
@@ -45,8 +44,6 @@ export class HomeScene extends BaseScene {
       return;
     }
     this.initBase();
-    // À l'accueil, rien n'écoute : le pack anglais des jeux à voix haute peut se télécharger.
-    prepareEnglishPack();
     // Après l'heure du coucher : ciel de nuit.
     const night = app.progress.isNight();
     if (night) drawScenery(this, 0x18214a, 0x52609e, 1);

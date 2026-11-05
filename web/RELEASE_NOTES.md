@@ -1,46 +1,32 @@
-## DinoLearn 0.11.1 — La reconnaissance vocale fonctionne en ligne
+## DinoLearn 0.12.0 — La nouvelle voix du dino
 
-### Correctif
-- Les **packs de reconnaissance vocale** (français et anglais) n'étaient en fait **jamais publiés** sur le
-  site : leur préparation échouait au déploiement, et leur téléchargement échouait donc partout, même
-  dans un navigateur normal. Ils sont maintenant publiés à côté du jeu.
-- Si un pack manque sur le site, l'espace parents le dit clairement au lieu d'un échec sans explication.
+### Une vraie voix pour le dino
+- Le dino parle avec une **voix naturelle** (Piper, voix française UPMC « Jessica »), calculée sur
+  l'appareil à chaque phrase : la même sur tous les téléphones, sans Internet une fois téléchargée.
+- Elle est **plus aiguë sans être accélérée** (× 1,40), comme choisi sur la page d'essai.
+- Les mots des jeux d'anglais sont dits par une **voix anglaise** (Alba).
+- Les phrases déjà dites sont gardées en mémoire, et la suivante se prépare pendant que le dino parle.
+- Tant que la voix n'est pas téléchargée, le dino garde la voix du téléphone.
 
-## Rappel de la 0.11.0 — Tout se mélange sur la planète
-
-### La planète
-- Une série de la planète mélange maintenant **tous les modes de jeu, question par question** :
-  questions à cartes, plateaux de **memory**, **tracés** et questions **à voix haute** s'enchaînent dans
-  la même série (au lieu d'une série entière d'un seul mode).
-
-### Les tracés
-- On commence toujours par les plus simples (traits, ronds), puis ça devient plus dur au fil des
-  réussites. **À 3 ans, on reste sur des formes simples, sur pointillés.**
-
-### L'éclosion
-- **Sans reconnaissance vocale**, le dino ne parle plus de prénom et ne fait plus choisir d'âge : après
-  sa présentation, il demande simplement de passer le téléphone à un parent.
-- Avec la reconnaissance vocale, il demande toujours le prénom et l'âge ; s'il ne comprend pas, ce sont
-  les parents qui les écrivent (plus de gâteaux à toucher).
-- Le **code parent ne se tape qu'une seule fois** (en cas d'oubli : « Code oublié ? »).
-- L'œuf d'un **deuxième enfant** ne relance plus toute la présentation : le dino le salue par son prénom.
-
-### Navigation privée
-- Les packs de reconnaissance vocale ne peuvent pas s'installer en navigation privée (le navigateur
-  garde trop peu de place). Le jeu ne tente plus le téléchargement, et l'espace parents explique
-  pourquoi ; les questions à voix haute se jouent alors au doigt.
-
-### Toujours là
-- Les enveloppes surprises et les fiches à imprimer, le vestiaire, l'alternance des enfants, le temps
-  de jeu réglable avec − et +.
+### Au premier lancement
+- Une fenêtre demande la **langue** et propose, tous cochés et avec leur taille :
+  la **voix du dino** (≈ 106 Mo), la **voix anglaise** (≈ 63 Mo) et la **reconnaissance vocale**
+  (≈ 42 Mo en français, + 41 Mo en anglais).
+- Les téléchargements se font **en parallèle**, avec le **temps restant estimé en direct**. On peut
+  fermer la fenêtre et jouer pendant ce temps.
+- La fenêtre ne revient plus. Tout se retrouve dans l'espace parents, section **« Voix et
+  téléchargements »**, d'où l'on peut aussi lancer les téléchargements.
+- Seul le français a aujourd'hui tous ses contenus : les autres langues sont annoncées « bientôt ».
 
 ### Installer / tester
 - En ligne : https://pickywawa.github.io/dinolearn/
-- Archive `dinolearn-web-v0.11.1.zip` : le jeu compilé, pour tout hébergement web statique (sans les
+- Archive `dinolearn-web-v0.12.0.zip` : le jeu compilé, pour tout hébergement web statique (sans les
   packs de reconnaissance vocale : `npm run voice-packs` pour les ajouter).
 - En local : `cd web && npm install && npm run dev`.
 
 ### Limites connues
+- Avec la voix du dino, la voix ne monte pas à la fin des questions (limite des voix Piper).
+- Sur un téléphone ancien, la toute première phrase peut prendre quelques secondes (préparation de la voix).
 - En navigation privée, la reconnaissance vocale n'est pas disponible (le navigateur ne garde pas les packs).
 - À l'impression, choisir « Taille réelle » (ou 100 %) et désactiver les en-têtes du navigateur.
 - La vibration ne marche pas sur iPhone (Safari ne la propose pas aux pages web).

@@ -146,6 +146,21 @@ parler pendant l'activité, comment prolonger sans écran, le matériel, et la s
 **Imprimer** (A4, seules les pages sortent), **Version à colorier** (fiches à découper), **Autre
 version**, **Supprimer**.
 
+## Voix et téléchargements
+Au premier lancement, une fenêtre demande la **langue** et propose trois téléchargements, tous cochés,
+avec leur taille : la **voix du dino** (moteur Piper ≈ 30 Mo + voix française UPMC ≈ 77 Mo), la
+**voix anglaise** pour les jeux d'anglais (≈ 63 Mo) et la **reconnaissance vocale** (≈ 42 Mo en
+français, + 41 Mo en anglais). Ils se font en parallèle, avec le temps restant estimé en direct, et
+continuent si on ferme la fenêtre pour jouer. La fenêtre ne revient plus ; tout se retrouve dans
+l'espace parents (« Voix et téléchargements »).
+
+La voix du dino est calculée sur l'appareil à chaque phrase (aucune phrase enregistrée), un peu plus
+aiguë sans être accélérée (× 1,40). Les phrases déjà dites sont gardées en mémoire, et la suivante se
+prépare pendant que le dino parle. Tant que la voix n'est pas téléchargée, ou si elle tarde, le dino
+parle avec la voix du téléphone. Seul le français a aujourd'hui tous ses contenus : les autres langues
+apparaissent « bientôt » dans la liste. Si la langue est l'anglais, le pack anglais n'est pas proposé
+et les jeux d'anglais sont désactivés.
+
 ## Pour les parents
 - **Premier lancement** : après l'éclosion et la présentation, le dino demande à l'enfant d'aller
   chercher un parent, qui vérifie la **fiche de l'enfant** déjà remplie (prénom, âge, pays, temps de
@@ -174,7 +189,8 @@ version**, **Supprimer**.
 | Besoin | Bibliothèque |
 |--------|--------------|
 | Moteur de jeu, animations (tweens, particules) | [Phaser 3](https://phaser.io) |
-| Voix (synthèse vocale du navigateur, iOS/Android) | [easy-speech](https://github.com/leaonline/easy-speech) |
+| Voix du dino (neuronale, calculée sur l'appareil) | [Piper](https://github.com/rhasspy/piper) : voix française UPMC (Jessica) et anglaise Alba ([piper-voices](https://huggingface.co/rhasspy/piper-voices), licences sur leurs fiches), moteur [onnxruntime-web](https://onnxruntime.ai) et prononciation de [piper-tts-web](https://github.com/Mintplex-Labs/piper-tts-web) (MIT) |
+| Voix de secours (synthèse vocale du navigateur, iOS/Android) | [easy-speech](https://github.com/leaonline/easy-speech) |
 | Reconnaissance vocale sur l'appareil | [vosk-browser](https://github.com/ccoreilly/vosk-browser) et les petits modèles [Vosk](https://alphacephei.com/vosk/models) français et anglais (Apache 2.0) |
 | Effets sonores générés (aucun fichier audio) | [ZzFX](https://github.com/KilledByAPixel/ZzFX) ; musique générée avec Web Audio |
 | Illustrations (questions, fruits, objets, décor) | [Noto](https://github.com/googlefonts/noto-emoji) (Google, Apache 2.0) via Iconify |

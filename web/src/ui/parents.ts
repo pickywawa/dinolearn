@@ -8,12 +8,11 @@ import { baseLevel } from '../domain/difficulty';
 import { mulberry32 } from '../domain/models';
 import { COUNTRIES } from '../content/countries';
 import { childForm, createParentCode } from './pin';
-import { NO_ROOM_MESSAGE, VOICE_PACKS, askMicPermission, ears, packInstalled, storageRoom, voiceSupported } from '../core/ears';
-import { SpeechLang } from '../domain/speech';
+import { VOICE_PACKS, askMicPermission, ears, voiceSupported } from '../core/ears';
 import { printKind } from '../print/catalog';
 import { openPrintView, thumbnail } from './printView';
 import { timeStepper } from './timeStepper';
-import { served } from '../core/voicePrep';
+import { packsPanel } from './packsPanel';
 
 /**
  * Espace parents : une page HTML classique posée sur le jeu (lisible et
@@ -136,7 +135,7 @@ export function openParents(onClose: () => void) {
 
   const render = () => {
     main.replaceChildren(
-      childrenSection(), printSection(), levelSection(), timeSection(), codeSection(), voiceSection(), gamesSection(),
+      childrenSection(), printSection(), levelSection(), timeSection(), codeSection(), voiceSection(), packsSection(), gamesSection(),
       failuresSection(), soundSection(), dataSection(),
     );
   };
@@ -354,7 +353,7 @@ export function openParents(onClose: () => void) {
       const meta = tooYoung
         ? `À partir de ${game.minAge} ans`
         : needsVoice
-          ? `Jeu à voix haute : autorisez le micro et téléchargez le pack ${VOICE_PACKS[game.voice!].name.toLowerCase()} (section « Micro »).`
+          ? `Jeu à voix haute : autorisez le micro et téléchargez la reconnaissance vocale ${VOICE_PACKS[game.voice!].name.toLowerCase()} (section « Voix et téléchargements »).`
           : [
           answers.length ? `${answers.length} réponses` : 'Pas encore joué',
           rate !== undefined ? `${percent(rate)} du 1er coup` : '',
@@ -490,54 +489,8 @@ export function openParents(onClose: () => void) {
     ), status);
     if (!p.settings.voice) return section;
 
-    section.append(el('p', { class: 'help', style: 'margin-top:12px' }, 'Packs de reconnaissance vocale (facultatifs, un par '
-      + 'langue) : à télécharger une seule fois, de préférence en Wi-Fi. Le pack français sert aux jeux en français, le pack '
-      + 'anglais à « Say it in English! ».'));
-    for (const lang of Object.keys(VOICE_PACKS) as SpeechLang[]) {
-      const pack = VOICE_PACKS[lang];
-      const installed = p.settings.voicePacks.includes(lang);
-      const state = el('span', { class: 'meta' }, installed ? 'Installé ✓' : `≈ ${pack.sizeMb} Mo`);
-      const button = el('button', { class: installed ? '' : 'primary' }, installed ? 'Vérifier' : 'Télécharger');
-      button.addEventListener('click', async () => {
-        button.setAttribute('disabled', '');
-        if (!installed && !await served(lang)) {
-          state.textContent = 'Ce pack n\'est pas disponible sur le site pour l\'instant. Réessayez plus tard.';
-          button.removeAttribute('disabled');
-          return;
-        }
-        if (!installed && await storageRoom(lang) === 'full') {
-          state.textContent = NO_ROOM_MESSAGE;
-          button.removeAttribute('disabled');
-          return;
-        }
-        state.textContent = installed ? 'Vérification…' : 'Téléchargement et installation… (une à trois minutes)';
-        try {
-          if (installed && await packInstalled(lang)) {
-            state.textContent = 'Installé ✓ (le pack est bien sur cet appareil)';
-            button.removeAttribute('disabled');
-            return;
-          }
-          await ears.install(lang);
-          // Le pack est sur l'appareil : il sert à tous les enfants.
-          for (const id of app.profiles.ids) {
-            const child = app.profiles.progressOf(id);
-            child.updateSettings({ voicePacks: [...new Set([...child.settings.voicePacks, lang])] });
-          }
-          render();
-        } catch (e) {
-          console.warn(e);
-          for (const id of app.profiles.ids) {
-            const child = app.profiles.progressOf(id);
-            child.updateSettings({ voicePacks: child.settings.voicePacks.filter((l) => l !== lang) });
-          }
-          state.textContent = 'Le téléchargement a échoué. Vérifiez la connexion, puis réessayez. En navigation privée, '
-            + 'le navigateur n\'a souvent pas assez de place : ouvrez le jeu dans une fenêtre normale.';
-          button.removeAttribute('disabled');
-        }
-      });
-      section.append(el('div', { class: 'row', style: 'justify-content:space-between;margin-top:8px' },
-        el('span', {}, el('b', {}, `Pack ${pack.name.toLowerCase()} `), state), button));
-    }
+    section.append(el('p', { class: 'help', style: 'margin-top:12px' }, 'Les packs de reconnaissance vocale se téléchargent '
+      + 'dans la section « Voix et téléchargements ».'));
     if (p.settings.voicePacks.length) {
       const remove = el('button', { class: 'danger', style: 'margin-top:12px' }, 'Supprimer les packs');
       remove.addEventListener('click', async () => {
@@ -549,6 +502,17 @@ export function openParents(onClose: () => void) {
       section.append(remove);
     }
     return section;
+  }
+
+  // ---- Voix et téléchargements ----
+  function packsSection() {
+    return el('section', {},
+      el('h2', {}, 'Voix et téléchargements'),
+      el('p', { class: 'help' }, 'La langue du jeu, la voix naturelle du dino (calculée sur l\'appareil, sans Internet une fois '
+        + 'téléchargée), la voix anglaise des jeux d\'anglais et la reconnaissance vocale. Les téléchargements se font en '
+        + 'parallèle et continuent si vous fermez cet espace. Sans la voix du dino, le jeu utilise celle du téléphone.'),
+      packsPanel(),
+    );
   }
 
   // ---- Code parent ----

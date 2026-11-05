@@ -3,6 +3,8 @@ import { GameDef, gamesForAge } from '../content/games';
 import { LinePicker } from './lines';
 import { Music } from './music';
 import { Profiles } from './profiles';
+import { appLanguage } from './appSettings';
+import { englishGamesAllowed } from '../domain/packs';
 import { Sfx } from './sfx';
 import { KeyValueStore, MemoryStore, Progress } from './progress';
 import { Voice } from './voice';
@@ -60,7 +62,9 @@ export function voiceAvailable(game: GameDef): boolean {
  */
 export function playableGames(): GameDef[] {
   const p = app.progress;
-  const forAge = gamesForAge(p.age).filter((g) => !g.voice || voiceAvailable(g));
+  // Application en anglais : pas de jeux pour apprendre l'anglais.
+  const english = englishGamesAllowed(appLanguage());
+  const forAge = gamesForAge(p.age).filter((g) => (!g.voice || voiceAvailable(g)) && (english || g.category !== 'foreign_language'));
   const enabled = forAge.filter((g) => !p.settings.disabledGames.includes(g.id) && g.questions.length > 0);
   return enabled.length > 0 ? enabled : forAge;
 }

@@ -1,6 +1,7 @@
 import EasySpeech from 'easy-speech';
 import { Speech } from '../content/content';
 import { LinePicker } from './lines';
+import { neuralVoiceFor, play, render, unlockAudio } from './neuralVoice';
 
 type TalkListener = (talking: boolean) => void;
 /** Début d'un mot : durée estimée du mot, en millisecondes. */
@@ -23,6 +24,8 @@ export class Voice {
   private talkListeners = new Set<TalkListener>();
   private boundaryListeners = new Set<BoundaryListener>();
   talking = false;
+  /** Son de la voix neuronale en cours (pour pouvoir le couper). */
+  private playing?: { stop: () => void };
 
   /** Réglages de la voix du dino (1 = voix normale, max = 2). */
   static readonly DINO = { pitch: 1.2, rate: 0.95 };
@@ -50,6 +53,7 @@ export class Voice {
    * gestionnaire du premier toucher.
    */
   unlock() {
+    unlockAudio();
     try {
       const u = new SpeechSynthesisUtterance(' ');
       u.volume = 0;
@@ -82,6 +86,8 @@ export class Voice {
   async say(parts: Speech[]): Promise<void> {
     const generation = ++this.generation;
     this.cancelEngine();
+    // Voix neuronale : on lance le calcul de tous les morceaux tout de suite (le 2e se prépare pendant le 1er).
+    for (const part of parts) if (part.text.trim()) render(part.lang, part.text);
     for (const part of parts) {
       if (generation !== this.generation) return;
       if (!part.text.trim()) continue;
@@ -100,6 +106,8 @@ export class Voice {
   }
 
   private cancelEngine() {
+    this.playing?.stop();
+    this.playing = undefined;
     if (!this.ready) return;
     try {
       EasySpeech.cancel();
@@ -109,6 +117,8 @@ export class Voice {
   }
 
   private async speak(part: Speech): Promise<void> {
+    // La voix neuronale du dino si elle est installée ; sinon (ou si elle tarde trop), la voix du téléphone.
+    if (neuralVoiceFor(part.lang) && await this.speakNeural(part)) return;
     // Garde-fou : on n'attend jamais indéfiniment la fin de la parole.
     const estimate = 500 + part.text.length * (part.slow ? 110 : 70);
     if (!this.ready) {
@@ -135,9 +145,50 @@ export class Voice {
     }).catch(() => undefined);
     await Promise.race([speaking, wait(estimate * 2.5)]);
   }
+
+  /**
+   * Dit un morceau avec la voix neuronale. Faux si elle n'est pas prête à temps
+   * (on passe alors à la voix du téléphone, pour ne jamais faire attendre l'enfant).
+   */
+  private async speakNeural(part: Speech): Promise<boolean> {
+    const generation = this.generation;
+    const pending = render(part.lang, part.text);
+    if (!pending) return false;
+    let buffer: AudioBuffer | undefined;
+    try {
+      buffer = await Promise.race([pending, wait(5000).then(() => undefined)]);
+    } catch {
+      return false;
+    }
+    if (generation !== this.generation) return true;
+    if (!buffer) return false;
+    const sound = play(buffer);
+    this.playing = sound;
+    this.setTalking(true);
+    // La bouche suit les mots : chaque mot reçoit une part du temps selon sa longueur.
+    const words = part.text.match(WORDS) ?? [];
+    const letters = words.reduce((n, w) => n + w.length, 0) || 1;
+    const speaking = buffer.duration * 1000 * 0.92;
+    let at = 0;
+    const timers = words.map((w) => {
+      const ms = (w.length / letters) * speaking;
+      const t = setTimeout(() => {
+        if (generation === this.generation) this.boundaryListeners.forEach((fn) => fn(Math.min(700, Math.max(140, ms))));
+      }, at);
+      at += ms;
+      return t;
+    });
+    await sound.ended;
+    timers.forEach(clearTimeout);
+    if (this.playing === sound) this.playing = undefined;
+    return true;
+  }
 }
 
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+/** Les mots d'une phrase (pour faire bouger la bouche mot par mot). */
+const WORDS = /[\p{L}\p{N}'’-]+/gu;
 
 /** Préférences : voix « naturelles » et connues pour bien sonner. */
 const PREFERRED: Record<'fr' | 'en', RegExp[]> = {

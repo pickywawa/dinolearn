@@ -2,7 +2,7 @@ import '@fontsource/andika/700.css';
 import '@fontsource/playwrite-fr-moderne/400.css';
 import Phaser from 'phaser';
 import { app } from './core/app';
-import { prepareVoiceAtStart } from './core/voicePrep';
+import { enableInstalledVoices } from './core/packs';
 import { BootScene } from './scenes/BootScene';
 import { ChooseScene } from './scenes/ChooseScene';
 import { EndScene } from './scenes/EndScene';
@@ -56,5 +56,5 @@ window.addEventListener('resize', () => {
 });
 
 void app.voice.init();
-// Jeux à voix haute activés par défaut : le pack français se télécharge dès l'ouverture.
-prepareVoiceAtStart();
+// Les voix du dino déjà téléchargées remplacent la voix du téléphone.
+void enableInstalledVoices();
