@@ -418,40 +418,45 @@ for (const box of $('enList').querySelectorAll('.sentence')) {
 }
 // ---- 4. eSpeak-NG (WebAssembly, GPL-3) : voix à règles, intonation stable ----
 // Portage d'eSpeak-NG compilé en WebAssembly (dépôt GitHub ianmarmour/espeak-ng.js), chargé depuis jsDelivr.
-// Une seule instance : on appelle le programme pour chaque phrase, il écrit un fichier WAV en mémoire.
+// Ce portage ne se relance pas : une instance par phrase, avec les paramètres donnés au démarrage (elle
+// écrit un fichier WAV en mémoire). Le moteur (≈ 18 Mo) n'est téléchargé et compilé qu'une fois.
+const ES_BASE = 'https://cdn.jsdelivr.net/npm/espeak-ng@1.0.2/dist/';
 let espeak;
-async function espeakInstance() {
+function espeakEngine() {
   if (!espeak) {
     espeak = (async () => {
       $('esStatus').textContent = 'Téléchargement du moteur (≈ 18 Mo, une seule fois)…';
       const t0 = performance.now();
-      const { default: ESpeakNG } = await import('https://cdn.jsdelivr.net/npm/espeak-ng@1.0.2/dist/espeak-ng.js');
-      const inst = await ESpeakNG({ noInitialRun: true, print: () => {}, printErr: () => {} });
+      const url = `${ES_BASE}espeak-ng.wasm`;
+      const [lib, wasm] = await Promise.all([
+        import(`${ES_BASE}espeak-ng.js`),
+        WebAssembly.compileStreaming(fetch(url))
+          .catch(async () => WebAssembly.compile(await (await fetch(url)).arrayBuffer())),
+      ]);
       $('esStatus').textContent = `Moteur prêt en ${((performance.now() - t0) / 1000).toFixed(1)} s.`;
-      return inst;
+      return { ESpeakNG: lib.default, wasm };
     })();
-    espeak.catch(() => { espeak = undefined; });
+    espeak.catch((e) => {
+      espeak = undefined;
+      $('esStatus').textContent = `Erreur au chargement : ${e?.message ?? e}`;
+    });
   }
   return espeak;
 }
 async function espeakWav(text, voice) {
+  const { ESpeakNG, wasm } = await espeakEngine();
   const args = ['-v', voice, '-p', $('esPitch').value, '-s', $('esSpeed').value, '-w', '/out.wav', text];
-  const run = (inst) => {
-    try {
-      inst.callMain(args);
-    } catch (e) {
-      // Le programme peut se terminer par exit(0) : ce n'est pas une erreur.
-      if (e?.name !== 'ExitStatus') throw e;
-    }
-    return new Blob([inst.FS.readFile('/out.wav')], { type: 'audio/wav' });
-  };
-  try {
-    return run(await espeakInstance());
-  } catch {
-    // Certains portages n'aiment pas être relancés : on recrée une instance et on réessaie une fois.
-    espeak = undefined;
-    return run(await espeakInstance());
-  }
+  const inst = await ESpeakNG({
+    arguments: args,
+    print: () => {},
+    printErr: () => {},
+    // Le moteur déjà compilé : pas de nouveau téléchargement ni de nouvelle compilation.
+    instantiateWasm(imports, receive) {
+      WebAssembly.instantiate(wasm, imports).then((instance) => receive(instance));
+      return {};
+    },
+  });
+  return new Blob([inst.FS.readFile('/out.wav')], { type: 'audio/wav' });
 }
 for (const [id, out] of [['esPitch', 'esPitchOut'], ['esSpeed', 'esSpeedOut']]) {
   $(id).addEventListener('input', () => { $(out).textContent = $(id).value; });
