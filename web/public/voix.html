@@ -11,7 +11,8 @@
   Piper (MIT) est chargé depuis jsDelivr, avec onnxruntime-web 1.18.0 ; les
   voix (≈ 30 à 75 Mo) viennent de HuggingFace et restent ensuite dans le
   navigateur (OPFS). eSpeak-NG (GPL-3, portage WebAssembly ianmarmour/espeak-ng.js, ≈ 18 Mo) vient aussi de
-  jsDelivr. Aucune donnée n'est envoyée : le texte est calculé ici.
+  jsDelivr. Supertonic (code MIT, modèle OpenRAIL-M) tourne avec onnxruntime-web 1.20.1 (jsDelivr) ; ses
+  fichiers viennent de HuggingFace. Aucune donnée n'est envoyée : le texte est calculé ici.
 -->
 <script type="importmap">
 { "imports": { "onnxruntime-web/wasm": "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.18.0/dist/esm/ort.wasm.min.js" } }
@@ -148,6 +149,44 @@
     </label>
     <div class="status" id="esStatus"></div>
     <div id="esList" style="margin-top:8px"></div>
+  </section>
+
+  <section>
+    <h2>5. Supertonic (voix neuronales, français natif)</h2>
+    <p class="help">Modèle récent de Supertone (GitHub supertone-inc/supertonic, code MIT, modèle OpenRAIL-M), entraîné sur
+      31 langues dont le français, conçu pour tourner sur l'appareil et très rapide. 10 voix (5 femmes, 5 hommes).
+      Gros téléchargement la première fois (≈ 250 à 400 Mo, en Wi-Fi !), gardé ensuite dans le navigateur.</p>
+    <label class="slider" style="margin-top:0">Modèle :
+      <select id="stModel">
+        <option value="supertonic-3">Supertonic 3 (31 langues) ★</option>
+        <option value="supertonic-2">Supertonic 2 (5 langues, dont le français)</option>
+      </select>
+    </label>
+    <label class="slider">Voix :
+      <select id="stVoice">
+        <option value="F1">Femme 1</option><option value="F2">Femme 2</option><option value="F3">Femme 3</option>
+        <option value="F4">Femme 4</option><option value="F5">Femme 5</option>
+        <option value="M1">Homme 1</option><option value="M2">Homme 2</option><option value="M3">Homme 3</option>
+        <option value="M4">Homme 4</option><option value="M5">Homme 5</option>
+      </select>
+    </label>
+    <div class="row" style="margin-top:10px">
+      <button class="primary" id="stLoad">Charger le modèle</button>
+      <span class="tag" id="stState">pas chargé</span>
+    </div>
+    <div class="bar"><span id="stBar"></span></div>
+    <div class="status" id="stStatus"></div>
+    <label class="slider">Qualité (étapes de calcul ; moins = plus rapide) : <b id="stStepsOut">6</b>
+      <input type="range" id="stSteps" min="2" max="10" step="1" value="6">
+    </label>
+    <label class="slider">Débit : <b id="stSpeedOut">1,00</b>
+      <input type="range" id="stSpeed" min="0.8" max="1.3" step="0.05" value="1">
+    </label>
+    <label class="slider">Voix plus aiguë (sans aller plus vite) : <b id="stPitchOut">1,00</b>
+      <input type="range" id="stPitch" min="1" max="1.4" step="0.05" value="1">
+    </label>
+    <div id="stList" style="margin-top:8px"></div>
+    <div id="stEnList" style="margin-top:8px"></div>
   </section>
 
   <section>
@@ -476,6 +515,196 @@ sentenceList($('esList'), FR, [['▶ Écouter', async (text, meta, button) => {
   }
   button.disabled = false;
 }]]);
+// ---- 5. Supertonic (Supertone, ONNX) : voix neuronales multilingues, français natif ----
+// Même déroulé que le paquet Python officiel (supertonic 1.3.1, core.py) : texte → indices de caractères,
+// durée (duration_predictor), encodage (text_encoder), débruitage en N étapes (vector_estimator), puis
+// son (vocoder). Moteur : onnxruntime-web 1.20.1 (jsDelivr), WebGPU si possible, sinon WebAssembly.
+// Les fichiers du modèle viennent de HuggingFace (révision figée) et sont gardés dans le navigateur.
+const ST_MODELS = {
+  'supertonic-3': { repo: 'Supertone/supertonic-3', rev: '724fb5abbf5502583fb520898d45929e62f02c0b' },
+  'supertonic-2': { repo: 'Supertone/supertonic-2', rev: '75e6727618a02f323c720cba9478152d4bc16ca4' },
+};
+const ORT_BASE = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/';
+let ortLib;
+async function ortModule() {
+  if (!ortLib) {
+    ortLib = import(`${ORT_BASE}ort.all.bundle.min.mjs`).then((m) => {
+      const ort = m.default ?? m;
+      ort.env.wasm.wasmPaths = ORT_BASE;
+      ort.env.wasm.numThreads = self.crossOriginIsolated ? Math.min(4, navigator.hardwareConcurrency || 1) : 1;
+      return ort;
+    });
+  }
+  return ortLib;
+}
+const stModels = new Map();
+const stUrl = (name, file) => `https://huggingface.co/${ST_MODELS[name].repo}/resolve/${ST_MODELS[name].rev}/${file}`;
+
+/** Fichier du modèle : depuis le cache du navigateur, sinon téléchargé (avec la progression). */
+async function stFetch(name, file, onBytes) {
+  const url = stUrl(name, file);
+  let cache;
+  try { cache = await caches.open(`dino-${name}`); } catch { cache = undefined; }
+  const hit = cache && await cache.match(url);
+  if (hit) return hit.arrayBuffer();
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`${file} : HTTP ${res.status}`);
+  const reader = res.body.getReader();
+  const parts = [];
+  let size = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    parts.push(value);
+    size += value.length;
+    onBytes(value.length);
+  }
+  const buf = new Uint8Array(size);
+  let at = 0;
+  for (const part of parts) { buf.set(part, at); at += part.length; }
+  try { await cache?.put(url, new Response(buf.slice())); } catch { /* plus de place : on gardera juste en mémoire */ }
+  return buf.buffer;
+}
+
+function stLoad(name) {
+  if (!stModels.has(name)) {
+    const ready = (async () => {
+      const t0 = performance.now();
+      const ort = await ortModule();
+      let loaded = 0;
+      const tick = (n) => {
+        loaded += n;
+        $('stStatus').textContent = `Téléchargement : ${(loaded / 1e6).toFixed(0)} Mo…`;
+        $('stBar').style.width = `${Math.min(99, loaded / 4e6)}%`;
+      };
+      const json = async (file) => JSON.parse(new TextDecoder().decode(await stFetch(name, file, tick)));
+      const [cfg, indexer] = await Promise.all([json('onnx/tts.json'), json('onnx/unicode_indexer.json')]);
+      const files = ['duration_predictor', 'text_encoder', 'vector_estimator', 'vocoder'];
+      const buffers = await Promise.all(files.map((f) => stFetch(name, `onnx/${f}.onnx`, tick)));
+      $('stStatus').textContent = 'Préparation du modèle…';
+      const providers = navigator.gpu ? ['webgpu', 'wasm'] : ['wasm'];
+      let sessions;
+      let backend = providers[0];
+      try {
+        sessions = await Promise.all(buffers.map((b) => ort.InferenceSession.create(new Uint8Array(b), { executionProviders: providers })));
+      } catch {
+        backend = 'wasm';
+        sessions = await Promise.all(buffers.map((b) => ort.InferenceSession.create(new Uint8Array(b), { executionProviders: ['wasm'] })));
+      }
+      const [dp, enc, est, voc] = sessions;
+      $('stBar').style.width = '100%';
+      $('stStatus').textContent = `Modèle prêt en ${((performance.now() - t0) / 1000).toFixed(1)} s (${(loaded / 1e6).toFixed(0)} Mo téléchargés, moteur ${backend}).`;
+      return { ort, cfg, indexer, dp, enc, est, voc, styles: new Map() };
+    })();
+    ready.catch((e) => {
+      stModels.delete(name);
+      $('stStatus').textContent = `Erreur : ${e?.message ?? e}`;
+    });
+    stModels.set(name, ready);
+  }
+  return stModels.get(name);
+}
+
+async function stStyle(m, name, voice) {
+  if (!m.styles.has(voice)) {
+    const raw = JSON.parse(new TextDecoder().decode(await stFetch(name, `voice_styles/${voice}.json`, () => {})));
+    const tensor = (o) => new m.ort.Tensor('float32', Float32Array.from(o.data.flat(Infinity)), o.dims);
+    m.styles.set(voice, { ttl: tensor(raw.style_ttl), dp: tensor(raw.style_dp) });
+  }
+  return m.styles.get(voice);
+}
+
+/** Même nettoyage du texte que le paquet officiel (l'essentiel), puis la balise de langue. */
+function stPrepare(text, lang) {
+  let t = text.normalize('NFKD')
+    .replace(/[–‑—]/g, '-').replace(/[“”]/g, '"').replace(/[‘’´`]/g, "'")
+    .replace(/[_\[\]|/#→←¯]/g, ' ').replace(/[♥☆♡©\\]/g, '')
+    .replace(/ ([,.!?;:'])/g, '$1').replace(/\s+/g, ' ').trim();
+  if (!/[.!?;:,'")\]}…»]$/.test(t)) t += '.';
+  return `<${lang}>${t}</${lang}>`;
+}
+
+function gaussian() {
+  let u = 0;
+  while (u === 0) u = Math.random();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * Math.random());
+}
+
+async function stSynth(text, lang) {
+  const name = $('stModel').value;
+  const m = await stLoad(name);
+  const { ort, cfg, indexer } = m;
+  const style = await stStyle(m, name, $('stVoice').value);
+  const prepared = stPrepare(text, lang);
+  const ids = [...prepared].map((ch) => BigInt(Math.max(0, indexer[ch.codePointAt(0)] ?? 0)));
+  const L = ids.length;
+  const textIds = new ort.Tensor('int64', BigInt64Array.from(ids), [1, L]);
+  const textMask = new ort.Tensor('float32', new Float32Array(L).fill(1), [1, 1, L]);
+  const t0 = performance.now();
+  const { [m.dp.outputNames[0]]: durT } = await m.dp.run({ text_ids: textIds, style_dp: style.dp, text_mask: textMask });
+  const dur = durT.data[0] / Number($('stSpeed').value);
+  const { [m.enc.outputNames[0]]: textEmb } = await m.enc.run({ text_ids: textIds, style_ttl: style.ttl, text_mask: textMask });
+  const sr = cfg.ae.sample_rate;
+  const chunk = cfg.ae.base_chunk_size * cfg.ttl.chunk_compress_factor;
+  const latentDim = cfg.ttl.latent_dim * cfg.ttl.chunk_compress_factor;
+  const wavLen = Math.floor(dur * sr);
+  const latentLen = Math.ceil(wavLen / chunk);
+  let xt = new ort.Tensor('float32', Float32Array.from({ length: latentDim * latentLen }, gaussian), [1, latentDim, latentLen]);
+  const latentMask = new ort.Tensor('float32', new Float32Array(latentLen).fill(1), [1, 1, latentLen]);
+  const steps = Number($('stSteps').value);
+  const total = new ort.Tensor('float32', Float32Array.of(steps), [1]);
+  for (let step = 0; step < steps; step++) {
+    const out = await m.est.run({
+      noisy_latent: xt, text_emb: textEmb, style_ttl: style.ttl, text_mask: textMask, latent_mask: latentMask,
+      current_step: new ort.Tensor('float32', Float32Array.of(step), [1]), total_step: total,
+    });
+    xt = out[m.est.outputNames[0]];
+  }
+  const { [m.voc.outputNames[0]]: wavT } = await m.voc.run({ latent: xt });
+  const pcm = wavT.data.slice(0, Math.min(wavT.data.length, wavLen));
+  return { pcm, sr, calc: (performance.now() - t0) / 1000 };
+}
+
+/** PCM → fichier WAV (pour réutiliser la lecture et l'effet « plus aigu » de la page). */
+function pcmToWav(pcm, sr) {
+  const buf = new ArrayBuffer(44 + pcm.length * 2);
+  const v = new DataView(buf);
+  const w = (o, str) => [...str].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0)));
+  w(0, 'RIFF'); v.setUint32(4, 36 + pcm.length * 2, true); w(8, 'WAVEfmt '); v.setUint32(16, 16, true);
+  v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, sr, true); v.setUint32(28, sr * 2, true);
+  v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, 'data'); v.setUint32(40, pcm.length * 2, true);
+  for (let i = 0; i < pcm.length; i++) v.setInt16(44 + i * 2, Math.max(-1, Math.min(1, pcm[i])) * 32767, true);
+  return new Blob([buf], { type: 'audio/wav' });
+}
+
+for (const [id, out, digits] of [['stSteps', 'stStepsOut', 0], ['stSpeed', 'stSpeedOut', 2], ['stPitch', 'stPitchOut', 2]]) {
+  $(id).addEventListener('input', () => { $(out).textContent = Number($(id).value).toFixed(digits).replace('.', ','); });
+}
+const stSetState = () => { $('stState').textContent = stModels.has($('stModel').value) ? 'chargé' : 'pas chargé'; };
+$('stModel').addEventListener('change', () => { $('stBar').style.width = '0'; $('stStatus').textContent = ''; stSetState(); });
+$('stLoad').addEventListener('click', async () => {
+  audio();
+  $('stLoad').disabled = true;
+  $('stStatus').textContent = 'Chargement du moteur…';
+  try { await stLoad($('stModel').value); } catch { /* message déjà affiché */ }
+  $('stLoad').disabled = false;
+  stSetState();
+});
+const stButton = (lang) => [['▶ Écouter', async (text, meta, button) => {
+  button.disabled = true;
+  meta.textContent = 'Calcul…';
+  try {
+    const { pcm, sr, calc } = await stSynth(text, lang);
+    const dur = await playWav(pcmToWav(pcm, sr), Number($('stPitch').value));
+    meta.textContent = `${$('stModel').value} ${$('stVoice').value} · calculée en ${calc.toFixed(2)} s pour ${dur.toFixed(1)} s de parole`;
+  } catch (e) {
+    meta.textContent = `Erreur : ${e?.message ?? e}`;
+  }
+  button.disabled = false;
+  stSetState();
+}]];
+sentenceList($('stList'), FR, stButton('fr'));
+sentenceList($('stEnList'), EN, stButton('en'));
 </script>
 </body>
 </html>
