@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { Sfx } from '../core/sfx';
+import { discTexture } from './kit';
 
 /**
  * Grosse bulle ronde sans texte (icône seule), qui rebondit au toucher.
@@ -23,14 +24,13 @@ export class Bubble extends Phaser.GameObjects.Container {
     iconScale = 0.62,
   ) {
     super(scene, x, y);
-    const shadow = scene.add.circle(0, radius * 0.08, radius, 0x000000, 0.18);
-    const disc = scene.add.circle(0, 0, radius, color).setStrokeStyle(radius * 0.09, 0xffffff);
-    const shine = scene.add.ellipse(-radius * 0.35, -radius * 0.45, radius * 0.6, radius * 0.3, 0xffffff, 0.3)
-      .setAngle(-30);
-    this.icon = scene.add.image(0, 0, iconKey);
+    // Disque « bonbon » brillant (kit d'interface), dessiné en double résolution.
+    const hex = `#${color.toString(16).padStart(6, '0')}`;
+    const disc = scene.add.image(0, 0, discTexture(scene, radius, hex)).setScale(0.5);
+    this.icon = scene.add.image(0, -radius * 0.04, iconKey);
     this.icon.setScale((radius * 2 * iconScale) / Math.max(this.icon.width, this.icon.height));
     this.ring = scene.add.graphics();
-    this.add([shadow, disc, shine, this.icon, this.ring]);
+    this.add([disc, this.icon, this.ring]);
     this.setSize(radius * 2, radius * 2);
     this.setInteractive(new Phaser.Geom.Circle(radius, radius, radius), Phaser.Geom.Circle.Contains);
 

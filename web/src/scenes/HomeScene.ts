@@ -1,6 +1,5 @@
 import Phaser from 'phaser';
 import { app } from '../core/app';
-import { Sfx } from '../core/sfx';
 import { applyChildSettings, planetSeries, playableGames, switchChild } from '../core/app';
 import { chooseEnvelope } from '../ui/envelopes';
 import { openParents } from '../ui/parents';
@@ -10,10 +9,10 @@ import { Dino } from '../dino/Dino';
 import { Bubble } from '../ui/Bubble';
 import { Guide } from '../ui/Guide';
 import { buzzingFlies } from '../ui/flies';
-import { Planet } from '../ui/Planet';
-import { drawPrehistoric } from '../ui/prehistoric';
+import { arrowTexture, candyButton, setHighlight, tileButton, woodSign } from '../ui/kit';
 import { drawSkyLife } from '../ui/sky';
-import { drawNightSky, drawScenery, goTo, growthFactor, isPortrait, makeTickable, unit } from '../ui/scenery';
+import { goTo, growthFactor, makeTickable, unit } from '../ui/scenery';
+import { drawIsland } from '../ui/island';
 import { BaseScene } from './BaseScene';
 
 /**
@@ -26,12 +25,12 @@ import { BaseScene } from './BaseScene';
 export class HomeScene extends BaseScene {
   private dino!: Dino;
   private guide!: Guide;
-  private play!: Planet;
+  private play!: Phaser.GameObjects.Container;
   private choose?: Phaser.GameObjects.Container;
   private dinoBase = 0;
   private gift?: Bubble;
   private childSwitch?: Bubble;
-  private wardrobe!: Bubble;
+  private wardrobe?: Phaser.GameObjects.Container;
 
   constructor() {
     super('Home');
@@ -46,49 +45,60 @@ export class HomeScene extends BaseScene {
     this.initBase();
     // Après l'heure du coucher : ciel de nuit.
     const night = app.progress.isNight();
-    if (night) drawScenery(this, 0x18214a, 0x52609e, 1);
-    else drawScenery(this);
-    if (night) drawNightSky(this);
-    drawPrehistoric(this);
+    drawIsland(this, night ? 'night' : 'day');
     drawSkyLife(this, night);
     const { width: W, height: H } = this.scale;
     const u = unit(this);
-    const portrait = isPortrait(this);
 
-    this.dinoBase = u * (portrait ? 0.5 : 0.55);
-    this.dino = new Dino(this, portrait ? W / 2 : W * 0.68, H * (portrait ? 0.92 : 0.96),
-      this.dinoBase * growthFactor(app.progress.dino.level));
+    // Le dino à gauche, tourné vers les boutons.
+    this.dinoBase = u * 0.62;
+    this.dino = new Dino(this, W * 0.25, H * 0.97, this.dinoBase * growthFactor(app.progress.dino.level));
     makeTickable(this.dino);
     if (!night) buzzingFlies(this, this.dino);
     this.guide = new Guide(this, u * 0.15);
 
-    // La planète : un jeu au hasard (le tour du monde des jeux).
-    const big = portrait ? { x: W / 2, y: H * 0.34, r: u * 0.2 } : { x: W * 0.3, y: H * 0.46, r: u * 0.2 };
-    this.play = new Planet(this, big.x, big.y, big.r, () => this.playRandom());
+    // Le titre sur sa planche de bois, et le prénom de l'enfant dessous.
+    const cx = W * 0.64;
+    const title = woodSign(this, cx, H * 0.17, 'DinoLearn', u * 0.085, true);
+    this.tweens.add({ targets: title, angle: { from: -1.5, to: 1.5 }, duration: 2600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    if (app.progress.name) {
+      woodSign(this, cx, H * 0.31, `Joue avec ton dino, ${app.progress.name} !`, u * 0.034, false);
+    }
 
-    // Petit bouton : choisir son jeu (mosaïque des jeux), seulement si les parents l'ont activé.
-    const small = portrait ? { x: W * 0.14, y: H * 0.56 } : { x: W * 0.08, y: H * 0.82 };
-    this.choose = app.progress.settings.chooseGames ? this.makeChooseButton(small.x, small.y, u * 0.075) : undefined;
+    // Le gros bouton « Jouer » : une série de jeux au hasard (le tour du monde des jeux).
+    this.play = candyButton(this, cx, H * 0.5, u * 0.46, u * 0.15, 'green', 'Jouer', () => this.playRandom(),
+      arrowTexture(this, 'play'), true);
 
-    const ar = u * 0.06;
-    // En haut à gauche : le cadenas des parents (code parent), puis le dino de l'enfant suivant.
-    new Bubble(this, ar * 1.4, ar * 1.4, ar, 0xfff3c4, 'ui-lock', () => this.openParentSpace(), 0.7).setAlpha(0.9);
-    this.childButton(ar * 1.4, ar * 3.9, ar);
-    this.drawLevelBadge(W - u * 0.13, u * 0.11, u);
+    // La barre du bas : les jeux (si les parents l'ont activé), le dressing, l'espace parents.
+    const tiles: { icon: string; text: string; onTap: () => void; keep?: (c: Phaser.GameObjects.Container) => void }[] = [];
+    if (app.progress.settings.chooseGames) {
+      tiles.push({ icon: 'ui-globe', text: 'Les jeux', onTap: () => this.openChoose(),
+        keep: (c) => (this.choose = c) });
+    }
+    tiles.push({ icon: 'ui-wardrobe', text: 'Mon Dino', onTap: () => { this.clearIdle(); goTo(this, 'Wardrobe'); },
+      keep: (c) => (this.wardrobe = c) });
+    tiles.push({ icon: 'ui-lock', text: 'Parents', onTap: () => this.openParentSpace() });
+    const tw = u * 0.17, gap = u * 0.035;
+    tiles.forEach((t, i) => {
+      const x = cx + (i - (tiles.length - 1) / 2) * (tw + gap);
+      const c = tileButton(this, x, H * 0.77, tw, tw * 0.95, t.icon, t.text, t.onTap);
+      t.keep?.(c);
+    });
 
-    // En haut : le dressing du dino, et le cadeau à ouvrir quand il a grandi.
-    this.wardrobe = new Bubble(this, W / 2, u * 0.1, u * 0.065, 0xffe9f3, 'ui-wardrobe', () => {
-      this.clearIdle();
-      goTo(this, 'Wardrobe');
-    }, 0.7);
-    if (app.progress.collection.pending > 0) {
-      this.gift = new Bubble(this, W / 2 + u * 0.17, u * 0.1, u * 0.065, 0xfff3c4, 'ui-gift', () => {
+    // Le cadeau à ouvrir quand le dino a grandi : sur la tuile du dressing.
+    if (app.progress.collection.pending > 0 && this.wardrobe) {
+      this.gift = new Bubble(this, this.wardrobe.x + tw * 0.45, this.wardrobe.y - tw * 0.45, u * 0.05, 0xfff3c4, 'ui-gift', () => {
         // Le cadeau se choisit au vestiaire, où l'enfant habille son dino.
         this.clearIdle();
         goTo(this, 'Wardrobe');
       }, 0.75);
       this.tweens.add({ targets: this.gift, angle: { from: -10, to: 10 }, duration: 260, yoyo: true, repeat: -1 });
     }
+
+    // En haut à gauche : le dino de l'enfant suivant ; à droite, l'étoile du niveau.
+    const ar = u * 0.06;
+    this.childButton(ar * 1.4, ar * 1.4, ar);
+    this.drawLevelBadge(W - u * 0.11, u * 0.11, u);
 
 
     // Partie d'avant les prénoms : on demande le prénom à un parent.
@@ -140,11 +150,11 @@ export class HomeScene extends BaseScene {
       await this.say('gift.waiting');
       this.gift.highlight(false);
     }
-    this.play.highlight(true);
+    setHighlight(this.play, true);
     this.dino.pointAt(this.play.x, this.play.y);
     this.guide.tap(this.play);
     await this.say('home.play');
-    this.play.highlight(false);
+    setHighlight(this.play, false);
     if (this.choose) {
       this.dino.pointAt(this.choose.x, this.choose.y);
       this.guide.tap(this.choose);
@@ -156,32 +166,18 @@ export class HomeScene extends BaseScene {
 
   private async reminder() {
     this.dino.react('happy');
-    this.play.highlight(true);
+    setHighlight(this.play, true);
     this.guide.tap(this.play);
     await this.say('home.play');
-    this.play.highlight(false);
+    setHighlight(this.play, false);
     this.guide.hide();
     this.armIdle([[14000, () => this.run(() => this.reminder())]]);
   }
 
-  /** Petit bouton rond avec une mosaïque des jeux. */
-  private makeChooseButton(x: number, y: number, r: number) {
-    const button = this.add.container(x, y);
-    button.add(this.add.circle(0, r * 0.08, r, 0x000000, 0.18));
-    button.add(this.add.circle(0, 0, r, 0xffffff).setStrokeStyle(r * 0.08, 0x8e4ec6));
-    playableGames().slice(0, 4).forEach((game, i) => {
-      const icon = this.add.image((i % 2 - 0.5) * r * 0.9, (Math.floor(i / 2) - 0.5) * r * 0.9, game.icon);
-      icon.setScale((r * 0.75) / icon.width);
-      button.add(icon);
-    });
-    button.setSize(r * 2, r * 2).setInteractive(new Phaser.Geom.Circle(r, r, r), Phaser.Geom.Circle.Contains);
-    button.on('pointerup', () => {
-      Sfx.play('pop');
-      this.clearIdle();
-      this.guide.hide();
-      goTo(this, 'Choose');
-    });
-    return button;
+  private openChoose() {
+    this.clearIdle();
+    this.guide.hide();
+    goTo(this, 'Choose');
   }
 
   private playRandom() {
@@ -203,7 +199,7 @@ export class HomeScene extends BaseScene {
       this.run(() => this.say('home.level'));
     });
     this.add.text(x, y + u * 0.01, String(app.progress.dino.level), {
-      fontFamily: 'Arial Rounded MT Bold, Arial, sans-serif', fontSize: `${Math.round(u * 0.055)}px`,
+      fontFamily: "'Baloo 2', Arial Rounded MT Bold, Arial, sans-serif", fontSize: `${Math.round(u * 0.055)}px`,
       color: '#ffffff', fontStyle: 'bold', stroke: '#2d3354', strokeThickness: Math.round(u * 0.012),
     }).setOrigin(0.5);
   }

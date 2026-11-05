@@ -8,8 +8,8 @@ import { foodImage } from '../domain/models';
 import { Point, resample, scoreTrace } from '../domain/trace';
 import { Dino } from '../dino/Dino';
 import { Bubble } from '../ui/Bubble';
-import { drawVegetation } from '../ui/vegetation';
-import { drawScenery, goTo, homeButton, isPortrait, unit } from '../ui/scenery';
+import { goTo, homeButton, isPortrait, unit } from '../ui/scenery';
+import { drawIsland } from '../ui/island';
 import { BaseScene } from './BaseScene';
 
 /**
@@ -55,8 +55,7 @@ export class TraceScene extends BaseScene {
     this.playMs = 0;
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.savePlayTime());
     const game = data.series ? data.series.current.game : gameById(data.gameId!);
-    drawScenery(this, 0xe0f7fa, 0xf8fdff, 0);
-    drawVegetation(this, app.rng, isPortrait(this) ? [0.04, 0.32] : [0, 0.2]);
+    drawIsland(this, 'soft', { clouds: 1 });
     const { width: W, height: H } = this.scale;
     const u = unit(this);
     const portrait = isPortrait(this);
@@ -311,7 +310,7 @@ export class TraceScene extends BaseScene {
       const r = size * 0.032;
       const start = this.add.circle(x, y, r, 0x30a46c).setAlpha(faint ? 0.6 : 1);
       const n = this.add.text(x, y, String(i + 1), {
-        fontFamily: 'Arial Rounded MT Bold, Arial, sans-serif', fontSize: `${Math.round(r * 1.2)}px`, color: '#ffffff', fontStyle: 'bold',
+        fontFamily: "'Baloo 2', Arial Rounded MT Bold, Arial, sans-serif", fontSize: `${Math.round(r * 1.2)}px`, color: '#ffffff', fontStyle: 'bold',
       }).setOrigin(0.5);
       this.guideLayer.add([start, n]);
       if (!faint) this.tweens.add({ targets: start, scale: 1.25, duration: 600, yoyo: true, repeat: -1 });

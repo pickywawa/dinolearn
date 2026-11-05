@@ -12,8 +12,8 @@ import { DINO_COLORS } from '../dino/parts';
 import { Guide } from '../ui/Guide';
 import { MicButton } from '../ui/MicButton';
 import { firstLaunchSetup } from '../ui/pin';
-import { drawPrehistoric } from '../ui/prehistoric';
-import { ageSize, drawScenery, goTo, isPortrait, unit } from '../ui/scenery';
+import { ageSize, goTo, isPortrait, unit } from '../ui/scenery';
+import { drawIsland } from '../ui/island';
 import { BaseScene } from './BaseScene';
 
 /**
@@ -42,8 +42,7 @@ export class HelloScene extends BaseScene {
   create(data: { setup?: boolean } = {}) {
     this.initBase();
     this.setup = data.setup ?? true;
-    drawScenery(this, 0xf6b26b, 0xffe6c2);
-    drawPrehistoric(this);
+    drawIsland(this, 'dusk');
     const { width: W, height: H } = this.scale;
     const u = unit(this);
     this.dino = new Dino(this, W / 2, H * (isPortrait(this) ? 0.86 : 0.94), u * 0.42 * ageSize(app.progress.age));

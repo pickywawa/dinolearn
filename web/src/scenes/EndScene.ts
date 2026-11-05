@@ -12,7 +12,8 @@ import { foodXp } from '../domain/rewards';
 import { Dino, DinoReaction } from '../dino/Dino';
 import { Bubble } from '../ui/Bubble';
 import { Guide } from '../ui/Guide';
-import { drawScenery, goTo, homeButton, isPortrait, unit } from '../ui/scenery';
+import { goTo, homeButton, isPortrait, unit } from '../ui/scenery';
+import { drawIsland } from '../ui/island';
 import { BaseScene } from './BaseScene';
 
 const MAX_SHOWN = 10;
@@ -55,7 +56,7 @@ export class EndScene extends BaseScene {
     this.initBase();
     // Le soir, cette série était la dernière.
     app.progress.markNightSeries();
-    drawScenery(this, 0xffe9a8, 0xfff8e6);
+    drawIsland(this, 'day');
     const r = data.result;
     const { width: W, height: H } = this.scale;
     const u = unit(this);

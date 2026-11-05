@@ -273,7 +273,7 @@ export class Dino extends Phaser.GameObjects.Container {
       delay: 1400, loop: true, callback: () => {
         if (!this.active) return;
         const z = this.scene.add.text(90, -470, 'z', {
-          fontFamily: 'Baloo, Arial Rounded MT Bold, Arial, sans-serif', fontSize: '64px', color: '#ffffff', fontStyle: 'bold',
+          fontFamily: "'Baloo 2', Arial Rounded MT Bold, Arial, sans-serif", fontSize: '64px', color: '#ffffff', fontStyle: 'bold',
           stroke: '#2d3354', strokeThickness: 8,
         }).setOrigin(0.5);
         this.add(z);

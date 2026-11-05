@@ -26,7 +26,7 @@ export function makeCake(scene: Phaser.Scene, x: number, y: number, size: number
     g.fillStyle(0xfff3a0, 1).fillEllipse(cx, ct - size * 0.028, size * 0.018, size * 0.035);
   }
   const label = scene.add.text(size * 0.32, -size * 0.32, String(age), {
-    fontFamily: 'Arial Rounded MT Bold, Arial, sans-serif', fontSize: `${Math.round(size * 0.26)}px`,
+    fontFamily: "'Baloo 2', Arial Rounded MT Bold, Arial, sans-serif", fontSize: `${Math.round(size * 0.26)}px`,
     color: '#ffffff', fontStyle: 'bold', stroke: '#2d3354', strokeThickness: Math.round(size * 0.04),
   }).setOrigin(0.5);
   cake.add([disc, g, label]);

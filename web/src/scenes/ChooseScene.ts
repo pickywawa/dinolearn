@@ -2,8 +2,8 @@ import { app, playableGames } from '../core/app';
 import { Dino } from '../dino/Dino';
 import { Bubble } from '../ui/Bubble';
 import { Guide } from '../ui/Guide';
-import { drawPrehistoric } from '../ui/prehistoric';
-import { drawScenery, goTo, homeButton, isPortrait, makeTickable, unit } from '../ui/scenery';
+import { goTo, homeButton, isPortrait, makeTickable, unit } from '../ui/scenery';
+import { drawIsland } from '../ui/island';
 import { BaseScene } from './BaseScene';
 
 /**
@@ -30,8 +30,7 @@ export class ChooseScene extends BaseScene {
       goTo(this, 'Home');
       return;
     }
-    drawScenery(this);
-    drawPrehistoric(this);
+    drawIsland(this, 'day');
     const { width: W, height: H } = this.scale;
     const u = unit(this);
     const portrait = isPortrait(this);

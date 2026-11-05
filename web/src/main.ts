@@ -1,4 +1,6 @@
 import '@fontsource/andika/700.css';
+import '@fontsource/baloo-2/700.css';
+import '@fontsource/baloo-2/800.css';
 import '@fontsource/playwrite-fr-moderne/400.css';
 import Phaser from 'phaser';
 import { app } from './core/app';
@@ -14,17 +16,22 @@ import { StartScene } from './scenes/StartScene';
 import { TraceScene } from './scenes/TraceScene';
 import { WardrobeScene } from './scenes/WardrobeScene';
 
-/** Taille logique : 720 px sur le petit côté, l'autre suit le format de l'écran. */
+/**
+ * Le jeu se joue en paysage : 720 px de haut, la largeur suit le format de
+ * l'écran (de 4:3 à ~21:9). Tenu en portrait, un message demande de tourner
+ * la tablette (voir index.html).
+ */
 function gameSize() {
   const w = window.innerWidth;
   const h = window.innerHeight;
-  const ratio = Phaser.Math.Clamp(Math.max(w, h) / Math.min(w, h), 1.25, 2.3);
-  const long = Math.round(720 * ratio);
-  return h >= w ? { width: 720, height: long } : { width: long, height: 720 };
+  const ratio = Phaser.Math.Clamp(Math.max(w, h) / Math.min(w, h), 1.33, 2.3);
+  return { width: Math.round(720 * ratio), height: 720 };
 }
 
 // Polices des jeux de lecture : chargées tout de suite, prêtes bien avant la première question.
 void document.fonts?.load('bold 40px Andika');
+void document.fonts?.load("800 40px 'Baloo 2'");
+void document.fonts?.load("700 40px 'Baloo 2'");
 void document.fonts?.load('40px "Playwrite FR Moderne"');
 
 const size = gameSize();
@@ -41,19 +48,26 @@ const game = new Phaser.Game({
 // En développement seulement : accès au jeu depuis la console (tests dans le navigateur).
 if (import.meta.env.DEV) Object.assign(window, { game, app });
 
-// Rotation de l'écran : on adapte la taille logique et on relance la scène active.
-let portrait = size.height >= size.width;
+// Taille de l'écran changée (autre format, barre d'adresse…) : on adapte la largeur et on relance la scène.
+let current = size.width;
 window.addEventListener('resize', () => {
   const next = gameSize();
-  const nowPortrait = next.height >= next.width;
-  if (nowPortrait === portrait) return;
-  portrait = nowPortrait;
+  if (Math.abs(next.width - current) < 40) return;
+  current = next.width;
   game.scale.setGameSize(next.width, next.height);
   for (const scene of game.scene.getScenes(true)) {
     if (scene.scene.key === 'Game' || scene.scene.key === 'End') scene.scene.start('Home');
     else if (scene.scene.key !== 'Boot') scene.scene.restart();
   }
 });
+
+// Sur les appareils qui le permettent (appli installée, plein écran), on verrouille le paysage.
+const lockLandscape = () => {
+  const orientation = screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> };
+  orientation?.lock?.('landscape').catch(() => undefined);
+};
+lockLandscape();
+window.addEventListener('pointerdown', lockLandscape, { once: true });
 
 void app.voice.init();
 // Les voix du dino déjà téléchargées remplacent la voix du téléphone.

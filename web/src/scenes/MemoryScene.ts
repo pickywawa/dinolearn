@@ -6,8 +6,8 @@ import { Series, sceneOf } from '../core/series';
 import { Sfx } from '../core/sfx';
 import { foodImage } from '../domain/models';
 import { Dino } from '../dino/Dino';
-import { drawScenery, goTo, homeButton, isPortrait, unit } from '../ui/scenery';
-import { drawVegetation } from '../ui/vegetation';
+import { goTo, homeButton, isPortrait, unit } from '../ui/scenery';
+import { drawIsland } from '../ui/island';
 import { BaseScene } from './BaseScene';
 
 interface Card {
@@ -60,8 +60,7 @@ export class MemoryScene extends BaseScene {
     this.playMs = 0;
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.savePlayTime());
     const game = data.series ? data.series.current.game : gameById(data.gameId!);
-    drawScenery(this, 0xede4ff, 0xfaf7ff, 0);
-    drawVegetation(this, app.rng, isPortrait(this) ? [0.04, 0.36] : [0, 0.22]);
+    drawIsland(this, 'soft', { clouds: 1 });
     const { width: W, height: H } = this.scale;
     const u = unit(this);
     this.series = data.series ?? new Series(game, app.progress, app.rng);

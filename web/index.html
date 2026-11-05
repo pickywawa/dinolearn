@@ -5,16 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="theme-color" content="#bfe6ff" />
+    <meta name="theme-color" content="#7cc8f5" />
+    <meta name="screen-orientation" content="landscape" />
     <title>DinoLearn</title>
     <style>
       html, body { margin: 0; height: 100%; background: #bfe6ff; overflow: hidden; touch-action: none;
         -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
       #game { width: 100vw; height: 100vh; height: 100dvh; }
+      /* Le jeu se joue en paysage : tenu en portrait, on demande de tourner la tablette. */
+      #rotate { display: none; position: fixed; inset: 0; z-index: 10; background: linear-gradient(#7cc8f5, #c9ecff);
+        color: #2d3354; font: 700 7vw/1.2 'Baloo 2', 'Arial Rounded MT Bold', Arial, sans-serif; text-align: center;
+        flex-direction: column; align-items: center; justify-content: center; gap: 6vw; }
+      #rotate .phone { width: 22vw; height: 38vw; border: 2.4vw solid #2d3354; border-radius: 4vw; background: #fff8e7;
+        animation: turn 2.2s ease-in-out infinite; }
+      @keyframes turn { 0%, 25% { transform: rotate(0); } 55%, 100% { transform: rotate(-90deg); } }
+      @media (orientation: portrait) { #rotate { display: flex; } }
     </style>
   </head>
   <body>
     <div id="game"></div>
+    <div id="rotate"><div class="phone"></div><div>Tourne ta tablette !</div></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

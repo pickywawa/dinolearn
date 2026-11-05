@@ -12,8 +12,8 @@ import { Heard, Verdict, canRecognize, grammarFor, judge } from '../domain/speec
 import { Dino } from '../dino/Dino';
 import { Guide } from '../ui/Guide';
 import { MicButton } from '../ui/MicButton';
-import { drawVegetation } from '../ui/vegetation';
-import { drawScenery, goTo, homeButton, isPortrait, unit } from '../ui/scenery';
+import { goTo, homeButton, isPortrait, unit } from '../ui/scenery';
+import { drawIsland } from '../ui/island';
 import { BaseScene } from './BaseScene';
 
 interface Card {
@@ -103,11 +103,8 @@ export class GameScene extends BaseScene {
     this.resumed = !!data.series;
     this.mixed = this.resumed || !!data.mixed || !data.gameId;
     const games = this.mixed ? playableGames() : [gameById(data.gameId!)];
-    const tint = Phaser.Display.Color.IntegerToColor(this.mixed ? 0x9fd8ff : games[0].color);
-    const light = Phaser.Display.Color.Interpolate.ColorWithColor(tint, new Phaser.Display.Color(255, 255, 255), 100, 75);
-    drawScenery(this, Phaser.Display.Color.GetColor(light.r, light.g, light.b), 0xf4fbff, 0);
-    // Un décor différent à chaque série (fougères, palmiers, cailloux, montagnes, caméléon…).
-    drawVegetation(this, app.rng, isPortrait(this) ? [0.04, 0.36] : [0, 0.22]);
+    // L'île, en version adoucie : les cartes restent bien lisibles.
+    drawIsland(this, 'soft', { clouds: 1 });
 
     const { width: W, height: H } = this.scale;
     const u = unit(this);
@@ -679,7 +676,7 @@ export class GameScene extends BaseScene {
           pop(this.add.image(x, y, key), cell * 0.78, i);
         } else {
           const mark = this.add.text(x, y, '?', {
-            fontFamily: 'Arial Rounded MT Bold, Arial, sans-serif', fontSize: `${Math.round(cell * 0.7)}px`,
+            fontFamily: "'Baloo 2', Arial Rounded MT Bold, Arial, sans-serif", fontSize: `${Math.round(cell * 0.7)}px`,
             color: '#d9467a', fontStyle: 'bold',
           }).setOrigin(0.5);
           this.tweens.add({ targets: mark, scale: 1.2, duration: 500, yoyo: true, repeat: -1 });
@@ -813,7 +810,7 @@ export class GameScene extends BaseScene {
 
   private bigText(x: number, y: number, text: string, size: number, color: string) {
     const mark = this.add.text(x, y, text, {
-      fontFamily: 'Arial Rounded MT Bold, Arial, sans-serif', fontSize: `${Math.round(size)}px`,
+      fontFamily: "'Baloo 2', Arial Rounded MT Bold, Arial, sans-serif", fontSize: `${Math.round(size)}px`,
       color, fontStyle: 'bold',
     }).setOrigin(0.5);
     this.shown.push(mark);
@@ -850,7 +847,7 @@ export class GameScene extends BaseScene {
     } else if (choice.number !== undefined) {
       // Nombre écrit seul (niveau CP).
       container.add(this.add.text(0, 0, String(choice.number), {
-        fontFamily: 'Arial Rounded MT Bold, Arial, sans-serif',
+        fontFamily: "'Baloo 2', Arial Rounded MT Bold, Arial, sans-serif",
         fontSize: `${Math.round(size * (choice.number >= 10 ? 0.42 : 0.5))}px`, color: '#2d3354', fontStyle: 'bold',
       }).setOrigin(0.5));
     }
@@ -865,7 +862,7 @@ export class GameScene extends BaseScene {
   /** Carte nombre : le chiffre en grand et autant de points (on peut compter sans lire). */
   private numberFace(n: number, size: number): Phaser.GameObjects.GameObject[] {
     const digit = this.add.text(0, -size * 0.12, String(n), {
-      fontFamily: 'Arial Rounded MT Bold, Arial, sans-serif', fontSize: `${Math.round(size * 0.42)}px`,
+      fontFamily: "'Baloo 2', Arial Rounded MT Bold, Arial, sans-serif", fontSize: `${Math.round(size * 0.42)}px`,
       color: '#2d3354', fontStyle: 'bold',
     }).setOrigin(0.5);
     const dots = this.add.graphics();

@@ -6,7 +6,8 @@ import { Dino } from '../dino/Dino';
 import { Guide } from '../ui/Guide';
 import { chooseGifts } from '../ui/gifts';
 import { handOver, shouldHandOver } from '../ui/handover';
-import { drawScenery, goTo, homeButton, isPortrait, makeTickable, unit } from '../ui/scenery';
+import { goTo, homeButton, isPortrait, makeTickable, unit } from '../ui/scenery';
+import { drawIsland } from '../ui/island';
 import { BaseScene } from './BaseScene';
 
 interface Slot {
@@ -43,7 +44,7 @@ export class WardrobeScene extends BaseScene {
     this.afterSeries = !!data.afterSeries;
     this.newGift = undefined;
     this.leaving = false;
-    drawScenery(this, 0xffe9f3, 0xfff8e7, 2);
+    drawIsland(this, 'soft', { clouds: 2 });
     const { width: W, height: H } = this.scale;
     const u = unit(this);
     const portrait = isPortrait(this);

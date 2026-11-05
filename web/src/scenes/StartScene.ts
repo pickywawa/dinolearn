@@ -9,8 +9,8 @@ import { Sfx } from '../core/sfx';
 import { Dino } from '../dino/Dino';
 import { DINO_COLORS, EGG_ZIGZAG, PART_RESOLUTION } from '../dino/parts';
 import { Guide } from '../ui/Guide';
-import { drawPrehistoric } from '../ui/prehistoric';
-import { ageSize, drawScenery, goTo, unit } from '../ui/scenery';
+import { ageSize, goTo, unit } from '../ui/scenery';
+import { drawIsland } from '../ui/island';
 import { BaseScene } from './BaseScene';
 
 /** Nombre de touchers pour faire éclore l'œuf. */
@@ -40,8 +40,7 @@ export class StartScene extends BaseScene {
 
   create() {
     this.initBase();
-    drawScenery(this, 0xf6b26b, 0xffe6c2);
-    drawPrehistoric(this);
+    drawIsland(this, 'dusk');
     const u = unit(this);
     this.guide = new Guide(this, u * 0.2);
     // Premier lancement (pas encore d'enfant) ou nouvel enfant : l'œuf à faire éclore.
