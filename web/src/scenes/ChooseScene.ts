@@ -1,21 +1,23 @@
+import Phaser from 'phaser';
 import { app, playableGames } from '../core/app';
+import { shortTitle } from '../content/gameTitles';
 import { Dino } from '../dino/Dino';
-import { Bubble } from '../ui/Bubble';
 import { Guide } from '../ui/Guide';
-import { goTo, homeButton, isPortrait, makeTickable, unit } from '../ui/scenery';
 import { drawIsland } from '../ui/island';
+import { candyAt, roundButton, setHighlight, tileButton, woodSign, type Candy } from '../ui/kit';
+import { goTo, makeTickable, unit } from '../ui/scenery';
 import { BaseScene } from './BaseScene';
 
 /**
- * Choix d'un jeu (ouvert par le petit bouton de l'accueil) : une bulle par
- * jeu. Le dino présente chaque bulle en la montrant ; seule la bulle survolée
- * par la main est entourée. Les jeux à voix haute sont rangés derrière une
- * bulle micro (si les parents ont autorisé le micro).
+ * Choix d'un jeu (tuile « Les jeux » de l'accueil) : une tuile bonbon par jeu,
+ * à droite ; le dino, à gauche, présente chaque tuile en la montrant. Les jeux
+ * à voix haute sont rangés derrière une tuile micro (si les parents ont
+ * autorisé le micro).
  */
 export class ChooseScene extends BaseScene {
   private dino!: Dino;
   private guide!: Guide;
-  private bubbles: { bubble: Bubble; line: string }[] = [];
+  private tiles: { tile: Phaser.GameObjects.Container; line: string }[] = [];
   private voice = false;
 
   constructor() {
@@ -33,27 +35,40 @@ export class ChooseScene extends BaseScene {
     drawIsland(this, 'day');
     const { width: W, height: H } = this.scale;
     const u = unit(this);
-    const portrait = isPortrait(this);
 
-    homeButton(this, () => (this.voice ? goTo(this, 'Choose') : goTo(this, 'Home')));
-    this.dino = new Dino(this, W / 2, H * (portrait ? 0.92 : 0.96), u * (portrait ? 0.5 : 0.55));
+    roundButton(this, u * 0.085, u * 0.085, u * 0.055, 'ui-home',
+      () => (this.voice ? goTo(this, 'Choose') : goTo(this, 'Home')));
+    this.dino = new Dino(this, W * 0.17, H * 0.97, u * 0.56);
     makeTickable(this.dino);
     this.guide = new Guide(this, u * 0.15);
 
     // Seuls les jeux de l'âge de l'enfant sont proposés (l'anglais et le calcul à partir de 5 ans…).
     const playable = playableGames();
     const games = playable.filter((g) => !!g.voice === this.voice);
-    const entries = games.map((game) => ({ color: game.color, icon: game.icon, line: game.homeLine, go: () => this.play(game.id) }));
-    if (!this.voice && playable.some((g) => g.voice)) {
-      entries.push({ color: 0xe5484d, icon: 'vo-micro', line: 'home.voice', go: () => this.openVoice() });
-    }
-    const { positions, rowStep } = bubbleGrid(entries.length, portrait);
-    // Rayon : aussi grand que possible sans que les bulles se touchent.
-    const r = Math.min(u * 0.12, H * rowStep * 0.42, W * (portrait ? 0.105 : 0.06));
-    this.bubbles = entries.map((entry, i) => ({
-      bubble: new Bubble(this, W * positions[i][0], H * positions[i][1], r, entry.color, entry.icon, entry.go),
-      line: entry.line,
+    const entries: { icon: string; text: string; line: string; color: Candy; go: () => void }[] = games.map((game, i) => ({
+      icon: game.icon, text: shortTitle(game.id), line: game.homeLine, color: candyAt(i), go: () => this.play(game.id),
     }));
+    if (!this.voice && playable.some((g) => g.voice)) {
+      entries.push({ icon: 'vo-micro', text: 'À voix haute', line: 'home.voice', color: 'red', go: () => this.openVoice() });
+    }
+
+    const area = { x: W * 0.36, y: H * 0.2, w: W * 0.61, h: H * 0.77 };
+    woodSign(this, area.x + area.w / 2, H * 0.09, this.voice ? 'Joue à voix haute !' : 'Choisis un jeu !', u * 0.055, true);
+    const { cols, rows } = gridFor(entries.length, area.w / area.h);
+    const cw = area.w / cols, ch = area.h / rows;
+    const tw = Math.min(cw * 0.9, ch * 0.9 * 1.25, u * 0.4);
+    const th = Math.min(ch * 0.88, tw * 0.8);
+    this.tiles = entries.map((e, i) => {
+      const row = Math.floor(i / cols);
+      const inRow = Math.min(cols, entries.length - row * cols);
+      const x = area.x + area.w / 2 + ((i % cols) - (inRow - 1) / 2) * cw;
+      const y = area.y + ch * (row + 0.5);
+      const tile = tileButton(this, x, y, tw, th, e.icon, e.text, e.go, e.color);
+      // Les tuiles arrivent l'une après l'autre.
+      tile.setScale(0);
+      this.tweens.add({ targets: tile, scale: 1, duration: 300, delay: 60 * i, ease: 'Back.easeOut' });
+      return { tile, line: e.line };
+    });
 
     this.run(async () => {
       await this.wait(300);
@@ -61,25 +76,25 @@ export class ChooseScene extends BaseScene {
     });
   }
 
-  /** Le dino présente chaque jeu en le montrant ; la bulle n'est entourée que pendant ce temps. */
+  /** Le dino présente chaque jeu en le montrant ; la tuile pulse pendant ce temps. */
   private async presentGames() {
     await this.say(this.voice ? 'home.voice_choose' : 'home.choose');
-    for (const { bubble, line } of this.bubbles) {
-      bubble.highlight(true);
-      this.dino.pointAt(bubble.x, bubble.y);
-      this.guide.tap(bubble);
+    for (const { tile, line } of this.tiles) {
+      setHighlight(tile, true);
+      this.dino.pointAt(tile.x, tile.y);
+      this.guide.tap(tile);
       await this.say(line);
-      bubble.highlight(false);
+      setHighlight(tile, false);
     }
     this.guide.hide();
     this.armIdle([[9000, () => this.run(() => this.reminder())]]);
   }
 
-  /** Relance : la main fait le tour des bulles, en entourant seulement celle qu'elle survole. */
+  /** Relance : la main fait le tour des tuiles, en faisant pulser celle qu'elle survole. */
   private async reminder() {
     this.dino.react('happy');
-    this.guide.tour(this.bubbles.map(({ bubble }) => bubble), 1100, (index) => {
-      this.bubbles.forEach(({ bubble }, i) => bubble.highlight(i === index));
+    this.guide.tour(this.tiles.map(({ tile }) => tile), 1100, (index) => {
+      this.tiles.forEach(({ tile }, i) => setHighlight(tile, i === index));
     }, true);
     await this.say('home.choose');
     this.armIdle([[14000, () => this.run(() => this.reminder())]]);
@@ -100,33 +115,14 @@ export class ChooseScene extends BaseScene {
   }
 }
 
-/**
- * Positions des bulles (fractions de l'écran) : 3 ou 4 par ligne au-dessus du dino
- * en portrait ; en paysage, 2 colonnes de chaque côté du dino.
- */
-function bubbleGrid(n: number, portrait: boolean): { positions: [number, number][]; rowStep: number } {
-  if (portrait) {
-    // Beaucoup de jeux : 4 par ligne.
-    const cols = n > 12 ? 4 : 3;
+/** Colonnes et lignes pour `n` tuiles dans une zone de proportion `aspect` (largeur / hauteur). */
+function gridFor(n: number, aspect: number) {
+  let best = { cols: 1, rows: n, score: 0 };
+  for (let cols = 1; cols <= n; cols++) {
     const rows = Math.ceil(n / cols);
-    const step = Math.min(0.13, 0.52 / rows);
-    const positions = Array.from({ length: n }, (_, i): [number, number] => {
-      const row = Math.floor(i / cols);
-      const inRow = Math.min(cols, n - row * cols);
-      return [0.5 + ((i % cols) - (inRow - 1) / 2) * (0.9 / cols), 0.14 + row * step];
-    });
-    return { positions, rowStep: step };
+    // Taille de tuile possible (tuiles un peu plus larges que hautes).
+    const size = Math.min(aspect / cols, 1.25 / rows);
+    if (size > best.score) best = { cols, rows, score: size };
   }
-  const perSide = Math.ceil(n / 2);
-  const rows = Math.ceil(perSide / 2);
-  const step = Math.min(0.28, 0.72 / rows);
-  const positions = Array.from({ length: n }, (_, i): [number, number] => {
-    const right = i >= perSide;
-    const k = right ? i - perSide : i;
-    const row = Math.floor(k / 2);
-    const col = k % 2;
-    const x = right ? 0.8 + col * 0.13 : 0.07 + col * 0.13;
-    return [x, 0.2 + row * step];
-  });
-  return { positions, rowStep: step };
+  return best;
 }

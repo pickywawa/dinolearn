@@ -10,9 +10,9 @@ import { foodImage } from '../domain/models';
 import { feed, growthProgress } from '../domain/progression';
 import { foodXp } from '../domain/rewards';
 import { Dino, DinoReaction } from '../dino/Dino';
-import { Bubble } from '../ui/Bubble';
+import { arrowTexture, candyButton, card, INK, label, ribbonBanner, setHighlight, starTexture } from '../ui/kit';
 import { Guide } from '../ui/Guide';
-import { goTo, homeButton, isPortrait, unit } from '../ui/scenery';
+import { goTo, homeButton, unit } from '../ui/scenery';
 import { drawIsland } from '../ui/island';
 import { BaseScene } from './BaseScene';
 
@@ -44,7 +44,7 @@ export class EndScene extends BaseScene {
   private basket?: Phaser.GameObjects.Container;
   private basketHome = new Phaser.Math.Vector2();
   private fruits: { leftover: Leftover; img: Phaser.GameObjects.Image }[] = [];
-  private again!: Bubble;
+  private again!: Phaser.GameObjects.Container;
   private feeding = false;
   private eatenCount = 0;
 
@@ -60,26 +60,36 @@ export class EndScene extends BaseScene {
     const r = data.result;
     const { width: W, height: H } = this.scale;
     const u = unit(this);
-    const portrait = isPortrait(this);
     this.fruits = [];
     this.basket = undefined;
     this.feeding = false;
     this.eatenCount = 0;
 
     homeButton(this, () => goTo(this, 'Home'));
-    this.dino = new Dino(this, W / 2, H * (portrait ? 0.7 : 0.74), u * (portrait ? 0.62 : 0.5));
+    // Le dino à gauche ; à droite, la carte « Bravo ! » avec les étoiles de la série.
+    this.dino = new Dino(this, W * 0.25, H * 0.95, u * 0.56);
     this.dino.setBellyFill(growthProgress(app.progress.dino));
     this.guide = new Guide(this, u * 0.16);
-    this.again = new Bubble(this, W - u * 0.15, u * 0.15, u * 0.11, 0x43b649, 'ui-play', () => {
+
+    const cx = W * 0.64, cy = H * 0.4;
+    const panel = card(this, cx, cy, Math.min(W * 0.5, u * 0.95), u * 0.42);
+    const title = r.stars >= 3 ? 'Bravo !' : r.stars === 2 ? 'Super !' : r.stars === 1 ? 'Bien joué !' : 'On continue !';
+    const banner = ribbonBanner(this, cx, cy - u * 0.24, title, u * 0.075, 'orange');
+    const text = label(this, cx, cy - u * 0.075, 'Tu as terminé la série !', { size: u * 0.05, color: INK, weight: '800' });
+    [panel, banner, text].forEach((o, i) => {
+      o.setScale(0);
+      this.tweens.add({ targets: o, scale: 1, duration: 380, delay: 80 * i, ease: 'Back.easeOut' });
+    });
+    this.again = candyButton(this, cx, H * 0.86, u * 0.4, u * 0.13, 'green', 'Rejouer', () => {
       // Temps de jeu du jour atteint : retour à l'accueil, où le dino va se coucher.
       if (app.progress.timeIsUp()) goTo(this, 'Home');
       else goTo(this, 'Game', data.mixed ? planetSeries() : { gameId: r.gameId });
-    });
+    }, arrowTexture(this, 'play'), true);
     this.again.setVisible(false);
 
     const stars = [0, 1, 2].map((i) => {
-      const star = this.add.image(W / 2 + (i - 1) * u * 0.18, H * 0.1, 'ui-star').setAlpha(0.25);
-      star.setScale((u * 0.14) / star.width).setTintFill(0xffffff);
+      const star = this.add.image(cx + (i - 1) * u * 0.15, cy + u * 0.07 - (i === 1 ? u * 0.02 : 0), starTexture(this, true));
+      star.setScale((u * (i === 1 ? 0.15 : 0.13)) / star.width);
       return star;
     });
 
@@ -93,7 +103,7 @@ export class EndScene extends BaseScene {
       for (let i = 0; i < r.stars; i++) {
         await this.wait(380);
         Sfx.play('star');
-        stars[i].clearTint().setAlpha(1);
+        stars[i].setTexture(starTexture(this));
         this.tweens.add({ targets: stars[i], scale: { from: stars[i].scale * 1.6, to: stars[i].scale }, duration: 400, ease: 'Back.easeOut' });
       }
       const group = r.stars === 3 ? (r.firstTrySuccesses === r.total ? 'series_perfect' : 'series_great')
@@ -105,7 +115,7 @@ export class EndScene extends BaseScene {
         await this.showAgain();
         return;
       }
-      this.makeBasket(shown, W / 2, H * (portrait ? 0.88 : 0.88));
+      this.makeBasket(shown, W * 0.44, H * 0.85);
       await this.wait(500 + shown.length * 120);
       this.showBasketHint();
       await this.say('end.feed');
@@ -280,8 +290,8 @@ export class EndScene extends BaseScene {
       return;
     }
     this.again.setVisible(true).setScale(0);
-    this.tweens.add({ targets: this.again, scale: 1, duration: 350, ease: 'Back.easeOut' });
-    this.again.highlight(true);
+    this.tweens.add({ targets: this.again, scale: 1, duration: 350, ease: 'Back.easeOut',
+      onComplete: () => setHighlight(this.again, true) });
     this.dino.pointAt(this.again.x, this.again.y);
     this.guide.tap(this.again);
     await this.say('end.again');

@@ -6,7 +6,8 @@ import { Dino } from '../dino/Dino';
 import { Guide } from '../ui/Guide';
 import { chooseGifts } from '../ui/gifts';
 import { handOver, shouldHandOver } from '../ui/handover';
-import { goTo, homeButton, isPortrait, makeTickable, unit } from '../ui/scenery';
+import { goTo, homeButton, makeTickable, unit } from '../ui/scenery';
+import { arrowTexture, card, roundButton, woodSign } from '../ui/kit';
 import { drawIsland } from '../ui/island';
 import { BaseScene } from './BaseScene';
 
@@ -47,29 +48,33 @@ export class WardrobeScene extends BaseScene {
     drawIsland(this, 'soft', { clouds: 2 });
     const { width: W, height: H } = this.scale;
     const u = unit(this);
-    const portrait = isPortrait(this);
     homeButton(this, () => this.run(() => this.leave()));
 
-    this.dinoHeight = portrait ? H * 0.42 : H * 0.78;
-    this.dino = new Dino(this, portrait ? W / 2 : W * 0.27, portrait ? H * 0.6 : H * 0.94, this.dinoHeight);
+    this.dinoHeight = H * 0.7;
+    this.dino = new Dino(this, W * 0.27, H * 0.93, this.dinoHeight);
     makeTickable(this.dino);
     this.guide = new Guide(this, u * 0.15);
+    // Flèches pour faire tourner le dino (on peut aussi le faire tourner du doigt).
+    const turn = (dir: number) => {
+      this.dino.turnStep(dir * Math.PI / 2);
+      this.dino.react('hop');
+    };
+    roundButton(this, W * 0.27 - this.dinoHeight * 0.42, H * 0.6, u * 0.055, arrowTexture(this, 'left'), () => turn(-1), '#2f8cf0');
+    roundButton(this, W * 0.27 + this.dinoHeight * 0.42, H * 0.6, u * 0.055, arrowTexture(this, 'right'), () => turn(1), '#2f8cf0');
 
-    // L'étagère des objets.
-    const area = portrait
-      ? { x: W * 0.04, y: H * 0.645, w: W * 0.92, h: H * 0.34 }
-      : { x: W * 0.52, y: H * 0.06, w: W * 0.45, h: H * 0.9 };
-    const shelf = this.add.graphics();
-    shelf.fillStyle(0xffffff, 0.75).fillRoundedRect(area.x, area.y, area.w, area.h, 24);
+    // L'étagère des objets, sur une grande carte crème, sous son titre.
+    const area = { x: W * 0.53, y: H * 0.2, w: W * 0.44, h: H * 0.76 };
+    card(this, area.x + area.w / 2, area.y + area.h / 2, area.w, area.h);
+    woodSign(this, area.x + area.w / 2, H * 0.09, 'Mon Dino – Habillage', u * 0.05, true);
     const cols = 6;
     const rows = Math.ceil(ITEMS.length / cols);
-    const cell = Math.min(area.w / cols, area.h / rows);
+    const cell = Math.min(area.w * 0.94 / cols, area.h * 0.9 / rows);
     this.slots = ITEMS.map((item, i) => {
       const row = Math.floor(i / cols);
       const inRow = Math.min(cols, ITEMS.length - row * cols);
       const x = area.x + area.w / 2 + ((i % cols) - (inRow - 1) / 2) * cell;
       const y = area.y + area.h / 2 + (row - (rows - 1) / 2) * cell;
-      return this.makeCell(item, x, y, cell * 0.44);
+      return this.makeCell(item, x, y, cell * 0.41);
     });
     this.refresh();
     this.setupDrag();
@@ -103,7 +108,7 @@ export class WardrobeScene extends BaseScene {
 
   private makeCell(item: Item, x: number, y: number, r: number): Slot {
     const cell = this.add.container(x, y);
-    const ring = this.add.circle(0, 0, r, 0xffffff).setStrokeStyle(r * 0.1, 0xd1d5db);
+    const ring = this.add.circle(0, 0, r, 0xffffff).setStrokeStyle(r * 0.1, 0xead9bb);
     const img = this.add.image(0, 0, itemTexture(item.id));
     img.setScale((r * 1.45) / img.width);
     cell.add([ring, img]);

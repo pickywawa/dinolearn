@@ -326,6 +326,52 @@ export function arrowTexture(scene: Phaser.Scene, dir: 'play' | 'right' | 'left'
   });
 }
 
+/** Étoile dorée bombée (récompenses, niveau). `empty` : étoile à gagner, en creux. */
+export function starTexture(scene: Phaser.Scene, empty = false) {
+  return canvasTexture(scene, `kit-star-${empty}`, 256, 256, (g) => {
+    const path = (r1: number, r2: number) => {
+      g.beginPath();
+      for (let i = 0; i < 10; i++) {
+        const a = -Math.PI / 2 + i * Math.PI / 5;
+        const r = i % 2 ? r2 : r1;
+        const x = 128 + Math.cos(a) * r, y = 136 + Math.sin(a) * r;
+        if (i) g.lineTo(x, y);
+        else g.moveTo(x, y);
+      }
+      g.closePath();
+    };
+    g.lineJoin = 'round';
+    g.save();
+    g.shadowColor = 'rgba(60,40,0,0.35)';
+    g.shadowBlur = 10;
+    g.shadowOffsetY = 6;
+    path(112, 52);
+    g.fillStyle = empty ? '#d9cbb0' : '#e09a00';
+    g.fill();
+    g.restore();
+    path(104, 48);
+    if (empty) {
+      g.fillStyle = '#efe4cf';
+    } else {
+      const grad = g.createLinearGradient(0, 30, 0, 230);
+      grad.addColorStop(0, '#fff3a0');
+      grad.addColorStop(0.45, '#ffd23f');
+      grad.addColorStop(1, '#ffa500');
+      g.fillStyle = grad;
+    }
+    g.fill();
+    g.lineWidth = 10;
+    g.strokeStyle = '#ffffff';
+    g.stroke();
+    if (!empty) {
+      g.beginPath();
+      g.ellipse(100, 92, 26, 12, -0.5, 0, Math.PI * 2);
+      g.fillStyle = 'rgba(255,255,255,0.7)';
+      g.fill();
+    }
+  });
+}
+
 /** Rebond au toucher + anti-rebond de 400 ms. */
 export function makePressable(obj: Phaser.GameObjects.Container, onTap: () => void, sound = 'pop') {
   let last = 0;

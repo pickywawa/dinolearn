@@ -9,7 +9,7 @@ import { Dino } from '../dino/Dino';
 import { Bubble } from '../ui/Bubble';
 import { Guide } from '../ui/Guide';
 import { buzzingFlies } from '../ui/flies';
-import { arrowTexture, candyButton, setHighlight, tileButton, woodSign } from '../ui/kit';
+import { arrowTexture, candyButton, setHighlight, starTexture, tileButton, woodSign } from '../ui/kit';
 import { drawSkyLife } from '../ui/sky';
 import { goTo, growthFactor, makeTickable, unit } from '../ui/scenery';
 import { drawIsland } from '../ui/island';
@@ -192,7 +192,7 @@ export class HomeScene extends BaseScene {
 
   /** Étoile avec le niveau du dino (réglable dans l'espace parents). */
   private drawLevelBadge(x: number, y: number, u: number) {
-    const star = this.add.image(x, y, 'ui-star');
+    const star = this.add.image(x, y, starTexture(this));
     star.setScale((u * 0.16) / star.width).setInteractive();
     star.on('pointerup', () => {
       this.dino.react('happy');

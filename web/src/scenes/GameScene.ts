@@ -14,6 +14,7 @@ import { Guide } from '../ui/Guide';
 import { MicButton } from '../ui/MicButton';
 import { goTo, homeButton, isPortrait, unit } from '../ui/scenery';
 import { drawIsland } from '../ui/island';
+import { card } from '../ui/kit';
 import { BaseScene } from './BaseScene';
 
 interface Card {
@@ -42,6 +43,7 @@ export class GameScene extends BaseScene {
   private guide!: Guide;
   private cards: Card[] = [];
   private steps: Phaser.GameObjects.Image[] = [];
+  private stepBar?: Phaser.GameObjects.Container;
   private phase: Phase = 'loading';
   private tutorial = false;
   private replayExplained = false;
@@ -134,8 +136,7 @@ export class GameScene extends BaseScene {
     homeButton(this, () => this.leave());
     this.drawSteps();
 
-    const portrait = isPortrait(this);
-    this.dino = new Dino(this, portrait ? W * 0.2 : W * 0.12, H * 0.985, u * (portrait ? 0.3 : 0.38));
+    this.dino = new Dino(this, W * 0.115, H * 0.985, u * 0.44);
     // Toucher le dino : il répète la consigne.
     const zone = this.add.zone(0, -Dino.HEIGHT / 2, 320, Dino.HEIGHT).setInteractive();
     this.dino.add(zone);
@@ -550,10 +551,14 @@ export class GameScene extends BaseScene {
     const size = u * 0.056;
     const n = this.series.items.length;
     const gap = size * 1.12;
+    // Les fruits à gagner, posés sur une pastille blanche (barre de progression).
+    const bar = card(this, W / 2, u * 0.1, gap * n + size * 0.6, size * 1.45, '#ffffff', '#dfe8f3');
     this.steps = this.series.items.map((item, i) => {
-      const step = this.add.image(W / 2 + (i - (n - 1) / 2) * gap, u * 0.1, foodImage(item.fruit));
+      const step = this.add.image(W / 2 + (i - (n - 1) / 2) * gap, u * 0.098, foodImage(item.fruit));
       return step.setScale(size / step.width);
     });
+    this.stepBar?.destroy();
+    this.stepBar = bar;
     this.updateSteps(false);
   }
 
@@ -642,7 +647,8 @@ export class GameScene extends BaseScene {
   /** Ce qui est montré au-dessus des réponses, dans un cadre. */
   private drawShow(show: Show, area: { x: number; y: number; w: number; h: number }) {
     const frame = this.add.graphics();
-    frame.fillStyle(0xffffff, 0.85).fillRoundedRect(area.x, area.y, area.w, area.h, 28);
+    frame.fillStyle(0x1e2846, 0.14).fillRoundedRect(area.x + 3, area.y + 8, area.w, area.h, 28);
+    frame.fillStyle(0xfffaf0, 0.96).fillRoundedRect(area.x, area.y, area.w, area.h, 28);
     frame.lineStyle(6, this.series.current.game.color, 1).strokeRoundedRect(area.x, area.y, area.w, area.h, 28);
     this.shown.push(frame);
     this.counted = [];
@@ -826,7 +832,7 @@ export class GameScene extends BaseScene {
     const container = this.add.container(x, y);
     const bg = this.add.graphics();
     const card: Card = { choice, container, bg, size };
-    this.paintCard(card, 0xffffff, 0xffffff);
+    this.paintCard(card, 0xfffaf0, 0xfffaf0);
     container.add(bg);
     if (choice.image) {
       const img = this.add.image(0, 0, choice.image);
@@ -1028,16 +1034,21 @@ export class GameScene extends BaseScene {
     });
   }
 
+  /** Carte crème « bonbon » : ombre douce, tranche dorée en dessous, reflet en haut, liseré de couleur. */
   private paintCard(card: Card, fill: number, border: number, borderWidth = card.size * 0.035) {
     const s = card.size;
+    const r = s * 0.16;
+    const rim = fill === 0xfffaf0 ? 0xead2a6 : Phaser.Display.Color.ValueToColor(fill).darken(18).color;
     card.bg.clear();
-    card.bg.fillStyle(0x000000, 0.15).fillRoundedRect(-s / 2, -s / 2 + s * 0.04, s, s, s * 0.16);
-    card.bg.fillStyle(fill, 1).fillRoundedRect(-s / 2, -s / 2, s, s, s * 0.16);
-    card.bg.lineStyle(borderWidth, border, 1).strokeRoundedRect(-s / 2, -s / 2, s, s, s * 0.16);
+    card.bg.fillStyle(0x1e2846, 0.16).fillRoundedRect(-s / 2 + s * 0.01, -s / 2 + s * 0.06, s, s, r);
+    card.bg.fillStyle(rim, 1).fillRoundedRect(-s / 2, -s / 2, s, s, r);
+    card.bg.fillStyle(fill, 1).fillRoundedRect(-s / 2, -s / 2, s, s * 0.95, r);
+    card.bg.fillStyle(0xffffff, 0.7).fillRoundedRect(-s * 0.4, -s * 0.46, s * 0.8, s * 0.12, s * 0.06);
+    if (border !== fill) card.bg.lineStyle(borderWidth, border, 1).strokeRoundedRect(-s / 2, -s / 2, s, s, r);
   }
 
   private celebrateCard(card: Card) {
-    this.paintCard(card, 0xffffff, 0x43b649, card.size * 0.07);
+    this.paintCard(card, 0xf2ffe8, 0x43b649, card.size * 0.07);
     this.tweens.add({ targets: card.container, scale: 1.12, duration: 180, yoyo: true, ease: 'Quad.easeOut' });
     this.cards.filter((c) => c !== card).forEach((c) => c.container.setAlpha(0.45));
     const p = this.add.particles(card.container.x, card.container.y, 'ui-star', {
@@ -1056,7 +1067,7 @@ export class GameScene extends BaseScene {
   }
 
   private glowCard(card: Card) {
-    this.paintCard(card, 0xfff6d5, 0xffc107, card.size * 0.07);
+    this.paintCard(card, 0xfff6d5, 0xffb020, card.size * 0.07);
     this.tweens.add({ targets: card.container, scale: 1.07, duration: 400, yoyo: true, repeat: -1 });
   }
 }

@@ -248,6 +248,12 @@ export class Dino extends Phaser.GameObjects.Container {
     this.rig.pose.yaw += dx * 0.012;
   }
 
+  /** Tourne le dino d'un quart de tour (ou de `rad`), en douceur. */
+  turnStep(rad = Math.PI / 2) {
+    this.stopPose(['yaw']);
+    this.scene.tweens.add({ targets: this.rig.pose, yaw: this.rig.pose.yaw + rad, duration: 550, ease: 'Back.easeOut' });
+  }
+
   /** Revient doucement à son orientation de repos (ou à `yaw`). */
   turnBack(yaw = this.baseYaw) {
     const p = this.rig.pose;
@@ -260,6 +266,28 @@ export class Dino extends Phaser.GameObjects.Container {
   face(yaw: number, duration = 400) {
     this.baseYaw = yaw;
     this.scene.tweens.add({ targets: this.rig.pose, yaw, duration, ease: 'Sine.easeInOut' });
+  }
+
+  /**
+   * Le dino court (vu de profil, vers la droite) : jambes et bras alternés,
+   * petits bonds. `false` : il s'arrête et se retourne vers nous.
+   */
+  run(on = true) {
+    const p = this.rig.pose;
+    const t = this.scene.tweens;
+    this.stopPose(['legL', 'legR', 'armL', 'armR', 'armLFwd', 'armRFwd', 'y', 'bow', 'yaw']);
+    if (!on) {
+      Object.assign(p, { legL: 0, legR: 0, armLFwd: 0, armRFwd: 0, y: 0, bow: 0 });
+      this.face(this.baseYaw);
+      this.idleArms();
+      return;
+    }
+    p.yaw = Math.PI / 2 * 0.85;
+    p.bow = 0.18;
+    this.rig.setMouth('open');
+    t.add({ targets: p, legL: { from: -0.7, to: 0.7 }, legR: { from: 0.7, to: -0.7 }, armLFwd: { from: 0.8, to: -0.6 },
+      armRFwd: { from: -0.6, to: 0.8 }, duration: 170, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    t.add({ targets: p, y: 0.12, duration: 170, yoyo: true, repeat: -1, ease: 'Quad.easeOut' });
   }
 
   /** Le dino s'endort : yeux fermés et petits « z » qui s'envolent. */

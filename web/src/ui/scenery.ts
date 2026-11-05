@@ -63,7 +63,7 @@ export function goTo(scene: Phaser.Scene, key: string, data?: object) {
 /** Petit bouton « maison » en haut à gauche. */
 export function homeButton(scene: Phaser.Scene, onTap: () => void) {
   const r = unit(scene) * 0.07;
-  return new Bubble(scene, r * 1.4, r * 1.4, r, 0xffd23f, 'ui-home', onTap, 0.7);
+  return new Bubble(scene, r * 1.3, r * 1.3, r * 0.85, 0xffffff, 'ui-home', onTap, 0.66);
 }
 
 /** Le dino réagit quand on le touche (chatouilles). */
