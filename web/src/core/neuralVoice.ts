@@ -84,7 +84,7 @@ async function synthesizeWithPauses(voiceId: string, text: string): Promise<{ pc
   const pieces: Float32Array[] = [];
   let sampleRate = 22050;
   for (const segment of spokenSegments(text)) {
-    const out = await synthesize(voiceId, segment.text);
+    const out = await synthesize(voiceId, segment.text, segment.slow ?? 1);
     sampleRate = out.sampleRate;
     pieces.push(out.pcm, new Float32Array(Math.round((segment.pauseMs / 1000) * sampleRate)));
   }

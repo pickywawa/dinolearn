@@ -1,0 +1,5 @@
+Bruitages enregistrés (licence CC0, domaine public), découpés, normalisés et convertis en MP3 :
+- crunch-*.mp3 : « 7 Eating Crunches » — https://opengameart.org/content/7-eating-crunches
+- gulp-*.mp3, burp-*.mp3 : « 80 CC0 creature SFX » (rubberduck) — https://opengameart.org/content/80-cc0-creature-sfx
+- fart-*.mp3 : « Gastric distress » (LFA) — https://opengameart.org/content/gastric-distress
+- slurp-1.mp3 : « 8 wet squish, slurp impacts » — https://opengameart.org/content/8-wet-squish-slurp-impacts

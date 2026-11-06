@@ -122,10 +122,21 @@ function offerAndroid() {
       label: 'Installer',
       onTap: async () => {
         const prompt = deferred;
-        deferred = undefined;
-        close();
-        if (!prompt) return;
-        await prompt.prompt().catch(() => undefined);
+        if (prompt) {
+          deferred = undefined;
+          close();
+          await prompt.prompt().catch(() => undefined);
+          return;
+        }
+        // Le navigateur n'a pas (encore) proposé l'installation : on montre le geste à faire.
+        card.replaceChildren();
+        head(card, 'Dans le menu du navigateur :');
+        const steps = document.createElement('ol');
+        steps.innerHTML = '<li>Touche <b>⋮</b> (les trois points, en haut à droite).</li>'
+          + '<li>Choisis <b>« Installer l\'application »</b> ou <b>« Ajouter à l\'écran d\'accueil »</b>.</li>'
+          + '<li>Ouvre le jeu avec l\'icône du dino.</li>';
+        card.append(steps);
+        buttons(card, close);
       },
     });
   });
@@ -153,11 +164,14 @@ export function offerInstall() {
     void navigator.serviceWorker.register('sw.js').catch(() => undefined);
   }
   if (isInstalledApp() || !isMobile() || never()) return;
+  // On retient la vraie fenêtre d'installation du navigateur, pour le bouton « Installer ».
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferred = e as InstallPrompt;
-    offerAndroid();
   });
   window.addEventListener('appinstalled', () => { deferred = undefined; });
-  if (isIOS()) setTimeout(offerIOS, 1200);
+  // Tout de suite au lancement, que l'appareil soit tenu en paysage ou en portrait.
+  const show = () => (isIOS() ? offerIOS() : offerAndroid());
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', show, { once: true });
+  else show();
 }

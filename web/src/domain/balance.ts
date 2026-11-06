@@ -11,7 +11,12 @@ export const BALANCE = {
   xpA: 10,
   xpB: 8,
   xpExp: 1.3,
-  ageLevelOffset: { 3: 0, 4: 1, 5: 2, 6: 3, 7: 4 } as Record<number, number>,
+  /** Niveau de départ selon l'âge (1–10 maternelle, 11–20 CP). */
+  ageLevelOffset: { 3: 1, 4: 3, 5: 5, 6: 8, 7: 11 } as Record<number, number>,
+  /** Le niveau du dino fait monter la difficulté de 1 tous les `xpLevelsPerStep` niveaux. */
+  xpLevelsPerStep: 3,
+  /** Difficulté maximale selon l'âge : pas de questions de CP pour les petits. */
+  ageLevelCap: { 3: 8, 4: 11, 5: 15, 6: 20, 7: 20 } as Record<number, number>,
   successWindow: 100,
   successWindowMin: 20,
   /** [taux minimum, ajustement], par taux décroissant. */

@@ -208,15 +208,15 @@ export function loadVoice(voiceId: string) {
   return s;
 }
 
-/** Calcule une phrase : le son (−1 à 1) et sa fréquence d'échantillonnage. */
-export async function synthesize(voiceId: string, text: string): Promise<{ pcm: Float32Array; sampleRate: number }> {
+/** Calcule une phrase : le son (−1 à 1) et sa fréquence d'échantillonnage. `slow` : débit ralenti (× durée). */
+export async function synthesize(voiceId: string, text: string, slow = 1): Promise<{ pcm: Float32Array; sampleRate: number }> {
   const [{ session, config }, lib] = await Promise.all([loadVoice(voiceId), ort()]);
   const ids = await phonemeIds(text.trim(), config.espeak.voice);
   const { noise_scale: noise, length_scale: length, noise_w: noiseW } = config.inference;
   const feeds: Record<string, unknown> = {
     input: new lib.Tensor('int64', BigInt64Array.from(ids.map((i) => BigInt(i))), [1, ids.length]),
     input_lengths: new lib.Tensor('int64', BigInt64Array.of(BigInt(ids.length)), [1]),
-    scales: new lib.Tensor('float32', Float32Array.of(noise, length, noiseW), [3]),
+    scales: new lib.Tensor('float32', Float32Array.of(noise, length * slow, noiseW), [3]),
   };
   // Voix à plusieurs locuteurs (UPMC : 0 = Jessica, 1 = Pierre) : la première.
   if (config.speaker_id_map && Object.keys(config.speaker_id_map).length) {

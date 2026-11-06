@@ -7,6 +7,9 @@ import { seriesFruits, starsFor } from '../domain/rewards';
 import { pickQuestions } from '../domain/selector';
 import { Progress } from './progress';
 
+/** Chance d'un memory par rapport à un autre jeu, dans une série mélangée. */
+const MEMORY_WEIGHT = 0.3;
+
 export interface SeriesItem {
   game: GameDef;
   questionId: string;
@@ -80,11 +83,17 @@ export class Series {
     const count = (!this.mixed && list[0].seriesLength) || seriesLengthFor(progress.age, b);
     const picks: { game: GameDef; question: { id: string; level: number }; isReview: boolean; due?: boolean }[] = [];
     if (this.mixed) {
-      // Une question par tirage, jamais deux fois le même jeu de suite.
+      // Une question par tirage, jamais deux fois le même jeu de suite. Les memory (longs) sont
+      // tirés moins souvent que les autres jeux, et au plus une fois par série.
       let previous: GameDef | undefined;
+      let memories = 0;
       for (let i = 0; i < count; i++) {
-        const options = list.filter((g) => g !== previous);
-        const game = options[Math.floor(rng() * options.length)];
+        const options = list.filter((g) => g !== previous && !(g.memory && memories >= 1));
+        if (!options.length) break;
+        const weight = (g: GameDef) => (g.memory ? MEMORY_WEIGHT : 1);
+        let r = rng() * options.reduce((sum, g) => sum + weight(g), 0);
+        const game = options.find((g) => (r -= weight(g)) < 0) ?? options[options.length - 1];
+        if (game.memory) memories++;
         const taken = new Set(picks.filter((p) => p.game === game).map((p) => p.question.id));
         const [pick] = this.select(game, 1, rng, taken);
         if (pick) picks.push({ game, ...pick });

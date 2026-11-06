@@ -16,6 +16,7 @@ export const TITLES: Record<string, string> = {
   'VO-5': 'Voix haute — Devinettes : les métiers', 'VO-6': 'Voix haute — Devinettes : le sport',
   'VO-7': 'Voix haute — Devinettes : l\'espace', 'VO-8': 'Voix haute — Les saisons et la météo',
   'VO-9': 'Voix haute — Les formes et les couleurs', 'VO-10': 'Voix haute — Pays et peuples du monde',
+  'LO-11': 'Logique — Calcul dicté', 'VO-13': 'Voix haute — Calcul',
   'VO-11': 'Voix haute — Mon pays', 'VO-12': 'Voix haute — Devinettes : la nature',
 };
 

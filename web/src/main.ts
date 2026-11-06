@@ -25,7 +25,7 @@ import { isInstalledApp, offerInstall } from './ui/install';
 function gameSize() {
   const w = window.innerWidth;
   const h = window.innerHeight;
-  const ratio = Phaser.Math.Clamp(Math.max(w, h) / Math.min(w, h), 1.33, 2.3);
+  const ratio = Phaser.Math.Clamp(Math.max(w, h) / Math.min(w, h), 1.33, 2.4);
   return { width: Math.round(720 * ratio), height: 720 };
 }
 
@@ -41,7 +41,9 @@ const game = new Phaser.Game({
   parent: 'game',
   backgroundColor: '#bfe6ff',
   ...size,
-  scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
+  // Remplit tout l'écran (pas de bandes sur les côtés) : la largeur du jeu suit le format de l'écran,
+  // et les petits écarts (barre d'adresse, plein écran) sont rognés de quelques pixels.
+  scale: { mode: Phaser.Scale.ENVELOP, autoCenter: Phaser.Scale.CENTER_BOTH },
   input: { activePointers: 2 },
   scene: [BootScene, StartScene, HelloScene, HomeScene, ChooseScene, GameScene, EndScene, WardrobeScene, TraceScene, MemoryScene],
 });
@@ -53,7 +55,10 @@ if (import.meta.env.DEV) Object.assign(window, { game, app });
 let current = size.width;
 window.addEventListener('resize', () => {
   const next = gameSize();
-  if (Math.abs(next.width - current) < 40) return;
+  if (Math.abs(next.width - current) < 40) {
+    game.scale.refresh();
+    return;
+  }
   current = next.width;
   game.scale.setGameSize(next.width, next.height);
   for (const scene of game.scene.getScenes(true)) {
@@ -93,7 +98,11 @@ async function goLandscape() {
   await orientation?.lock?.('landscape').catch(() => undefined);
 }
 void goLandscape();
-window.addEventListener('pointerdown', () => void goLandscape(), { capture: true });
+window.addEventListener('pointerdown', (e) => {
+  // Pas pendant la proposition d'installation : son bouton ouvre la fenêtre du navigateur.
+  if ((e.target as Element | null)?.closest?.('.install')) return;
+  void goLandscape();
+}, { capture: true });
 // Appli installée : on reverrouille aussi quand elle revient au premier plan.
 if (standalone) document.addEventListener('visibilitychange', () => { if (!document.hidden) void goLandscape(); });
 // Sur mobile, dans le navigateur : proposer d'installer le jeu comme une appli.

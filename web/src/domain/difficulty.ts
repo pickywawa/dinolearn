@@ -2,8 +2,13 @@ import { BALANCE, Balance, clamp } from './balance';
 import { AnswerRecord } from './models';
 
 /** Calcul du niveau de difficulté d'un mini-jeu (spécifications §7.2). */
+/** Plafond de difficulté pour cet âge. */
+export const levelCap = (age: number, b: Balance = BALANCE) => b.ageLevelCap[clamp(age, 3, 7)] ?? b.maxLevel;
+
+/** Niveau de départ : l'âge, plus un peu à mesure que le dino grandit, sans dépasser le plafond de l'âge. */
 export function baseLevel(experienceLevel: number, age: number, b: Balance = BALANCE): number {
-  return clamp(Math.ceil(experienceLevel / 2) + (b.ageLevelOffset[clamp(age, 3, 7)] ?? 0), 1, b.maxLevel);
+  const start = b.ageLevelOffset[clamp(age, 3, 7)] ?? 1;
+  return clamp(start + Math.floor((experienceLevel - 1) / b.xpLevelsPerStep), 1, levelCap(age, b));
 }
 
 export function adjustment(successRate: number, b: Balance = BALANCE): number {
@@ -40,8 +45,9 @@ export function computeLevel(
   const adjust = window.length === 0
     ? 0
     : adjustment(window.filter((a) => a.firstTrySuccess).length / window.length, b);
-  const target = clamp(base + adjust, 1, b.maxLevel);
+  const cap = levelCap(opts.age, b);
+  const target = clamp(base + adjust, 1, cap);
   if (opts.previousLevel === undefined) return target;
   const step = b.maxLevelStepPerSeries;
-  return clamp(clamp(target, opts.previousLevel - step, opts.previousLevel + step), 1, b.maxLevel);
+  return clamp(clamp(target, opts.previousLevel - step, opts.previousLevel + step), 1, cap);
 }

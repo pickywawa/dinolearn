@@ -61,10 +61,10 @@ describe('correction à voix haute', () => {
 const VOICE = GAMES.filter((g) => g.voice);
 
 describe('jeux à voix haute', () => {
-  it('douze jeux : « Comment ça s\'appelle ? » dès 3 ans, les autres dès 5 ans, avec leurs répliques', () => {
-    expect(VOICE.map((g) => g.id)).toEqual(Array.from({ length: 12 }, (_, i) => `VO-${i + 1}`));
+  it('treize jeux : « Comment ça s\'appelle ? » dès 3 ans, les autres dès 5 ans, avec leurs répliques', () => {
+    expect(VOICE.map((g) => g.id)).toEqual(Array.from({ length: 13 }, (_, i) => `VO-${i + 1}`));
     expect(gamesForAge(3).filter((g) => g.voice).map((g) => g.id)).toEqual(['VO-1']);
-    expect(gamesForAge(5).filter((g) => g.voice)).toHaveLength(12);
+    expect(gamesForAge(5).filter((g) => g.voice)).toHaveLength(13);
     expect(VOICE.filter((g) => g.voice === 'en').map((g) => g.id)).toEqual(['VO-2']);
     for (const g of VOICE) {
       for (const key of [g.introLine, g.homeLine, g.shortLine]) expect(LINES[key]?.length, key).toBeGreaterThan(0);

@@ -42,6 +42,8 @@ export const LINES: Record<string, string[]> = {
   'home.LO-3': ['Les flèches : quelle est la suite ?'],
   'home.LO-4': ['La balance : où y en a-t-il le plus ?'],
   'home.LO-5': ['Les chiffres : on calcule !'],
+  'home.LO-11': ['L\'oreille : des calculs dans ta tête !'],
+  'home.VO-13': ['Le micro : dis-moi le résultat du calcul !'],
   'home.FR-1': ['Le drapeau français : les sons des mots !'],
   'home.EN-2': ['Le dix : les nombres en anglais !'],
   'home.MO-4': ['La poignée de main : qu\'est-ce qui va ensemble ?'],
@@ -77,6 +79,8 @@ export const LINES: Record<string, string[]> = {
   'short.LO-3': ['La suite !'],
   'short.LO-4': ['Le plus ou le moins !'],
   'short.LO-5': ['Un calcul !', 'On calcule !'],
+  'short.LO-11': ['Calcul dans ta tête !', 'Écoute le calcul !'],
+  'short.VO-13': ['Dis-moi le résultat !', 'Calcul à voix haute !'],
   'short.FR-1': ['Écoute bien les sons !', 'Les sons des mots !'],
   'short.EN-2': ['Un nombre en anglais !', 'Numbers !'],
   'short.MO-4': ['Qu\'est-ce qui va ensemble ?'],
@@ -139,6 +143,13 @@ export const LINES: Record<string, string[]> = {
   'intro.LO-4': [
     'Regarde bien les cartes. Trouve celle que je te demande !',
     'Compare bien les cartes ! Laquelle je cherche ?',
+  ],
+  'intro.LO-11': [
+    'Des calculs sans images ! Écoute bien, calcule dans ta tête, et touche le bon nombre.',
+    'Je te dis un calcul, tu le fais dans ta tête ! Tu peux compter sur tes doigts.',
+  ],
+  'intro.VO-13': [
+    'Je te dis un calcul, et tu me dis le résultat ! Touche le micro pour répondre.',
   ],
   'intro.LO-5': [
     'On va calculer ! Écoute bien, et touche le bon nombre !',

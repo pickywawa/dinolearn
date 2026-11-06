@@ -119,6 +119,8 @@ write('shadow', noto, 'busts-in-silhouette');
 write('sequence', noto, 'repeat-button');
 write('most', noto, 'balance-scale');
 write('calc', noto, 'heavy-plus-sign');
+write('calc-listen', noto, 'ear');
+write('vo-calc', noto, 'speaking-head');
 write('numbers', noto, 'input-numbers');
 write('together', noto, 'handshake');
 write('bigger', noto, 'straight-ruler');

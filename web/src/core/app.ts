@@ -64,7 +64,9 @@ export function playableGames(): GameDef[] {
   const p = app.progress;
   // Application en anglais : pas de jeux pour apprendre l'anglais.
   const english = englishGamesAllowed(appLanguage());
-  const forAge = gamesForAge(p.age).filter((g) => (!g.voice || voiceAvailable(g)) && (english || g.category !== 'foreign_language'));
+  const forAge = gamesForAge(p.age).filter((g) => (!g.voice || voiceAvailable(g)) && (english || g.category !== 'foreign_language')
+    // Certains jeux attendent qu'un autre soit maîtrisé (les calculs sans images après ceux en images).
+    && (!g.unlock || (p.gameLevel(g.unlock.game) ?? 0) >= g.unlock.level));
   const enabled = forAge.filter((g) => !p.settings.disabledGames.includes(g.id) && g.questions.length > 0);
   return enabled.length > 0 ? enabled : forAge;
 }

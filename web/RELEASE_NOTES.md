@@ -1,3 +1,21 @@
+## DinoLearn 0.14.0 — Calcul de tête, vrais bruitages, questions revues
+
+- **Deux nouveaux jeux de calcul sans images** (dès 5 ans, une fois le calcul en images maîtrisé) :
+  le **calcul dicté** (le dino dit le calcul, on touche le résultat parmi 4) et le **calcul à voix
+  haute** (on répond au micro, s'il est activé).
+- **De vrais bruitages** quand le dino mange les fruits, gobe une mouche, rote ou pète
+  (enregistrements libres de droits, CC0).
+- **Les cris d'animaux** dits par le dino durent plus longtemps (« meuh », « ouaf ouaf »,
+  « cocorico »…).
+- **Moins de memory** dans les séries au hasard (au plus un par série).
+- **Installer l'appli** est proposé dès l'ouverture sur téléphone, en paysage comme en portrait.
+- **Plein écran sans bandes** sur les côtés, dans le navigateur comme dans l'appli.
+- **Toutes les questions relues** : les indices ne donnent plus la réponse (nombres en anglais,
+  histoires, « c'est un oiseau »…), indices des formes adaptés à la consigne, paires plus claires dans
+  « Ça va ensemble », horloge mieux étagée (les quarts et les minutes plus tard).
+- **Difficulté selon l'âge** : départ plus haut pour les grands (7 ans commence au niveau CP), et un
+  plafond pour les petits (pas de questions de CP à 3 ou 4 ans).
+
 ## DinoLearn 0.13.2 — Installer le jeu sur le téléphone
 
 - **Au démarrage sur téléphone ou tablette**, le jeu propose de s'installer comme une appli

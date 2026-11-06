@@ -78,6 +78,16 @@ export function pickDistractors(
 }
 
 /** Indice de famille, au singulier (« c'est un animal de la ferme »). */
+/**
+ * Indice « c'est un … » d'une image, sauf s'il donne la réponse (l'oiseau : « c'est un oiseau »).
+ */
+export function categoryHint(c: { category: string; fr: { word: string } }): string | undefined {
+  const hint = CATEGORY_HINTS[c.category];
+  const bare = (s: string) => s.toLowerCase().normalize('NFD').replace(/\p{M}/gu, '');
+  if (!hint || bare(hint).includes(bare(c.fr.word))) return undefined;
+  return hint;
+}
+
 export const CATEGORY_HINTS: Record<string, string> = {
   farm: 'un animal de la ferme', sea: 'un animal de la mer', bird: 'un oiseau', bug: 'une petite bête',
   wild: 'un animal sauvage', forest: 'un animal de la forêt', fruit: 'un fruit', veg: 'un légume',

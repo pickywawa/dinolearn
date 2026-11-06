@@ -1,8 +1,10 @@
 import { ZZFX, zzfx } from 'zzfx';
 
 /**
- * Petits effets sonores générés par ZzFX (aucun fichier audio).
- * Paramètres créés avec https://killedbyapixel.github.io/ZzFX/
+ * Petits effets sonores. Les bruits du dino (manger, gober une mouche, roter,
+ * péter, coup de langue) sont de vrais enregistrements (`public/sfx/`, CC0) ;
+ * les autres sont générés par ZzFX (https://killedbyapixel.github.io/ZzFX/),
+ * qui sert aussi de secours tant qu'un enregistrement n'est pas chargé.
  */
 const SOUNDS = {
   pop: [1.2, , 520, 0.01, 0.02, 0.06, 1, 1.6, , , 300, 0.04],
@@ -21,9 +23,48 @@ const SOUNDS = {
   rumble: [1.2, , 50, 0.08, 0.5, 0.4, 3, 0.8, , , , , 0.1, 1.2, , 0.1, , 0.6],
   slurp: [1, , 220, 0.01, 0.06, 0.1, , 1.4, 40, , , , , , , , , 0.6],
   whoosh: [0.5, , 900, 0.2, 0.3, 0.5, 4, 0, -2, , , , , 1.8, , , , 0.4],
+  gulp: [1.4, , 120, 0.01, 0.03, 0.06, 4, 2.4, , , , , , 0.5, , 0.2],
 } satisfies Record<string, (number | undefined)[]>;
 
 export type SoundName = keyof typeof SOUNDS;
+
+/** Enregistrements (une variante au hasard à chaque fois). */
+const SAMPLES: Partial<Record<SoundName, string[]>> = {
+  chomp: ['crunch-1', 'crunch-2', 'crunch-3'],
+  gulp: ['gulp-1', 'gulp-2'],
+  burp: ['burp-1', 'burp-2'],
+  fart: ['fart-1', 'fart-2'],
+  slurp: ['slurp-1'],
+};
+const buffers = new Map<string, AudioBuffer>();
+let loading = false;
+
+/** Charge les enregistrements (au premier geste, quand l'audio est débloqué). */
+function loadSamples() {
+  if (loading) return;
+  loading = true;
+  const ctx = ZZFX.audioContext;
+  for (const file of new Set(Object.values(SAMPLES).flat())) {
+    fetch(new URL(`sfx/${file}.mp3`, document.baseURI).href)
+      .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(String(r.status)))))
+      .then((data) => ctx.decodeAudioData(data))
+      .then((buf) => buffers.set(file, buf))
+      .catch(() => undefined);
+  }
+}
+
+function playSample(name: SoundName): boolean {
+  const files = SAMPLES[name]?.filter((f) => buffers.has(f));
+  if (!files?.length) return false;
+  const ctx = ZZFX.audioContext;
+  const src = ctx.createBufferSource();
+  src.buffer = buffers.get(files[Math.floor(Math.random() * files.length)])!;
+  const gain = ctx.createGain();
+  gain.gain.value = 0.9;
+  src.connect(gain).connect(ctx.destination);
+  src.start();
+  return true;
+}
 
 export const Sfx = {
   /** Coupé depuis l'espace parents. */
@@ -31,7 +72,7 @@ export const Sfx = {
   play(name: SoundName) {
     if (!Sfx.enabled) return;
     try {
-      zzfx(...SOUNDS[name]);
+      if (!playSample(name)) zzfx(...SOUNDS[name]);
     } catch {
       // Audio indisponible.
     }
@@ -41,6 +82,7 @@ export const Sfx = {
     try {
       ZZFX.volume = 0.35;
       void ZZFX.audioContext.resume();
+      loadSamples();
     } catch {
       // ignoré
     }

@@ -1,7 +1,7 @@
 import { QuestionRef, Rng, mulberry32, shuffle } from '../domain/models';
 import { SayTarget, SpeechLang } from '../domain/speech';
 import {
-  CATEGORY_HINTS, CONCEPTS, Concept, DistractorStrategy, Speech, conceptById, conceptsFor, frWithArticle, pickDistractors,
+  CONCEPTS, categoryHint, Concept, DistractorStrategy, Speech, conceptById, conceptsFor, frWithArticle, pickDistractors,
 } from './content';
 import { PAIRS, SIZES, SYLLABLES, enNumber } from './extra';
 import { frNumber } from './numbers';
@@ -102,6 +102,8 @@ export interface GameDef {
   minAge?: number;
   /** Jeu à voix haute : langue du pack de reconnaissance vocale nécessaire. */
   voice?: SpeechLang;
+  /** Proposé seulement quand un autre jeu est maîtrisé (niveau atteint dans ce jeu). */
+  unlock?: { game: string; level: number };
   /** Image de la bulle du jeu. */
   icon: string;
   /** Couleur de la bulle et du décor. */
@@ -130,7 +132,8 @@ const riddleConcept = (riddleId: string) => conceptById(riddleId.split('~')[0]);
 
 /** Indices d'une image : sa famille, puis sa devinette si elle en a une. */
 function conceptHints(c: Concept): Speech[] {
-  const hints: Speech[] = [{ text: `Indice : c'est ${CATEGORY_HINTS[c.category] ?? 'quelque chose'}.`, lang: 'fr' }];
+  const family = categoryHint(c);
+  const hints: Speech[] = family ? [{ text: `Indice : c'est ${family}.`, lang: 'fr' }] : [];
   const riddle = riddleText.get(c.id);
   if (riddle) {
     hints.push({ text: `Indice : ${riddle.replace(/ ?Qui suis-je \?$/, '').replace(/^Qui /, 'qui ')}`, lang: 'fr' });
@@ -262,7 +265,8 @@ const riddles: GameDef = {
         lang: 'fr',
       }],
       reinforce: [{ text: `C'est ${frWithArticle(answer)} !`, lang: 'fr' }],
-      hints: [{ text: `Indice : c'est ${CATEGORY_HINTS[answer.category] ?? 'quelque chose'}.`, lang: 'fr' }],
+      hints: [{ text: categoryHint(answer) ? `Indice : c'est ${categoryHint(answer)}.`
+        : `Indice : ça commence par la lettre ${LETTER_NAMES[answer.fr.word[0].normalize('NFD')[0].toUpperCase()]}.`, lang: 'fr' }],
     };
   },
 };
@@ -775,6 +779,108 @@ const calc: GameDef = {
   },
 };
 
+// ---- Logique : « Calcul dicté » et « Calcul à voix haute » (sans images) ----
+
+/**
+ * Calculs seulement dits par le dino (aucune image, aucun calcul écrit) : on les
+ * propose quand le calcul en images est maîtrisé. Niveaux 1–20 : additions puis
+ * soustractions jusqu'à 10, puis jusqu'à 20 (sans, puis avec passage de la dizaine).
+ */
+function mentalQuestions(prefix: string, minAnswer: number): QuestionRef[] {
+  const refs: QuestionRef[] = [];
+  const add = (op: '+' | '-', a: number, b: number, level: number) => {
+    const r = op === '+' ? a + b : a - b;
+    if (r >= minAnswer) refs.push({ id: `${prefix}:${op}:${a}:${b}`, level });
+  };
+  for (let a = 1; a <= 9; a++) for (let b = 1; a + b <= 10; b++) add('+', a, b, a + b <= 5 ? 1 + ((a + b) % 2) : a + b <= 8 ? 3 + (a + b) % 2 : 5);
+  for (let a = 3; a <= 10; a++) for (let b = 1; b < a; b++) add('-', a, b, a <= 5 ? 6 : a <= 7 ? 7 + (b % 2) : 9 + (b % 2));
+  for (let a = 11; a <= 16; a++) for (let b = 1; (a % 10) + b <= 9; b++) add('+', a, b, 11 + (b % 2));
+  for (let a = 13; a <= 19; a++) for (let b = 1; b < a % 10; b++) add('-', a, b, 13 + (b % 2));
+  for (let a = 6; a <= 9; a++) for (let b = 11 - a; b <= 9; b++) add('+', a, b, a + b <= 13 ? 15 : 16 + ((a + b) % 2));
+  for (let a = 11; a <= 18; a++) for (let b = (a % 10) + 1; b <= 9; b++) add('-', a, b, a <= 14 ? 18 : 19 + (b % 2));
+  return refs;
+}
+
+/** Le calcul en mots, et un indice qui ne donne pas le résultat. */
+function mentalParts(ref: QuestionRef) {
+  const [, op, aStr, bStr] = ref.id.split(':');
+  const a = Number(aStr);
+  const b = Number(bStr);
+  const plus = op === '+';
+  const answer = plus ? a + b : a - b;
+  const words = `${frNumber(a)} ${plus ? 'plus' : 'moins'} ${frNumber(b)}`;
+  const [big, small] = plus && b > a ? [b, a] : [a, b];
+  const hint: Speech = {
+    text: plus
+      ? `Indice : garde ${frNumber(big)} dans ta tête, et avance de ${frNumber(small)} sur tes doigts.`
+      : `Indice : pars de ${frNumber(a)}, et recule de ${frNumber(b)} sur tes doigts.`,
+    lang: 'fr',
+  };
+  return { a, b, plus, answer, words, hint };
+}
+
+const mentalCalc: GameDef = {
+  id: 'LO-11',
+  category: 'logic',
+  minAge: 5,
+  unlock: { game: 'LO-5', level: 9 },
+  icon: 'calc-listen',
+  color: 0xb45309,
+  introLine: 'intro.LO-11',
+  homeLine: 'home.LO-11',
+  shortLine: 'short.LO-11',
+  questions: mentalQuestions('LO-11', 0),
+  build(ref, _level, rng) {
+    const { a, b, plus, answer, words, hint } = mentalParts(ref);
+    // Leurres : les nombres voisins, et l'erreur classique (l'autre opération).
+    const also = [plus ? Math.abs(a - b) : a + b];
+    return {
+      answer: numberChoice(answer),
+      distractors: nearNumbers(answer, 3, rng, also, 0).map(numberChoice),
+      prompt: [{ text: oneOf(rng, [`Écoute bien : ${words}. Ça fait combien ?`, `Combien font ${words} ?`,
+        `Dans ta tête : ${words}. Touche le résultat !`]), lang: 'fr' }],
+      repeat: [{ text: `${words} ?`, lang: 'fr' }],
+      reinforce: [{ text: `Oui ! ${words}, ça fait ${frNumber(answer)} !`, lang: 'fr' }],
+      hints: [hint],
+    };
+  },
+};
+
+/** Nombre dit à voix haute : « dix-sept » ou « dix sept » selon la reconnaissance. */
+const spoken = (n: number) => [...new Set([frNumber(n), frNumber(n).replace(/-/g, ' ')])];
+
+const mentalCalcAloud: GameDef = {
+  id: 'VO-13',
+  category: 'logic',
+  voice: 'fr',
+  minAge: 5,
+  unlock: { game: 'LO-5', level: 9 },
+  icon: 'vo-calc',
+  color: 0x9a3412,
+  introLine: 'intro.VO-13',
+  homeLine: 'home.VO-13',
+  shortLine: 'short.VO-13',
+  // « un » est ignoré par la reconnaissance (article) : pas de calcul dont le résultat est 1.
+  questions: mentalQuestions('VO-13', 2),
+  build(ref, _level, rng) {
+    const { answer, words, hint } = mentalParts(ref);
+    const near = nearNumbers(answer, 3, rng, [], 2);
+    const others = nearNumbers(answer, 6, rng, [], 2);
+    return {
+      answer: numberChoice(answer),
+      distractors: near.map(numberChoice),
+      prompt: [{ text: oneOf(rng, [`Combien font ${words} ? Dis-le-moi !`, `${words}, ça fait combien ? Réponds-moi !`]),
+        lang: 'fr' }],
+      say: { lang: 'fr', accept: spoken(answer), others: others.flatMap(spoken) },
+      repeat: [{ text: `${words} ?`, lang: 'fr' }],
+      reinforce: [{ text: `Oui ! ${words}, ça fait ${frNumber(answer)} !`, lang: 'fr' }],
+      repeatAfterMe: [{ text: `Écoute : ${words}, ça fait ${frNumber(answer)}. À toi de le dire !`, lang: 'fr' }],
+      fallback: { prompt: [{ text: `${words}, ça fait combien ? Touche le bon nombre !`, lang: 'fr' }] },
+      hints: [hint],
+    };
+  },
+};
+
 // ---- Français : « Les sons » (rimes et débuts de mots) ----
 
 const rhymeOf = new Map(RHYMES.flatMap(([sound, ids]) => ids.map((id) => [id, sound] as const)));
@@ -896,7 +1002,7 @@ const together: GameDef = {
         lang: 'fr',
       }],
       reinforce: [{ text: `Oui ! ${why}`, lang: 'fr' }],
-      hints: [{ text: `Indice : à quoi sert ${frWithArticle(a)} ? Qu'est-ce qu'on fait avec ?`, lang: 'fr' }],
+      hints: [{ text: `Indice : imagine ${frWithArticle(a)}. Qu'est-ce qu'on voit souvent avec ?`, lang: 'fr' }],
     };
   },
 };
@@ -1043,7 +1149,17 @@ const englishNumbers: GameDef = {
       distractors: nearNumbers(n, easy ? 2 : 3, rng, twin ? [twin] : [], 1).map(choice),
       prompt: [word, { ...word, pauseAfter: undefined }],
       reinforce: [{ text: enNumber(n), lang: 'en', slow: true }, { text: `${frNumber(n)} !`, lang: 'fr' }],
-      hints: [{ text: `Indice : en français, on dit ${frNumber(n)}.`, lang: 'fr' }],
+      // Sans dire le nombre en français (ce serait la réponse) : comment le retrouver.
+      hints: [{
+        text: n <= 10
+          ? 'Indice : compte en anglais sur tes doigts : one, two, three… et arrête-toi quand tu entends le bon nombre.'
+          : n <= 19
+            ? `Indice : ${n <= 12 ? 'c\'est juste après ten' : 'quand ça finit par « teen », c\'est entre treize et dix-neuf'}.`
+            : n % 10 === 0
+              ? 'Indice : quand ça finit par « ty », c\'est un nombre rond : vingt, trente, quarante… Écoute bien le début.'
+              : `Indice : écoute le début, ${enNumber(n - (n % 10))} : ça veut dire ${frNumber(n - (n % 10))}. Écoute bien la fin !`,
+        lang: 'fr',
+      }],
     };
   },
 };
@@ -1365,7 +1481,13 @@ const listenStory: GameDef = {
       ],
       repeat: [{ text: question, lang: 'fr' }],
       reinforce: [{ text: number ? `Oui, ${frNumber(Number(number[1]))} !` : `Oui ! ${lines[key]}`, lang: 'fr' }],
-      hints: [{ text: `Indice : écoute encore cette phrase. ${lines[key]}`, lang: 'fr' }],
+      // Où chercher dans l'histoire, et quel genre de chose c'est — sans redire la phrase de la réponse.
+      hints: [
+        { text: `Indice : la réponse est ${key === 0 ? 'tout au début' : key >= lines.length - 1 ? 'à la fin'
+          : key < lines.length / 2 ? 'au début' : 'vers la fin'} de l'histoire.`, lang: 'fr' },
+        ...(number ? [{ text: 'Indice : compte bien en écoutant l\'histoire.', lang: 'fr' } as Speech]
+          : ((f) => (f ? [{ text: `Indice : c'est ${f}.`, lang: 'fr' } as Speech] : []))(categoryHint(conceptById(answer)))),
+      ],
     };
   },
 };
@@ -1408,6 +1530,15 @@ const SHAPES: [string, string, boolean, number][] = [
   ['rectangle', 'rectangle', false, 11], ['diamond', 'losange', false, 11], ['oval', 'ovale', false, 11],
   ['hexagon', 'hexagone', false, 12], ['cross', 'croix', true, 12],
 ];
+/** Comment reconnaître chaque forme (indices du jeu « Formes et couleurs »). */
+const SHAPE_CLUES: Record<string, string> = {
+  circle: 'le rond est tout rond, il n\'a aucun coin', square: 'le carré a quatre côtés tout pareils',
+  triangle: 'le triangle a trois côtés et trois pointes', star: 'l\'étoile a cinq pointes',
+  heart: 'le cœur a deux bosses en haut et une pointe en bas', rectangle: 'le rectangle a quatre côtés, deux longs et deux courts',
+  diamond: 'le losange est comme un carré posé sur sa pointe', oval: 'l\'ovale est un rond tout allongé',
+  hexagon: 'l\'hexagone a six côtés', cross: 'la croix a quatre branches',
+};
+
 /** Couleurs : [couleur, masculin, féminin]. */
 const COLORS: [number, string, string][] = [
   [0xe5484d, 'rouge', 'rouge'], [0x2f6fde, 'bleu', 'bleue'], [0x30a46c, 'vert', 'verte'],
@@ -1448,6 +1579,8 @@ function buildShapes(level: number, rng: Rng): BuiltQuestion {
   let cards: ShapeCard[] = [answer];
   let prompt: string;
   let said: string;
+  // L'indice suit ce que la consigne demande (la forme, la couleur, la taille…).
+  let hint = 'Indice : cherche d\'abord la bonne couleur, puis regarde bien la forme.';
 
   if (level <= 1 || level === 3) {
     // La forme seulement (au niveau 3, toutes de la même couleur).
@@ -1461,6 +1594,7 @@ function buildShapes(level: number, rng: Rng): BuiltQuestion {
     const [, name, fem] = SHAPES.find(([id]) => id === answer.shape)!;
     said = `${/^[aeiouéh]/.test(name) ? 'l\'' : fem ? 'la ' : 'le '}${name}`;
     prompt = `Touche ${said} !`;
+    hint = `Indice : ${SHAPE_CLUES[answer.shape]}.`;
   } else if (level === 2 || level === 4) {
     // La couleur seulement (au niveau 4, toutes de la même forme).
     const sameShape = level === 4;
@@ -1472,6 +1606,7 @@ function buildShapes(level: number, rng: Rng): BuiltQuestion {
     });
     said = `la forme ${COLORS.find(([c]) => c === answer.color)![2]}`;
     prompt = `Touche ${said} !`;
+    hint = 'Indice : ne regarde que la couleur, la forme ne compte pas.';
   } else if (level <= 13 || level >= 18) {
     // Forme + couleur. Dès le niveau 8, des pièges : même forme autre couleur, même couleur autre forme.
     const withSize = level >= 18;
@@ -1485,6 +1620,7 @@ function buildShapes(level: number, rng: Rng): BuiltQuestion {
       (c) => level >= 8 || (c.shape !== answer.shape && c.color !== answer.color));
     said = shapeWords(answer, withSize);
     prompt = `Touche ${said} !`;
+    if (withSize) hint = 'Indice : cherche la bonne couleur et la bonne forme, puis regarde si elle est grande ou petite.';
   } else if (level <= 15) {
     // La taille compte : « le petit cœur rouge ».
     answer.small = rng() < 0.5;
@@ -1493,6 +1629,7 @@ function buildShapes(level: number, rng: Rng): BuiltQuestion {
     cards = fill(cards, () => ({ shape: pick(shapes), color: pick(colors), small: rng() < 0.5 }), () => true);
     said = shapeWords(answer, true);
     prompt = `Touche ${said} !`;
+    hint = 'Indice : il y a deux formes pareilles, une grande et une petite. Regarde bien la taille !';
   } else {
     // « Le carré qui n'est pas bleu » : une seule forme de ce type n'a pas cette couleur.
     const [, name, fem] = SHAPES.find(([id]) => id === answer.shape)!;
@@ -1503,6 +1640,7 @@ function buildShapes(level: number, rng: Rng): BuiltQuestion {
     cards = fill(cards, () => ({ shape: pick(shapes.filter((x) => x !== answer.shape)), color: pick(colors) }), () => true);
     said = `${fem ? 'la' : 'le'} ${name} qui n'est pas ${fem ? colorName[2] : colorName[1]}`;
     prompt = `Attention ! Touche ${said} !`;
+    hint = `Indice : cherche toutes les formes ${fem ? 'pareilles' : 'pareilles'} à ${fem ? 'la' : 'le'} ${name}, et garde celle d'une autre couleur.`;
   }
   const [first, ...rest] = cards.map(shapeChoice);
   return {
@@ -1510,7 +1648,7 @@ function buildShapes(level: number, rng: Rng): BuiltQuestion {
     distractors: rest,
     prompt: [{ text: prompt, lang: 'fr' }],
     reinforce: [{ text: `Oui ! ${said.charAt(0).toUpperCase()}${said.slice(1)} !`, lang: 'fr' }],
-    hints: [{ text: 'Indice : cherche d\'abord la bonne couleur, puis regarde bien la forme.', lang: 'fr' }],
+    hints: [{ text: hint, lang: 'fr' }],
   };
 }
 
@@ -1548,12 +1686,14 @@ export function sayTime(h: number, m: number, afternoon = false): string {
 
 function buildClock(level: number, variant: number, rng: Rng): BuiltQuestion {
   const pick = <T>(list: T[]) => list[Math.floor(rng() * list.length)];
-  const minutes = level <= 4 ? [0] : level <= 8 ? [0, 30] : level <= 12 ? [0, 15, 30, 45]
+  // Heures pile (grande section), puis les demies, les quarts (fin de CP), et les minutes de 5 en 5 tout à la fin.
+  const minutes = level <= 6 ? [0] : level <= 11 ? [0, 30] : level <= 16 ? [0, 15, 30, 45]
     : Array.from({ length: 12 }, (_, i) => i * 5);
   const h = 1 + Math.floor(rng() * 12);
   // Aux niveaux des demies et des quarts, la moitié des questions en ont une.
-  const m = level >= 5 && level <= 12 && variant % 2 === 1 ? pick(minutes.filter((x) => x !== 0)) : pick(minutes);
-  const afternoon = level >= 18 && variant % 2 === 0;
+  const m = level >= 7 && level <= 16 && variant % 2 === 1 ? pick(minutes.filter((x) => x !== 0)) : pick(minutes);
+  // « Quinze heures » : seulement de 13 h à 23 h (midi reste « midi » ou « douze heures »).
+  const afternoon = level >= 18 && variant % 2 === 0 && h < 12;
   const count = level <= 2 ? 2 : level >= 17 ? 5 : 3;
   const key = (a: number, b: number) => `${a}:${b}`;
   const seen = new Set([key(h, m)]);
@@ -1569,7 +1709,7 @@ function buildClock(level: number, variant: number, rng: Rng): BuiltQuestion {
     // Faciles : des heures très différentes.
     for (const d of shuffle([3, 4, 5, 6, 7, 8, 9], rng)) add(h + d, m);
   } else {
-    if (level >= 9) {
+    if (level >= 12) {
       // Pièges : aiguilles inversées, même heure autres minutes, heure d'à côté.
       add(m === 0 ? 12 : m / 5, (h % 12) * 5);
       add(h, pick(minutes.filter((x) => x !== m)));
@@ -1588,8 +1728,8 @@ function buildClock(level: number, variant: number, rng: Rng): BuiltQuestion {
     reinforce: [{ text: `Oui ! Il est ${said} !`, lang: 'fr' }],
     hints: [{
       text: afternoon
-        ? `Indice : ${frNumber(h + 12)} heures, c'est l'après-midi. Sur l'horloge, la petite aiguille montre le ${frNumber(h)}.`
-        : level <= 8
+        ? `Indice : ${frNumber(h + 12)} heures, c'est ${h + 12 <= 18 ? 'l\'après-midi' : 'le soir'}. Sur l'horloge, la petite aiguille montre le ${frNumber(h)}.`
+        : level <= 11
           ? 'Indice : la petite aiguille montre l\'heure, la grande aiguille montre les minutes.'
           : 'Indice : regarde d\'abord la petite aiguille pour l\'heure, puis la grande pour les minutes.',
       lang: 'fr',
@@ -1941,8 +2081,8 @@ const memoryEnglish: GameDef = {
 
 export const GAMES: GameDef[] = [
   listenTap, englishNumbers, showMe, riddles, shadows, together, bigger, myCountry, missingWord, missingWordRead, listenStory, sounds,
-  syllables, readWord, readPicture, letters, oddOneOut, shapesGame, counting, numbers, sequence, most, calc,
-  clockGame, moneyGame, memory, memoryEnglish, traceShapes, traceLetters, ...VOICE_GAMES,
+  syllables, readWord, readPicture, letters, oddOneOut, shapesGame, counting, numbers, sequence, most, calc, mentalCalc,
+  clockGame, moneyGame, memory, memoryEnglish, traceShapes, traceLetters, ...VOICE_GAMES, mentalCalcAloud,
 ];
 
 /** Jeux proposés à un enfant de cet âge. */

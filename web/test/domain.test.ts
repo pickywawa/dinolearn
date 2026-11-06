@@ -30,13 +30,17 @@ const answers = (count: number, rate: number, gameId = 'EN-1'): AnswerRecord[] =
 
 describe('difficulté', () => {
   it('niveau de base selon le dino et l\'âge', () => {
+    // Départ selon l'âge : 3 ans au niveau 1 … 7 ans au niveau 11 (CP).
     expect(baseLevel(1, 3)).toBe(1);
-    expect(baseLevel(1, 4)).toBe(2);
-    expect(baseLevel(1, 7)).toBe(5);
-    expect(baseLevel(20, 4)).toBe(11);
-    // Niveaux 21 à 40 : difficulté CP, jusqu'à 20.
-    expect(baseLevel(40, 3)).toBe(20);
-    expect(baseLevel(30, 3)).toBe(15);
+    expect(baseLevel(1, 4)).toBe(3);
+    expect(baseLevel(1, 5)).toBe(5);
+    expect(baseLevel(1, 7)).toBe(11);
+    // Le dino qui grandit fait monter la difficulté (+1 tous les 3 niveaux)…
+    expect(baseLevel(19, 4)).toBe(9);
+    expect(baseLevel(40, 7)).toBe(20);
+    // … sans dépasser le plafond de l'âge (pas de CP à 3 ans).
+    expect(baseLevel(40, 3)).toBe(8);
+    expect(baseLevel(40, 5)).toBe(15);
   });
 
   it('ajustement selon le taux de réussite', () => {
@@ -45,7 +49,7 @@ describe('difficulté', () => {
 
   it('pas d\'ajustement sous 20 réponses, repli sur la catégorie', () => {
     expect(computeLevel({ experienceLevel: 5, age: 3, gameAnswers: answers(10, 1),
-      categoryAnswers: answers(10, 1), allAnswers: answers(10, 1) })).toBe(3);
+      categoryAnswers: answers(10, 1), allAnswers: answers(10, 1) })).toBe(2);
     expect(computeLevel({ experienceLevel: 5, age: 3, gameAnswers: answers(5, 1),
       categoryAnswers: answers(40, 0.2), allAnswers: [] })).toBe(1);
   });
@@ -471,7 +475,7 @@ describe('série', () => {
     const progress = new Progress(new MemoryStore());
     const series = new Series(gameById('EN-1'), progress, mulberry32(1));
     expect(series.items).toHaveLength(6);
-    expect(series.level).toBe(2);
+    expect(series.level).toBe(3);
     expect(new Set(series.items.map((i) => i.fruit)).size).toBe(6);
     series.items.forEach((i) => expect(i.choices).toHaveLength(2));
     expect(series.items[0].prompt).toHaveLength(2);
@@ -487,7 +491,7 @@ describe('série', () => {
 
   it('erreurs : carte désactivée, indice après 2 erreurs, question à retravailler', () => {
     const progress = new Progress(new MemoryStore());
-    progress.age = 7;
+    progress.age = 5;
     expect(progress.ageChosen).toBe(true);
     const series = new Series(gameById('MO-1'), progress, mulberry32(2));
     expect(series.level).toBe(5);

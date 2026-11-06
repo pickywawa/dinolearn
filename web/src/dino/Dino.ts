@@ -618,7 +618,7 @@ export class Dino extends Phaser.GameObjects.Container {
             tongue.destroy();
             target.destroy();
             this.busy = false;
-            Sfx.play('chomp');
+            Sfx.play('gulp');
             this.react('eat');
             resolve();
           },

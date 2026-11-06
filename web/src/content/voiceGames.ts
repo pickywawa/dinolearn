@@ -2,7 +2,7 @@ import type { BuiltQuestion, Choice, GameDef, Script } from './games';
 import { QuestionRef, Rng, shuffle } from '../domain/models';
 import { SayTarget, withoutArticle } from '../domain/speech';
 import {
-  CATEGORY_HINTS, CONCEPTS, Concept, Speech, conceptById, conceptsFor, frWithArticle, pickDistractors,
+  CONCEPTS, categoryHint, Concept, Speech, conceptById, conceptsFor, frWithArticle, pickDistractors,
 } from './content';
 import { BANKNOTES, CELEBRATIONS, Country, FAR_FLAGS, FOREIGN_FOODS, OTHER_ANIMALS, currentCountry } from './countries';
 import {
@@ -33,7 +33,8 @@ const firstLetterHint = (answer: string): Speech => {
 /** Indices d'une image : sa famille, puis sa devinette si elle en a une. */
 const riddleText = new Map(RIDDLES.map(([id, , text]) => [id, text]));
 function conceptHints(c: Concept): Speech[] {
-  const hints = [fr(`Indice : c'est ${CATEGORY_HINTS[c.category] ?? 'quelque chose'}.`)];
+  const family = categoryHint(c);
+  const hints = family ? [fr(`Indice : c'est ${family}.`)] : [];
   const riddle = riddleText.get(c.id);
   if (riddle) hints.push(fr(`Indice : ${riddle.replace(/ ?Qui suis-je \?$/, '').replace(/^Qui /, 'qui ')}`));
   return hints;
@@ -111,7 +112,8 @@ const sayEnglish: GameDef = {
         'Yes ! C\'est parfait !']))],
       repeatAfterMe: [fr('Écoute bien, et répète après moi :'), word],
       fallback: { prompt: [fr('Touche l\'image du mot anglais :'), word, { ...word, pauseAfter: undefined }], hideShow: true },
-      hints: [word],
+      // Pas le mot anglais lui-même (ce serait la réponse) : sa première lettre.
+      hints: [fr(`Indice : en anglais, ça commence par la lettre ${LETTER_NAMES[answer.en.word[0].toUpperCase()] ?? answer.en.word[0]}.`)],
     };
   },
 };
@@ -149,7 +151,7 @@ const readAloud: GameDef = {
       say: { lang: 'fr', accept: [word], others: close.slice(0, 12).map(([w]) => w) },
       reinforce: [fr(`Bravo ! C'est écrit « ${word} » : ${frWithArticle(concept)} !`)],
       fallback: { prompt: [fr('Lis le mot dans ta tête, et touche la bonne image !')] },
-      hints: [fr(`Indice : c'est ${CATEGORY_HINTS[concept.category] ?? 'quelque chose'}.`)],
+      hints: [categoryHint(concept) ? fr(`Indice : c'est ${categoryHint(concept)}.`) : firstLetterHint(word)],
     };
   },
 };
@@ -213,10 +215,11 @@ function buildRiddle(pool: (OralRiddle & { concept?: string })[], ref: QuestionR
     say: { lang: 'fr', accept: [r.answer, ...(r.also ?? [])], others: unique(wrong.flatMap((o) => [o.answer, ...(o.also ?? [])])) },
     reinforce: [fr(r.bravo ?? `Oui ! ${capitalize(r.answer)} !`)],
     hints: [
-      r.hint ? fr(`Indice : ${r.hint}`)
-        : r.concept ? fr(`Indice : c'est ${CATEGORY_HINTS[conceptById(r.concept).category] ?? 'quelque chose'}.`)
-          : firstLetterHint(r.answer),
-      ...(r.hint || r.concept ? [firstLetterHint(r.answer)] : []),
+      ...(r.hint ? [fr(`Indice : ${r.hint}`)]
+        : r.concept && categoryHint(conceptById(r.concept)) ? [fr(`Indice : c'est ${categoryHint(conceptById(r.concept))}.`)] : []),
+      // Réponse en nombre (« quatre ») : la première lettre n'aide pas, on fait compter.
+      (r.also ?? []).some((a) => /^\d+$/.test(a)) ? fr('Indice : compte bien, sur tes doigts si tu veux.')
+        : firstLetterHint(r.answer),
     ],
     fallback: { prompt: [fr(`${text} Touche la bonne réponse !`)] },
   };
