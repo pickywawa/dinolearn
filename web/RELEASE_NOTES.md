@@ -1,3 +1,10 @@
+## DinoLearn 0.13.2 — Installer le jeu sur le téléphone
+
+- **Au démarrage sur téléphone ou tablette**, le jeu propose de s'installer comme une appli
+  (bouton « Installer » sur Android ; sur iPhone, les deux gestes à faire dans Safari).
+  « Plus tard » le repropose au prochain lancement, « Ne plus demander » ne le propose plus.
+- **En appli installée**, l'écran est verrouillé en paysage dès l'ouverture.
+
 ## DinoLearn 0.13.1 — Plein écran en paysage
 
 - **Sur Android**, au premier toucher, le jeu passe en plein écran (sans les barres du navigateur)

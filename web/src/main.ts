@@ -15,6 +15,7 @@ import { HomeScene } from './scenes/HomeScene';
 import { StartScene } from './scenes/StartScene';
 import { TraceScene } from './scenes/TraceScene';
 import { WardrobeScene } from './scenes/WardrobeScene';
+import { isInstalledApp, offerInstall } from './ui/install';
 
 /**
  * Le jeu se joue en paysage : 720 px de haut, la largeur suit le format de
@@ -68,13 +69,15 @@ window.addEventListener('resize', () => {
  * S'il quitte le plein écran (bouton retour), le toucher suivant y revient. Sur iPhone,
  * Safari ne le permet pas : on demande de tourner l'appareil (voir index.html), et le jeu
  * ajouté à l'écran d'accueil s'ouvre sans barres (manifest.webmanifest).
+ * En appli installée : le paysage est verrouillé dès l'ouverture, sans attendre de toucher.
  */
 const root = document.documentElement as HTMLElement & { webkitRequestFullscreen?: () => Promise<void> };
 const touch = matchMedia('(pointer: coarse)').matches;
-const standalone = matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches;
+const standalone = isInstalledApp();
 const orientation = screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> };
 const canLock = touch && !!(root.requestFullscreen ?? root.webkitRequestFullscreen) && !!orientation?.lock;
 if (canLock) document.documentElement.classList.add('can-lock');
+if (standalone) document.documentElement.classList.add('installed');
 
 async function goLandscape() {
   if (!touch) return;
@@ -91,6 +94,10 @@ async function goLandscape() {
 }
 void goLandscape();
 window.addEventListener('pointerdown', () => void goLandscape(), { capture: true });
+// Appli installée : on reverrouille aussi quand elle revient au premier plan.
+if (standalone) document.addEventListener('visibilitychange', () => { if (!document.hidden) void goLandscape(); });
+// Sur mobile, dans le navigateur : proposer d'installer le jeu comme une appli.
+offerInstall();
 
 void app.voice.init();
 // Les voix du dino déjà téléchargées remplacent la voix du téléphone.
