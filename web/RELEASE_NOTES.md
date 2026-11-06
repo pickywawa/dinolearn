@@ -1,3 +1,13 @@
+## DinoLearn 0.15.0 — Un décor vivant et un accueil simplifié
+
+- Décor animé sur l’accueil et l’éclosion, avec feuillages indépendants, eau à intensité maximale, fumée lente et nuages mobiles.
+- Raccords de nuages adoucis pour éviter les coupures pendant le défilement.
+- Œuf redessiné, fissures en relief et craquements synthétisés variés.
+- Les mouches tournent autour du dino et repartent librement. Répliques espacées, avec des commentaires sur le décor et la faim.
+- Étoile de niveau animée et centrée, ouvrant un résumé simple de la progression.
+- Accueil allégé avec suppression des boutons audio et Progression. Les consignes nomment le bouton vert.
+- Mots à lire prononcés séparément et plus lentement, avec la voix du navigateur et les voix téléchargées.
+
 ## DinoLearn 0.14.0 — Calcul de tête, vrais bruitages, questions revues
 
 - **Deux nouveaux jeux de calcul sans images** (dès 5 ans, une fois le calcul en images maîtrisé) :

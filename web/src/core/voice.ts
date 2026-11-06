@@ -87,7 +87,7 @@ export class Voice {
     const generation = ++this.generation;
     this.cancelEngine();
     // Voix neuronale : on lance le calcul de tous les morceaux tout de suite (le 2e se prépare pendant le 1er).
-    for (const part of parts) if (part.text.trim()) render(part.lang, part.text);
+    for (const part of parts) if (part.text.trim()) render(part.lang, part.text, part.slow);
     for (const part of parts) {
       if (generation !== this.generation) return;
       if (!part.text.trim()) continue;
@@ -152,7 +152,7 @@ export class Voice {
    */
   private async speakNeural(part: Speech): Promise<boolean> {
     const generation = this.generation;
-    const pending = render(part.lang, part.text);
+    const pending = render(part.lang, part.text, part.slow);
     if (!pending) return false;
     let buffer: AudioBuffer | undefined;
     try {

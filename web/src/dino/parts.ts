@@ -10,22 +10,32 @@ const W = 8; // épaisseur du contour
 
 /** L'œuf à pois (écran de départ). */
 const EGG = `
-      <defs>
-        <radialGradient id="eggShade" cx="0.38" cy="0.3" r="0.8">
-          <stop offset="0" stop-color="#ffffff"/><stop offset="0.55" stop-color="#fff6e2"/><stop offset="1" stop-color="#ecd3a6"/>
-        </radialGradient>
-        <radialGradient id="spotG" cx="0.35" cy="0.3" r="0.8"><stop offset="0" stop-color="#b4ef8f"/><stop offset="1" stop-color="#55b83a"/></radialGradient>
-        <radialGradient id="spotO" cx="0.35" cy="0.3" r="0.8"><stop offset="0" stop-color="#ffd08a"/><stop offset="1" stop-color="#f08a1c"/></radialGradient>
-        <radialGradient id="spotP" cx="0.35" cy="0.3" r="0.8"><stop offset="0" stop-color="#ffc2cf"/><stop offset="1" stop-color="#ee6f8c"/></radialGradient>
-      </defs>
-      <path d="M110 10 C170 10 210 110 210 170 C210 230 166 262 110 262 C54 262 10 230 10 170 C10 110 50 10 110 10 Z"
-        fill="url(#eggShade)" stroke="#d9b98a" stroke-width="4"/>
-      <circle cx="70" cy="110" r="18" fill="url(#spotG)"/>
-      <circle cx="146" cy="80" r="12" fill="url(#spotO)"/>
-      <circle cx="150" cy="180" r="22" fill="url(#spotG)"/>
-      <circle cx="80" cy="210" r="12" fill="url(#spotP)"/>
-      <circle cx="118" cy="140" r="9" fill="url(#spotO)"/>
-      <ellipse cx="72" cy="60" rx="20" ry="10" fill="#fff" opacity="0.9" transform="rotate(-40 72 60)"/>`;
+  <defs>
+    <radialGradient id="eggShade" cx=".30" cy=".25" r=".85">
+      <stop offset="0" stop-color="#fffef1"/><stop offset=".5" stop-color="#f8edc5"/>
+      <stop offset=".82" stop-color="#d7bb83"/><stop offset="1" stop-color="#a78955"/>
+    </radialGradient>
+    <radialGradient id="spotG" cx=".3" cy=".25" r=".8">
+      <stop stop-color="#aed784"/><stop offset="1" stop-color="#548350"/>
+    </radialGradient>
+  </defs>
+  <path d="M110 10 C166 10 207 107 207 170 C207 229 167 261 110 261 C53 261 13 229 13 170 C13 107 54 10 110 10Z"
+    fill="url(#eggShade)" stroke="#927445" stroke-width="3"/>
+  <path d="M37 166 C28 113 65 34 97 27" fill="none" stroke="#fffdf0" stroke-width="12" opacity=".45" stroke-linecap="round"/>
+  <g fill="url(#spotG)" opacity=".9">
+    <path d="M53 95 Q65 77 79 92 L87 112 Q80 131 61 121 Q48 112 53 95Z"/>
+    <path d="M134 65 Q148 52 159 68 Q164 83 151 88 Q135 85 134 65Z"/>
+    <path d="M131 167 Q155 150 174 175 Q182 199 158 207 Q134 202 131 167Z"/>
+    <path d="M60 207 Q70 193 84 203 Q96 219 78 229 Q63 229 60 207Z"/>
+    <ellipse cx="115" cy="138" rx="10" ry="13" transform="rotate(-20 115 138)"/>
+  </g>
+  <g fill="#b29b69" opacity=".35">
+    <circle cx="98" cy="65" r="2"/><circle cx="172" cy="123" r="3"/>
+    <circle cx="40" cy="170" r="2"/><circle cx="111" cy="223" r="3"/>
+    <circle cx="104" cy="185" r="2"/><circle cx="155" cy="234" r="2"/>
+  </g>
+  <ellipse cx="77" cy="53" rx="12" ry="23" fill="#fff" opacity=".6" transform="rotate(30 77 53)"/>
+`;
 
 /** L'œuf des fiches à imprimer : contour net (coloriages). */
 const EGG_PRINT = `

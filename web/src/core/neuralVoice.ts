@@ -51,11 +51,11 @@ const MAX_CACHED = 200;
 const rendered = new Map<string, Promise<AudioBuffer>>();
 
 /** Le son d'une phrase (calculé une fois, puis gardé). */
-export function render(lang: Lang, text: string): Promise<AudioBuffer> | undefined {
+export function render(lang: Lang, text: string, slow = false): Promise<AudioBuffer> | undefined {
   const voiceId = voices[lang];
   const c = audioContext();
   if (!voiceId || !c) return undefined;
-  const key = `${voiceId}|${text}`;
+  const key = `${voiceId}|${slow}|${text}`;
   let p = rendered.get(key);
   if (p) {
     // Plus récent : on le remet à la fin (le plus ancien part en premier).
@@ -63,7 +63,7 @@ export function render(lang: Lang, text: string): Promise<AudioBuffer> | undefin
     rendered.set(key, p);
     return p;
   }
-  p = synthesizeWithPauses(voiceId, text).then(({ pcm, sampleRate }) => {
+  p = synthesizeWithPauses(voiceId, text, slow).then(({ pcm, sampleRate }) => {
     // Le dino garde sa voix aiguë dans les deux langues (mots anglais compris).
     const samples = pitchShift(pcm, sampleRate, DINO_PITCH);
     const buffer = c.createBuffer(1, Math.max(1, samples.length), sampleRate);
@@ -80,11 +80,11 @@ export function render(lang: Lang, text: string): Promise<AudioBuffer> | undefin
  * Une réplique morceau par morceau (fins de phrase, « … ») avec de vrais
  * silences entre eux, et les onomatopées réécrites pour être dites comme des sons.
  */
-async function synthesizeWithPauses(voiceId: string, text: string): Promise<{ pcm: Float32Array; sampleRate: number }> {
+async function synthesizeWithPauses(voiceId: string, text: string, slow: boolean): Promise<{ pcm: Float32Array; sampleRate: number }> {
   const pieces: Float32Array[] = [];
   let sampleRate = 22050;
   for (const segment of spokenSegments(text)) {
-    const out = await synthesize(voiceId, segment.text, segment.slow ?? 1);
+    const out = await synthesize(voiceId, segment.text, (segment.slow ?? 1) * (slow ? 1.2 : 1));
     sampleRate = out.sampleRate;
     pieces.push(out.pcm, new Float32Array(Math.round((segment.pauseMs / 1000) * sampleRate)));
   }

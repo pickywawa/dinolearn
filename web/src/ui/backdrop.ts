@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { animateHomeBackdrop, loadHomeBackdrop } from './homeBackdrop';
 import { Sfx } from '../core/sfx';
 
 /**
@@ -25,12 +26,14 @@ export const backdropUrl = (name: string) => `bg/${name}.webp`;
 
 /** Charge les images de décor (dans le `preload` d'une scène). */
 export function loadBackdrops(scene: Phaser.Scene) {
+  loadHomeBackdrop(scene);
   for (const b of BACKDROPS) {
     if (!scene.textures.exists(backdropKey(b))) scene.load.image(backdropKey(b), backdropUrl(b));
   }
 }
 
 export interface BackdropOpts {
+  animatedHome?: boolean;
   /** Nuit : décor assombri, étoiles qui scintillent. */
   night?: boolean;
   /** Volcan : berge de sable et d'herbe dessinée au premier plan (par défaut non : l'image a sa motte de terre). */
@@ -101,7 +104,8 @@ export function drawBackdrop(scene: Phaser.Scene, name: Backdrop, opts: Backdrop
 
   switch (name) {
     case 'volcano':
-      volcanoLife(scene, at, H, !!opts.night);
+      if (opts.animatedHome) animateHomeBackdrop(scene, img, !!opts.night);
+      else volcanoLife(scene, at, H, !!opts.night);
       if (opts.shore) shore(scene, W, H, !!opts.night);
       break;
     case 'stars': starsLife(scene, W, H); break;

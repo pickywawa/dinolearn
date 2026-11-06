@@ -3,16 +3,12 @@ import { app } from '../core/app';
 import { Dino } from '../dino/Dino';
 import { unit } from './scenery';
 
-/**
- * De temps en temps, une mouche vient bourdonner autour du dino. Si elle passe
- * tout près de sa bouche (et qu'il ne parle pas), il l'attrape d'un coup de
- * langue. L'enfant peut aussi la chasser en la touchant.
- */
+/** Une mouche visite le dino environ une fois par minute et repart librement. */
 export function buzzingFlies(scene: Phaser.Scene, dino: Dino) {
   const next = (delay: number) => scene.time.delayedCall(delay, () => {
-    if (dino.active) fly(scene, dino, () => next(Phaser.Math.Between(9000, 18000)));
+    if (dino.active) fly(scene, dino, () => next(Phaser.Math.Between(55000, 65000)));
   });
-  next(Phaser.Math.Between(5000, 9000));
+  next(Phaser.Math.Between(55000, 65000));
 }
 
 function fly(scene: Phaser.Scene, dino: Dino, done: () => void) {
@@ -56,21 +52,5 @@ function fly(scene: Phaser.Scene, dino: Dino, done: () => void) {
   };
   hop(0);
 
-  // Trop près de la bouche : slurp !
-  const check = () => {
-    if (gone || !f.active) return;
-    const mouth = dino.mouthWorldPoint();
-    if (dino.free && Phaser.Math.Distance.Between(f.x, f.y, mouth.x, mouth.y) < reach * 0.18) {
-      gone = true;
-      scene.tweens.killTweensOf(f);
-      scene.events.off(Phaser.Scenes.Events.UPDATE, check);
-      void dino.catchWithTongue(f).then(() => {
-        if (Math.random() < 0.6) void app.voice.line('fly.caught');
-        done();
-      });
-      return;
-    }
-  };
-  scene.events.on(Phaser.Scenes.Events.UPDATE, check);
-  f.once(Phaser.GameObjects.Events.DESTROY, () => scene.events.off(Phaser.Scenes.Events.UPDATE, check));
+  if (app.awake && dino.free && !app.voice.talking) void app.voice.line('fly.visit');
 }

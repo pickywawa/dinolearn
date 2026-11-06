@@ -1278,8 +1278,9 @@ const readWord: GameDef = {
       distractors: writtenDistractors(word, pool, count, ref.level, rng).map((w) => written(w, script)),
       show: conceptId ? { kind: 'image', image: conceptId } : undefined,
       prompt: [{
-        text: oneOf(rng, [`Trouve le mot : ${word} !`, `Où est écrit ${word} ?`, `Lis bien, et touche le mot ${word}.`]),
-        lang: 'fr',
+        text: oneOf(rng, ['Trouve le mot.', 'Touche le mot.', 'Lis bien, et trouve le mot.']),
+        lang: 'fr', pauseAfter: 250,
+      }, { text: word + '.', lang: 'fr', slow: true,
       }],
       reinforce: [{ text: oneOf(rng, [`Oui ! Ici, c'est écrit ${word} !`, `Bravo, tu as lu ${word} !`]), lang: 'fr' }],
       hints: [{

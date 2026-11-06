@@ -44,7 +44,7 @@ export class StartScene extends BaseScene {
 
   create() {
     this.initBase();
-    const bg = drawBackdrop(this, 'volcano');
+    const bg = drawBackdrop(this, 'volcano', { animatedHome: true });
     const u = unit(this);
     // L'œuf est posé sur la motte de terre du décor (là où le dino vivra ensuite).
     const mound = backdropPoint(this, bg, VOLCANO_MOUND.x, VOLCANO_MOUND.y);
@@ -140,8 +140,11 @@ export class StartScene extends BaseScene {
   private drawCracks(g: Phaser.GameObjects.Graphics, stage: number) {
     g.clear();
     for (const line of CRACKS[stage - 1]) {
-      g.lineStyle(6, 0x9c7445, 1).beginPath();
+      g.lineStyle(7, 0x6b563b, 1).beginPath();
       line.forEach(([x, y], i) => (i === 0 ? g.moveTo(x - 110, y - 135) : g.lineTo(x - 110, y - 135)));
+      g.strokePath();
+      g.lineStyle(2, 0xffedbd, 1).beginPath();
+      line.forEach(([x, y], i) => (i === 0 ? g.moveTo(x - 108, y - 133) : g.lineTo(x - 108, y - 133)));
       g.strokePath();
     }
   }
@@ -151,7 +154,7 @@ export class StartScene extends BaseScene {
     const u = unit(this);
     for (let i = 0; i < count; i++) {
       const chip = this.add.triangle(x, y, 0, 0, u * 0.025, u * 0.01, u * 0.008, u * 0.022, 0xfff8e7)
-        .setStrokeStyle(2, 0x2d3354).setDepth(5);
+        .setStrokeStyle(1, 0xc9aa7c).setDepth(5);
       this.tweens.add({
         targets: chip, x: x + Phaser.Math.Between(-1, 1) * u * Phaser.Math.FloatBetween(0.08, 0.2),
         y: y + u * Phaser.Math.FloatBetween(0.1, 0.25), angle: Phaser.Math.Between(-360, 360), alpha: 0,
@@ -174,6 +177,8 @@ export class StartScene extends BaseScene {
     Sfx.play('crack');
     vibrate([120, 60, 120, 60, 120]);
     this.tweens.add({ targets: egg, angle: { from: -14, to: 14 }, duration: 60, yoyo: true, repeat: 6 });
+    this.time.delayedCall(250, () => Sfx.play('crack'));
+    this.time.delayedCall(560, () => Sfx.play('crack'));
     await this.wait(900);
     // … et pendant qu'il s'ouvre.
     Sfx.play('hatch');
@@ -185,7 +190,7 @@ export class StartScene extends BaseScene {
     this.chips(this.ex, (this.ey - u * 0.02), 12);
     const height = u * 0.45 * ageSize(app.progress.age);
     const dino = new Dino(this, this.ex, this.ey + u * 0.12, height, color).setDepth(2).setScale(0);
-    this.tweens.add({ targets: top, y: top.y - u * 0.45, x: top.x + u * 0.25, angle: 200, alpha: 0, duration: 1200, ease: 'Quad.easeOut' });
+    this.tweens.add({ targets: top, y: top.y - u * 0.45, x: top.x + u * 0.25, angle: 65, alpha: 0, duration: 1700, ease: 'Quad.easeOut' });
     this.tweens.add({ targets: bottom, y: bottom.y + u * 0.05, duration: 300, ease: 'Bounce.easeOut' });
     this.tweens.add({ targets: dino, scale: height / Dino.HEIGHT, duration: 700, delay: 200, ease: 'Back.easeOut' });
     const p = this.add.particles(this.ex, this.ey - u * 0.1, 'ui-sparkles', {

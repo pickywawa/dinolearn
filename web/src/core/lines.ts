@@ -18,10 +18,10 @@ export const LINES: Record<string, string[]> = {
     'Bonjour {name} ! J\'ai rêvé de fruits toute la nuit !',
   ],
   'home.play': [
-    'Touche la planète Terre : on part faire le tour du monde des jeux !',
-    'On joue ? Touche la planète !',
-    'La planète qui tourne, c\'est pour jouer ! Vas-y, touche-la !',
-    'Prêt pour l\'aventure, {name} ? Touche la planète !',
+    'Touche le bouton vert : on part faire le tour du monde des jeux !',
+    'On joue ? Touche le bouton vert !',
+    'Le bouton vert, c\'est pour jouer ! Vas-y, touche-le !',
+    'Prêt pour l\'aventure, {name} ? Touche le bouton vert !',
   ],
   'home.categories': ['Et pour choisir ton jeu, touche le petit bouton.'],
   'random.go': [
@@ -34,7 +34,7 @@ export const LINES: Record<string, string[]> = {
   ],
   'home.choose': ['Choisis un jeu ! Touche une grosse bulle.'],
   'home.EN-1': ['Le drapeau : des mots en anglais !'],
-  'home.MO-1': ['La planète : montre-moi les choses du monde !'],
+  'home.MO-1': ['Montre-moi les choses du monde !'],
   'home.MO-2': ['La loupe : des devinettes !'],
   'home.LO-1': ['Le puzzle : trouve l\'intrus !'],
   'home.LO-2': ['Le boulier : on compte !'],
@@ -326,6 +326,8 @@ export const LINES: Record<string, string[]> = {
   ],
   'end.nothing': ['Pas de fruit cette fois. On rejoue pour en gagner ?'],
   'end.again': ['Touche le bouton vert pour rejouer !', 'On rejoue ? Touche le bouton vert !'],
+  'fly.visit': ['Tiens, une mouche !', 'J’aime bien les mouches !'],
+  'home.ambient': ['Je crois que le volcan est encore en éruption.', 'J’ai un peu faim.', 'J’aimerais que tu m’aides à grandir.', 'Regarde les nuages qui passent !'],
   'fly.caught': ['Slurp ! Une mouche !', 'Miam, croustillante !', 'Hop, attrapée !', 'Bzzz… plus de mouche !'],
   'fruit.won': ['Un fruit pour moi !', 'Miam, un fruit !'],
   eating: [

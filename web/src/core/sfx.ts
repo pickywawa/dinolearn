@@ -66,13 +66,44 @@ function playSample(name: SoundName): boolean {
   return true;
 }
 
+// Dry, irregular shell fractures, with a different cluster of tiny impacts each time.
+function playShell(hatching: boolean) {
+  const ctx = ZZFX.audioContext;
+  const duration = hatching ? .65 : .24 + Math.random() * .12;
+  const buffer = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * duration), ctx.sampleRate);
+  const samples = buffer.getChannelData(0);
+  const impacts = hatching ? 18 : 5 + Math.floor(Math.random() * 5);
+  for (let hit = 0; hit < impacts; hit++) {
+    const start = Math.floor(Math.random() * duration * .75 * ctx.sampleRate);
+    const length = Math.floor((.008 + Math.random() * .025) * ctx.sampleRate);
+    let previous = 0;
+    for (let i = 0; i < length && start + i < samples.length; i++) {
+      const noise = Math.random() * 2 - 1;
+      const dry = noise - previous * .7;
+      previous = noise;
+      samples[start + i] += dry * Math.exp(-i / (length * .18)) * .22;
+    }
+  }
+  const source = ctx.createBufferSource();
+  source.buffer = buffer;
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'highpass';
+  filter.frequency.value = 650;
+  const gain = ctx.createGain();
+  gain.gain.value = .55;
+  source.connect(filter).connect(gain).connect(ctx.destination);
+  source.onended = () => { source.disconnect(); filter.disconnect(); gain.disconnect(); };
+  source.start();
+}
+
 export const Sfx = {
   /** Coupé depuis l'espace parents. */
   enabled: true,
   play(name: SoundName) {
     if (!Sfx.enabled) return;
     try {
-      if (!playSample(name)) zzfx(...SOUNDS[name]);
+      if (name === 'crack' || name === 'hatch') playShell(name === 'hatch');
+      else if (!playSample(name)) zzfx(...SOUNDS[name]);
     } catch {
       // Audio indisponible.
     }
