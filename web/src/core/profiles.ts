@@ -22,6 +22,8 @@ export interface NewChild {
   nightTime: string;
   /** Micro autorisé (jeux à voix haute). */
   voice?: boolean;
+  /** Bouton « Missions » à l'accueil (l'enfant choisit ses jeux) ; sinon, seulement des séries au hasard. */
+  chooseGames?: boolean;
 }
 
 export class Profiles {
@@ -95,6 +97,7 @@ export class Profiles {
     const packs = this.data.children.length ? this.progressOf(this.data.children[0]).settings.voicePacks : [];
     p.updateSettings({
       country: child.country, dailyMinutes: child.dailyMinutes, nightTime: child.nightTime, voice: child.voice ?? true, voicePacks: packs,
+      chooseGames: child.chooseGames ?? true,
     });
     this.data.children = [...this.data.children, id];
     if (!this.data.active) this.data.active = id;

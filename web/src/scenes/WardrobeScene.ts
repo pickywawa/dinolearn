@@ -8,7 +8,7 @@ import { chooseGifts } from '../ui/gifts';
 import { handOver, shouldHandOver } from '../ui/handover';
 import { goTo, homeButton, makeTickable, unit } from '../ui/scenery';
 import { arrowTexture, card, roundButton, woodSign } from '../ui/kit';
-import { drawIsland } from '../ui/island';
+import { drawBackdrop } from '../ui/backdrop';
 import { BaseScene } from './BaseScene';
 
 interface Slot {
@@ -45,7 +45,7 @@ export class WardrobeScene extends BaseScene {
     this.afterSeries = !!data.afterSeries;
     this.newGift = undefined;
     this.leaving = false;
-    drawIsland(this, 'soft', { clouds: 2 });
+    drawBackdrop(this, 'twilight');
     const { width: W, height: H } = this.scale;
     const u = unit(this);
     homeButton(this, () => this.run(() => this.leave()));

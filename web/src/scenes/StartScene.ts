@@ -10,7 +10,7 @@ import { Dino } from '../dino/Dino';
 import { DINO_COLORS, EGG_ZIGZAG, PART_RESOLUTION } from '../dino/parts';
 import { Guide } from '../ui/Guide';
 import { ageSize, goTo, unit } from '../ui/scenery';
-import { drawIsland } from '../ui/island';
+import { backdropPoint, drawBackdrop, VOLCANO_MOUND } from '../ui/backdrop';
 import { BaseScene } from './BaseScene';
 
 /** Nombre de touchers pour faire éclore l'œuf. */
@@ -28,11 +28,15 @@ const CRACKS: [number, number][][][] = [
  * qui tremble ; chaque toucher le fissure (le téléphone vibre), et au quatrième
  * il éclot : un bébé dino d'une couleur au hasard parmi 10 sort et se présente
  * (puis, au tout premier lancement, demande le prénom et l'âge, et un parent).
- * Les fois suivantes : le dino endormi, à réveiller.
+ * Les fois suivantes, on passe directement à l'accueil, où le dino dort sur
+ * sa motte en attendant qu'on le réveille.
  * Le premier toucher débloque aussi le son et la voix (obligatoire sur iOS).
  */
 export class StartScene extends BaseScene {
   private guide!: Guide;
+  /** Centre de l'œuf (sur la motte). */
+  private ex = 0;
+  private ey = 0;
 
   constructor() {
     super('Start');
@@ -40,13 +44,21 @@ export class StartScene extends BaseScene {
 
   create() {
     this.initBase();
-    drawIsland(this, 'dusk');
+    const bg = drawBackdrop(this, 'volcano');
     const u = unit(this);
+    // L'œuf est posé sur la motte de terre du décor (là où le dino vivra ensuite).
+    const mound = backdropPoint(this, bg, VOLCANO_MOUND.x, VOLCANO_MOUND.y);
+    this.ex = mound.x;
+    this.ey = Math.min(mound.y, this.scale.height * 0.97) - u * 0.22;
     this.guide = new Guide(this, u * 0.2);
     // Premier lancement (pas encore d'enfant) ou nouvel enfant : l'œuf à faire éclore.
     const setup = !app.profiles.pin || app.profiles.count === 0;
-    if (setup || !app.progress.hatched) this.egg(setup);
-    else this.sleepingDino();
+    // Dino déjà éclos : pas d'écran à part, il dort sur sa motte à l'accueil.
+    if (!setup && app.progress.hatched) {
+      this.scene.start('Home');
+      return;
+    }
+    this.egg(setup);
     // Tout premier lancement (ou première fois avec cette version) : la langue et les téléchargements.
     if (!packsAsked()) {
       this.input.enabled = false;
@@ -65,41 +77,24 @@ export class StartScene extends BaseScene {
     app.awake = true;
   }
 
-  private sleepingDino() {
-    const { width: W, height: H } = this.scale;
-    const u = unit(this);
-    const dino = new Dino(this, W / 2, H * 0.78, u * 0.6 * ageSize(app.progress.age));
-    const zzz = this.add.text(W / 2 + u * 0.15, H * 0.4, 'z z z', {
-      fontFamily: 'sans-serif', fontSize: `${Math.round(u * 0.07)}px`, color: '#ffffff', fontStyle: 'bold',
-    });
-    this.tweens.add({ targets: zzz, y: '-=30', alpha: 0.3, duration: 1200, yoyo: true, repeat: -1 });
-    this.time.delayedCall(10, () => dino.react('think'));
-    this.guide.tap({ x: W / 2 + u * 0.05, y: H * 0.6 });
-    this.input.once('pointerdown', () => {
-      this.wake();
-      this.guide.hide();
-      Sfx.play('boing');
-      goTo(this, 'Home');
-    });
-  }
+
 
   private egg(setup: boolean) {
-    const { width: W, height: H } = this.scale;
     const u = unit(this);
     // Le nouvel enfant voit son prénom au-dessus de son œuf.
     if (!setup && app.progress.name) {
-      this.add.text(W / 2, H * 0.3, app.progress.name, {
+      this.add.text(this.ex, this.ey - u * 0.32, app.progress.name, {
         fontFamily: 'Andika, Arial, sans-serif', fontSize: `${Math.round(u * 0.09)}px`, color: '#ffffff', fontStyle: 'bold',
         stroke: '#2d3354', strokeThickness: Math.round(u * 0.014),
       }).setOrigin(0.5);
     }
-    const egg = this.add.container(W / 2, H * 0.6);
+    const egg = this.add.container(this.ex, this.ey);
     const shell = this.add.image(0, 0, 'egg').setScale(1 / PART_RESOLUTION);
     const cracks = this.add.graphics();
     egg.add([shell, cracks]);
     const scale = (u * 0.42) / 270;
     egg.setScale(scale);
-    const shadow = this.add.ellipse(W / 2, H * 0.6 + u * 0.21, u * 0.3, u * 0.05, 0x000000, 0.15).setDepth(-1);
+    const shadow = this.add.ellipse(this.ex, this.ey + u * 0.21, u * 0.3, u * 0.05, 0x000000, 0.15).setDepth(-1);
 
     let taps = 0;
     let hatching = false;
@@ -112,9 +107,9 @@ export class StartScene extends BaseScene {
       this.tweens.add({ targets: egg, y: egg.y - u * 0.02, duration: 120, yoyo: true });
     };
     this.time.addEvent({ delay: 1500, loop: true, callback: tremble });
-    this.guide.tap({ x: W / 2 + u * 0.05, y: H * 0.62 });
+    this.guide.tap({ x: this.ex + u * 0.05, y: (this.ey + u * 0.02) });
 
-    const zone = this.add.zone(W / 2, H * 0.6, u * 0.5, u * 0.6).setInteractive({ useHandCursor: true });
+    const zone = this.add.zone(this.ex, this.ey, u * 0.5, u * 0.6).setInteractive({ useHandCursor: true });
     zone.on('pointerdown', () => {
       if (hatching) return;
       // Le dino demandera son prénom à l'enfant : le pack de reconnaissance (français) se télécharge pendant ce temps.
@@ -124,15 +119,15 @@ export class StartScene extends BaseScene {
       taps++;
       Sfx.play('crack');
       vibrate(80);
-      this.tweens.add({ targets: egg, x: { from: W / 2 - u * 0.015, to: W / 2 + u * 0.015 }, duration: 40, yoyo: true, repeat: 3,
-        onComplete: () => egg.setX(W / 2) });
+      this.tweens.add({ targets: egg, x: { from: this.ex - u * 0.015, to: this.ex + u * 0.015 }, duration: 40, yoyo: true, repeat: 3,
+        onComplete: () => egg.setX(this.ex) });
       this.tweens.add({ targets: egg, scaleX: scale * 1.08, scaleY: scale * 0.94, duration: 90, yoyo: true });
       this.chips(egg.x, egg.y - u * 0.05, 5);
       if (taps < TAPS_TO_HATCH) {
         this.drawCracks(cracks, taps);
         void app.voice.line(`egg.${taps}`);
         // On encourage à toucher encore.
-        this.armIdle([[2500, () => this.guide.tap({ x: W / 2 + u * 0.05, y: H * 0.62 })]]);
+        this.armIdle([[2500, () => this.guide.tap({ x: this.ex + u * 0.05, y: (this.ey + u * 0.02) })]]);
         return;
       }
       hatching = true;
@@ -167,7 +162,6 @@ export class StartScene extends BaseScene {
 
   /** La coquille s'ouvre en deux, le bébé dino sort, puis il se présente. */
   private async hatch(egg: Phaser.GameObjects.Container, shadow: Phaser.GameObjects.Ellipse, scale: number, setup: boolean) {
-    const { width: W, height: H } = this.scale;
     const u = unit(this);
     // Une couleur que les frères et sœurs n'ont pas (si possible).
     const taken = new Set(app.profiles.ids.filter((id) => id !== app.profiles.activeId)
@@ -188,13 +182,13 @@ export class StartScene extends BaseScene {
     const top = half('egg-top');
     const bottom = half('egg-bottom');
     egg.destroy();
-    this.chips(W / 2, H * 0.58, 12);
+    this.chips(this.ex, (this.ey - u * 0.02), 12);
     const height = u * 0.45 * ageSize(app.progress.age);
-    const dino = new Dino(this, W / 2, H * 0.6 + u * 0.12, height, color).setDepth(2).setScale(0);
+    const dino = new Dino(this, this.ex, this.ey + u * 0.12, height, color).setDepth(2).setScale(0);
     this.tweens.add({ targets: top, y: top.y - u * 0.45, x: top.x + u * 0.25, angle: 200, alpha: 0, duration: 1200, ease: 'Quad.easeOut' });
     this.tweens.add({ targets: bottom, y: bottom.y + u * 0.05, duration: 300, ease: 'Bounce.easeOut' });
     this.tweens.add({ targets: dino, scale: height / Dino.HEIGHT, duration: 700, delay: 200, ease: 'Back.easeOut' });
-    const p = this.add.particles(W / 2, H * 0.5, 'ui-sparkles', {
+    const p = this.add.particles(this.ex, this.ey - u * 0.1, 'ui-sparkles', {
       speed: { min: 150, max: 380 }, scale: { start: 0.3, end: 0 }, lifespan: 900, emitting: false,
     }).setDepth(4);
     p.explode(24);

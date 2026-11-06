@@ -6,35 +6,56 @@ import { ITEMS, itemTexture } from '../content/items';
 import { PRINT_KINDS } from '../print/catalog';
 import { preloadModels } from '../dino3d/model';
 import { Dino } from '../dino/Dino';
-import { drawIsland } from '../ui/island';
+import { backdropKey, backdropUrl, drawBackdrop, loadBackdrops } from '../ui/backdrop';
 import { card, INK, label } from '../ui/kit';
 
 export const UI_IMAGES = [...new Set([
   'ui-play', 'ui-home', 'ui-star', 'ui-sparkles', 'ui-globe', 'ui-cloud', 'ui-cake', 'flag-gb',
   'decor-palm-tree', 'decor-sauropod', 'decor-t-rex', 'decor-butterfly', 'decor-fly', 'decor-bird', 'decor-sun', 'decor-rainbow', 'ui-lock', 'riddle', 'oddoneout', 'counting', 'shadow', 'sequence', 'most', 'calc', 'flag-fr', 'numbers', 'together', 'bigger', 'en-numbers', 'syllables', 'read', 'letters', 'ui-parents', 'read-picture', 'missing-word', 'missing-word-read', 'story', 'memory', 'memory-en', 'shapes', 'clock', 'money', 'ui-music', 'ui-music-off', 'ui-moon', 'trace-shapes', 'trace-letters', 'ui-eraser', 'my-country', 'ui-basket',
   ...[...FRUITS, 'cake'].map((f) => `food-${f}`),
-  'ui-wardrobe', 'ui-gift', ...ITEMS.map((i) => itemTexture(i.id)),
+  'ui-wardrobe', 'ui-gift', 'ui-missions', 'ui-mydino', 'ui-progress', 'ui-settings', ...ITEMS.map((i) => itemTexture(i.id)),
   'ui-envelope', ...PRINT_KINDS.map((k) => k.icon),
   // Bulles des jeux à voix haute.
   'vo-micro', ...GAMES.filter((g) => g.voice).map((g) => g.icon),
 ])];
 
 /**
- * Écran de chargement : l'île, une barre « Chargement… », puis le dino 3D qui
+ * Icônes du pack d'interface (`public/ui/`, découpées par `tools/ui-pack/extract.py`) qui
+ * remplacent les anciennes images du même rôle : la clé reste la même dans les scènes.
+ */
+const PACK: Record<string, string> = {
+  'ui-home': 'home', 'ui-play': 'play', 'ui-star': 'star', 'ui-sparkles': 'star-shine', 'ui-lock': 'lock',
+  'ui-parents': 'parents', 'ui-music': 'sound-on', 'ui-music-off': 'sound-off', 'ui-wardrobe': 'wardrobe',
+  'ui-mydino': 'wardrobe', 'ui-missions': 'missions', 'ui-progress': 'progress', 'ui-settings': 'settings',
+  'ui-envelope': 'envelope', 'ui-gift': 'chest',
+};
+/** Toutes les images du pack, disponibles sous la clé `pk-<nom>`. */
+export const PACK_IMAGES = [
+  'home', 'back', 'play', 'pause', 'sound-on', 'sound-off', 'fullscreen', 'info', 'help', 'close', 'missions', 'wardrobe',
+  'progress', 'settings', 'parents', 'profile', 'trophy', 'medal', 'chest', 'envelope', 'star-empty', 'star', 'star-shine',
+  'star-special', 'stars-3', 'cat-animals', 'cat-space', 'cat-nature', 'cat-daily', 'cat-maths', 'cat-reading', 'cat-world',
+  'cat-creative', 'cat-logic', 'btn-validate', 'btn-retry', 'btn-continue', 'arrow-left', 'arrow-right', 'refresh', 'lock',
+  'unlock', 'list',
+];
+
+/**
+ * Écran de chargement : la clairière, une barre « Chargement… », puis le dino 3D qui
  * traverse l'écran en courant dès que son modèle est prêt.
  */
 export class BootScene extends Phaser.Scene {
   private models!: Promise<unknown>;
 
   constructor() {
-    super('Boot');
+    // Le décor du chargement arrive avant tout le reste (« pack » de la scène).
+    super({ key: 'Boot', pack: { files: [{ type: 'image', key: backdropKey('meadow'), url: backdropUrl('meadow') }] } });
   }
 
   preload() {
     // Les modèles 3D se chargent en même temps que les images.
     this.models = preloadModels();
     const { width: W, height: H } = this.scale;
-    drawIsland(this, 'day', { plants: false, clouds: 2 });
+    drawBackdrop(this, 'meadow');
+    loadBackdrops(this);
     const bw = Math.min(W * 0.5, 620), bh = 34;
     const y = H * 0.86;
     card(this, W / 2, y, bw + 16, bh + 16, '#fff3dc', '#d8b98a');
@@ -60,7 +81,11 @@ export class BootScene extends Phaser.Scene {
         height: part.height * PART_RESOLUTION,
       });
     }
-    for (const key of UI_IMAGES) this.load.svg(key, `img/${key}.svg`, { width: 256, height: 256 });
+    for (const key of UI_IMAGES) {
+      if (PACK[key]) this.load.image(key, `ui/${PACK[key]}.png`);
+      else this.load.svg(key, `img/${key}.svg`, { width: 256, height: 256 });
+    }
+    for (const name of PACK_IMAGES) this.load.image(`pk-${name}`, `ui/${name}.png`);
   }
 
   create() {

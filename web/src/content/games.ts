@@ -1063,9 +1063,10 @@ const syllables: GameDef = {
   homeLine: 'home.FR-2',
   shortLine: 'short.FR-2',
   // Combien de syllabes dans ce mot ? Puis au niveau CP (`:x`) : quel mot a 3 syllabes ?
-  questions: Object.entries(SYLLABLES).flatMap(([k, ids]) => ids.flatMap((id, i) => {
+  // Pas de question sur les mots d'une seule syllabe (trop déroutant : « tape une fois »).
+  questions: Object.entries(SYLLABLES).filter(([k]) => Number(k) >= 2).flatMap(([k, ids]) => ids.flatMap((id, i) => {
     const count = Number(k);
-    const level = [0, 1 + (i % 3), 3 + (i % 4), 7 + (i % 5), 12 + (i % 4)][count];
+    const level = [0, 0, 1 + (i % 4), 4 + (i % 5), 9 + (i % 4)][count];
     return [
       { id: `FR-2:${id}`, level },
       { id: `FR-2:${id}:x`, level: [0, 12, 13 + (i % 2), 15 + (i % 3), 18 + (i % 3)][count] },

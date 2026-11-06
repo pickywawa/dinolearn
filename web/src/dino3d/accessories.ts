@@ -2,46 +2,51 @@ import * as THREE from 'three';
 import { itemById, type Slot } from '../content/items';
 import { ITEMS_URL, loadedGltf, type DinoModel } from './model';
 
-/** L'os qui porte chaque emplacement : l'objet suit ses mouvements. */
-/** Objets de tête qui ne couvrent pas le crâne : les piquants restent visibles. */
-const KEEP_SPIKES = ['hibiscus', 'headphone'];
-
-const SLOT_BONE: Record<Slot, string> = {
-  head: 'head',
-  eyes: 'head',
-  neck: 'chest',
-  back: 'chest',
-  hand: 'armL',
+/**
+ * Les objets de `items.glb` ont été modélisés sur l'ancien dino (fait par
+ * script). Pour chaque emplacement : l'os qui le porte, et le recalage de
+ * l'ancien dino vers celui-ci (point d'ancrage avant → après, échelle),
+ * dans le repère du modèle (Y en haut, Z vers l'avant).
+ */
+const SLOTS: Record<Slot, { bone: string; from: [number, number, number]; to: [number, number, number]; scale: number }> = {
+  head: { bone: 'head', from: [0, 1.72, 0], to: [0, 1.7, 0.08], scale: 1.05 },
+  eyes: { bone: 'head', from: [0, 1.52, 0.55], to: [0, 1.235, 0.42], scale: 1.12 },
+  neck: { bone: 'spine_03', from: [0, 0.95, 0], to: [0, 0.77, 0.02], scale: 0.95 },
+  back: { bone: 'spine_03', from: [0, 0.65, -0.3], to: [0, 0.62, -0.28], scale: 0.95 },
+  hand: { bone: 'hand_l', from: [0.595, 0.605, 0.158], to: [0.333, 0.406, 0.124], scale: 0.85 },
 };
+
+function slotMatrix(slot: Slot) {
+  const s = SLOTS[slot];
+  return new THREE.Matrix4().makeTranslation(...s.to)
+    .multiply(new THREE.Matrix4().makeScale(s.scale, s.scale, s.scale))
+    .multiply(new THREE.Matrix4().makeTranslation(-s.from[0], -s.from[1], -s.from[2]));
+}
 
 /**
  * Les objets 3D portés par le dino (`public/models/items.glb`, un nœud par
  * objet, fabriqué par `tools/blender/build_items.py`). Chaque objet est
- * modélisé à sa place sur le dino au repos, puis accroché à l'os de son
- * emplacement. S'occupe aussi de la jauge de croissance sur le ventre.
+ * recalé sur le dino dans sa pose de repos, puis accroché à l'os de son
+ * emplacement : il suit les animations. S'occupe aussi de la jauge de
+ * croissance sur le ventre.
  */
 export class Accessories {
   private worn = new Map<string, THREE.Object3D>();
-  /** Matrice (repère du modèle) inverse de chaque os au repos. */
+  /** Matrice (repère du pivot) inverse de chaque os dans la pose de référence. */
   private restInv = new Map<string, THREE.Matrix4>();
-  private belly?: { uniforms: { uFill: { value: number } } };
-  private bellyValue = -1;
 
   constructor(private model: DinoModel) {
+    // Pose de référence : celle du dino à sa création (début de l'animation de repos), pivot au repos.
+    model.root.parent?.updateMatrixWorld(true);
     model.root.updateMatrixWorld(true);
-    const rootInv = model.root.matrixWorld.clone().invert();
+    const pivotInv = model.root.parent ? model.root.parent.matrixWorld.clone().invert() : new THREE.Matrix4();
     for (const [name, bone] of Object.entries(model.bones)) {
-      const m = new THREE.Matrix4().multiplyMatrices(rootInv, bone.matrixWorld);
+      const m = new THREE.Matrix4().multiplyMatrices(pivotInv, bone.matrixWorld);
       this.restInv.set(name, m.invert());
     }
-    this.setupBelly();
   }
 
   dress(ids: readonly string[]) {
-    const hat = ids.some((id) => itemById(id)?.slot === 'head' && !KEEP_SPIKES.includes(id));
-    for (const [name, part] of Object.entries(this.model.parts)) {
-      if (name.startsWith('spikehead')) part.visible = !hat;
-    }
     for (const [id, node] of this.worn) {
       if (!ids.includes(id)) {
         node.removeFromParent();
@@ -60,13 +65,13 @@ export class Accessories {
         const mesh = o as THREE.Mesh;
         if (mesh.isMesh) mesh.material = toyMaterial(mesh.material as THREE.MeshStandardMaterial);
       });
-      const boneName = SLOT_BONE[item.slot];
+      const boneName = SLOTS[item.slot].bone;
       const bone = this.model.bones[boneName];
       if (!bone) continue;
-      // Position de l'objet dans le repère du modèle → repère de l'os au repos.
+      // Position de l'objet sur l'ancien dino → recalée sur celui-ci → repère de l'os au repos.
       src.updateWorldMatrix(true, false);
       node.matrixAutoUpdate = true;
-      const local = new THREE.Matrix4().multiplyMatrices(this.restInv.get(boneName)!, src.matrixWorld);
+      const local = new THREE.Matrix4().multiplyMatrices(this.restInv.get(boneName)!, slotMatrix(item.slot)).multiply(src.matrixWorld);
       local.decompose(node.position, node.quaternion, node.scale);
       node.userData.itemId = id;
       bone.add(node);
@@ -102,32 +107,10 @@ export class Accessories {
     if (node) node.visible = !hidden;
   }
 
-  // ---- Jauge du ventre ----
-
-  private setupBelly() {
-    const mat = this.model.materials.belly as THREE.MeshPhysicalMaterial | undefined;
-    if (!mat) return;
-    mat.onBeforeCompile = (shader) => {
-      shader.uniforms.uFill = { value: this.bellyValue };
-      shader.uniforms.uFillColor = { value: new THREE.Color('#ffb84d') };
-      shader.vertexShader = shader.vertexShader
-        .replace('#include <common>', '#include <common>\nvarying float vBellyY;')
-        .replace('#include <skinning_vertex>', '#include <skinning_vertex>\nvBellyY = transformed.y;');
-      shader.fragmentShader = shader.fragmentShader
-        .replace('#include <common>', '#include <common>\nuniform float uFill;\nuniform vec3 uFillColor;\nvarying float vBellyY;')
-        .replace('#include <color_fragment>', `#include <color_fragment>
-          if (uFill >= 0.0) {
-            float cut = mix(0.22, 0.88, uFill);
-            if (vBellyY < cut) diffuseColor.rgb = uFillColor;
-            if (abs(vBellyY - cut) < 0.012) diffuseColor.rgb *= 0.75;
-          }`);
-      this.belly = shader as unknown as { uniforms: { uFill: { value: number } } };
-    };
-  }
+  // ---- Jauge du ventre (dessinée par le shader de la peau) ----
 
   setBellyFill(fill: number | null) {
-    this.bellyValue = fill === null ? -1 : THREE.MathUtils.clamp(fill, 0, 1);
-    if (this.belly) this.belly.uniforms.uFill.value = this.bellyValue;
+    this.model.skin.uFill.value = fill === null ? -1 : THREE.MathUtils.clamp(fill, 0, 1);
   }
 }
 

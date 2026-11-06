@@ -28,6 +28,8 @@ export class Stage {
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.NeutralToneMapping;
     this.renderer.toneMappingExposure = 1.05;
+    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     // Caméra assez lointaine (peu de déformation), qui cadre le dino de face, un peu en plongée.
     const fov = 22;
@@ -40,12 +42,19 @@ export class Stage {
 
     const pmrem = new THREE.PMREMGenerator(this.renderer);
     this.scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-    this.scene.environmentIntensity = 0.55;
+    this.scene.environmentIntensity = 0.35;
     pmrem.dispose();
 
-    this.scene.add(new THREE.HemisphereLight(0xeaf6ff, 0xb39a7a, 1.4));
-    const key = new THREE.DirectionalLight(0xfff4e0, 2.4);
+    this.scene.add(new THREE.HemisphereLight(0xeaf6ff, 0x8a7a6a, 0.95));
+    const key = new THREE.DirectionalLight(0xfff4e0, 3.0);
     key.position.set(-2.5, 4, 5);
+    // Ombres douces : le dino sur lui-même (sous la tête, les bras) et au sol.
+    key.castShadow = true;
+    key.shadow.mapSize.set(1024, 1024);
+    Object.assign(key.shadow.camera, { left: -1.8, right: 1.8, top: 2.6, bottom: -0.6, near: 1, far: 14 });
+    key.shadow.bias = -0.0004;
+    key.shadow.normalBias = 0.025;
+    key.shadow.radius = 4;
     this.scene.add(key);
     const rim = new THREE.DirectionalLight(0xdff2ff, 1.8);
     rim.position.set(3, 3, -4);

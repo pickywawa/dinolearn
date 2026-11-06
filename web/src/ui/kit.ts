@@ -22,6 +22,7 @@ export const CANDY = {
   teal: ['#6ee7d8', '#1fbfa9', '#12867a'],
   white: ['#ffffff', '#eef4fb', '#b7c6dc'],
   cream: ['#fffaf0', '#fff1d6', '#e3c99a'],
+  sky: ['#ffffff', '#dcebfb', '#98b3d8'],
 } as const;
 export type Candy = keyof typeof CANDY;
 
@@ -214,8 +215,8 @@ export function woodTexture(scene: Phaser.Scene, w: number, h: number, ropes = t
       g.stroke();
     }
     g.restore();
-    // Clous.
-    for (const nx of [x + w * 0.18, x + w * 0.82]) {
+    // Clous (seulement sur les panneaux suspendus à des cordes).
+    for (const nx of ropes ? [x + w * 0.18, x + w * 0.82] : []) {
       g.beginPath();
       g.arc(nx, y + h * 0.28, 4, 0, Math.PI * 2);
       g.fillStyle = '#6b4520';
@@ -295,8 +296,12 @@ export function label(scene: Phaser.Scene, x: number, y: number, text: string, o
   return t;
 }
 
-/** Flèche blanche « lecture / suivant » (pour les boutons). */
+/**
+ * Flèche « lecture / suivant ». Gauche et droite : les boutons ronds du pack d'interface
+ * (disque blanc et flèche bleue) ; « lecture » : triangle blanc pour les gros boutons.
+ */
 export function arrowTexture(scene: Phaser.Scene, dir: 'play' | 'right' | 'left' = 'play') {
+  if (dir !== 'play' && scene.textures.exists(`pk-arrow-${dir}`)) return `pk-arrow-${dir}`;
   return canvasTexture(scene, `kit-arrow-${dir}`, 128, 128, (g) => {
     g.lineJoin = 'round';
     g.lineCap = 'round';
@@ -326,8 +331,10 @@ export function arrowTexture(scene: Phaser.Scene, dir: 'play' | 'right' | 'left'
   });
 }
 
-/** Étoile dorée bombée (récompenses, niveau). `empty` : étoile à gagner, en creux. */
+/** Étoile dorée bombée (récompenses, niveau). `empty` : étoile à gagner, en creux. Celles du pack d'interface. */
 export function starTexture(scene: Phaser.Scene, empty = false) {
+  const pack = empty ? 'pk-star-empty' : 'pk-star';
+  if (scene.textures.exists(pack)) return pack;
   return canvasTexture(scene, `kit-star-${empty}`, 256, 256, (g) => {
     const path = (r1: number, r2: number) => {
       g.beginPath();
@@ -418,14 +425,24 @@ export function candyButton(scene: Phaser.Scene, x: number, y: number, w: number
   return c;
 }
 
-/** Bouton rond blanc à icône (accueil, retour, réglages…). */
+/** Icônes du pack qui sont déjà des boutons ronds complets (disque compris). */
+const ROUND_ICONS = ['pk-arrow-left', 'pk-arrow-right', 'pk-refresh', 'pk-sound-on', 'pk-sound-off', 'pk-info', 'pk-help',
+  'pk-close', 'pk-pause', 'pk-profile', 'ui-music', 'ui-music-off'];
+
+/** Bouton rond blanc à icône (accueil, retour, réglages…). Les icônes-boutons du pack se suffisent à elles-mêmes. */
 export function roundButton(scene: Phaser.Scene, x: number, y: number, r: number, icon: string, onTap: () => void,
   color = '#ffffff', iconScale = 0.62) {
   const c = scene.add.container(x, y);
-  const bg = scene.add.image(0, 0, discTexture(scene, r, color)).setScale(1 / S);
-  const img = scene.add.image(0, -r * 0.04, icon);
-  img.setScale((r * 2 * iconScale) / Math.max(img.width, img.height));
-  c.add([bg, img]);
+  if (ROUND_ICONS.includes(icon)) {
+    const img = scene.add.image(0, 0, icon);
+    img.setScale((r * 2.15) / Math.max(img.width, img.height));
+    c.add(img);
+  } else {
+    const bg = scene.add.image(0, 0, discTexture(scene, r, color)).setScale(1 / S);
+    const img = scene.add.image(0, -r * 0.04, icon);
+    img.setScale((r * 2 * iconScale) / Math.max(img.width, img.height));
+    c.add([bg, img]);
+  }
   c.setSize(r * 2, r * 2);
   c.setInteractive(new Phaser.Geom.Circle(r, r, r), Phaser.Geom.Circle.Contains);
   makePressable(c, onTap);
@@ -472,7 +489,11 @@ export function card(scene: Phaser.Scene, x: number, y: number, w: number, h: nu
   return c;
 }
 
-/** Pastilles de progression d'une série (faites en vert, à venir en gris). */
+/** Couleurs des étapes de progression (maquette : vert vif, puis beige). */
+const DONE_DOT = '#3fb62c';
+const TODO_DOT = '#eadcc2';
+
+/** Pastilles de progression d'une série (faites en vert, à venir en beige). */
 export class ProgressDots extends Phaser.GameObjects.Container {
   private dots: Phaser.GameObjects.Image[] = [];
 
@@ -481,9 +502,9 @@ export class ProgressDots extends Phaser.GameObjects.Container {
     const count = total;
     const gap = r * 2.5;
     const w = gap * (count - 1) + r * 3.4;
-    this.add(scene.add.image(0, 0, cardTexture(scene, w, r * 3, '#ffffff', '#dfe8f3', r * 1.5)).setScale(1 / S));
+    this.add(scene.add.image(0, 0, cardTexture(scene, w, r * 3, 'rgba(255,255,255,0.55)', 'rgba(255,255,255,0.85)', r * 1.5)).setScale(1 / S));
     for (let i = 0; i < count; i++) {
-      const d = scene.add.image(-gap * (count - 1) / 2 + gap * i, -r * 0.1, discTexture(scene, r, '#c9d3e0'))
+      const d = scene.add.image(-gap * (count - 1) / 2 + gap * i, -r * 0.1, discTexture(scene, r, TODO_DOT))
         .setScale(1 / S);
       this.dots.push(d);
       this.add(d);
@@ -493,7 +514,7 @@ export class ProgressDots extends Phaser.GameObjects.Container {
 
   set(done: number) {
     this.dots.forEach((d, i) => {
-      const key = discTexture(this.scene, this.r, i < done ? '#4cc93a' : '#c9d3e0');
+      const key = discTexture(this.scene, this.r, i < done ? DONE_DOT : TODO_DOT);
       if (d.texture.key !== key) {
         d.setTexture(key);
         if (i === done - 1) this.scene.tweens.add({ targets: d, scale: { from: 0.8 / S, to: 1 / S }, duration: 300, ease: 'Back.easeOut' });
@@ -527,6 +548,29 @@ export function tileButton(scene: Phaser.Scene, x: number, y: number, w: number,
   c.setSize(w, h);
   c.setInteractive({ useHandCursor: true });
   makePressable(c, onTap);
+  return c;
+}
+
+/**
+ * Tuile de la barre de navigation (accueil) : pastille blanc-bleu brillante,
+ * grosse icône qui dépasse en haut, nom en dessous.
+ */
+export function navTile(scene: Phaser.Scene, x: number, y: number, w: number, h: number, icon: string, text: string,
+  onTap: () => void) {
+  const c = scene.add.container(x, y);
+  c.add(scene.add.image(0, 0, candyTexture(scene, w, h, 'sky', h * 0.3)).setScale(1 / S));
+  const img = scene.add.image(0, -h * 0.2, icon);
+  img.setScale((h * 0.78) / Math.max(img.width, img.height));
+  c.add(img);
+  const t = label(scene, 0, h * 0.24, text, { size: h * 0.22, color: INK, weight: '800' });
+  if (t.width > w * 0.88) t.setScale((w * 0.88) / t.width);
+  c.add(t);
+  c.setSize(w, h);
+  c.setInteractive({ useHandCursor: true });
+  makePressable(c, onTap);
+  // L'icône sautille doucement, chaque tuile à son rythme.
+  scene.tweens.add({ targets: img, y: img.y - h * 0.04, angle: { from: -3, to: 3 }, duration: 1400 + Math.random() * 600,
+    yoyo: true, repeat: -1, ease: 'Sine.easeInOut', delay: Math.random() * 800 });
   return c;
 }
 

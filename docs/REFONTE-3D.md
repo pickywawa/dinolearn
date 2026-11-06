@@ -6,7 +6,7 @@
 |---|---|
 | 1. Socle Three.js dans Phaser, paysage forcé | ✅ |
 | 2. Modèle Blender du dino (squelette, matériaux recolorables) | ✅ |
-| 3. Animations (réactions, visage, voix, regard, course) | ✅ animées par code (tweens Phaser sur la pose), pas en clips glTF : plus simple à régler et à enchaîner |
+| 3. Animations (réactions, visage, voix, regard, course) | ✅ clips glTF du nouveau modèle (voir « Modèle Meshy » plus bas) ; les tweens de pose s'ajoutent par-dessus (tête qui suit, bras qui montre, mouvement de vie) |
 | 4. Garde-robe 3D (23 objets), rotation au doigt et flèches | ✅ |
 | 5. Île volcanique (jour, crépuscule, nuit, doux) | ✅ |
 | 6. Kit UI et écrans : chargement, accueil, choix des jeux, questions, fin de série, habillage, espace parents | ✅ ; œuf, prénom, memory et tracé : décor et barre restylés, mise en page inchangée |
@@ -45,7 +45,25 @@ Branche : `animation-claude`. Référence visuelle : les maquettes « L'Île des
 | Décors | Rendus Blender en couches PNG/WebP (ciel, volcan, île, jungle avant-plan) + effets Phaser (fumée, eau, nuages, particules) | Cohérent avec le dino, léger à l'exécution. |
 | UI | Kit de composants Phaser dessinés par code (dégradés, ombres, bords arrondis) + police arrondie (`@fontsource/baloo-2` ou `fredoka`) | Pas d'images à dessiner à la main, tout se règle par code. |
 
-### Le modèle 3D (généré par `tools/blender/build_dino.py`)
+### Modèle Meshy (actuel)
+
+Le dino fait par script a été remplacé par le modèle sculpté avec Meshy, retopologisé et
+riggé dans Blender (`tools/blender/dino_meshy/`, voir son README) :
+
+- maillage de ≈ 17 000 quads, texture peinte (1024) + normal map ; squelette de 52 os aux
+  noms façon Unreal (`pelvis`, `spine_01`…, `upperarm_l`, `hand_l`, 5 doigts, `jaw`,
+  `frill`, `tail_01`…`tail_08`) ;
+- 34 clips glTF : `idle`, `talk`, `run`, `sleep` (fonds en boucle) et toutes les réactions
+  de `DinoReaction` (`nodYes` → `yes`), en partie à partir de la Universal Animation Library
+  de Quaternius (CC0) ;
+- visage : bouche par l'os `jaw` (`setMouth`), paupières en morph targets (`setEyes`,
+  `setWink`, yeux rieurs `happy_*`) ; les yeux sont peints (pas de regard qui bouge) ;
+- les 10 couleurs : reteinte dans le shader de la peau grâce à `models/dino_mask.png`
+  (peau → `skin`, ventre → `belly`, cornes/piquants → `spike`) ; `violet` garde la texture ;
+- garde-robe : les objets de `items.glb` sont recalés par emplacement (`SLOTS` dans
+  `accessories.ts`) et accrochés à `head`, `spine_03` ou `hand_l`.
+
+### Le modèle 3D d'origine (généré par `tools/blender/build_dino.py`, remplacé)
 
 - Proportions chibi : grosse tête (≈ 45 % de la hauteur), corps en poire, petits bras,
   pieds ronds, queue courte, rangée de piquants, joues roses, ventre clair.

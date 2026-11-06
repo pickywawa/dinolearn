@@ -7,7 +7,8 @@ import { Stage } from './stage';
 /**
  * Page d'aperçu du dino 3D (développement) :
  * `dino3d.html?color=2&angles=0,35,90&wear=crown,scarf&mouth=open&eyes=happy`,
- * ou `?all=1` pour voir chaque objet de la garde-robe porté.
+ * ou `?all=1` pour voir chaque objet de la garde-robe porté, ou
+ * `?clips=happy,wave&t=0.5` pour voir des animations (t : moment, de 0 à 1).
  */
 const q = new URLSearchParams(location.search);
 const color = Number(q.get('color') ?? 0);
@@ -18,8 +19,10 @@ const wear = (q.get('wear') ?? '').split(',').filter(Boolean);
 
 (async () => {
   await preloadModels();
-  const views: { yaw: number; wear: string[]; color: number }[] = q.get('all')
+  const clips = (q.get('clips') ?? '').split(',').filter(Boolean);
+  const views: { yaw: number; wear: string[]; color: number; clip?: string }[] = q.get('all')
     ? ITEMS.map((it, i) => ({ yaw: angles[i % angles.length], wear: [it.id], color: i % 10 }))
+    : clips.length ? clips.map((clip) => ({ yaw: angles[0], wear, color, clip }))
     : angles.map((yaw) => ({ yaw, wear, color }));
   // Un seul rendu WebGL pour toutes les vues (le navigateur limite le nombre de contextes).
   const stage = new Stage(w, h);
@@ -34,6 +37,10 @@ const wear = (q.get('wear') ?? '').split(',').filter(Boolean);
     rig.pose.headTilt = Number(q.get('tilt') ?? 0);
     if (q.get('mouth')) rig.setMouth(q.get('mouth') as never);
     if (q.get('eyes')) rig.setEyes(q.get('eyes') as never);
+    if (v.clip) {
+      rig.setBase(v.clip, 0);
+      rig.mixer.setTime(rig.duration(v.clip) / 1000 * Number(q.get('t') ?? 0.5));
+    }
     rig.apply();
     stage.scene.add(rig.pivot);
     stage.render();

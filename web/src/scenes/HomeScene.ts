@@ -9,17 +9,23 @@ import { Dino } from '../dino/Dino';
 import { Bubble } from '../ui/Bubble';
 import { Guide } from '../ui/Guide';
 import { buzzingFlies } from '../ui/flies';
-import { arrowTexture, candyButton, setHighlight, starTexture, tileButton, woodSign } from '../ui/kit';
+import { arrowTexture, candyButton, label, navTile, roundButton, setHighlight, starTexture, woodSign } from '../ui/kit';
 import { drawSkyLife } from '../ui/sky';
 import { goTo, growthFactor, makeTickable, unit } from '../ui/scenery';
-import { drawIsland } from '../ui/island';
+import { backdropPoint, drawBackdrop, VOLCANO_MOUND } from '../ui/backdrop';
+import { Music } from '../core/music';
+import { Sfx } from '../core/sfx';
+import { packsAsked } from '../core/packs';
+import { askPacksOnce } from '../ui/packsDialog';
 import { BaseScene } from './BaseScene';
 
 /**
  * Accueil : la planète Terre qui tourne, au centre, lance une série tout mélangée
  * (chaque question vient d'un jeu au hasard, choix par défaut). Un petit bouton ouvre le choix des jeux.
  * À gauche : le gâteau (âge) et le cadenas de l'espace parents (code parent) ; à droite, l'étoile du niveau.
- * Dans le ciel passent des météorites, des oiseaux, le soleil ou la pluie ; des mouches viennent embêter le dino.
+ * En bas, la barre de navigation : Missions (choix des jeux, si les parents l'ont activé), Mon Dino
+ * (vestiaire), Progression (bientôt) et Paramètres (espace parents, avec le code parent).
+ * Dans le ciel passent des météorites et le soleil ; des mouches viennent embêter le dino.
  * Quand le temps de jeu du jour fixé par les parents est atteint, le dino va se coucher.
  */
 export class HomeScene extends BaseScene {
@@ -31,6 +37,10 @@ export class HomeScene extends BaseScene {
   private gift?: Bubble;
   private childSwitch?: Bubble;
   private wardrobe?: Phaser.GameObjects.Container;
+  private progress?: Phaser.GameObjects.Container;
+  private soundBtn?: Phaser.GameObjects.Container;
+  private settings?: Phaser.GameObjects.Container;
+  private level?: Phaser.GameObjects.Container;
 
   constructor() {
     super('Home');
@@ -45,49 +55,64 @@ export class HomeScene extends BaseScene {
     this.initBase();
     // Après l'heure du coucher : ciel de nuit.
     const night = app.progress.isNight();
-    drawIsland(this, night ? 'night' : 'day');
+    const bg = drawBackdrop(this, 'volcano', { night });
     drawSkyLife(this, night);
     const { width: W, height: H } = this.scale;
     const u = unit(this);
 
-    // Le dino à gauche, tourné vers les boutons.
+    // Le dino à gauche, sur sa motte de terre, tourné vers les boutons.
     this.dinoBase = u * 0.62;
-    this.dino = new Dino(this, W * 0.25, H * 0.97, this.dinoBase * growthFactor(app.progress.dino.level));
+    const mound = backdropPoint(this, bg, VOLCANO_MOUND.x, VOLCANO_MOUND.y);
+    this.dino = new Dino(this, mound.x, Math.min(mound.y, H * 0.97), this.dinoBase * growthFactor(app.progress.dino.level));
     makeTickable(this.dino);
     if (!night) buzzingFlies(this, this.dino);
     this.guide = new Guide(this, u * 0.15);
 
     // Le titre sur sa planche de bois, et le prénom de l'enfant dessous.
     const cx = W * 0.64;
-    const title = woodSign(this, cx, H * 0.17, 'DinoLearn', u * 0.085, true);
-    this.tweens.add({ targets: title, angle: { from: -1.5, to: 1.5 }, duration: 2600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
-    if (app.progress.name) {
-      woodSign(this, cx, H * 0.31, `Joue avec ton dino, ${app.progress.name} !`, u * 0.034, false);
+    // Titre un peu plus petit sur les écrans étroits (tablette 4:3), pour ne pas toucher l'étoile du niveau.
+    const narrow = Math.min(1, W / (u * 1.7));
+    const title = woodSign(this, cx, H * 0.15, 'DinoLearn', u * 0.1 * narrow, true);
+    // Deux étoiles qui brillent aux coins de la planche.
+    for (const side of [-1, 1]) {
+      const star = this.add.image(side * (title.width / 2 - u * 0.02), -u * 0.035, 'ui-star');
+      star.setScale((u * 0.095) / star.width).setAngle(side * -14);
+      title.add(star);
+      this.tweens.add({ targets: star, angle: side * 14, scale: star.scale * 1.12, duration: 900 + (side + 1) * 150,
+        yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
     }
+    this.tweens.add({ targets: title, angle: { from: -1.5, to: 1.5 }, duration: 2600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    woodSign(this, cx, H * 0.3, app.progress.name ? `Joue avec ton dino, ${app.progress.name} !` : 'Apprends et joue avec ton Dino !',
+      u * 0.038, false);
 
     // Le gros bouton « Jouer » : une série de jeux au hasard (le tour du monde des jeux).
-    this.play = candyButton(this, cx, H * 0.5, u * 0.46, u * 0.15, 'green', 'Jouer', () => this.playRandom(),
+    this.play = candyButton(this, cx, H * 0.52, u * 0.5, u * 0.16, 'green', 'Jouer', () => this.playRandom(),
       arrowTexture(this, 'play'), true);
 
-    // La barre du bas : les jeux (si les parents l'ont activé), le dressing, l'espace parents.
+    // La barre de navigation du bas.
     const tiles: { icon: string; text: string; onTap: () => void; keep?: (c: Phaser.GameObjects.Container) => void }[] = [];
     if (app.progress.settings.chooseGames) {
-      tiles.push({ icon: 'ui-globe', text: 'Les jeux', onTap: () => this.openChoose(),
+      tiles.push({ icon: 'ui-missions', text: 'Missions', onTap: () => this.openChoose(),
         keep: (c) => (this.choose = c) });
     }
-    tiles.push({ icon: 'ui-wardrobe', text: 'Mon Dino', onTap: () => { this.clearIdle(); goTo(this, 'Wardrobe'); },
+    tiles.push({ icon: 'ui-mydino', text: 'Mon Dino', onTap: () => { this.clearIdle(); goTo(this, 'Wardrobe'); },
       keep: (c) => (this.wardrobe = c) });
-    tiles.push({ icon: 'ui-lock', text: 'Parents', onTap: () => this.openParentSpace() });
-    const tw = u * 0.17, gap = u * 0.035;
+    tiles.push({ icon: 'ui-progress', text: 'Progression', onTap: () => this.comingSoon(),
+      keep: (c) => (this.progress = c) });
+    tiles.push({ icon: 'ui-settings', text: 'Paramètres', onTap: () => this.openParentSpace(),
+      keep: (c) => (this.settings = c) });
+    // Les tuiles tiennent à droite du dino, centrées sous le bouton « Jouer ».
+    const th = u * 0.17, gap = u * 0.03;
+    const tileW = Math.min(u * 0.25, ((W - cx) * 2 - u * 0.08 - gap * (tiles.length - 1)) / tiles.length);
     tiles.forEach((t, i) => {
-      const x = cx + (i - (tiles.length - 1) / 2) * (tw + gap);
-      const c = tileButton(this, x, H * 0.77, tw, tw * 0.95, t.icon, t.text, t.onTap);
+      const x = cx + (i - (tiles.length - 1) / 2) * (tileW + gap);
+      const c = navTile(this, x, H * 0.83, tileW, th, t.icon, t.text, t.onTap);
       t.keep?.(c);
     });
 
     // Le cadeau à ouvrir quand le dino a grandi : sur la tuile du dressing.
     if (app.progress.collection.pending > 0 && this.wardrobe) {
-      this.gift = new Bubble(this, this.wardrobe.x + tw * 0.45, this.wardrobe.y - tw * 0.45, u * 0.05, 0xfff3c4, 'ui-gift', () => {
+      this.gift = new Bubble(this, this.wardrobe.x + tileW * 0.42, this.wardrobe.y - th * 0.55, u * 0.05, 0xfff3c4, 'ui-gift', () => {
         // Le cadeau se choisit au vestiaire, où l'enfant habille son dino.
         this.clearIdle();
         goTo(this, 'Wardrobe');
@@ -97,10 +122,22 @@ export class HomeScene extends BaseScene {
 
     // En haut à gauche : le dino de l'enfant suivant ; à droite, l'étoile du niveau.
     const ar = u * 0.06;
-    this.childButton(ar * 1.4, ar * 1.4, ar);
+    // En haut à gauche, comme sur la maquette : le bouton du son (musique et bruitages).
+    this.soundButton(ar * 1.4, ar * 1.4, ar);
+    this.childButton(ar * 1.4, ar * 4.2, ar);
     this.drawLevelBadge(W - u * 0.11, u * 0.11, u);
 
+    // À l'ouverture du jeu, le dino dort sur sa motte : il faut le réveiller (ce toucher
+    // débloque aussi le son et la voix). Les boutons n'apparaissent qu'ensuite.
+    if (!app.awake) {
+      this.asleep(() => this.start(data, night));
+      return;
+    }
+    this.start(data, night);
+  }
 
+  /** Suite de l'accueil, dino réveillé. */
+  private start(data: { hatched?: boolean; switched?: boolean }, night: boolean) {
     // Partie d'avant les prénoms : on demande le prénom à un parent.
     if (!app.progress.name) {
       this.askName();
@@ -139,6 +176,47 @@ export class HomeScene extends BaseScene {
       this.time.addEvent({ delay: 6500, loop: true, callback: () => this.dino.idleFun() });
       await this.present();
     });
+  }
+
+  /** Le dino dort ; tous les boutons sont cachés jusqu'à ce que l'enfant le réveille. */
+  private asleep(then: () => void) {
+    const buttons = this.buttons().filter((b) => b.visible);
+    buttons.forEach((b) => b.setVisible(false));
+    this.dino.sleep();
+    this.guide.tap({ x: this.dino.x, y: this.dino.y - this.dino.displayHeight * 0.35 });
+    let done = false;
+    const wake = () => {
+      if (done) return;
+      done = true;
+      this.guide.hide();
+      app.voice.unlock();
+      Sfx.unlock();
+      Music.unlock();
+      app.awake = true;
+      Sfx.play('boing');
+      this.dino.wake();
+      buttons.forEach((b, i) => {
+        const s = b.scale;
+        b.setVisible(true).setScale(0);
+        this.tweens.add({ targets: b, scale: s, duration: 380, delay: 250 + i * 70, ease: 'Back.easeOut' });
+      });
+      this.time.delayedCall(700, then);
+    };
+    // Tout premier lancement (ou nouvelle version) : la langue et les téléchargements d'abord.
+    if (!packsAsked()) {
+      this.input.enabled = false;
+      void askPacksOnce(() => undefined).then(() => {
+        if (this.alive) this.input.enabled = true;
+      });
+    }
+    this.input.once('pointerdown', wake);
+  }
+
+  /** Tous les boutons de l'accueil (cachés tant que le dino dort). */
+  private buttons(): Phaser.GameObjects.Container[] {
+    return [this.play, this.choose, this.wardrobe, this.progress, this.gift, this.childSwitch, this.soundBtn, this.level,
+      this.settings]
+      .filter((b): b is Phaser.GameObjects.Container => !!b);
   }
 
   /** Le dino montre le gros bouton, puis le petit (d'abord le cadeau s'il y en a un). */
@@ -192,16 +270,18 @@ export class HomeScene extends BaseScene {
 
   /** Étoile avec le niveau du dino (réglable dans l'espace parents). */
   private drawLevelBadge(x: number, y: number, u: number) {
-    const star = this.add.image(x, y, starTexture(this));
+    const badge = this.level = this.add.container(x, y);
+    const star = this.add.image(0, 0, starTexture(this));
     star.setScale((u * 0.16) / star.width).setInteractive();
     star.on('pointerup', () => {
       this.dino.react('happy');
       this.run(() => this.say('home.level'));
     });
-    this.add.text(x, y + u * 0.01, String(app.progress.dino.level), {
+    const text = this.add.text(0, u * 0.01, String(app.progress.dino.level), {
       fontFamily: "'Baloo 2', Arial Rounded MT Bold, Arial, sans-serif", fontSize: `${Math.round(u * 0.055)}px`,
       color: '#ffffff', fontStyle: 'bold', stroke: '#2d3354', strokeThickness: Math.round(u * 0.012),
     }).setOrigin(0.5);
+    badge.add([star, text]);
   }
 
   /** Partie d'avant les prénoms : un parent complète la fiche de l'enfant. */
@@ -215,12 +295,13 @@ export class HomeScene extends BaseScene {
       const p = app.progress;
       const s = p.settings;
       const child = await childForm('Comment s\'appelle l\'enfant ?', 'Le dino va l\'appeler par son prénom.', {
-        name: '', age: p.age, country: s.country, dailyMinutes: s.dailyMinutes, nightTime: s.nightTime,
+        name: '', age: p.age, country: s.country, dailyMinutes: s.dailyMinutes, nightTime: s.nightTime, chooseGames: true,
       });
       if (child) {
         p.name = child.name;
         p.age = child.age;
-        p.updateSettings({ country: child.country, dailyMinutes: child.dailyMinutes, nightTime: child.nightTime });
+        p.updateSettings({ country: child.country, dailyMinutes: child.dailyMinutes, nightTime: child.nightTime,
+          chooseGames: child.chooseGames ?? true });
         applyChildSettings();
       }
       this.scene.restart({});
@@ -228,6 +309,17 @@ export class HomeScene extends BaseScene {
   }
 
   /** Plusieurs enfants : la tête du dino de l'enfant suivant ; le toucher passe la main. */
+  /** Coupe ou remet la musique et les bruitages (la voix du dino reste). */
+  private soundButton(x: number, y: number, r: number) {
+    const on = () => app.progress.settings.music || app.progress.settings.sfx;
+    const btn = this.soundBtn = roundButton(this, x, y, r, on() ? 'ui-music' : 'ui-music-off', () => {
+      const next = !on();
+      app.progress.updateSettings({ music: next, sfx: next });
+      applyChildSettings();
+      (btn.list[0] as Phaser.GameObjects.Image).setTexture(next ? 'ui-music' : 'ui-music-off');
+    });
+  }
+
   private childButton(x: number, y: number, r: number) {
     if (app.profiles.count < 2) return;
     const next = app.profiles.progressOf(app.profiles.nextId());
@@ -275,7 +367,20 @@ export class HomeScene extends BaseScene {
   }
 
   private hideButtons() {
-    [this.play, this.choose, this.wardrobe, this.gift, this.childSwitch].forEach((b) => b?.setVisible(false));
+    [this.play, this.choose, this.wardrobe, this.progress, this.gift, this.childSwitch].forEach((b) => b?.setVisible(false));
+  }
+
+  /** Progression : pas encore prête. La tuile tremble et une bulle « Bientôt ! » apparaît. */
+  private comingSoon() {
+    const tile = this.progress;
+    if (!tile) return;
+    this.dino.react('think');
+    this.tweens.add({ targets: tile, angle: { from: -6, to: 6 }, duration: 70, yoyo: true, repeat: 3, onComplete: () => tile.setAngle(0) });
+    const u = unit(this);
+    const note = label(this, tile.x, tile.y - u * 0.16, 'Bientôt !', { size: u * 0.045, color: '#ffffff', stroke: '#2d3354',
+      strokeRatio: 0.16 }).setDepth(5).setScale(0);
+    this.tweens.add({ targets: note, scale: 1, duration: 250, ease: 'Back.easeOut' });
+    this.tweens.add({ targets: note, y: note.y - u * 0.04, alpha: 0, delay: 1200, duration: 500, onComplete: () => note.destroy() });
   }
 
   /**

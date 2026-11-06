@@ -9,11 +9,11 @@ import { Sfx } from '../core/sfx';
 import { BALANCE } from '../domain/balance';
 import { foodImage } from '../domain/models';
 import { Heard, Verdict, canRecognize, grammarFor, judge } from '../domain/speech';
-import { Dino } from '../dino/Dino';
+import { Dino, SUCCESS_REACTIONS } from '../dino/Dino';
 import { Guide } from '../ui/Guide';
 import { MicButton } from '../ui/MicButton';
 import { goTo, homeButton, isPortrait, unit } from '../ui/scenery';
-import { drawIsland } from '../ui/island';
+import { drawBackdrop } from '../ui/backdrop';
 import { card } from '../ui/kit';
 import { BaseScene } from './BaseScene';
 
@@ -106,7 +106,7 @@ export class GameScene extends BaseScene {
     this.mixed = this.resumed || !!data.mixed || !data.gameId;
     const games = this.mixed ? playableGames() : [gameById(data.gameId!)];
     // L'île, en version adoucie : les cartes restent bien lisibles.
-    drawIsland(this, 'soft', { clouds: 1 });
+    drawBackdrop(this, 'jungle');
 
     const { width: W, height: H } = this.scale;
     const u = unit(this);
@@ -231,6 +231,8 @@ export class GameScene extends BaseScene {
       if (item.due && app.rng() < 0.6) await this.say('review_due');
       // Mode mélangé : le dino annonce le jeu quand il change.
       if (this.mixed && this.series.gameChanged) await this.say(item.game.shortLine);
+      // Le dino pose la question en réfléchissant (avec son « ? »).
+      this.dino.react('think');
       await app.voice.say(this.currentPrompt());
       // Les premières fois, le dino rappelle comment répondre à voix haute.
       if (this.voiceActive() && index < 2 && this.phase === 'asking') await this.say('voice.tap_mic');
@@ -470,7 +472,7 @@ export class GameScene extends BaseScene {
     if (outcome.kind === 'wrong') {
       Sfx.play('wrong');
       this.dimCard(card);
-      this.dino.react('oops');
+      this.dino.react(app.rng() < 0.5 ? 'oops' : 'sad');
       // On peut retoucher une carte presque tout de suite, sans attendre que le dino ait fini de parler.
       this.time.delayedCall(WRONG_LOCK_MS, () => {
         if (token === this.feedbackToken && this.phase === 'feedback') this.phase = 'asking';
@@ -512,7 +514,7 @@ export class GameScene extends BaseScene {
     Sfx.play('correct');
     this.celebrateCard(card);
     this.updateSteps(true);
-    this.dino.react(outcome.streak === 3 || outcome.streak === 5 ? 'cheer' : 'happy');
+    this.dino.react(outcome.streak === 5 ? 'celebrate' : outcome.streak === 3 ? 'cheer' : Phaser.Math.RND.pick(SUCCESS_REACTIONS));
     this.run(async () => {
       if (outcome.streak === 3) await this.say('streak');
       else if (outcome.streak === 5) await this.say('streak5');

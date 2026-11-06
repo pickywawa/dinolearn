@@ -27,7 +27,7 @@ export const gameTitle = (g: GameDef) => TITLES[g.id] ?? g.id;
 
 const CSS = `
 .parents { position: fixed; inset: 0; z-index: 1000; overflow-y: auto; -webkit-overflow-scrolling: touch;
-  background: #f4f6fb; color: #1f2937; font: 16px/1.45 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+  background: #eceefe url('bg/parents.webp') center / cover no-repeat fixed; color: #1f2937; font: 16px/1.45 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
 .parents * { box-sizing: border-box; }
 .parents header { position: sticky; top: 0; z-index: 1; display: flex; align-items: center; justify-content: space-between;
   gap: 12px; padding: 14px 16px; background: #2d3354; color: #fff; }
@@ -195,12 +195,14 @@ export function openParents(onClose: () => void) {
       const s = p.settings;
       const child = await childForm(`Fiche de ${p.name || 'l\'enfant'}`, 'Prénom, âge et réglages.', {
         name: p.name, age: p.age, country: s.country, dailyMinutes: s.dailyMinutes, nightTime: s.nightTime,
+        chooseGames: s.chooseGames,
       }, 'Annuler');
       if (!child) return;
       if (child.age !== p.age) p.clearGameLevels();
       p.name = child.name;
       p.age = child.age;
-      p.updateSettings({ country: child.country, dailyMinutes: child.dailyMinutes, nightTime: child.nightTime });
+      p.updateSettings({ country: child.country, dailyMinutes: child.dailyMinutes, nightTime: child.nightTime,
+        chooseGames: child.chooseGames ?? s.chooseGames });
       render();
     });
     const actions = el('div', { class: 'row', style: 'margin-top:12px' }, edit);

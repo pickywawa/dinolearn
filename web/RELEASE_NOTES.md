@@ -1,3 +1,18 @@
+## DinoLearn 0.13.0 — Le dino en 3D sur l'île au volcan
+
+- **Un nouveau dino en 3D**, sculpté puis animé : une trentaine d'animations (il saute de joie,
+  applaudit, danse, réfléchit, mange, bâille, fait un clin d'œil, s'endort…), une bouche qui suit la
+  voix, des clignements et des yeux rieurs. Il garde la couleur tirée à l'éclosion (10 couleurs) et
+  porte les objets de la garde-robe.
+- **Une nouvelle interface** : l'île au volcan, des décors peints pour chaque écran, des boutons et
+  des icônes dessinés dans le même style.
+- **Plus d'écran de démarrage** : à l'ouverture, le dino dort sur sa motte de terre à l'accueil ; on
+  le touche pour le réveiller, puis les boutons apparaissent.
+- **Fiche de l'enfant** : nouvelle case « Choix des missions » (cochée par défaut). Décochée, l'enfant
+  ne joue qu'aux séries au hasard du bouton « Jouer ».
+- **Les syllabes** : plus de questions sur les mots d'une seule syllabe.
+- Décors compressés (≈ 0,9 Mo pour tous les écrans).
+
 ## DinoLearn 0.12.3 — Réessayer tout de suite
 
 - Après une mauvaise réponse, l'enfant peut **retoucher une carte presque aussitôt** (au bout d'un

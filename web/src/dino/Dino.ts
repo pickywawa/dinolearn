@@ -10,10 +10,27 @@ import { Stage } from '../dino3d/stage';
 export type DinoReaction =
   | 'happy' | 'cheer' | 'dance' | 'oops' | 'think' | 'eat' | 'levelUp' | 'tickle'
   | 'wave' | 'spin' | 'yawn' | 'roar' | 'lookAround' | 'hop'
-  | 'burp' | 'fart' | 'growl' | 'beg' | 'gape';
+  | 'burp' | 'fart' | 'growl' | 'beg' | 'gape'
+  | 'celebrate' | 'clap' | 'fistPump' | 'wink' | 'nodYes' | 'sad' | 'surprised' | 'march';
 
 /** Petites animations jouées au hasard quand le dino attend. */
-const IDLE_FUN: DinoReaction[] = ['wave', 'yawn', 'roar', 'lookAround', 'hop', 'spin'];
+const IDLE_FUN: DinoReaction[] = ['wave', 'yawn', 'roar', 'lookAround', 'hop', 'spin', 'wink', 'march', 'clap', 'surprised'];
+
+/** Chaque réaction est une animation du modèle 3D (clip glTF, fait dans Blender). */
+const CLIPS: Record<DinoReaction, string> = {
+  happy: 'happy', cheer: 'cheer', dance: 'dance', oops: 'oops', think: 'think', eat: 'eat', levelUp: 'levelUp',
+  tickle: 'tickle', wave: 'wave', spin: 'spin', yawn: 'yawn', roar: 'roar', lookAround: 'lookAround', hop: 'hop',
+  burp: 'burp', fart: 'fart', growl: 'growl', beg: 'beg', gape: 'gape', celebrate: 'celebrate', clap: 'clap',
+  fistPump: 'fistPump', wink: 'wink', nodYes: 'yes', sad: 'sad', surprised: 'surprised', march: 'march',
+};
+
+/** Réactions qui occupent la bouche (la voix ne la fait pas bouger pendant ce temps). */
+const MOUTH_BUSY: DinoReaction[] = ['eat', 'roar', 'yawn', 'gape', 'burp', 'tickle', 'growl'];
+
+/** Bravo pour une bonne réponse : une animation au hasard, pour varier. */
+export const SUCCESS_REACTIONS: DinoReaction[] = ['happy', 'clap', 'fistPump', 'wink', 'nodYes', 'happy'];
+
+const FONT = "'Baloo 2', Arial Rounded MT Bold, Arial, sans-serif";
 
 const MOUTHS: Mouth[] = ['open', 'wide', 'o', 'open'];
 
@@ -27,10 +44,12 @@ let uid = 0;
 
 /**
  * Le dino en 3D (Three.js), affiché dans Phaser comme une image : chaque
- * image du rendu 3D est copiée dans une texture. Le dino est animé par les
- * tweens de Phaser, qui font varier les curseurs de sa pose (bras, tête,
- * saut…) ; il parle au rythme de la voix, cligne des yeux, regarde où on
- * touche, porte ses objets (accrochés à ses os) et peut tourner sur lui-même.
+ * image du rendu 3D est copiée dans une texture. Ses animations (repos,
+ * parole, course, sommeil et toutes les réactions) sont des clips du modèle ;
+ * les tweens de Phaser ajoutent par-dessus les gestes calculés (tête qui suit
+ * le doigt, bras qui montre, rotation, mouvement de vie). Il parle au rythme
+ * de la voix (mâchoire), cligne des yeux, porte ses objets (accrochés à ses
+ * os) et peut tourner sur lui-même.
  *
  * L'origine du conteneur est entre les pieds du dino ; hauteur ≈ 500 unités.
  */
@@ -57,6 +76,13 @@ export class Dino extends Phaser.GameObjects.Container {
   /** Orientation de repos : légèrement tourné vers le centre de l'écran. */
   private baseYaw: number;
   private mouthMarker = new THREE.Object3D();
+  /** Force du mouvement de vie permanent (0 pendant la course). */
+  private lively = { k: 1 };
+  /** Décalages de phase : deux dinos à l'écran ne bougent pas en même temps. */
+  private phase = Math.random() * 100;
+  /** Fin de la réaction en cours (les gestes en parlant attendent). */
+  private reactingUntil = 0;
+  private gestureTimer?: Phaser.Time.TimerEvent;
   private handMarker = { L: new THREE.Object3D(), R: new THREE.Object3D() };
 
   /** `color` : couleur du dino (0 à 9), par défaut celle de l'enfant qui joue. */
@@ -73,11 +99,19 @@ export class Dino extends Phaser.GameObjects.Container {
     this.wear = new Accessories(model);
     this.shadow = this.makeShadow();
     this.stage.scene.add(this.shadow);
+    // Le sol reçoit la vraie ombre du dino (en plus de la tache douce).
+    const ground = new THREE.Mesh(new THREE.PlaneGeometry(6, 6), new THREE.ShadowMaterial({ opacity: 0.18 }));
+    ground.rotation.x = -Math.PI / 2;
+    ground.receiveShadow = true;
+    (ground.material as THREE.Material).userData.outlineParameters = { visible: false };
+    this.stage.scene.add(ground);
 
     // Repères accrochés aux os (bouche, mains) pour viser depuis Phaser.
-    this.attachMarker('head', this.mouthMarker, 0, 1.22, 0.6);
-    this.attachMarker('armL', this.handMarker.L, 0.55, 0.6, 0.18);
-    this.attachMarker('armR', this.handMarker.R, -0.55, 0.6, 0.18);
+    this.attachMarker('head', this.mouthMarker, 0, 0.95, 0.52);
+    for (const side of ['L', 'R'] as const) {
+      const h = this.rig.worldPoint(`arm${side}`);
+      this.attachMarker(`arm${side}`, this.handMarker[side], h.x, h.y, h.z);
+    }
 
     // Où tombent les pieds et le haut de la tête dans le canvas, au repos.
     const feet = this.stage.project(new THREE.Vector3(0, 0, 0));
@@ -115,8 +149,10 @@ export class Dino extends Phaser.GameObjects.Container {
     this.once(Phaser.GameObjects.Events.DESTROY, () => {
       this.unsubscribe.forEach((fn) => fn());
       this.talkTimer?.remove();
+      this.gestureTimer?.remove();
       this.clearWordTimers();
       scene.tweens.killTweensOf(this.rig.pose);
+      scene.tweens.killTweensOf(this.lively);
       this.stage.dispose();
       if (scene.textures.exists(this.texKey)) scene.textures.remove(this.texKey);
       this.glTex = undefined;
@@ -141,7 +177,7 @@ export class Dino extends Phaser.GameObjects.Container {
   get pose(): Pose { return this.rig.pose; }
 
   private attachMarker(bone: string, marker: THREE.Object3D, x: number, y: number, z: number) {
-    const b = this.rig.model.bones[bone];
+    const b = this.rig.bone(bone);
     this.rig.pivot.updateMatrixWorld(true);
     marker.position.set(x, y, z);
     this.rig.pivot.add(marker);
@@ -180,6 +216,7 @@ export class Dino extends Phaser.GameObjects.Container {
 
   private renderNow() {
     const p = this.rig.pose;
+    this.live(p);
     this.rig.apply();
     // L'ombre reste au sol et rétrécit quand le dino saute.
     const s = Phaser.Math.Clamp(1 - p.y * 0.6, 0.4, 1.2) * p.grow;
@@ -188,6 +225,20 @@ export class Dino extends Phaser.GameObjects.Container {
     this.wear.update();
     this.stage.render();
     if (this.glTex) (this.scene.renderer as Phaser.Renderer.WebGL.WebGLRenderer).updateCanvasTexture(this.stage.canvas, this.glTex, false, true);
+  }
+
+  /**
+   * Le dino n'est jamais figé : il se balance doucement d'un côté à l'autre
+   * (on voit son volume en 3D), déplace son poids, rebondit un peu et laisse
+   * flâner sa tête. Calculé à chaque image, par-dessus toutes les animations.
+   */
+  private live(p: Pose) {
+    const t = this.scene.time.now / 1000 + this.phase;
+    const k = this.lively.k;
+    p.sway = k * (0.17 * Math.sin(t * 0.55) + 0.07 * Math.sin(t * 1.31 + 1.7));
+    p.shift = k * 0.035 * Math.sin(t * 0.9 + 0.4);
+    p.bob = k * 0.018 * (0.5 + 0.5 * Math.sin(t * 2.3));
+    p.look = k * (0.13 * Math.sin(t * 0.37 + 2.1) + 0.05 * Math.sin(t * 1.1));
   }
 
   /** Point du modèle 3D (monde Three) → coordonnées du monde Phaser. */
@@ -276,28 +327,34 @@ export class Dino extends Phaser.GameObjects.Container {
     const p = this.rig.pose;
     const t = this.scene.tweens;
     this.stopPose(['legL', 'legR', 'armL', 'armR', 'armLFwd', 'armRFwd', 'y', 'bow', 'yaw']);
+    this.scene.tweens.killTweensOf(this.lively);
+    this.scene.tweens.add({ targets: this.lively, k: on ? 0 : 1, duration: on ? 150 : 600 });
     if (!on) {
       Object.assign(p, { legL: 0, legR: 0, armLFwd: 0, armRFwd: 0, y: 0, bow: 0 });
+      this.rig.setBase(app.voice.talking ? 'talk' : 'idle');
+      if (!app.voice.talking) this.rig.setMouth('smile');
       this.face(this.baseYaw);
       this.idleArms();
       return;
     }
     p.yaw = Math.PI / 2 * 0.85;
-    p.bow = 0.18;
+    p.bow = 0.06;
     this.rig.setMouth('open');
-    t.add({ targets: p, legL: { from: -0.7, to: 0.7 }, legR: { from: 0.7, to: -0.7 }, armLFwd: { from: 0.8, to: -0.6 },
-      armRFwd: { from: -0.6, to: 0.8 }, duration: 170, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
-    t.add({ targets: p, y: 0.12, duration: 170, yoyo: true, repeat: -1, ease: 'Quad.easeOut' });
+    this.rig.setBase('run', 0.15);
+    t.add({ targets: p, y: 0.05, duration: 230, yoyo: true, repeat: -1, ease: 'Quad.easeOut' });
   }
 
-  /** Le dino s'endort : yeux fermés et petits « z » qui s'envolent. */
-  sleep() {
+  /** Le dino s'endort : yeux fermés et petits « z » qui s'envolent (`withZ` : sinon, la scène dessine les siens). */
+  sleep(withZ = true) {
     this.sleeping = true;
+    this.rig.setBase('sleep', 0.6);
     this.rig.setEyes('closed');
     this.rig.setMouth('smile');
     this.busy = true;
-    this.scene.tweens.add({ targets: this.rig.pose, headTilt: 0.18, headNod: 0.12, duration: 800 });
-    this.scene.time.addEvent({
+    this.scene.tweens.add({ targets: this.rig.pose, headTilt: 0.12, duration: 800 });
+    if (!withZ) return;
+    this.zTimer?.remove();
+    this.zTimer = this.scene.time.addEvent({
       delay: 1400, loop: true, callback: () => {
         if (!this.active) return;
         const z = this.scene.add.text(90, -470, 'z', {
@@ -308,6 +365,19 @@ export class Dino extends Phaser.GameObjects.Container {
         this.scene.tweens.add({ targets: z, x: 170, y: -620, alpha: 0, scale: 1.6, duration: 2200, onComplete: () => z.destroy() });
       },
     });
+  }
+
+  /** Le dino se réveille : il s'étire, ouvre les yeux et revient à son animation de repos. */
+  wake() {
+    if (!this.sleeping) return;
+    this.sleeping = false;
+    this.busy = false;
+    this.zTimer?.remove();
+    this.zTimer = undefined;
+    this.rig.setEyes('open');
+    this.rig.setBase('idle', 0.4);
+    this.scene.tweens.add({ targets: this.rig.pose, headTilt: 0, duration: 400 });
+    this.react('yawn');
   }
 
   /** Hauteur affichée en pixels. */
@@ -325,24 +395,14 @@ export class Dino extends Phaser.GameObjects.Container {
   // ---- Animations permanentes ----
 
   private startIdle() {
-    const t = this.scene.tweens;
-    const p = this.rig.pose;
-    t.add({ targets: p, breath: { from: -1, to: 1 }, duration: 1300, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
-    t.add({ targets: p, tail: { from: -0.25, to: 0.25 }, duration: 1100, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
-    this.idleArms();
+    // Respiration, queue et bras : dans l'animation de repos du modèle. En plus, des clignements au hasard.
     this.scheduleBlink();
   }
 
-  /** Les bras se balancent doucement (à relancer après une animation des bras). */
+  /** Les bras reviennent à l'animation en cours (après un geste calculé). */
   private idleArms() {
-    const t = this.scene.tweens;
-    const p = this.rig.pose;
     this.stopPose(['armL', 'armR']);
-    t.add({ targets: p, armL: 0, armR: 0, duration: 250 }).once('complete', () => {
-      if (!this.active) return;
-      t.add({ targets: p, armL: { from: 0, to: 0.12 }, armR: { from: 0.12, to: 0 }, duration: 1500, yoyo: true,
-        repeat: -1, ease: 'Sine.easeInOut' });
-    });
+    this.scene.tweens.add({ targets: this.rig.pose, armL: 0, armR: 0, armLFwd: 0, armRFwd: 0, duration: 250 });
   }
 
   private scheduleBlink() {
@@ -361,10 +421,7 @@ export class Dino extends Phaser.GameObjects.Container {
   }
 
   private sleeping = false;
-
-  private setEyes(mode: 'open' | 'happy' | 'closed') {
-    this.rig.setEyes(mode);
-  }
+  private zTimer?: Phaser.Time.TimerEvent;
 
   /**
    * La bouche ne bouge que pendant le son. Si la voix signale ses mots, la
@@ -374,8 +431,13 @@ export class Dino extends Phaser.GameObjects.Container {
   private setTalking(talking: boolean) {
     this.talkTimer?.remove();
     this.talkTimer = undefined;
+    this.gestureTimer?.remove();
+    this.gestureTimer = undefined;
     this.clearWordTimers();
     this.wordSync = false;
+    if (!this.sleeping && this.rig.background !== 'run') this.rig.setBase(talking ? 'talk' : 'idle');
+    // L'animation de parole fait déjà les gestes ; sinon, gestes calculés.
+    if (talking && !this.rig.has('talk')) this.scheduleGesture(500);
     if (!talking) {
       if (!this.busy) this.rig.setMouth('smile');
       return;
@@ -392,6 +454,27 @@ export class Dino extends Phaser.GameObjects.Container {
         },
       });
     });
+  }
+
+  /** En parlant, le dino accompagne ses phrases de la main (un bras, puis l'autre). */
+  private scheduleGesture(delay: number) {
+    this.gestureTimer = this.scene.time.delayedCall(delay, () => {
+      if (!this.active || !app.voice.talking) return;
+      if (!this.busy && !this.sleeping && this.scene.time.now > this.reactingUntil) this.gesture();
+      this.scheduleGesture(Phaser.Math.Between(1500, 2600));
+    });
+  }
+
+  private gesture() {
+    const p = this.rig.pose;
+    const left = Math.random() < 0.5;
+    const both = Math.random() < 0.25;
+    this.stopPose(['armL', 'armR', 'armLFwd', 'armRFwd']);
+    const to: Record<string, number> = {};
+    if (left || both) Object.assign(to, { armL: Phaser.Math.FloatBetween(0.8, 1.3), armLFwd: Phaser.Math.FloatBetween(0.4, 0.9) });
+    if (!left || both) Object.assign(to, { armR: Phaser.Math.FloatBetween(0.8, 1.3), armRFwd: Phaser.Math.FloatBetween(0.4, 0.9) });
+    this.scene.tweens.add({ targets: p, ...to, duration: 260, yoyo: true, hold: Phaser.Math.Between(250, 600), ease: 'Sine.easeOut',
+      onComplete: () => { p.armLFwd = 0; p.armRFwd = 0; this.idleArms(); } });
   }
 
   /** Petit mouvement de tête en parlant. */
@@ -437,186 +520,57 @@ export class Dino extends Phaser.GameObjects.Container {
     const t = this.scene.tweens;
     const p = this.rig.pose;
     this.stopPose(['x', 'y', 'spin', 'lean', 'bow', 'squash', 'grow', 'headTilt', 'headNod', 'headTurn',
-      'headScale', 'armLFwd', 'armRFwd', 'legL', 'legR', 'tailLift', 'eyeX', 'eyeY']);
-    Object.assign(p, { x: 0, y: 0, spin: 0, lean: 0, bow: 0, squash: 1, grow: 1, headScale: 1, armLFwd: 0, armRFwd: 0 });
-    const happyFor = (ms: number) => {
-      this.setEyes('happy');
-      this.scene.time.delayedCall(ms, () => this.rig.currentEyes === 'happy' && this.eyesOpenIfFree());
-    };
-    const armsUp = (ms: number, repeat = 0, lift = 2.3) => {
-      this.stopPose(['armL', 'armR']);
-      t.add({ targets: p, armL: lift, armR: lift, duration: ms, yoyo: true, repeat, ease: 'Back.easeOut',
-        onComplete: () => this.idleArms() });
-    };
-    /** Saut : accroupi, envol, réception écrasée. */
-    const jump = (height: number, ms: number, repeat = 0) => {
-      t.chain({
-        targets: p,
-        repeat,
-        tweens: [
-          { squash: 0.85, duration: 90, ease: 'Quad.easeOut' },
-          { squash: 1.1, y: height, duration: ms, ease: 'Quad.easeOut' },
-          { squash: 1, y: 0, duration: ms, ease: 'Quad.easeIn' },
-          { squash: 0.88, duration: 70, yoyo: true, ease: 'Quad.easeOut' },
-        ],
-      });
-    };
-    const shake = (amp: number, times: number, ms = 50) =>
-      t.add({ targets: p, x: amp, duration: ms, yoyo: true, repeat: times, onComplete: () => (p.x = 0) });
+      'headScale', 'armL', 'armR', 'armLFwd', 'armRFwd', 'legL', 'legR', 'tailLift', 'eyeX', 'eyeY']);
+    Object.assign(p, { x: 0, y: 0, spin: 0, lean: 0, bow: 0, squash: 1, grow: 1, headScale: 1, headTilt: 0, headNod: 0,
+      headTurn: 0, armL: 0, armR: 0, armLFwd: 0, armRFwd: 0, legL: 0, legR: 0, tailLift: 0 });
+    this.rig.setWink(null);
+    if (!this.sleeping) this.rig.setEyes('open');
+    if (!app.voice.talking) this.rig.setMouth('smile');
+    const ms = this.rig.play(CLIPS[reaction]) || 1000;
+    this.reactingUntil = this.scene.time.now + ms;
+    if (MOUTH_BUSY.includes(reaction)) this.busyFor(ms * 0.85);
 
+    // Effets autour du dino (sons, étoiles, bulles…), en plus de l'animation.
     switch (reaction) {
-      case 'happy':
-        happyFor(900);
-        armsUp(220);
-        jump(0.22, 200);
-        break;
-      case 'cheer':
-        happyFor(1400);
-        armsUp(200, 1);
-        jump(0.3, 210, 1);
-        break;
-      case 'dance':
-        happyFor(2200);
-        armsUp(260, 3);
-        t.add({ targets: p, lean: { from: -0.18, to: 0.18 }, headTilt: { from: 0.15, to: -0.15 }, duration: 260,
-          yoyo: true, repeat: 3, ease: 'Sine.easeInOut', onComplete: () => { p.lean = 0; p.headTilt = 0; } });
-        t.add({ targets: p, y: 0.12, duration: 130, yoyo: true, repeat: 7, ease: 'Quad.easeOut' });
-        t.add({ targets: p, spin: Math.PI * 2, duration: 1000, delay: 1000, ease: 'Sine.easeInOut',
-          onComplete: () => (p.spin = 0) });
-        break;
-      case 'oops':
-        this.flashMouth('o', 700);
-        t.add({ targets: p, headTilt: 0.3, bow: -0.08, duration: 200, yoyo: true, hold: 300, ease: 'Sine.easeInOut' });
-        shake(0.04, 3, 60);
-        break;
       case 'think':
-        t.add({ targets: p, headTilt: -0.22, headTurn: 0.2, eyeY: 1, eyeX: -0.6, duration: 300, yoyo: true, hold: 700,
-          ease: 'Sine.easeInOut' });
-        this.stopPose(['armR']);
-        t.add({ targets: p, armR: 1.2, armRFwd: 1.2, duration: 300, yoyo: true, hold: 700,
-          onComplete: () => this.idleArms() });
+        this.mark('?', 1500);
         break;
-      case 'eat': {
-        this.busy = true;
-        happyFor(1100);
-        let n = 0;
-        this.scene.time.addEvent({
-          delay: 140, repeat: 7,
-          callback: () => {
-            this.rig.setMouth(n++ % 2 === 0 ? 'wide' : 'smile');
-            if (n === 8) this.busy = false;
-          },
-        });
-        t.add({ targets: p, squash: 0.94, headNod: 0.1, duration: 140, yoyo: true, repeat: 3 });
+      case 'surprised':
+        this.mark('!', 1000);
         break;
-      }
       case 'levelUp':
-        happyFor(1800);
-        armsUp(400);
-        t.add({ targets: p, grow: 1.25, duration: 500, yoyo: true, hold: 500, ease: 'Back.easeOut' });
-        t.add({ targets: p, spin: Math.PI * 2, duration: 1200, ease: 'Sine.easeInOut', onComplete: () => (p.spin = 0) });
         this.sparkle();
-        break;
-      case 'tickle':
-        happyFor(1000);
-        this.flashMouth('wide', 900);
-        shake(0.03, 9, 40);
-        t.add({ targets: p, lean: 0.12, duration: 120, yoyo: true, repeat: 3 });
-        break;
-      case 'wave':
-        happyFor(1400);
-        this.stopPose(['armL', 'armR']);
-        t.chain({
-          targets: p,
-          tweens: [
-            { armL: 2.5, duration: 250, ease: 'Back.easeOut' },
-            { armL: 1.9, duration: 180, yoyo: true, repeat: 3, ease: 'Sine.easeInOut' },
-            { armL: 0, duration: 300 },
-          ],
-          onComplete: () => this.idleArms(),
-        });
-        t.add({ targets: p, headTilt: -0.15, duration: 300, yoyo: true, hold: 900 });
-        break;
-      case 'spin':
-        happyFor(1200);
-        armsUp(300);
-        jump(0.35, 330);
-        t.add({ targets: p, spin: Math.PI * 2, duration: 760, ease: 'Sine.easeInOut', onComplete: () => (p.spin = 0) });
-        break;
-      case 'yawn':
-        this.setEyes('closed');
-        this.flashMouth('o', 1300);
-        this.scene.time.delayedCall(1300, () => this.eyesOpenIfFree());
-        armsUp(650, 0, 2.6);
-        t.add({ targets: p, squash: 1.06, headNod: -0.25, duration: 650, yoyo: true, ease: 'Sine.easeInOut' });
         break;
       case 'roar':
         Sfx.play('roar');
-        this.flashMouth('wide', 900);
-        t.add({ targets: p, headScale: 1.1, headNod: -0.15, bow: 0.12, duration: 200, yoyo: true, hold: 500,
-          ease: 'Back.easeOut' });
-        this.stopPose(['armL', 'armR']);
-        t.add({ targets: p, armL: 1.3, armR: 1.3, armLFwd: 0.9, armRFwd: 0.9, duration: 200, yoyo: true, hold: 500,
-          onComplete: () => this.idleArms() });
-        shake(0.02, 7, 45);
         break;
-      case 'lookAround':
-        t.chain({
-          targets: p,
-          tweens: [
-            { headTurn: -0.5, eyeX: -1, duration: 300, hold: 500, ease: 'Sine.easeInOut' },
-            { headTurn: 0.5, eyeX: 1, duration: 500, hold: 500, ease: 'Sine.easeInOut' },
-            { headTurn: 0, eyeX: 0, duration: 300, ease: 'Sine.easeInOut' },
-          ],
-        });
+      case 'clap':
+        for (const f of [8.5, 15.5, 22.5, 29.5]) this.scene.time.delayedCall((f / 24) * 1000, () => this.active && Sfx.play('pop'));
         break;
-      case 'hop':
-        jump(0.15, 150, 2);
+      case 'celebrate':
+        this.starBurst(7);
+        this.scene.time.delayedCall(900, () => this.active && this.starBurst(5));
+        this.sparkle();
         break;
       case 'burp': {
-        this.flashMouth('o', 800);
-        t.add({ targets: p, headNod: -0.2, headScale: 1.05, duration: 160, yoyo: true, hold: 350, ease: 'Back.easeOut' });
-        t.add({ targets: p, squash: 1.05, duration: 160, yoyo: true });
         const m = this.mouthLocal();
         const bubble = this.scene.add.circle(m.x, m.y, 18, 0xbfe6ff, 0.7).setStrokeStyle(4, 0xffffff);
         this.add(bubble);
         t.add({ targets: bubble, y: m.y - 160, x: m.x + 60, scale: 2.2, duration: 900, ease: 'Sine.easeOut',
           onComplete: () => t.add({ targets: bubble, scale: 3, alpha: 0, duration: 120, onComplete: () => bubble.destroy() }) });
-        this.scene.time.delayedCall(900, () => this.react('oops'));
+        this.scene.time.delayedCall(1100, () => this.active && this.react('oops'));
         break;
       }
       case 'fart': {
-        this.setEyes('closed');
-        this.scene.time.delayedCall(1100, () => this.eyesOpenIfFree());
-        this.flashMouth('small', 1100);
-        jump(0.18, 150);
-        t.add({ targets: p, tailLift: 0.8, duration: 120, yoyo: true, repeat: 1 });
         const back = p.yaw >= 0 ? -1 : 1;
         for (let i = 0; i < 4; i++) {
           const puff = this.scene.add.circle(back * (120 + i * 12), -60 - i * 6, 26, 0xa5d36b, 0.75);
           this.addAt(puff, 0);
           t.add({ targets: puff, x: back * (220 + i * 30), y: -80 - i * 25, scale: 2.4, alpha: 0, duration: 1300,
-            delay: i * 120, onComplete: () => puff.destroy() });
+            delay: 150 + i * 120, onComplete: () => puff.destroy() });
         }
         break;
       }
-      case 'growl':
-        this.flashMouth('small', 900);
-        t.add({ targets: p, squash: 0.96, duration: 90, yoyo: true, repeat: 5 });
-        this.stopPose(['armL', 'armR']);
-        t.add({ targets: p, armL: 0.5, armR: 0.5, armLFwd: 1.1, armRFwd: 1.1, duration: 200, yoyo: true, hold: 600,
-          onComplete: () => this.idleArms() });
-        t.add({ targets: p, headTilt: 0.2, headNod: 0.2, duration: 250, yoyo: true, hold: 400 });
-        break;
-      case 'beg':
-        happyFor(1200);
-        armsUp(180, 3, 1.8);
-        t.add({ targets: p, y: 0.1, duration: 140, yoyo: true, repeat: 3, ease: 'Quad.easeOut' });
-        break;
-      case 'gape':
-        this.flashMouth('wide', 1600);
-        t.add({ targets: p, headNod: -0.3, duration: 300, yoyo: true, hold: 1000, ease: 'Sine.easeInOut' });
-        break;
     }
   }
 
@@ -679,9 +633,9 @@ export class Dino extends Phaser.GameObjects.Container {
     this.react(Phaser.Math.RND.pick(IDLE_FUN));
   }
 
-  private flashMouth(mouth: Mouth, ms: number) {
+  /** La bouche est prise par une animation : la voix ne la fait pas bouger pendant `ms`. */
+  private busyFor(ms: number) {
     this.busy = true;
-    this.rig.setMouth(mouth);
     this.scene.time.delayedCall(ms, () => {
       this.busy = false;
       if (!app.voice.talking) this.rig.setMouth('smile');
@@ -699,6 +653,45 @@ export class Dino extends Phaser.GameObjects.Container {
     p.setDepth(this.depth + 1);
     p.explode(18);
     this.scene.time.delayedCall(1200, () => p.destroy());
+  }
+
+  /** Un « ? » ou un « ! » qui apparaît au-dessus de la tête, avec des petits traits jaunes. */
+  private mark(sign: '?' | '!', ms: number) {
+    const x = 150, y = -560;
+    const text = this.scene.add.text(x, y, sign, {
+      fontFamily: FONT, fontSize: '120px', color: '#ffd23f', fontStyle: 'bold', stroke: '#2d3354', strokeThickness: 12,
+    }).setOrigin(0.5).setScale(0).setAngle(12);
+    const rays = this.scene.add.graphics();
+    rays.lineStyle(14, 0xffd23f, 1);
+    for (const a of [-0.9, -0.3, 0.3]) {
+      rays.lineBetween(x + 80 + Math.cos(a) * 20, y + Math.sin(a) * 60, x + 80 + Math.cos(a) * 70, y + Math.sin(a) * 100);
+    }
+    rays.setAlpha(0);
+    this.add([rays, text]);
+    const t = this.scene.tweens;
+    t.add({ targets: text, scale: 1, duration: 260, ease: 'Back.easeOut' });
+    t.add({ targets: text, y: y - 20, angle: -8, duration: 500, yoyo: true, repeat: Math.max(0, Math.round(ms / 1000) - 1), ease: 'Sine.easeInOut' });
+    t.add({ targets: rays, alpha: 1, duration: 150, yoyo: true, repeat: 2 });
+    this.scene.time.delayedCall(ms, () => t.add({ targets: [text, rays], alpha: 0, duration: 250,
+      onComplete: () => { text.destroy(); rays.destroy(); } }));
+  }
+
+  /** Des étoiles jaunes jaillissent autour du dino, tournent et s'effacent. */
+  private starBurst(n: number) {
+    for (let i = 0; i < n; i++) {
+      const a = -Math.PI / 2 + (i - (n - 1) / 2) * (Math.PI * 1.1 / n) + Phaser.Math.FloatBetween(-0.12, 0.12);
+      const r = Phaser.Math.Between(260, 340);
+      const star = this.scene.add.image(0, -300, 'ui-star').setScale(0);
+      const size = 70 / star.width;
+      this.add(star);
+      this.scene.tweens.add({
+        targets: star, x: Math.cos(a) * r, y: -300 + Math.sin(a) * r, scale: size, angle: 200, duration: 500,
+        delay: i * 60, ease: 'Back.easeOut',
+        onComplete: () => this.scene.tweens.add({ targets: star, scale: size * 1.25, duration: 220, yoyo: true, repeat: 1,
+          onComplete: () => this.scene.tweens.add({ targets: star, alpha: 0, y: star.y - 60, duration: 400,
+            onComplete: () => star.destroy() }) }),
+      });
+    }
   }
 
   /** Le dino tend le bras vers un point de l'écran et le regarde. */

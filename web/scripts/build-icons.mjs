@@ -46,6 +46,60 @@ function colorBlob(name, color) {
   writeFileSync(new URL(`${name}.svg`, OUT), svg);
 }
 
+const INK = '#2d3354';
+const NAV_ICONS = {
+  // Cible rouge et blanche, fléchette verte plantée au centre.
+  'ui-missions': `<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <defs><radialGradient id="r" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#ff6b6b"/><stop offset="1" stop-color="#d81e2c"/></radialGradient></defs>
+  <circle cx="118" cy="140" r="100" fill="url(#r)" stroke="${INK}" stroke-width="9"/>
+  <circle cx="118" cy="140" r="74" fill="#fff"/>
+  <circle cx="118" cy="140" r="52" fill="url(#r)"/>
+  <circle cx="118" cy="140" r="28" fill="#fff"/>
+  <circle cx="118" cy="140" r="12" fill="#d81e2c"/>
+  <path d="M60 78a80 80 0 0 1 60-26" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" opacity=".55"/>
+  <path d="M118 140L204 54" stroke="${INK}" stroke-width="16" stroke-linecap="round"/>
+  <path d="M118 140L204 54" stroke="#2fa84f" stroke-width="8" stroke-linecap="round"/>
+  <path d="M196 30l12 28 28 12-22 10-16 6-6 16-10 22-12-28 26-26z" fill="#4cc93a" stroke="${INK}" stroke-width="7" stroke-linejoin="round"/>
+</svg>`,
+  // T-shirt jaune-orangé.
+  'ui-mydino': `<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <defs><linearGradient id="t" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd84a"/><stop offset="1" stop-color="#ff9a1f"/></linearGradient></defs>
+  <path d="M92 34c8 18 64 18 72 0l58 26 26 58-40 16-12-22v118H60V112l-12 22-40-16 26-58z" fill="url(#t)" stroke="${INK}" stroke-width="10" stroke-linejoin="round"/>
+  <path d="M92 34c8 18 64 18 72 0" fill="none" stroke="#e07a00" stroke-width="10"/>
+  <path d="M74 72l-26 12M182 72l26 12" stroke="#fff" stroke-width="9" stroke-linecap="round" opacity=".5"/>
+  <path d="M84 120v100" stroke="#fff" stroke-width="12" stroke-linecap="round" opacity=".35"/>
+</svg>`,
+  // Trois barres qui montent : verte, bleue, bleu foncé.
+  'ui-progress': `<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7ee35a"/><stop offset="1" stop-color="#2fa82c"/></linearGradient>
+    <linearGradient id="b" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#6cc4ff"/><stop offset="1" stop-color="#1f7fe0"/></linearGradient>
+    <linearGradient id="d" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#4aa2ff"/><stop offset="1" stop-color="#1557c0"/></linearGradient>
+  </defs>
+  <rect x="22" y="140" width="56" height="96" rx="16" fill="url(#g)" stroke="${INK}" stroke-width="9"/>
+  <rect x="100" y="86" width="56" height="150" rx="16" fill="url(#b)" stroke="${INK}" stroke-width="9"/>
+  <rect x="178" y="22" width="56" height="214" rx="16" fill="url(#d)" stroke="${INK}" stroke-width="9"/>
+  <path d="M36 156v50M114 102v90M192 38v140" stroke="#fff" stroke-width="10" stroke-linecap="round" opacity=".45"/>
+</svg>`,
+  // Engrenage bleu-gris.
+  'ui-settings': `<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <defs><linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9fb4ff"/><stop offset="1" stop-color="#4a63c9"/></linearGradient></defs>
+  <path d="${(() => {
+    // Engrenage à 8 dents : contour calculé.
+    const pts = [];
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2;
+      for (const [da, r] of [[-0.2, 92], [-0.13, 118], [0.13, 118], [0.2, 92]]) {
+        pts.push([128 + Math.cos(a + da) * r, 128 + Math.sin(a + da) * r]);
+      }
+    }
+    return 'M' + pts.map(([x, y]) => `${x.toFixed(1)} ${y.toFixed(1)}`).join('L') + 'Z';
+  })()}" fill="url(#s)" stroke="${INK}" stroke-width="10" stroke-linejoin="round"/>
+  <circle cx="128" cy="128" r="38" fill="#eef3ff" stroke="${INK}" stroke-width="10"/>
+  <path d="M70 84a72 72 0 0 1 50-30" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" opacity=".5"/>
+</svg>`,
+};
+
 const { concepts } = JSON.parse(
   readFileSync(new URL('../src/content/concepts.json', import.meta.url), 'utf8'),
 );
@@ -123,6 +177,8 @@ write('cty-pyramid', openmoji, 'great-pyramid-of-giza');
 write('my-country', noto, 'world-map');
 write('ui-wardrobe', noto, 'top-hat');
 write('ui-gift', noto, 'wrapped-gift');
+// Barre de navigation de l'accueil : icônes dessinées à la main (style « jouet » brillant de la maquette).
+for (const [name, svg] of Object.entries(NAV_ICONS)) writeFileSync(new URL(`${name}.svg`, OUT), svg);
 for (const icon of UI_ICONS) write(`ui-${icon}`, plush, icon);
 for (const flag of FLAGS) write(`flag-${flag}`, flags, flag);
 

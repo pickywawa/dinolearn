@@ -249,7 +249,8 @@ export function childForm(title: string, help: string, initial?: Partial<NewChil
     style.textContent = FORM_CSS;
     document.head.append(style);
   }
-  const value: NewChild = { name: '', age: 4, country: 'fr', dailyMinutes: DEFAULT_DAILY_MINUTES, nightTime: '', voice: true, ...initial };
+  const value: NewChild = { name: '', age: 4, country: 'fr', dailyMinutes: DEFAULT_DAILY_MINUTES, nightTime: '', voice: true,
+    chooseGames: true, ...initial };
   return new Promise((resolve) => {
     const { root, card } = mount();
     card.classList.add('wide');
@@ -292,6 +293,17 @@ export function childForm(title: string, help: string, initial?: Partial<NewChil
     micText.innerHTML = '<b>Autoriser le micro</b> (jeux à voix haute)<br><small>Tout reste sur cet appareil : la voix '
       + 'n\'est ni enregistrée, ni envoyée.</small>';
     micLabel.append(mic, micText);
+    // Missions : l'enfant peut choisir ses jeux ; décoché, il ne joue qu'aux séries au hasard (bouton « Jouer »).
+    const missions = document.createElement('input');
+    missions.type = 'checkbox';
+    missions.checked = value.chooseGames !== false;
+    missions.addEventListener('change', () => { value.chooseGames = missions.checked; });
+    const missionsLabel = document.createElement('label');
+    missionsLabel.className = 'check';
+    const missionsText = document.createElement('span');
+    missionsText.innerHTML = '<b>Choix des missions</b><br><small>L\'enfant peut choisir ses jeux (bouton « Missions »). '
+      + 'Décoché : seulement des séries au hasard avec « Jouer ».</small>';
+    missionsLabel.append(missions, missionsText);
     const error = document.createElement('div');
     error.className = 'error';
     const actions = document.createElement('div');
@@ -324,7 +336,7 @@ export function childForm(title: string, help: string, initial?: Partial<NewChil
       timeStepper(() => value.dailyMinutes, (v) => { value.dailyMinutes = v; }),
       field('Heure du coucher (mode nuit)'),
       segment(NIGHT_CHOICES.map((t) => [t, t ? t.replace(':', ' h ') : 'Aucune']), () => value.nightTime, (v) => { value.nightTime = v; }),
-      micLabel, error, actions);
+      missionsLabel, micLabel, error, actions);
     card.append(form);
     if (!initial?.name) setTimeout(() => name.focus(), 50);
   });

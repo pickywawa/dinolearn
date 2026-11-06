@@ -1,0 +1,10 @@
+# Sources CC0 de Quaternius (à télécharger, voir README) et fichiers générés
+ual_src.glb
+ual2_src.glb
+dino_clips.blend
+*.blend1
+dino_anim.glb
+clips.json
+prev*/
+wt/
+__pycache__/

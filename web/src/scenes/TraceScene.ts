@@ -6,10 +6,10 @@ import { Series, sceneOf } from '../core/series';
 import { Sfx } from '../core/sfx';
 import { foodImage } from '../domain/models';
 import { Point, resample, scoreTrace } from '../domain/trace';
-import { Dino } from '../dino/Dino';
+import { Dino, SUCCESS_REACTIONS } from '../dino/Dino';
 import { Bubble } from '../ui/Bubble';
 import { goTo, homeButton, isPortrait, unit } from '../ui/scenery';
-import { drawIsland } from '../ui/island';
+import { drawBackdrop } from '../ui/backdrop';
 import { card } from '../ui/kit';
 import { BaseScene } from './BaseScene';
 
@@ -56,7 +56,7 @@ export class TraceScene extends BaseScene {
     this.playMs = 0;
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.savePlayTime());
     const game = data.series ? data.series.current.game : gameById(data.gameId!);
-    drawIsland(this, 'soft', { clouds: 1 });
+    drawBackdrop(this, 'meadow');
     const { width: W, height: H } = this.scale;
     const u = unit(this);
     const portrait = isPortrait(this);
@@ -145,7 +145,7 @@ export class TraceScene extends BaseScene {
     Sfx.play('correct');
     this.redrawInk(0x30a46c);
     this.updateSteps(true);
-    this.dino.react(outcome.streak >= 3 ? 'cheer' : 'happy');
+    this.dino.react(outcome.streak >= 3 ? 'cheer' : Phaser.Math.RND.pick(SUCCESS_REACTIONS));
     this.run(async () => {
       await app.voice.say(this.series.current.reinforce);
       if (!this.alive) return;

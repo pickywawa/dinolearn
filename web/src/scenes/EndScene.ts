@@ -13,7 +13,7 @@ import { Dino, DinoReaction } from '../dino/Dino';
 import { arrowTexture, candyButton, card, INK, label, ribbonBanner, setHighlight, starTexture } from '../ui/kit';
 import { Guide } from '../ui/Guide';
 import { goTo, homeButton, unit } from '../ui/scenery';
-import { drawIsland } from '../ui/island';
+import { drawBackdrop } from '../ui/backdrop';
 import { BaseScene } from './BaseScene';
 
 const MAX_SHOWN = 10;
@@ -56,7 +56,7 @@ export class EndScene extends BaseScene {
     this.initBase();
     // Le soir, cette série était la dernière.
     app.progress.markNightSeries();
-    drawIsland(this, 'day');
+    drawBackdrop(this, 'stars');
     const r = data.result;
     const { width: W, height: H } = this.scale;
     const u = unit(this);
@@ -108,7 +108,7 @@ export class EndScene extends BaseScene {
       }
       const group = r.stars === 3 ? (r.firstTrySuccesses === r.total ? 'series_perfect' : 'series_great')
         : r.stars === 2 ? 'series_good' : r.stars === 1 ? 'series_ok' : 'series_encourage';
-      this.dino.react(r.firstTrySuccesses === r.total && r.total > 0 ? 'spin' : r.stars >= 3 ? 'dance' : r.stars === 2 ? 'cheer' : r.stars === 1 ? 'happy' : 'think');
+      this.dino.react(r.stars >= 3 ? 'celebrate' : r.stars === 2 ? 'cheer' : r.stars === 1 ? 'fistPump' : 'think');
       await this.say(group);
       if (shown.length === 0) {
         await this.say('end.nothing');

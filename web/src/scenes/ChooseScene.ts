@@ -3,7 +3,7 @@ import { app, playableGames } from '../core/app';
 import { shortTitle } from '../content/gameTitles';
 import { Dino } from '../dino/Dino';
 import { Guide } from '../ui/Guide';
-import { drawIsland } from '../ui/island';
+import { drawBackdrop } from '../ui/backdrop';
 import { candyAt, roundButton, setHighlight, tileButton, woodSign, type Candy } from '../ui/kit';
 import { goTo, makeTickable, unit } from '../ui/scenery';
 import { BaseScene } from './BaseScene';
@@ -32,7 +32,7 @@ export class ChooseScene extends BaseScene {
       goTo(this, 'Home');
       return;
     }
-    drawIsland(this, 'day');
+    drawBackdrop(this, 'forest');
     const { width: W, height: H } = this.scale;
     const u = unit(this);
 
