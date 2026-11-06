@@ -7,24 +7,39 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="theme-color" content="#7cc8f5" />
     <meta name="screen-orientation" content="landscape" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="DinoLearn" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" type="image/png" href="icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
     <title>DinoLearn</title>
     <style>
       html, body { margin: 0; height: 100%; background: #bfe6ff; overflow: hidden; touch-action: none;
         -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
       #game { width: 100vw; height: 100vh; height: 100dvh; }
-      /* Le jeu se joue en paysage : tenu en portrait, on demande de tourner la tablette. */
+      /* Le jeu se joue en paysage. Tenu en portrait : là où le navigateur sait passer en plein écran
+         paysage (Android…), un toucher le fait ; sinon (iPhone), on demande de tourner l'appareil. */
       #rotate { display: none; position: fixed; inset: 0; z-index: 10; background: linear-gradient(#7cc8f5, #c9ecff);
         color: #2d3354; font: 700 7vw/1.2 'Baloo 2', 'Arial Rounded MT Bold', Arial, sans-serif; text-align: center;
         flex-direction: column; align-items: center; justify-content: center; gap: 6vw; }
       #rotate .phone { width: 22vw; height: 38vw; border: 2.4vw solid #2d3354; border-radius: 4vw; background: #fff8e7;
         animation: turn 2.2s ease-in-out infinite; }
       @keyframes turn { 0%, 25% { transform: rotate(0); } 55%, 100% { transform: rotate(-90deg); } }
+      #rotate small { font-size: 4.2vw; font-weight: 600; max-width: 80vw; opacity: .8; }
+      #rotate .tap { display: none; }
+      .can-lock #rotate .turn { display: none; }
+      .can-lock #rotate .tap { display: block; }
+      .can-lock #rotate .phone { animation: none; transform: rotate(-90deg); }
       @media (orientation: portrait) { #rotate { display: flex; } }
     </style>
   </head>
   <body>
     <div id="game"></div>
-    <div id="rotate"><div class="phone"></div><div>Tourne ta tablette !</div></div>
+    <div id="rotate">
+      <div class="phone"></div>
+      <div class="turn">Tourne ta tablette !<br /><small>Astuce : « Ajouter à l'écran d'accueil » ouvre le jeu en plein écran.</small></div>
+      <div class="tap">Touche l'écran pour jouer !</div>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

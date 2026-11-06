@@ -61,13 +61,36 @@ window.addEventListener('resize', () => {
   }
 });
 
-// Sur les appareils qui le permettent (appli installée, plein écran), on verrouille le paysage.
-const lockLandscape = () => {
-  const orientation = screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> };
-  orientation?.lock?.('landscape').catch(() => undefined);
-};
-lockLandscape();
-window.addEventListener('pointerdown', lockLandscape, { once: true });
+/**
+ * Plein écran et paysage, sur les appareils tactiles qui le permettent (Android…) : au
+ * premier toucher (les navigateurs l'exigent), le jeu passe en plein écran — plus de barres
+ * du navigateur — et l'écran est verrouillé en paysage, même si l'appareil est tenu droit.
+ * S'il quitte le plein écran (bouton retour), le toucher suivant y revient. Sur iPhone,
+ * Safari ne le permet pas : on demande de tourner l'appareil (voir index.html), et le jeu
+ * ajouté à l'écran d'accueil s'ouvre sans barres (manifest.webmanifest).
+ */
+const root = document.documentElement as HTMLElement & { webkitRequestFullscreen?: () => Promise<void> };
+const touch = matchMedia('(pointer: coarse)').matches;
+const standalone = matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches;
+const orientation = screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> };
+const canLock = touch && !!(root.requestFullscreen ?? root.webkitRequestFullscreen) && !!orientation?.lock;
+if (canLock) document.documentElement.classList.add('can-lock');
+
+async function goLandscape() {
+  if (!touch) return;
+  const doc = document as Document & { webkitFullscreenElement?: Element };
+  if (!standalone && !(doc.fullscreenElement ?? doc.webkitFullscreenElement)) {
+    try {
+      if (root.requestFullscreen) await root.requestFullscreen({ navigationUI: 'hide' });
+      else await root.webkitRequestFullscreen?.();
+    } catch {
+      // Refusé (pas de geste, navigateur intégré…) : on garde la page telle quelle.
+    }
+  }
+  await orientation?.lock?.('landscape').catch(() => undefined);
+}
+void goLandscape();
+window.addEventListener('pointerdown', () => void goLandscape(), { capture: true });
 
 void app.voice.init();
 // Les voix du dino déjà téléchargées remplacent la voix du téléphone.

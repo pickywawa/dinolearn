@@ -1,3 +1,12 @@
+## DinoLearn 0.13.1 — Plein écran en paysage
+
+- **Sur Android**, au premier toucher, le jeu passe en plein écran (sans les barres du navigateur)
+  et se verrouille en paysage, même si le téléphone est tenu droit.
+- **Installable comme une appli** (« Ajouter à l'écran d'accueil ») : il s'ouvre ensuite directement
+  en plein écran paysage, avec l'icône du dino.
+- **Sur iPhone** (Safari ne permet pas de forcer le paysage), le message « Tourne ta tablette »
+  rappelle qu'ajouté à l'écran d'accueil, le jeu s'ouvre sans les barres de Safari.
+
 ## DinoLearn 0.13.0 — Le dino en 3D sur l'île au volcan
 
 - **Un nouveau dino en 3D**, sculpté puis animé : une trentaine d'animations (il saute de joie,
