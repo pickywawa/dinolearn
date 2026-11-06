@@ -1,7 +1,8 @@
 # DinoLearn — version web (Phaser 3 + TypeScript)
 
 Jeu éducatif pour les enfants de 3 à 7 ans qui ne savent pas encore lire, jouable directement dans
-le navigateur d'un téléphone ou d'une tablette (portrait ou paysage). Tout passe par la voix et les
+le navigateur d'un téléphone ou d'une tablette, **en paysage** (tenu en portrait, le jeu demande
+de tourner l'écran). Tout passe par la voix et les
 images, autour d'un dino qui parle, guide, encourage et grandit quand on le nourrit.
 
 En ligne : https://pickywawa.github.io/dinolearn/
@@ -10,14 +11,14 @@ En ligne : https://pickywawa.github.io/dinolearn/
 - **Le dino guide tout** : il présente chaque bouton en le montrant du bras, une main animée tapote
   l'endroit à toucher, les boutons à toucher pulsent, et il relance l'enfant s'il hésite. Toucher le
   dino pendant un jeu lui fait répéter la question. Il appelle l'enfant par son prénom.
-- **Menus réduits au minimum, sans texte** : un œuf à faire éclore, puis l'accueil :
-  - la **planète Terre**, qui tourne doucement avec ses volcans qui fument, lance une série où tout se
-    mélange : questions à cartes, plateaux de memory, tracés et questions à voix haute, d'une question à
-    l'autre ;
-  - un **petit bouton** (mosaïque) ouvre le choix d'un jeu précis (les jeux à voix haute sont derrière
-    une bulle micro) — masqué par défaut, il s'active dans l'espace parents ;
-  - le **chapeau** ouvre le dressing du dino, le **cadeau** apparaît quand un objet est à choisir ; une
-    fois le cadeau mis au dino, retour à l'accueil (et, si les enfants alternent, au tour du suivant) ;
+- **Menus réduits au minimum** : un œuf à faire éclore, puis l'accueil, sur l'île aux dinos :
+  - le gros bouton vert **Jouer** lance une série où tout se mélange : questions à cartes, plateaux de
+    memory, tracés et questions à voix haute, d'une question à l'autre ;
+  - la tuile **Les jeux** ouvre le choix d'un jeu précis (les jeux à voix haute sont derrière une tuile
+    micro) — masquée par défaut, elle s'active dans l'espace parents ;
+  - la tuile **Mon Dino** ouvre l'habillage du dino, le **cadeau** apparaît dessus quand un objet est à
+    choisir ; une fois le cadeau mis au dino, retour à l'accueil (et, si les enfants alternent, au tour
+    du suivant) ; la tuile **Parents** ouvre l'espace parents (code parent) ;
   - avec plusieurs enfants, la **tête du dino** de l'enfant suivant passe la main.
 - **L'éclosion** : l'œuf tremble ; il faut le toucher 4 fois pour le faire éclore : il se fissure un
   peu plus à chaque toucher (le téléphone vibre), puis la coquille s'ouvre en deux (vibrations) et un
@@ -28,12 +29,15 @@ En ligne : https://pickywawa.github.io/dinolearn/
   sinon, il ne parle ni de prénom ni d'âge. Puis il demande de donner le téléphone à un parent, qui
   complète la fiche et crée son code (tapé une seule fois). L'œuf d'un frère ou d'une sœur ajouté plus
   tard donne juste une salutation, sans toute la présentation.
-- **Un dino vivant** : il respire, cligne des yeux, parle (la bouche suit la voix, mot par mot),
-  salue, bâille, rugit, saute, danse, fait une pirouette pour un sans-faute.
-- **Décor préhistorique interactif** : volcan qui fume et entre en éruption quand on le touche,
-  ptérodactyle qui fait un looping, diplodocus qui rugit, bébé T-rex, papillons, fougères. Dans le ciel
-  de l'accueil passent des météorites et des oiseaux ; parfois le soleil se montre, ou un nuage apporte
-  la pluie, suivie d'un arc-en-ciel. Le soir, ciel de nuit avec la lune et des étoiles filantes.
+- **Un dino vivant, en 3D** : il respire, cligne des yeux, parle (la bouche suit la voix, mot par
+  mot), regarde et montre du bras ce qu'il faut toucher, salue, bâille, rugit, saute, danse, fait une
+  pirouette pour un sans-faute, et court sur l'écran de chargement. Dans l'habillage, on le fait
+  tourner sur lui-même (flèches ou glissé du doigt) ; ses objets suivent tous ses mouvements.
+- **L'île aux dinos** : mer turquoise, volcan qui fume et entre en éruption quand on le touche, cascade,
+  jungle, palmiers et grandes feuilles qui se balancent ; version douce pendant les jeux, coucher de
+  soleil pour l'éclosion. Dans le ciel de l'accueil passent des météorites et des oiseaux ; parfois le
+  soleil se montre, ou un nuage apporte la pluie, suivie d'un arc-en-ciel. Le soir, ciel de nuit avec
+  la lune et des étoiles.
 - **Les mouches** : de temps en temps, une mouche vient tourner autour du dino ; si elle passe tout
   près de sa bouche, il l'attrape d'un coup de langue (« Slurp ! »). On peut aussi la chasser du doigt.
 - **Séries** de 6 à 10 questions. Une barre de fruits montre l'avancée ; chaque fruit est gagné si la
@@ -189,6 +193,8 @@ et les jeux d'anglais sont désactivés.
 | Besoin | Bibliothèque |
 |--------|--------------|
 | Moteur de jeu, animations (tweens, particules) | [Phaser 3](https://phaser.io) |
+| Dino et objets en 3D (rendu temps réel) | [Three.js](https://threejs.org) (MIT) ; modèles fabriqués par script avec [Blender](https://www.blender.org) (module `bpy`) |
+| Police des menus | [Baloo 2](https://github.com/EkType/Baloo2) (Ek Type, OFL) |
 | Voix du dino (neuronale, calculée sur l'appareil) | [Piper](https://github.com/rhasspy/piper) : voix française UPMC (Jessica) et anglaise Alba ([piper-voices](https://huggingface.co/rhasspy/piper-voices), licences sur leurs fiches), moteur [onnxruntime-web](https://onnxruntime.ai) et prononciation de [piper-tts-web](https://github.com/Mintplex-Labs/piper-tts-web) (MIT) |
 | Voix de secours (synthèse vocale du navigateur, iOS/Android) | [easy-speech](https://github.com/leaonline/easy-speech) |
 | Reconnaissance vocale sur l'appareil | [vosk-browser](https://github.com/ccoreilly/vosk-browser) et les petits modèles [Vosk](https://alphacephei.com/vosk/models) français et anglais (Apache 2.0) |
@@ -199,8 +205,20 @@ et les jeux d'anglais sont désactivés.
 | Boutons | [withicons « Plush »](https://github.com/withevergrow/withicons) (MIT) via Iconify |
 | Polices de lecture | [Andika](https://software.sil.org/andika/) (SIL, OFL) ; [Playwrite France Moderne](https://github.com/TypeTogether/Playwrite) (TypeTogether, OFL) pour l'écriture attachée |
 
-Le dinosaure (10 couleurs) et le décor sont dessinés en SVG (`src/dino/parts.ts`) et animés avec
-Phaser. Les images ne sont **pas** dans le code JavaScript : `npm run icons` extrait chaque
+**Le dino en 3D.** Le modèle (`public/models/dino.glb`) et ses 23 objets (`public/models/items.glb`)
+sont **fabriqués par script** avec Blender : `tools/blender/build_dino.py` (formes en métaballes,
+squelette, yeux et bouches projetés sur la tête) et `tools/blender/build_items.py`. Pour les refaire :
+`pip install bpy` puis `python3 tools/blender/build_dino.py` (ou `build_items.py`). Dans le jeu,
+`src/dino3d/` le rend avec Three.js dans un canvas hors écran, copié à chaque image dans une texture
+Phaser : le dino reste un objet Phaser comme un autre, animé par des tweens sur les curseurs de sa pose
+(`src/dino3d/rig.ts`). Une seule géométrie sert aux 10 couleurs : les matériaux sont recolorés.
+L'aperçu `dino3d.html?angles=0,35,90&wear=crown` (serveur de dev) montre le modèle sous plusieurs angles,
+et `tools/shots/` contient les scripts de capture (Chromium sans écran).
+
+**Le décor et l'interface** sont dessinés par le code : l'île (`src/ui/island.ts`) est peinte une fois
+au canvas 2D, seuls les éléments vivants sont animés ; le kit d'interface (`src/ui/kit.ts`) dessine
+boutons bonbon, tuiles, planches de bois, rubans et cartes. L'œuf et les pièces SVG du dino
+(`src/dino/parts.ts`) restent utilisés pour l'éclosion et les fiches à imprimer. Les images ne sont **pas** dans le code JavaScript : `npm run icons` extrait chaque
 illustration utilisée vers `public/img/`, et le jeu les charge à la demande.
 
 ## Organisation du code
@@ -211,8 +229,11 @@ illustration utilisée vers `public/img/`, et le jeu les charge à la demande.
 - `src/core/` : profils des enfants, progression, voix, répliques, sons, musique.
 - `src/print/` : les fiches à imprimer (une page A4 en SVG par fonction, le dino sur papier, le
   décor, les conseils) ; `src/domain/printables.ts` : quand gagner une enveloppe, lesquelles proposer.
-- `src/scenes/` et `src/ui/` : écrans Phaser, enveloppes, espace parents, aperçu avant impression et
-  clavier du code (HTML).
+- `src/dino3d/` : le dino 3D (chargement des modèles, matériaux par couleur, studio de rendu, pose,
+  objets portés, portraits) ; `src/dino/Dino.ts` : le dino dans Phaser (réactions, voix, regard).
+- `src/scenes/` et `src/ui/` : écrans Phaser, île et kit d'interface, enveloppes, espace parents,
+  aperçu avant impression et clavier du code (HTML).
+- `tools/blender/` : fabrication des modèles 3D ; `tools/shots/` : captures d'écran automatiques.
 
 ## Lancer
 ```bash

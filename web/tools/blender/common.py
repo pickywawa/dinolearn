@@ -64,7 +64,25 @@ def evaluated_copy(obj, name):
     return out
 
 
-def metaball_mesh(name, elems, resolution=0.04):
+def decimate(obj, max_faces):
+    """Allège un maillage trop dense (jeu sur tablette) en gardant sa forme."""
+    faces = len(obj.data.polygons)
+    if faces <= max_faces:
+        return obj
+    mod = obj.modifiers.new('decimate', 'DECIMATE')
+    mod.ratio = max_faces / faces
+    bpy.context.view_layer.update()
+    name = obj.name
+    out = evaluated_copy(obj, name + '_d')
+    mats = list(obj.data.materials)
+    bpy.data.objects.remove(obj)
+    out.name = name
+    for m in mats:
+        out.data.materials.append(m)
+    return smooth(out)
+
+
+def metaball_mesh(name, elems, resolution=0.04, max_faces=6000):
     threshold = 0.6
     """
     Forme lisse faite de métaballes. `elems` : (centre, rayon visible, (sx, sy, sz)).
@@ -87,7 +105,7 @@ def metaball_mesh(name, elems, resolution=0.04):
     obj = evaluated_copy(mb, name)
     bpy.data.objects.remove(mb)
     bpy.data.metaballs.remove(data)
-    return smooth(obj)
+    return decimate(smooth(obj), max_faces)
 
 
 def orient_to(loc, normal, x_hint):

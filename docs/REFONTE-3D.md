@@ -1,5 +1,21 @@
 # Refonte graphique 3D — plan
 
+## Avancement
+
+| Étape | État |
+|---|---|
+| 1. Socle Three.js dans Phaser, paysage forcé | ✅ |
+| 2. Modèle Blender du dino (squelette, matériaux recolorables) | ✅ |
+| 3. Animations (réactions, visage, voix, regard, course) | ✅ animées par code (tweens Phaser sur la pose), pas en clips glTF : plus simple à régler et à enchaîner |
+| 4. Garde-robe 3D (23 objets), rotation au doigt et flèches | ✅ |
+| 5. Île volcanique (jour, crépuscule, nuit, doux) | ✅ |
+| 6. Kit UI et écrans : chargement, accueil, choix des jeux, questions, fin de série, habillage, espace parents | ✅ ; œuf, prénom, memory et tracé : décor et barre restylés, mise en page inchangée |
+| 7. Allègement des modèles, tests, build, README | ✅ (≈ 41 k triangles, 1,2 Mo + 1 Mo d'objets) |
+
+Restent possibles : œuf en 3D, fenêtres HTML (code parent, fiche enfant, téléchargements) au style
+de l'espace parents, secours sans WebGL (aujourd'hui le jeu suppose WebGL), nettoyage des branches
+« portrait » encore présentes dans certaines scènes.
+
 Branche : `animation-claude`. Référence visuelle : les maquettes « L'Île des Questions »
 (dino chibi brillant, île volcanique, panneaux en bois, gros boutons arrondis).
 

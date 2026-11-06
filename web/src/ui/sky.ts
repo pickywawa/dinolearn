@@ -6,7 +6,7 @@ import { unit } from './scenery';
  * La vie du ciel de l'accueil : des météorites qui filent, des oiseaux qui
  * passent, et de temps en temps le soleil qui se montre, ou un nuage de pluie
  * (suivi d'un arc-en-ciel). La nuit : seulement des étoiles filantes.
- * À appeler après `drawScenery` (le décor se glisse entre le ciel et la colline).
+ * À appeler après `drawIsland` (le décor se glisse derrière les nuages).
  */
 export function drawSkyLife(scene: Phaser.Scene, night: boolean) {
   const every = (min: number, max: number, first: number, fn: () => void) => {

@@ -147,7 +147,7 @@ def build_head():
         ((-0.25, -0.2, 1.3), 0.22, (1, 1, 1)),           # joue D
         ((0, 0.0, 1.08), 0.28, (1.1, 1, 0.7)),           # menton / cou
     ]
-    head = metaball_mesh('skin.head', elems, resolution=0.03)
+    head = metaball_mesh('skin.head', elems, resolution=0.03, max_faces=4500)
     head.data.materials.append(M['skin'])
     return head
 
@@ -166,7 +166,7 @@ def build_body():
         ((0.33, 0.96, 0.4), 0.085, (1, 1, 1)),
         ((0.4, 1.0, 0.46), 0.065, (1, 1, 1)),
     ]
-    body = metaball_mesh('skin.body', elems, resolution=0.03)
+    body = metaball_mesh('skin.body', elems, resolution=0.03, max_faces=4000)
     body.data.materials.append(M['skin'])
     return body
 
@@ -183,7 +183,7 @@ def build_arm(side):
         ((0.48 * s, -0.12, 0.72), 0.1, (1, 1, 1)),
         ((0.54 * s, -0.17, 0.62), 0.115, (1, 1, 1.05)),  # main
     ]
-    arm = metaball_mesh(f'skin.arm.{side}', elems, resolution=0.02)
+    arm = metaball_mesh(f'skin.arm.{side}', elems, resolution=0.02, max_faces=1200)
     arm.data.materials.append(M['skin'])
     return arm
 
@@ -194,7 +194,7 @@ def build_leg(side):
         ((0.22 * s, 0.02, 0.24), 0.17, (1, 1, 1)),
         ((0.24 * s, -0.08, 0.09), 0.15, (1.0, 1.4, 0.62)),  # pied
     ]
-    leg = metaball_mesh(f'skin.leg.{side}', elems, resolution=0.02)
+    leg = metaball_mesh(f'skin.leg.{side}', elems, resolution=0.02, max_faces=1200)
     leg.data.materials.append(M['skin'])
     return leg
 

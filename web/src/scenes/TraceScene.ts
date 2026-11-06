@@ -10,6 +10,7 @@ import { Dino } from '../dino/Dino';
 import { Bubble } from '../ui/Bubble';
 import { goTo, homeButton, isPortrait, unit } from '../ui/scenery';
 import { drawIsland } from '../ui/island';
+import { card } from '../ui/kit';
 import { BaseScene } from './BaseScene';
 
 /**
@@ -324,6 +325,8 @@ export class TraceScene extends BaseScene {
     const u = unit(this);
     const size = u * 0.056;
     const n = this.series.items.length;
+    // Les fruits à gagner, posés sur une pastille blanche (comme dans les autres jeux).
+    card(this, W / 2, u * 0.1, size * 1.12 * n + size * 0.6, size * 1.45, '#ffffff', '#dfe8f3');
     this.steps = this.series.items.map((item, i) => {
       const step = this.add.image(W / 2 + (i - (n - 1) / 2) * size * 1.12, u * 0.1, foodImage(item.fruit));
       return step.setScale(size / step.width);
