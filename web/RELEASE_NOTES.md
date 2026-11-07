@@ -1,3 +1,11 @@
+## DinoLearn 0.15.1 — Un nouvel écran de chargement
+
+- Nouvelle clairière HD avec nuages séparés et animés.
+- Le dino de la planche d’illustrations arrive au centre dès le début et danse pendant le chargement.
+- Panneau de bois et barre de pierre issus des éléments fournis, avec remplissage vert et pourcentage réel.
+- Le titre reste du texte indépendant, prêt à être traduit.
+- Un chargement interrompu propose de réessayer.
+
 ## DinoLearn 0.15.0 — Un décor vivant et un accueil simplifié
 
 - Décor animé sur l’accueil et l’éclosion, avec feuillages indépendants, eau à intensité maximale, fumée lente et nuages mobiles.

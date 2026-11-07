@@ -5,9 +5,7 @@ import { GAMES } from '../content/games';
 import { ITEMS, itemTexture } from '../content/items';
 import { PRINT_KINDS } from '../print/catalog';
 import { preloadModels } from '../dino3d/model';
-import { Dino } from '../dino/Dino';
-import { backdropKey, backdropUrl, drawBackdrop, loadBackdrops } from '../ui/backdrop';
-import { card, INK, label } from '../ui/kit';
+import { loadBackdrops } from '../ui/backdrop';
 
 export const UI_IMAGES = [...new Set([
   'ui-play', 'ui-home', 'ui-star', 'ui-sparkles', 'ui-globe', 'ui-cloud', 'ui-cake', 'flag-gb',
@@ -39,40 +37,23 @@ export const PACK_IMAGES = [
 ];
 
 /**
- * Écran de chargement : la clairière, une barre « Chargement… », puis le dino 3D qui
- * traverse l'écran en courant dès que son modèle est prêt.
+ * Charge le jeu derrière un écran HTML visible dès l’ouverture, avant Phaser et les modèles.
  */
 export class BootScene extends Phaser.Scene {
   private models!: Promise<unknown>;
 
   constructor() {
-    // Le décor du chargement arrive avant tout le reste (« pack » de la scène).
-    super({ key: 'Boot', pack: { files: [{ type: 'image', key: backdropKey('meadow'), url: backdropUrl('meadow') }] } });
+    super('Boot');
   }
 
   preload() {
     // Les modèles 3D se chargent en même temps que les images.
     this.models = preloadModels();
-    const { width: W, height: H } = this.scale;
-    drawBackdrop(this, 'meadow');
+    void this.models.catch(() => this.showError());
+    // The HTML loading screen is visible before Phaser and the model downloads.
     loadBackdrops(this);
-    const bw = Math.min(W * 0.5, 620), bh = 34;
-    const y = H * 0.86;
-    card(this, W / 2, y, bw + 16, bh + 16, '#fff3dc', '#d8b98a');
-    const fill = this.add.graphics();
-    const draw = (p: number) => {
-      fill.clear();
-      const w = Math.max(bh, bw * p);
-      fill.fillStyle(0x2a7f1d, 1).fillRoundedRect(W / 2 - bw / 2, y - bh / 2 + 3, w, bh - 3, bh / 2);
-      fill.fillStyle(0x4cc93a, 1).fillRoundedRect(W / 2 - bw / 2, y - bh / 2, w, bh - 5, bh / 2);
-      fill.fillStyle(0xffffff, 0.35).fillRoundedRect(W / 2 - bw / 2 + 8, y - bh / 2 + 4, Math.max(0, w - 16), 7, 4);
-    };
-    draw(0);
-    this.registry.set('bootDraw', draw);
-    const text = label(this, W / 2, y + bh * 1.3, 'Chargement…', { size: 30, color: '#ffffff', stroke: INK, strokeRatio: 0.16 });
-    // La police arrondie arrive juste après : on redessine le texte avec elle.
-    void document.fonts?.ready.then(() => text.active && text.setText(text.text));
-    this.load.on('progress', (p: number) => draw(p * 0.85));
+    this.load.on('progress', (progress: number) => this.drawProgress(progress * .85));
+    this.load.once('loaderror', () => this.showError());
 
     for (const part of DINO_PARTS) {
       const url = URL.createObjectURL(new Blob([part.svg], { type: 'image/svg+xml' }));
@@ -88,30 +69,37 @@ export class BootScene extends Phaser.Scene {
     for (const name of PACK_IMAGES) this.load.image(`pk-${name}`, `ui/${name}.png`);
   }
 
+  private drawProgress(progress: number) {
+    const percent = Math.round(progress * 100);
+    const bar = document.querySelector<HTMLElement>('.loading-progress');
+    bar?.style.setProperty('--progress', percent + '%');
+    bar?.setAttribute('aria-valuenow', String(percent));
+    const text = document.querySelector('.loading-percent');
+    if (text) text.textContent = percent + ' %';
+  }
+
+  private showError() {
+    const title = document.querySelector('.loading-sign h1');
+    if (title) title.textContent = 'Réessayer';
+    const screen = document.querySelector<HTMLElement>('#loading-screen');
+    if (screen) {
+      screen.onclick = () => location.reload();
+      screen.setAttribute('role', 'button');
+      screen.tabIndex = 0;
+      screen.onkeydown = (event) => {
+        if (event.key === 'Enter' || event.key === ' ') location.reload();
+      };
+    }
+  }
+
   create() {
-    const draw = this.registry.get('bootDraw') as (p: number) => void;
-    const { width: W, height: H } = this.scale;
-    // Les modèles 3D (dino et objets) doivent être prêts avant le premier dino.
     void this.models.then(() => {
-      draw(0.9);
-      let dino: Dino | undefined;
-      try {
-        dino = new Dino(this, -W * 0.1, H * 0.79, H * 0.4);
-        dino.run();
-      } catch {
-        // Pas de WebGL pour la 3D : on passe directement au jeu.
-      }
-      const duration = dino ? 1700 : 0;
-      if (dino) this.tweens.add({ targets: dino, x: W * 0.5, duration, ease: 'Sine.easeOut' });
-      this.tweens.addCounter({ from: 0.9, to: 1, duration, onUpdate: (tw) => draw(tw.getValue() ?? 1),
-        onComplete: () => {
-          dino?.run(false);
-          dino?.react('cheer');
-          this.time.delayedCall(dino ? 700 : 0, () => {
-            this.cameras.main.fadeOut(220, 255, 255, 255);
-            this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => this.scene.start('Start'));
-          });
-        } });
-    });
+      if (this.load.totalFailed) return;
+      this.drawProgress(1);
+      this.time.delayedCall(500, () => {
+        document.getElementById('loading-screen')?.remove();
+        this.scene.start('Start');
+      });
+    }).catch(() => this.showError());
   }
 }
