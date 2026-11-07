@@ -1,3 +1,9 @@
+## DinoLearn 0.15.2 — Le vrai dino pendant le chargement
+
+- Retour du modèle 3D du jeu, chargé en priorité, avec course d’arrivée puis danse au centre.
+- Titre de chargement arrondi, contour brun et ombre en relief.
+- Vérification sur un chargement ralenti.
+
 ## DinoLearn 0.15.1 — Un nouvel écran de chargement
 
 - Nouvelle clairière HD avec nuages séparés et animés.

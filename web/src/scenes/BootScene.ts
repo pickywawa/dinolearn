@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { showLoadingDino } from '../ui/loadingDino';
 import { DINO_PARTS, PART_RESOLUTION } from '../dino/parts';
 import { FRUITS } from '../domain/models';
 import { GAMES } from '../content/games';
@@ -41,6 +42,7 @@ export const PACK_IMAGES = [
  */
 export class BootScene extends Phaser.Scene {
   private models!: Promise<unknown>;
+  private dinosaur!: Promise<void>;
 
   constructor() {
     super('Boot');
@@ -49,6 +51,12 @@ export class BootScene extends Phaser.Scene {
   preload() {
     // Les modèles 3D se chargent en même temps que les images.
     this.models = preloadModels();
+    this.dinosaur = showLoadingDino().then((dispose) => {
+      this.events.once(Phaser.Scenes.Events.SHUTDOWN, dispose);
+      // Allow the arrival and the start of the real dance to be seen on fast connections.
+      return new Promise<void>((resolve) => this.time.delayedCall(2200, resolve));
+    });
+    void this.dinosaur.catch(() => this.showError());
     void this.models.catch(() => this.showError());
     // The HTML loading screen is visible before Phaser and the model downloads.
     loadBackdrops(this);
@@ -93,7 +101,7 @@ export class BootScene extends Phaser.Scene {
   }
 
   create() {
-    void this.models.then(() => {
+    void Promise.all([this.models, this.dinosaur]).then(() => {
       if (this.load.totalFailed) return;
       this.drawProgress(1);
       this.time.delayedCall(500, () => {

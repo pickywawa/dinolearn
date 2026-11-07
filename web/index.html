@@ -14,7 +14,7 @@
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
     <title>DinoLearn</title>
     <link rel="stylesheet" href="/src/loading.css" />
-    <link rel="preload" as="image" href="/loading/dino.webp" />
+    <link rel="preload" as="fetch" href="/models/dino.glb" crossorigin />
     <style>
       html, body { margin: 0; height: 100%; background: #bfe6ff; overflow: hidden; touch-action: none;
         -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
@@ -40,7 +40,7 @@
     <div id="loading-screen" aria-label="Chargement du jeu">
       <div class="loading-landscape"><div class="loading-sky"><div class="loading-clouds"></div></div></div>
       <div class="loading-sign"><h1>Chargement…</h1></div>
-      <div class="loading-dino"><img src="/loading/dino.webp" alt="" fetchpriority="high" /></div>
+      <div class="loading-dino" aria-hidden="true"></div>
       <div class="loading-progress" role="progressbar" aria-label="Chargement" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
         <div class="loading-fill"></div><span class="loading-percent">0 %</span>
       </div>
