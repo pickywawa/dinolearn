@@ -1,3 +1,10 @@
+## DinoLearn 0.16.0 — Les packs de langue dans l’écran de chargement
+
+- Plus de fenêtre à cases à cocher au démarrage : les packs de la langue de l’appli (voix du dino, voix anglaise, reconnaissance vocale si l’appareil sait écouter) se téléchargent directement pendant le chargement, en parallèle.
+- Le premier lancement est donc plus long ; à droite du pourcentage, on voit ce qui se télécharge (« pack français, pack anglais, reconnaissance vocale ») puis l’installation de la reconnaissance vocale.
+- Sans réseau, le jeu démarre quand même et retente au lancement suivant. Les packs restent gérables dans l’espace parents.
+- Le titre « Chargement… » suit maintenant l’arrondi du panneau de bois.
+
 ## DinoLearn 0.15.2 — Le vrai dino pendant le chargement
 
 - Retour du modèle 3D du jeu, chargé en priorité, avec course d’arrivée puis danse au centre.

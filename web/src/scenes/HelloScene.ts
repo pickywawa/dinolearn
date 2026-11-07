@@ -75,9 +75,10 @@ export class HelloScene extends BaseScene {
     this.input.enabled = false;
     // Jeux à voix haute activés par défaut (si l'appareil sait écouter), même si le micro n'a pas servi ici.
     await firstLaunchSetup({ name, age, voice: voiceSupported() });
-    // Le pack français déjà téléchargé sert aux jeux à voix haute.
-    if (await packInstalled('fr')) {
-      app.progress.updateSettings({ voicePacks: [...new Set([...app.progress.settings.voicePacks, 'fr'])] });
+    // Les packs de reconnaissance déjà téléchargés (écran de chargement) servent aux jeux à voix haute.
+    const ready = (await Promise.all((['fr', 'en'] as const).map(async (l) => (await packInstalled(l) ? [l] : [])))).flat();
+    if (ready.length) {
+      app.progress.updateSettings({ voicePacks: [...new Set([...app.progress.settings.voicePacks, ...ready])] });
     }
     if (!this.alive) return;
     this.input.enabled = true;

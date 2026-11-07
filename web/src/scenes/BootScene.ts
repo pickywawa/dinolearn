@@ -7,6 +7,10 @@ import { ITEMS, itemTexture } from '../content/items';
 import { PRINT_KINDS } from '../print/catalog';
 import { preloadModels } from '../dino3d/model';
 import { loadBackdrops } from '../ui/backdrop';
+import { Progress, appLanguage, downloads, installedPacks, markPacksAsked } from '../core/packs';
+import { PackId, languageOf, packChoices } from '../domain/packs';
+import { voiceSupported } from '../core/ears';
+import { engineReady } from '../core/piper';
 
 export const UI_IMAGES = [...new Set([
   'ui-play', 'ui-home', 'ui-star', 'ui-sparkles', 'ui-globe', 'ui-cloud', 'ui-cake', 'flag-gb',
@@ -43,6 +47,11 @@ export const PACK_IMAGES = [
 export class BootScene extends Phaser.Scene {
   private models!: Promise<unknown>;
   private dinosaur!: Promise<void>;
+  private packs!: Promise<void>;
+  /** Avancement des images et modèles (0 à 1). */
+  private assets = 0;
+  /** Avancement des packs de langue, quand il faut les télécharger (premier lancement). */
+  private packProgress?: number;
 
   constructor() {
     super('Boot');
@@ -60,7 +69,12 @@ export class BootScene extends Phaser.Scene {
     void this.models.catch(() => this.showError());
     // The HTML loading screen is visible before Phaser and the model downloads.
     loadBackdrops(this);
-    this.load.on('progress', (progress: number) => this.drawProgress(progress * .85));
+    // Premier lancement : les packs de langue (voix, reconnaissance vocale) se téléchargent ici, en parallèle.
+    this.packs = this.preparePacks().catch(() => undefined);
+    this.load.on('progress', (progress: number) => {
+      this.assets = progress * .85;
+      this.drawProgress();
+    });
     this.load.once('loaderror', () => this.showError());
 
     for (const part of DINO_PARTS) {
@@ -77,17 +91,53 @@ export class BootScene extends Phaser.Scene {
     for (const name of PACK_IMAGES) this.load.image(`pk-${name}`, `ui/${name}.png`);
   }
 
-  private drawProgress(progress: number) {
+  /**
+   * Télécharge les packs de la langue de l'appli qui manquent : voix du dino,
+   * voix anglaise, reconnaissance vocale (si l'appareil sait écouter). Ils
+   * partent tous en même temps ; un échec (hors ligne…) n'empêche pas de jouer,
+   * on réessaiera au prochain lancement.
+   */
+  private async preparePacks() {
+    const language = appLanguage();
+    const installed = await installedPacks(language);
+    const ids = packChoices(language, true, engineReady()).map((c) => c.id)
+      .filter((id) => !installed[id] && (id !== 'asr' || voiceSupported()));
+    markPacksAsked();
+    if (!ids.length) return;
+    this.packProgress = 0;
+    downloads.start(ids, language, true);
+    await new Promise<void>((resolve) => {
+      let stop: (() => void) | undefined;
+      let finished = false;
+      stop = downloads.subscribe((p) => {
+        this.packProgress = p.total ? Math.min(1, p.loaded / p.total) : 0;
+        this.drawProgress(packLabel(p, language));
+        if (!p.running && !finished) {
+          finished = true;
+          stop?.();
+          resolve();
+        }
+      });
+      if (finished) stop();
+    });
+    this.drawProgress('');
+  }
+
+  private drawProgress(label?: string) {
+    // Avec les packs, ce sont eux le plus long : l'essentiel de la barre.
+    const progress = this.packProgress === undefined ? this.assets : this.assets * .15 + this.packProgress * .85;
     const percent = Math.round(progress * 100);
     const bar = document.querySelector<HTMLElement>('.loading-progress');
     bar?.style.setProperty('--progress', percent + '%');
     bar?.setAttribute('aria-valuenow', String(percent));
     const text = document.querySelector('.loading-percent');
     if (text) text.textContent = percent + ' %';
+    const what = document.querySelector('.loading-what');
+    if (what && label !== undefined) what.textContent = label;
   }
 
   private showError() {
-    const title = document.querySelector('.loading-sign h1');
+    const title = document.querySelector('.loading-sign textPath');
     if (title) title.textContent = 'Réessayer';
     const screen = document.querySelector<HTMLElement>('#loading-screen');
     if (screen) {
@@ -103,11 +153,27 @@ export class BootScene extends Phaser.Scene {
   create() {
     void Promise.all([this.models, this.dinosaur]).then(() => {
       if (this.load.totalFailed) return;
-      this.drawProgress(1);
+      this.assets = 1;
+      this.drawProgress();
+      return this.packs;
+    }).then(() => {
+      if (this.load.totalFailed) return;
+      this.packProgress = undefined;
+      this.drawProgress('');
       this.time.delayedCall(500, () => {
         document.getElementById('loading-screen')?.remove();
         this.scene.start('Start');
       });
     }).catch(() => this.showError());
   }
+}
+
+/** Ce qui se télécharge en ce moment, à droite du pourcentage. */
+function packLabel(p: Progress, language: string): string {
+  const name = (id: PackId) => id === 'speech' ? `pack ${languageOf(language).name.toLowerCase()}`
+    : id === 'english' ? 'pack anglais' : 'reconnaissance vocale';
+  const busy = p.tasks.filter((t) => t.state === 'waiting' || t.state === 'downloading');
+  if (busy.length) return 'Téléchargement : ' + busy.map((t) => name(t.id)).join(', ');
+  if (p.tasks.some((t) => t.state === 'installing')) return 'Installation de la reconnaissance vocale';
+  return '';
 }

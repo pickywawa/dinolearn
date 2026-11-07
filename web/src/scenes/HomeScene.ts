@@ -15,8 +15,6 @@ import { goTo, growthFactor, makeTickable, unit } from '../ui/scenery';
 import { backdropPoint, drawBackdrop, VOLCANO_MOUND } from '../ui/backdrop';
 import { Music } from '../core/music';
 import { Sfx } from '../core/sfx';
-import { packsAsked } from '../core/packs';
-import { askPacksOnce } from '../ui/packsDialog';
 import { BaseScene } from './BaseScene';
 
 /**
@@ -197,13 +195,6 @@ export class HomeScene extends BaseScene {
       });
       this.time.delayedCall(700, then);
     };
-    // Tout premier lancement (ou nouvelle version) : la langue et les téléchargements d'abord.
-    if (!packsAsked()) {
-      this.input.enabled = false;
-      void askPacksOnce(() => undefined).then(() => {
-        if (this.alive) this.input.enabled = true;
-      });
-    }
     this.input.once('pointerdown', wake);
   }
 

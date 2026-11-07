@@ -39,10 +39,13 @@
   <body>
     <div id="loading-screen" aria-label="Chargement du jeu">
       <div class="loading-landscape"><div class="loading-sky"><div class="loading-clouds"></div></div></div>
-      <div class="loading-sign"><h1>Chargement…</h1></div>
+      <div class="loading-sign"><h1>
+        <svg viewBox="0 0 381 215"><path id="loading-arc" d="M40 170 Q190 138 341 170" fill="none" />
+          <text text-anchor="middle"><textPath href="#loading-arc" startOffset="50%">Chargement…</textPath></text></svg>
+      </h1></div>
       <div class="loading-dino" aria-hidden="true"></div>
       <div class="loading-progress" role="progressbar" aria-label="Chargement" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-        <div class="loading-fill"></div><span class="loading-percent">0 %</span>
+        <div class="loading-fill"></div><div class="loading-status"><span class="loading-percent">0 %</span><span class="loading-what"></span></div>
       </div>
     </div>
     <div id="game"></div>

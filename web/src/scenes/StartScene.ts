@@ -1,8 +1,6 @@
 import Phaser from 'phaser';
 import { app } from '../core/app';
 import { preloadFrench } from '../core/voicePrep';
-import { packsAsked } from '../core/packs';
-import { askPacksOnce } from '../ui/packsDialog';
 import { vibrate } from '../core/haptics';
 import { Music } from '../core/music';
 import { Sfx } from '../core/sfx';
@@ -59,13 +57,6 @@ export class StartScene extends BaseScene {
       return;
     }
     this.egg(setup);
-    // Tout premier lancement (ou première fois avec cette version) : la langue et les téléchargements.
-    if (!packsAsked()) {
-      this.input.enabled = false;
-      void askPacksOnce(() => this.wake()).then(() => {
-        if (this.alive) this.input.enabled = true;
-      });
-    }
   }
 
   /** Le premier geste de l'enfant : débloque l'audio (navigateurs mobiles). */
