@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { showLoadingDino } from '../ui/loadingDino';
+import { WALK_MS, showLoadingDino } from '../ui/loadingDino';
 import { DINO_PARTS, PART_RESOLUTION } from '../dino/parts';
 import { FRUITS } from '../domain/models';
 import { GAMES } from '../content/games';
@@ -63,7 +63,7 @@ export class BootScene extends Phaser.Scene {
     this.dinosaur = showLoadingDino().then((dispose) => {
       this.events.once(Phaser.Scenes.Events.SHUTDOWN, dispose);
       // Allow the arrival and the start of the real dance to be seen on fast connections.
-      return new Promise<void>((resolve) => this.time.delayedCall(2200, resolve));
+      return new Promise<void>((resolve) => this.time.delayedCall(WALK_MS + 1800, resolve));
     });
     void this.dinosaur.catch(() => this.showError());
     void this.models.catch(() => this.showError());
@@ -129,6 +129,7 @@ export class BootScene extends Phaser.Scene {
     const percent = Math.round(progress * 100);
     const bar = document.querySelector<HTMLElement>('.loading-progress');
     bar?.style.setProperty('--progress', percent + '%');
+    bar?.classList.toggle('empty', percent === 0);
     bar?.setAttribute('aria-valuenow', String(percent));
     const text = document.querySelector('.loading-percent');
     if (text) text.textContent = percent + ' %';

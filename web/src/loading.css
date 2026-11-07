@@ -70,9 +70,6 @@
   bottom: 24%;
   transform: translateX(-50%);
 }
-.loading-dino.arriving {
-  animation: loading-arrive 1s ease-out both;
-}
 .loading-dino canvas { display: block; width: 100%; height: auto; }
 .loading-progress {
   position: absolute;
@@ -83,16 +80,31 @@
   transform: translateX(-50%);
   background: url('/loading/bar.webp') center / 100% 100%;
 }
+/* Remplissage dessiné en CSS, calé dans le creux de la barre de pierre : une gélule
+   verte rayée, toujours arrondie aux deux bouts, sans liseré ni coin coupé. */
 .loading-fill {
   position: absolute;
-  left: 7%;
-  top: 27%;
-  width: 86%;
-  height: 46%;
-  background: url('/loading/fill.webp') center / 100% 100%;
-  clip-path: inset(0 calc(100% - var(--progress, 0%)) 0 0 round 24px);
-  transition: clip-path .2s ease-out;
+  left: 7.2%;
+  width: 84.4%;
+  top: 33.5%;
+  height: 51%;
 }
+.loading-fill::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: max(14%, var(--progress, 0%));
+  border-radius: 999px;
+  background:
+    linear-gradient(rgba(255, 255, 255, .45), rgba(255, 255, 255, 0) 45%) top / 100% 100% no-repeat,
+    repeating-linear-gradient(-55deg, rgba(255, 255, 255, .16) 0 9px, rgba(255, 255, 255, 0) 9px 18px),
+    linear-gradient(#b4ee45, #6fd12a 55%, #3f9e17);
+  box-shadow: inset 0 -3px 0 rgba(30, 90, 10, .45), inset 0 2px 0 rgba(255, 255, 255, .35), 0 1px 2px rgba(0, 0, 0, .35);
+  transition: width .25s ease-out;
+}
+.loading-progress.empty .loading-fill::before { opacity: 0; }
 .loading-status {
   position: absolute;
   top: 100%;
@@ -111,7 +123,6 @@
 .loading-what { font-size: .8em; opacity: .95; }
 .loading-what:empty { display: none; }
 @keyframes loading-clouds { to { transform: translateX(50%); } }
-@keyframes loading-arrive { from { translate: -55vw 0; } to { translate: 0 0; } }
 @media (prefers-reduced-motion: reduce) {
-  .loading-clouds, .loading-dino { animation: none; }
+  .loading-clouds { animation: none; }
 }

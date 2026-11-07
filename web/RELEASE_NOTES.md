@@ -1,3 +1,10 @@
+## DinoLearn 0.16.1 — Une arrivée plus douce au chargement
+
+- Le dino arrive en marchant de profil, bien plus lentement, puis se tourne vers l’enfant avant de danser.
+- Pendant la danse, les yeux font un simple clignement (plus de paupières qui se ferment de travers).
+- Le titre « Chargement… » est un peu plus haut sur le panneau.
+- Barre de chargement redessinée : remplissage vert rayé bien calé dans la pierre, arrondi aux deux bouts, sans liseré.
+
 ## DinoLearn 0.16.0 — Les packs de langue dans l’écran de chargement
 
 - Plus de fenêtre à cases à cocher au démarrage : les packs de la langue de l’appli (voix du dino, voix anglaise, reconnaissance vocale si l’appareil sait écouter) se téléchargent directement pendant le chargement, en parallèle.

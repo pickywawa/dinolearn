@@ -200,6 +200,11 @@ export class DinoRig {
   /** Clin d'œil : un œil fermé (`null` : les deux yeux comme d'habitude). */
   setWink(side: 'L' | 'R' | null) { this.wink = side; }
   get currentEyes() { return this.eyes; }
+  /**
+   * Paupières imposées : toutes les formes des animations sont ignorées, seules
+   * `blink_l/r` prennent cette valeur (0 ouvert, 1 fermé). `undefined` : comme d'habitude.
+   */
+  lids?: number;
 
   /** Rotation ajoutée à un os, exprimée dans les axes du modèle (x, y, z en radians). */
   private add(name: string, x: number, y: number, z: number) {
@@ -254,6 +259,11 @@ export class DinoRig {
       jr.bone.quaternion.copy(jr.parentQInv).multiply(tmpQ).multiply(jr.parentQ).multiply(jr.q0);
     }
 
+    if (inf && this.lids !== undefined) {
+      inf.fill(0);
+      for (const s of ['l', 'r']) if (`blink_${s}` in this.morph) inf[this.morph[`blink_${s}`]] = this.lids;
+      return;
+    }
     // Yeux : clignements et yeux rieurs des animations, sauf si le code impose un état.
     if (inf && (this.eyes !== 'open' || this.wink)) {
       for (const s of ['l', 'r'] as const) {
