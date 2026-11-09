@@ -1,3 +1,7 @@
+## DinoLearn 0.19.1 — Reconnaissance vocale en portugais
+
+- Le pack de reconnaissance vocale portugais est maintenant publié (son modèle a une organisation différente des autres).
+
 ## DinoLearn 0.19.0 — DinoLearn parle 12 langues
 
 - Nouvelles langues : anglais, espagnol, italien, allemand, portugais, russe, chinois mandarin, hindi, arabe, ourdou et bengali, en plus du français.

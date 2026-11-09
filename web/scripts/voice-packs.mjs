@@ -55,7 +55,7 @@ for (const { lang, model } of PACKS) {
       console.log(`${model} : ${list.length} mots → public/voice/`);
     } else {
       rmSync(words, { force: true });
-      console.log(`${model} : pas de liste de mots dans ce modèle (graphe : ${readdirSync(join(work, model, 'graph')).join(', ')})`);
+      console.log(`${model} : pas de liste de mots dans ce modèle (fichiers : ${readdirSync(join(work, model)).join(', ')})`);
     }
     console.log(`${model} : ${(statSync(archive).size / 1e6).toFixed(1)} Mo → public/voice/`);
   } catch (e) {
