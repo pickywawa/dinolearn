@@ -6,9 +6,12 @@ import groovy.json.JsonSlurper
 def gameVersion = new JsonSlurper().parse(file('../../package.json')).version
 def (vMajor, vMinor, vPatch) = gameVersion.tokenize('.').collect { it as int }
 
-// Signature : clé de publication si elle est fournie (secrets GitHub, pour Google Play),
-// sinon clé de test du dépôt (APK installables et mis à jour d'une version à l'autre).
+// Signature, jamais stockée dans le dépôt (public) : fournie par les secrets GitHub.
+// - ANDROID_KEYSTORE_* : clé d'envoi Google Play ;
+// - sinon ANDROID_TEST_KEYSTORE_* : clé des APK de test (mis à jour d'une version à l'autre) ;
+// - sinon, sur le Mac : clé de débogage d'Android Studio.
 def releaseStore = System.getenv('ANDROID_KEYSTORE_FILE')
+def testStore = System.getenv('ANDROID_TEST_KEYSTORE_FILE')
 
 android {
     namespace = "fr.dinolearn.app"
@@ -27,11 +30,13 @@ android {
         }
     }
     signingConfigs {
-        test {
-            storeFile file('test.keystore')
-            storePassword 'dinolearn-test'
-            keyAlias 'dinolearn-test'
-            keyPassword 'dinolearn-test'
+        if (testStore) {
+            test {
+                storeFile file(testStore)
+                storePassword System.getenv('ANDROID_TEST_KEYSTORE_PASSWORD')
+                keyAlias 'dinolearn-test'
+                keyPassword System.getenv('ANDROID_TEST_KEYSTORE_PASSWORD')
+            }
         }
         if (releaseStore) {
             release {
@@ -44,10 +49,10 @@ android {
     }
     buildTypes {
         debug {
-            signingConfig signingConfigs.test
+            if (testStore) signingConfig signingConfigs.test
         }
         release {
-            signingConfig releaseStore ? signingConfigs.release : signingConfigs.test
+            signingConfig releaseStore ? signingConfigs.release : testStore ? signingConfigs.test : signingConfigs.debug
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

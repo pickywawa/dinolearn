@@ -4,3 +4,10 @@ public/img/
 public/voice/
 __pycache__/
 public/piper/
+
+# Clés de signature : jamais dans le dépôt (public).
+*.keystore
+*.jks
+*.p8
+*.p12
+*.mobileprovision

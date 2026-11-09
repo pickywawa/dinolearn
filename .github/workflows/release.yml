@@ -43,12 +43,19 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - name: Appli Android (APK)
         env:
-          # Clé de publication Google Play (secrets facultatifs) ; sans elle, clé de test du dépôt.
+          # Clés de signature : uniquement dans les secrets du dépôt, jamais dans les fichiers.
+          # Clé Google Play (facultative) ; sinon clé des APK de test.
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ANDROID_TEST_KEYSTORE_BASE64: ${{ secrets.ANDROID_TEST_KEYSTORE_BASE64 }}
+          ANDROID_TEST_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_TEST_KEYSTORE_PASSWORD }}
         run: |
+          if [ -n "$ANDROID_TEST_KEYSTORE_BASE64" ]; then
+            echo "$ANDROID_TEST_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/test.keystore"
+            export ANDROID_TEST_KEYSTORE_FILE="$RUNNER_TEMP/test.keystore"
+          fi
           if [ -n "$ANDROID_KEYSTORE_BASE64" ]; then
             echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.keystore"
             export ANDROID_KEYSTORE_FILE="$RUNNER_TEMP/release.keystore"

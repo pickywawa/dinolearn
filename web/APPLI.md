@@ -8,8 +8,12 @@ langue se téléchargent au premier lancement : voix depuis HuggingFace, reconna
 ## Tester l'APK Android
 
 Chaque release GitHub (onglet *Releases*) contient `dinolearn-vX.Y.Z.apk`. Sur la tablette : télécharger l'APK,
-autoriser « Installer des applis inconnues » pour le navigateur, l'ouvrir. Les APK de test sont signés avec la clé
-du dépôt (`android/app/test.keystore`) : chaque nouvelle version s'installe par-dessus la précédente.
+autoriser « Installer des applis inconnues » pour le navigateur, l'ouvrir. Les APK de test sont signés avec une clé
+de test rangée **uniquement dans les secrets GitHub** (`ANDROID_TEST_KEYSTORE_BASE64`, `ANDROID_TEST_KEYSTORE_PASSWORD`) :
+chaque nouvelle version s'installe par-dessus la précédente.
+
+**Aucune clé ni mot de passe dans le dépôt (il est public).** Les clés vont dans *Settings → Secrets and variables →
+Actions* du dépôt GitHub.
 
 ## Construire sur le Mac
 
