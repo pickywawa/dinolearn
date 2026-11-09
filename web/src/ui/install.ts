@@ -1,3 +1,5 @@
+import { isNative } from '../core/native';
+
 /**
  * Au démarrage sur téléphone ou tablette (dans le navigateur) : on propose
  * d'installer le jeu comme une appli. Installé, il s'ouvre en plein écran,
@@ -47,8 +49,8 @@ let deferred: InstallPrompt | undefined;
 let shown = false;
 
 /** Le jeu tourne déjà comme une appli installée (écran d'accueil). */
-export const isInstalledApp = () =>
-  matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches
+export const isInstalledApp = () => isNative()
+  || matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches
   || (navigator as Navigator & { standalone?: boolean }).standalone === true;
 
 const isMobile = () => matchMedia('(pointer: coarse)').matches;
@@ -160,6 +162,8 @@ function offerIOS() {
  */
 export function offerInstall() {
   // Service worker minimal : demandé par certains navigateurs pour proposer l'installation.
+  // Dans l'appli (Android / iOS), tout est déjà embarqué : ni installation, ni service worker.
+  if (isNative()) return;
   if ('serviceWorker' in navigator && !import.meta.env.DEV) {
     void navigator.serviceWorker.register('sw.js').catch(() => undefined);
   }

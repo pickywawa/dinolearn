@@ -6,19 +6,17 @@
  *   module de la bibliothèque @mintplex-labs/piper-tts-web (MIT).
  * - Calcul : onnxruntime-web 1.18.0 (WebAssembly).
  * - Voix : modèles Piper (fichiers .onnx + .json), téléchargés une fois et
- *   gardés dans le cache du navigateur (Cache API, qui marche partout, Safari
- *   compris). Le moteur (≈ 30 Mo) reste dans le cache HTTP (versions figées).
+ *   gardés sur l'appareil (Cache API, ou IndexedDB là où elle manque).
  *
- * Tout est chargé depuis jsDelivr et HuggingFace ; le texte ne quitte jamais
- * l'appareil.
+ * Le moteur est embarqué avec le jeu (`public/piper/`, copié depuis les paquets
+ * npm par `scripts/vendor-piper.mjs`) : seules les voix se téléchargent, depuis
+ * HuggingFace. Le texte ne quitte jamais l'appareil.
  */
 
-const PIPER_BASE = 'https://cdn.jsdelivr.net/npm/@mintplex-labs/piper-tts-web@1.0.5/dist/';
-const ORT_BASE = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.18.0/dist/';
-const PHONEMIZE = 'https://cdn.jsdelivr.net/npm/@diffusionstudio/piper-wasm@1.0.0/build/piper_phonemize';
+/** Adresse d'un fichier du moteur embarqué. */
+const engineFile = (name: string) => new URL(`piper/${name}`, document.baseURI).href;
 const VOICES_BASE = 'https://huggingface.co/diffusionstudio/piper-voices/resolve/main/';
 const CACHE = 'dinolearn-voices-v1';
-const ENGINE_KEY = 'dinolearn.piperEngine.v1';
 
 /** Chemins des voix sur HuggingFace. */
 const VOICE_PATHS: Record<string, string> = {
@@ -28,15 +26,6 @@ const VOICE_PATHS: Record<string, string> = {
   'de_DE-thorsten-medium': 'de/de_DE/thorsten/medium/de_DE-thorsten-medium.onnx',
   'it_IT-paola-medium': 'it/it_IT/paola/medium/it_IT-paola-medium.onnx',
 };
-
-/** Fichiers du moteur (préchargés au téléchargement pour être dans le cache du navigateur). */
-const ENGINE_FILES = [
-  `${ORT_BASE}esm/ort.wasm.min.js`,
-  `${ORT_BASE}ort-wasm-simd.wasm`,
-  `${PIPER_BASE}piper-o91UDS6e.js`,
-  `${PHONEMIZE}.wasm`,
-  `${PHONEMIZE}.data`,
-];
 
 const voiceUrls = (voiceId: string) => {
   const path = VOICE_PATHS[voiceId];
@@ -63,56 +52,106 @@ async function fetchWithProgress(url: string, onBytes: OnBytes): Promise<Blob> {
   return new Blob(parts, { type: res.headers.get('content-type') ?? 'application/octet-stream' });
 }
 
-/** Le moteur a été téléchargé une fois. */
+/** Le moteur est embarqué avec le jeu : rien à télécharger. */
 export function engineReady(): boolean {
-  try {
-    return localStorage.getItem(ENGINE_KEY) === '1';
-  } catch {
-    return false;
-  }
+  return true;
 }
 
-/** Précharge le moteur (≈ 30 Mo) : ensuite le navigateur le garde dans son cache. */
-export async function downloadEngine(onBytes: OnBytes): Promise<void> {
-  // En parallèle ; chaque fichier annonce sa taille (le gestionnaire additionne).
-  await Promise.all(ENGINE_FILES.map((url) => fetchWithProgress(url, onBytes)));
-  try {
-    localStorage.setItem(ENGINE_KEY, '1');
-  } catch {
-    // Stockage indisponible : on retéléchargera au besoin.
-  }
+export async function downloadEngine(_onBytes: OnBytes): Promise<void> {
+  // Embarqué : plus de téléchargement.
 }
 
-/** La voix est dans le cache du navigateur. */
+// ---- Rangement des voix : Cache API, ou IndexedDB quand elle n'existe pas ----
+
+interface BlobStore {
+  get(url: string): Promise<Blob | undefined>;
+  put(url: string, blob: Blob): Promise<void>;
+  clear(): Promise<void>;
+}
+
+const cacheStore: BlobStore = {
+  async get(url) {
+    const res = await (await caches.open(CACHE)).match(url);
+    return res ? res.blob() : undefined;
+  },
+  async put(url, blob) {
+    await (await caches.open(CACHE)).put(url, new Response(blob, { headers: { 'content-type': blob.type } }));
+  },
+  async clear() { await caches.delete(CACHE); },
+};
+
+function idb<T>(mode: IDBTransactionMode, run: (s: IDBObjectStore) => IDBRequest<T>): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const open = indexedDB.open(CACHE, 1);
+    open.onupgradeneeded = () => open.result.createObjectStore('files');
+    open.onerror = () => reject(open.error);
+    open.onsuccess = () => {
+      const db = open.result;
+      const req = run(db.transaction('files', mode).objectStore('files'));
+      req.onsuccess = () => { db.close(); resolve(req.result); };
+      req.onerror = () => { db.close(); reject(req.error); };
+    };
+  });
+}
+
+const idbStore: BlobStore = {
+  get: (url) => idb<Blob | undefined>('readonly', (s) => s.get(url) as IDBRequest<Blob | undefined>),
+  put: (url, blob) => idb('readwrite', (s) => s.put(blob, url)).then(() => undefined),
+  clear: () => idb('readwrite', (s) => s.clear()).then(() => undefined),
+};
+
+/** Le Cache API manque dans certaines vues d'appli (iOS) : IndexedDB prend le relais. */
+let storePromise: Promise<BlobStore> | undefined;
+function store(): Promise<BlobStore> {
+  storePromise ??= (async () => {
+    try {
+      if (typeof caches !== 'undefined') {
+        await caches.open(CACHE);
+        return cacheStore;
+      }
+    } catch {
+      // Cache API refusée : IndexedDB.
+    }
+    return idbStore;
+  })();
+  return storePromise;
+}
+
+/** Fichiers gardés sur l'appareil (voix, listes de mots des packs). */
+export const storedBlob = {
+  get: async (url: string) => (await store()).get(url),
+  put: async (url: string, blob: Blob) => (await store()).put(url, blob),
+};
+
+/** La voix est rangée sur l'appareil. */
 export async function voiceStored(voiceId: string): Promise<boolean> {
   try {
-    const cache = await caches.open(CACHE);
-    const found = await Promise.all(voiceUrls(voiceId).map((u) => cache.match(u)));
+    const s = await store();
+    const found = await Promise.all(voiceUrls(voiceId).map((u) => s.get(u)));
     return found.every(Boolean);
   } catch {
     return false;
   }
 }
 
-/** Télécharge une voix et la range dans le cache du navigateur. */
+/** Télécharge une voix et la range sur l'appareil. */
 export async function downloadVoice(voiceId: string, onBytes: OnBytes): Promise<void> {
   try {
     await navigator.storage?.persist?.();
   } catch {
     // Stockage non persistant : le navigateur pourra effacer la voix s'il manque de place.
   }
-  const cache = await caches.open(CACHE);
+  const s = await store();
   for (const url of voiceUrls(voiceId)) {
-    if (await cache.match(url)) continue;
+    if (await s.get(url)) continue;
     const blob = await fetchWithProgress(url, onBytes);
-    await cache.put(url, new Response(blob, { headers: { 'content-type': blob.type } }));
+    await s.put(url, blob);
   }
 }
 
 export async function removeVoices(): Promise<void> {
   try {
-    await caches.delete(CACHE);
-    localStorage.removeItem(ENGINE_KEY);
+    await (await store()).clear();
   } catch {
     // ignoré
   }
@@ -136,9 +175,9 @@ interface Phonemizer { callMain(args: string[]): void }
 
 let ortPromise: Promise<OrtLike> | undefined;
 function ort(): Promise<OrtLike> {
-  ortPromise ??= import(/* @vite-ignore */ `${ORT_BASE}esm/ort.wasm.min.js`).then((m) => {
+  ortPromise ??= import(/* @vite-ignore */ engineFile('ort.wasm.min.js')).then((m) => {
     const lib = (m.default ?? m) as OrtLike;
-    lib.env.wasm.wasmPaths = ORT_BASE;
+    lib.env.wasm.wasmPaths = engineFile('');
     lib.env.wasm.numThreads = 1;
     return lib;
   });
@@ -150,10 +189,11 @@ function ort(): Promise<OrtLike> {
 let phonemizer: Promise<Phonemizer> | undefined;
 let onPrint: ((line: string) => void) | undefined;
 function getPhonemizer(): Promise<Phonemizer> {
-  phonemizer ??= import(/* @vite-ignore */ `${PIPER_BASE}piper-o91UDS6e.js`).then((m) => m.createPiperPhonemize({
+  phonemizer ??= import(/* @vite-ignore */ engineFile('piper-phonemize.js')).then((m) => m.createPiperPhonemize({
     print: (line: string) => onPrint?.(line),
     printErr: () => undefined,
-    locateFile: (file: string) => (file.endsWith('.wasm') ? `${PHONEMIZE}.wasm` : file.endsWith('.data') ? `${PHONEMIZE}.data` : file),
+    locateFile: (file: string) => (file.endsWith('.wasm') ? engineFile('piper_phonemize.wasm')
+      : file.endsWith('.data') ? engineFile('piper_phonemize.data') : file),
   }) as Promise<Phonemizer>);
   phonemizer.catch(() => { phonemizer = undefined; });
   return phonemizer;
@@ -194,13 +234,13 @@ export function loadVoice(voiceId: string) {
   let s = sessions.get(voiceId);
   if (!s) {
     s = (async () => {
-      const cache = await caches.open(CACHE);
+      const s = await store();
       const [modelUrl, configUrl] = voiceUrls(voiceId);
-      const [model, config] = await Promise.all([cache.match(modelUrl), cache.match(configUrl)]);
+      const [model, config] = await Promise.all([s.get(modelUrl), s.get(configUrl)]);
       if (!model || !config) throw new Error('Voix pas encore téléchargée');
       const lib = await ort();
       const session = await lib.InferenceSession.create(new Uint8Array(await model.arrayBuffer()), { executionProviders: ['wasm'] });
-      return { session, config: (await config.json()) as PiperConfig };
+      return { session, config: JSON.parse(await config.text()) as PiperConfig };
     })();
     s.catch(() => sessions.delete(voiceId));
     sessions.set(voiceId, s);

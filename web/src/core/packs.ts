@@ -1,6 +1,7 @@
 import { ENGLISH_VOICE, PackId, SIZES_MB, asrLanguages, languageOf, remainingSeconds, throughput } from '../domain/packs';
 import { SpeechLang } from '../domain/speech';
 import { app } from './app';
+import { voiceAsset } from './native';
 import { appLanguage } from './appSettings';
 import { VOICE_PACKS, ears, packInstalled, storageRoom, voiceSupported } from './ears';
 import { setNeuralVoice } from './neuralVoice';
@@ -174,7 +175,7 @@ class Downloads {
       if (await storageRoom(l) === 'full') {
         throw new Error('Pas assez de place dans ce navigateur (en navigation privée, ouvrez une fenêtre normale).');
       }
-      const res = await fetch(new URL(VOICE_PACKS[l].file, document.baseURI).href);
+      const res = await fetch(voiceAsset(VOICE_PACKS[l].file));
       if (!res.ok || !res.body || res.headers.get('content-type')?.includes('html')) {
         throw new Error('Ce pack n\'est pas disponible sur le site pour l\'instant.');
       }

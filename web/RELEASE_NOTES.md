@@ -1,3 +1,12 @@
+## DinoLearn 0.18.0 — L'appli Android et iOS
+
+- DinoLearn existe maintenant en appli Android et iOS (Capacitor). L'APK Android est joint à chaque release GitHub pour tester sans passer par Google Play.
+- Tout le jeu est embarqué et fonctionne hors ligne, moteur de voix compris ; seuls les packs de langue se téléchargent au premier lancement.
+- Dans l'appli : paysage verrouillé, plein écran (décor jusque sous l'encoche de la caméra), son même en mode silencieux sur iPhone, micro déclaré pour les jeux à voix haute.
+- Fiches à imprimer : dans l'appli, un PDF est enregistré dans Documents/DinoLearn (Android) ou proposé au partage (iOS, pour imprimer ou enregistrer).
+- Politique de confidentialité ajoutée (espace parents → Données, et en ligne pour les stores).
+- Sur le site aussi, le moteur de voix est désormais servi avec le jeu (plus de CDN externe).
+
 ## DinoLearn 0.17.0 — Un vestiaire bien ajusté
 
 - Tous les objets du vestiaire sont replacés pour ne plus rentrer dans le dino, même pendant les animations.

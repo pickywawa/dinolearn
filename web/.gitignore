@@ -3,3 +3,4 @@ dist/
 public/img/
 public/voice/
 __pycache__/
+public/piper/

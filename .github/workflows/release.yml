@@ -1,7 +1,7 @@
 name: Publier une release
 
 # Crée le tag v<version de web/package.json> et la release GitHub correspondante,
-# avec le jeu compilé en pièce jointe. Se lance quand les notes de version changent,
+# avec le jeu compilé et l'appli Android (APK à installer pour tester) en pièces jointes. Se lance quand les notes de version changent,
 # ou à la main (onglet Actions → « Run workflow »).
 on:
   push:
@@ -35,10 +35,34 @@ jobs:
       - run: npm run build
       - name: Archive du jeu compilé
         run: cd dist && zip -r ../dinolearn-web-${{ steps.version.outputs.tag }}.zip .
+      # Appli Android : le jeu embarqué (sans les packs de langue, téléchargés au premier lancement).
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Appli Android (APK)
+        env:
+          # Clé de publication Google Play (secrets facultatifs) ; sans elle, clé de test du dépôt.
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -n "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.keystore"
+            export ANDROID_KEYSTORE_FILE="$RUNNER_TEMP/release.keystore"
+          fi
+          node scripts/app-assets.mjs
+          npx cap sync android
+          cd android && ./gradlew assembleRelease --no-daemon
+          cp app/build/outputs/apk/release/app-release.apk ../dinolearn-${{ steps.version.outputs.tag }}.apk
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.tag }}
           target_commitish: ${{ github.sha }}
           name: DinoLearn ${{ steps.version.outputs.tag }}
           body_path: web/RELEASE_NOTES.md
-          files: web/dinolearn-web-${{ steps.version.outputs.tag }}.zip
+          files: |
+            web/dinolearn-web-${{ steps.version.outputs.tag }}.zip
+            web/dinolearn-${{ steps.version.outputs.tag }}.apk

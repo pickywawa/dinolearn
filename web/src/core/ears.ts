@@ -1,5 +1,22 @@
 import type { KaldiRecognizer, Model } from 'vosk-browser';
 import { Heard, SpeechLang } from '../domain/speech';
+import { voiceAsset } from './native';
+import { storedBlob } from './piper';
+
+/**
+ * Liste des mots d'un pack : téléchargée une fois puis gardée sur l'appareil
+ * (l'appli doit marcher hors ligne une fois les packs installés).
+ */
+async function wordsOf(url: string): Promise<string | undefined> {
+  const kept = await storedBlob.get(url).catch(() => undefined);
+  if (kept) return kept.text();
+  const r = await fetch(url);
+  // Fichier absent : certains serveurs renvoient la page du jeu à la place.
+  if (!r.ok || r.headers.get('content-type')?.includes('html')) return undefined;
+  const text = await r.text();
+  await storedBlob.put(url, new Blob([text], { type: 'text/plain' })).catch(() => undefined);
+  return text;
+}
 
 /**
  * Les oreilles du dino : reconnaissance vocale Vosk (WebAssembly), entièrement
@@ -27,7 +44,7 @@ export const VOICE_PACKS: Record<SpeechLang, VoicePack> = {
 };
 
 /** Adresse complète : le moteur tourne dans un worker, qui ne connaît pas le dossier du jeu. */
-const packUrl = (lang: SpeechLang) => new URL(VOICE_PACKS[lang].file, document.baseURI).href;
+const packUrl = (lang: SpeechLang) => voiceAsset(VOICE_PACKS[lang].file);
 
 /** Base IndexedDB où le moteur garde les modèles décompressés (dossier `/vosk` d'Emscripten). */
 const STORE_DB = '/vosk';
@@ -135,9 +152,7 @@ class Ears {
   vocab(lang: SpeechLang): Promise<Set<string> | undefined> {
     let vocab = this.vocabs.get(lang);
     if (!vocab) {
-      vocab = fetch(new URL(VOICE_PACKS[lang].words, document.baseURI).href)
-        // Fichier absent : certains serveurs renvoient la page du jeu à la place.
-        .then((r) => (r.ok && !r.headers.get('content-type')?.includes('html') ? r.text() : undefined))
+      vocab = wordsOf(voiceAsset(VOICE_PACKS[lang].words))
         .then((text) => (text ? new Set(text.split('\n').map((w) => w.trim()).filter(Boolean)) : undefined))
         .catch(() => undefined);
       this.vocabs.set(lang, vocab);

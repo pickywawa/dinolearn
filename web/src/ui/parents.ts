@@ -567,10 +567,20 @@ export function openParents(onClose: () => void) {
       p.reset();
       render();
     });
+    // Politique de confidentialité : page embarquée, ouverte par-dessus (on ne quitte pas le jeu).
+    const privacy = el('button', { type: 'button' }, 'Politique de confidentialité');
+    privacy.addEventListener('click', () => {
+      const frame = el('iframe', { src: 'confidentialite.html', title: 'Politique de confidentialité',
+        style: 'width:100%;height:100%;border:0;background:#fff' });
+      const shut = el('button', { type: 'button', style: 'position:absolute;top:10px;right:10px;z-index:1' }, 'Fermer');
+      const layer = el('div', { style: 'position:fixed;inset:0;z-index:1300;background:#fff' }, shut, frame);
+      shut.addEventListener('click', () => layer.remove());
+      document.body.append(layer);
+    });
     return el('section', {},
       el('h2', {}, 'Données'),
       el('p', { class: 'help' }, 'Tout est enregistré uniquement sur cet appareil. Aucune donnée n\'est envoyée.'),
-      reset,
+      reset, ' ', privacy,
     );
   }
 

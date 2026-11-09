@@ -3,6 +3,8 @@ import { PrintRecord, Progress } from '../core/progress';
 import { printKind } from '../print/catalog';
 import { buildSheet } from '../print/context';
 import { PrintSheet } from '../print/types';
+import { isNative } from '../core/native';
+import { Capacitor } from '@capacitor/core';
 
 /**
  * Aperçu d'une fiche avant impression : les pages A4, les conseils pour les
@@ -98,14 +100,30 @@ export function openPrintView(p: Progress, record: PrintRecord, onClose: () => v
   };
   const back = el('button', {}, '← Retour');
   back.addEventListener('click', close);
-  const print = el('button', { class: 'primary' }, '🖨 Imprimer');
+  // Dans l'appli, pas d'impression du navigateur : un PDF, enregistré (Android) ou partagé (iOS).
+  const native = isNative();
+  const label = !native ? '🖨 Imprimer' : Capacitor.getPlatform() === 'ios' ? '📤 Partager le PDF' : '📄 Télécharger le PDF';
+  const print = el('button', { class: 'primary' }, label);
   print.addEventListener('click', async () => {
     if (!sheet) return;
     print.textContent = 'Préparation…';
-    await preload(sheet.pages);
-    print.textContent = '🖨 Imprimer';
-    p.markPrinted(current.id);
-    window.print();
+    if (!native) {
+      await preload(sheet.pages);
+      print.textContent = label;
+      p.markPrinted(current.id);
+      window.print();
+      return;
+    }
+    try {
+      const [{ sheetPdf }, { savePdf }] = await Promise.all([import('./pdf'), import('./savePdf')]);
+      const message = await savePdf(sheet.title, await sheetPdf(sheet.pages));
+      p.markPrinted(current.id);
+      if (message) alert(message);
+    } catch (e) {
+      if (!/cancel/i.test(String(e))) alert('Le PDF n\'a pas pu être créé.');
+    } finally {
+      print.textContent = label;
+    }
   });
   const color = el('button', {}, 'Version à colorier');
   color.addEventListener('click', () => {
@@ -159,7 +177,8 @@ export function openPrintView(p: Progress, record: PrintRecord, onClose: () => v
     body.replaceChildren(
       advice,
       el('p', { class: 'hint' }, `${count} page${count > 1 ? 's' : ''} A4 · format portrait · `
-        + 'dans la fenêtre d\'impression, choisissez « Taille réelle » (ou 100 %) et désactivez les en-têtes.'),
+        + (native ? 'imprimez le PDF en « Taille réelle » (ou 100 %).'
+          : 'dans la fenêtre d\'impression, choisissez « Taille réelle » (ou 100 %) et désactivez les en-têtes.')),
       ...sheet.pages.map((svg) => el('div', { class: 'sheet' }, svgNode(svg))),
     );
   }
