@@ -92,7 +92,7 @@ export class Dino extends Phaser.GameObjects.Container {
     // Résolution du rendu : celle de l'affichage (un peu plus pour la netteté).
     const ch = Phaser.Math.Clamp(Math.round(height * (VIEW_HEIGHT / MODEL_HEIGHT) * 1.25), 240, 1100);
     const cw = Math.round(ch * VIEW_ASPECT);
-    this.stage = new Stage(cw, ch, VIEW_HEIGHT);
+    this.stage = Stage.acquire(cw, ch, VIEW_HEIGHT);
     const model = createDino(color);
     this.rig = new DinoRig(model);
     this.stage.scene.add(this.rig.pivot);
@@ -153,7 +153,7 @@ export class Dino extends Phaser.GameObjects.Container {
       this.clearWordTimers();
       scene.tweens.killTweensOf(this.rig.pose);
       scene.tweens.killTweensOf(this.lively);
-      this.stage.dispose();
+      this.stage.release();
       if (scene.textures.exists(this.texKey)) scene.textures.remove(this.texKey);
       this.glTex = undefined;
     });
@@ -421,6 +421,7 @@ export class Dino extends Phaser.GameObjects.Container {
   }
 
   private sleeping = false;
+  get isSleeping() { return this.sleeping; }
   private zTimer?: Phaser.Time.TimerEvent;
 
   /**

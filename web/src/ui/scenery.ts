@@ -1,3 +1,4 @@
+import { safeArea } from './safeArea';
 import Phaser from 'phaser';
 import { Dino } from '../dino/Dino';
 import { app } from '../core/app';
@@ -27,14 +28,23 @@ export function goTo(scene: Phaser.Scene, key: string, data?: object) {
 /** Petit bouton « maison » en haut à gauche. */
 export function homeButton(scene: Phaser.Scene, onTap: () => void) {
   const r = unit(scene) * 0.07;
-  return new Bubble(scene, r * 1.3, r * 1.3, r * 0.85, 0xffffff, 'ui-home', onTap, 0.66);
+  const inset = safeArea(scene);
+  return new Bubble(scene, inset.left + r * 1.3, inset.top + r * 1.3, r * 0.85, 0xffffff, 'ui-home', onTap, 0.66);
 }
 
 /** Le dino réagit quand on le touche (chatouilles). */
 export function makeTickable(dino: Dino) {
   const zone = dino.scene.add.zone(0, -Dino.HEIGHT / 2, 300, Dino.HEIGHT).setInteractive();
   dino.add(zone);
-  zone.on('pointerup', () => {
+  // Eligibility is captured before Home's scene-level pointerdown wakes the dino.
+  const touches = new Set<number>();
+  zone.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+    if (!dino.isSleeping) touches.add(pointer.id);
+  });
+  zone.on('pointerout', (pointer: Phaser.Input.Pointer) => touches.delete(pointer.id));
+  zone.on('pointerup', (pointer: Phaser.Input.Pointer) => {
+    const eligible = touches.delete(pointer.id);
+    if (!eligible || dino.isSleeping) return;
     Sfx.play('boing');
     dino.react('tickle');
     void app.voice.line('tickle');

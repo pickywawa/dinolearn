@@ -152,6 +152,9 @@ export class Progress {
     if (!parsed.collection && this.data.dino.level > 1) {
       this.data.collection = { owned: [], worn: [], pending: Math.min(3, this.data.dino.level - 1) };
     }
+    // L'écharpe du vestiaire est devenue une bouée.
+    const swap = (ids: string[]) => ids.map((id) => (id === 'scarf' ? 'swim-ring' : id));
+    this.data.collection = { ...this.data.collection, owned: swap(this.data.collection.owned), worn: swap(this.data.collection.worn) };
     // Ancien format : questions ratées sans calendrier → révision dès le lendemain.
     const legacy = (parsed as { failedAt?: Record<string, Record<string, number>> }).failedAt;
     if (legacy && !parsed.reviews) {

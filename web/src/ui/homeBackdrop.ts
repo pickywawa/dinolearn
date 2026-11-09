@@ -6,7 +6,7 @@ const key = (asset: string) => `home-backdrop-${asset}`;
 
 export function loadHomeBackdrop(scene: Phaser.Scene) {
   for (const asset of assets) {
-    if (!scene.textures.exists(key(asset))) scene.load.image(key(asset), `bg/home/${asset}.png`);
+    if (!scene.textures.exists(key(asset))) scene.load.image(key(asset), `bg/home/${asset}.webp`);
   }
 }
 

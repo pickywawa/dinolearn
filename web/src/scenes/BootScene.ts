@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { WALK_MS, showLoadingDino } from '../ui/loadingDino';
+import { showLoadingDino } from '../ui/loadingDino';
 import { DINO_PARTS, PART_RESOLUTION } from '../dino/parts';
 import { FRUITS } from '../domain/models';
 import { GAMES } from '../content/games';
@@ -62,8 +62,7 @@ export class BootScene extends Phaser.Scene {
     this.models = preloadModels();
     this.dinosaur = showLoadingDino().then((dispose) => {
       this.events.once(Phaser.Scenes.Events.SHUTDOWN, dispose);
-      // Allow the arrival and the start of the real dance to be seen on fast connections.
-      return new Promise<void>((resolve) => this.time.delayedCall(WALK_MS + 1800, resolve));
+
     });
     void this.dinosaur.catch(() => this.showError());
     void this.models.catch(() => this.showError());
@@ -161,7 +160,7 @@ export class BootScene extends Phaser.Scene {
       if (this.load.totalFailed) return;
       this.packProgress = undefined;
       this.drawProgress('');
-      this.time.delayedCall(500, () => {
+      this.time.delayedCall(150, () => {
         document.getElementById('loading-screen')?.remove();
         this.scene.start('Start');
       });

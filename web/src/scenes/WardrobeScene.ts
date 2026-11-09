@@ -11,6 +11,10 @@ import { arrowTexture, card, roundButton, woodSign } from '../ui/kit';
 import { drawBackdrop } from '../ui/backdrop';
 import { BaseScene } from './BaseScene';
 
+// Local development only: equipment can be tried without granting collection rewards.
+const testEquipment = import.meta.env.DEV && ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname);
+const ownsEquipment = (id: string) => testEquipment || app.progress.collection.owned.includes(id);
+
 interface Slot {
   item: Item;
   cell: Phaser.GameObjects.Container;
@@ -93,7 +97,7 @@ export class WardrobeScene extends BaseScene {
         this.guide.hide();
         return;
       }
-      const owned = this.slots.filter((s) => app.progress.collection.owned.includes(s.item.id));
+      const owned = this.slots.filter((s) => ownsEquipment(s.item.id));
       if (owned.length === 0) {
         await this.say('wardrobe.empty');
         return;
@@ -118,10 +122,10 @@ export class WardrobeScene extends BaseScene {
 
   /** Objets gagnés en couleur (cerclés de vert s'ils sont portés), les autres en ombre. */
   private refresh() {
-    const { owned, worn } = app.progress.collection;
+    const { worn } = app.progress.collection;
     for (const { item, cell, ring } of this.slots) {
       const img = cell.list[1] as Phaser.GameObjects.Image;
-      const has = owned.includes(item.id);
+      const has = ownsEquipment(item.id);
       const on = worn.includes(item.id);
       ring.setFillStyle(has ? 0xffffff : 0xe5e7eb).setStrokeStyle(ring.radius * (on ? 0.16 : 0.1), on ? 0x43b649 : 0xd1d5db);
       if (has) img.clearTint().setAlpha(1);

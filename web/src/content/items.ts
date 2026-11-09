@@ -7,7 +7,7 @@ import { shuffle } from '../domain/models';
  * Position : dans la tête (`head`, origine au bas de la tête) ou dans le corps
  * (`rig`, origine entre les pieds), en unités du dino (hauteur ≈ 500).
  */
-export type Slot = 'head' | 'eyes' | 'neck' | 'back' | 'hand';
+export type Slot = 'head' | 'eyes' | 'neck' | 'back' | 'hand' | 'floor' | 'waist';
 
 export interface Item {
   id: string;
@@ -37,7 +37,7 @@ export const ITEMS: Item[] = [
   { id: 'sunglasses', name: 'les lunettes de soleil', slot: 'eyes', parent: 'head', x: 0, y: -108, w: 245 },
   { id: 'goggles', name: 'les lunettes de plongée', slot: 'eyes', parent: 'head', x: 0, y: -110, w: 255 },
   { id: 'ribbon', name: 'le nœud papillon', slot: 'neck', parent: 'rig', x: 0, y: -200, w: 105 },
-  { id: 'scarf', name: 'l\'écharpe', slot: 'neck', parent: 'rig', x: 0, y: -178, w: 190 },
+  { id: 'swim-ring', name: 'la bouée', slot: 'waist', parent: 'rig', x: 0, y: -95, w: 270 },
   { id: 'sports-medal', name: 'la médaille', slot: 'neck', parent: 'rig', x: 0, y: -168, w: 95 },
   { id: 'prayer-beads', name: 'le collier', slot: 'neck', parent: 'rig', x: 0, y: -190, w: 150 },
   { id: 'cape-red', name: 'la cape de super-héros', slot: 'back', parent: 'rig', x: 0, y: -150, w: 300 },
@@ -47,7 +47,7 @@ export const ITEMS: Item[] = [
   { id: 'magic-wand', name: 'la baguette magique', slot: 'hand', parent: 'rig', x: 138, y: -112, w: 105 },
   { id: 'lollipop', name: 'la sucette', slot: 'hand', parent: 'rig', x: 140, y: -128, w: 100 },
   { id: 'sunflower', name: 'le tournesol', slot: 'hand', parent: 'rig', x: 142, y: -140, w: 120 },
-  { id: 'teddy-bear', name: 'le nounours', slot: 'hand', parent: 'rig', x: 140, y: -105, w: 110 },
+  { id: 'teddy-bear', name: 'le nounours', slot: 'floor', parent: 'rig', x: -150, y: -45, w: 110 },
 ];
 
 export const itemById = (id: string) => ITEMS.find((i) => i.id === id);

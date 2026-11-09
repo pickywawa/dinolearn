@@ -1,3 +1,15 @@
+## DinoLearn 0.17.0 — Un vestiaire bien ajusté
+
+- Tous les objets du vestiaire sont replacés pour ne plus rentrer dans le dino, même pendant les animations.
+- Haut-de-forme, chapeau de diplômé et couronne posés sur les cornes, devant la collerette ; casque de pompier plus bas sur les côtés.
+- Lunettes recentrées sur les yeux ; lunettes de plongée avec une sangle qui fait le tour de la tête.
+- Nœud papillon et médaille contre la poitrine, collier plus petit sous le menton.
+- Capes plus longues, drapées sur le dos : elles se soulèvent quand la queue ou un bras passe dessous. Ailes contre le dos, qui se replient au passage d'un bras.
+- Le ballon reste droit au-dessus de la main ; baguette, sucette et tournesol s'écartent du corps pendant les gestes.
+- Le nounours s'assoit par terre, à côté du pied droit.
+- Nouvelle bouée de piscine autour du ventre, à la place de l'écharpe (une écharpe déjà gagnée devient la bouée).
+- Boutons protégés des encoches d'écran, décors d'accueil plus légers, chargement plus court.
+
 ## DinoLearn 0.16.1 — Une arrivée plus douce au chargement
 
 - Le dino arrive en marchant de profil, bien plus lentement, puis se tourne vers l’enfant avant de danser.

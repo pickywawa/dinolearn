@@ -85,9 +85,9 @@
 .loading-fill {
   position: absolute;
   left: 7.2%;
-  width: 84.4%;
-  top: 33.5%;
-  height: 51%;
+  width: 85.6%;
+  top: 32%;
+  height: 43%;
 }
 .loading-fill::before {
   content: '';
@@ -95,7 +95,7 @@
   left: 0;
   top: 0;
   bottom: 0;
-  width: max(14%, var(--progress, 0%));
+  width: var(--progress, 0%);
   border-radius: 999px;
   background:
     linear-gradient(rgba(255, 255, 255, .45), rgba(255, 255, 255, 0) 45%) top / 100% 100% no-repeat,

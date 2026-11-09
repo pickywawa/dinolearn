@@ -23,8 +23,9 @@ import { isInstalledApp, offerInstall } from './ui/install';
  * la tablette (voir index.html).
  */
 function gameSize() {
-  const w = window.innerWidth;
-  const h = window.innerHeight;
+  const bounds = document.getElementById('game')!.getBoundingClientRect();
+  const w = bounds.width;
+  const h = bounds.height;
   const ratio = Phaser.Math.Clamp(Math.max(w, h) / Math.min(w, h), 1.33, 2.4);
   return { width: Math.round(720 * ratio), height: 720 };
 }
@@ -47,6 +48,11 @@ const game = new Phaser.Game({
   input: { activePointers: 2 },
   scene: [BootScene, StartScene, HelloScene, HomeScene, ChooseScene, GameScene, EndScene, WardrobeScene, TraceScene, MemoryScene],
 });
+
+// Fullscreen and browser chrome changes can resize the drawable area without a window resize.
+const viewportObserver = new ResizeObserver(() => game.scale.refresh());
+viewportObserver.observe(document.getElementById('game')!);
+document.addEventListener('fullscreenchange', () => requestAnimationFrame(() => game.scale.refresh()));
 
 // En développement seulement : accès au jeu depuis la console (tests dans le navigateur).
 if (import.meta.env.DEV) Object.assign(window, { game, app });

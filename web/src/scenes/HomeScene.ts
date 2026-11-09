@@ -1,3 +1,4 @@
+import { safeArea } from '../ui/safeArea';
 import Phaser from 'phaser';
 import { app } from '../core/app';
 import { applyChildSettings, planetSeries, switchChild } from '../core/app';
@@ -117,8 +118,9 @@ export class HomeScene extends BaseScene {
     // En haut à gauche : le dino de l'enfant suivant ; à droite, l'étoile du niveau.
     const ar = u * 0.06;
     // En haut à gauche, le changement d’enfant ; à droite, le niveau.
-    this.childButton(ar * 1.4, ar * 1.4, ar);
-    this.drawLevelBadge(W - u * 0.11, u * 0.11, u);
+    const inset = safeArea(this);
+    this.childButton(inset.left + ar * 1.4, inset.top + ar * 1.4, ar);
+    this.drawLevelBadge(W - inset.right - u * 0.11, inset.top + u * 0.11, u);
 
     // À l'ouverture du jeu, le dino dort sur sa motte : il faut le réveiller (ce toucher
     // débloque aussi le son et la voix). Les boutons n'apparaissent qu'ensuite.

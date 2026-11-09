@@ -8,13 +8,50 @@ import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment
  * Phaser affiche comme n'importe quelle texture.
  */
 export class Stage {
+  private static idle?: Stage;
+  private retiredMaterials = new Set<THREE.Material>();
+
+  static acquire(width: number, height: number, viewHeight: number): Stage {
+    const stage = Stage.idle;
+    Stage.idle = undefined;
+    if (!stage) return new Stage(width, height, viewHeight);
+    stage.renderer.setSize(width, height, false);
+    stage.viewHeight = viewHeight;
+    stage.camera.aspect = width / height;
+    const distance = viewHeight / 2 / Math.tan(THREE.MathUtils.degToRad(22 / 2));
+    const center = viewHeight / 2 - .12;
+    stage.camera.position.set(0, center + distance * .12, distance);
+    stage.camera.lookAt(0, center, 0);
+    stage.camera.updateProjectionMatrix();
+    stage.camera.updateMatrixWorld();
+    return stage;
+  }
+
+  /** Retain one rendering context, lights and environment across scene transitions. */
+  release() {
+    for (const child of [...this.scene.children]) {
+      if (!(child instanceof THREE.Light)) {
+        child.traverse((object) => {
+          if (object instanceof THREE.Mesh) {
+            const materials = Array.isArray(object.material) ? object.material : [object.material];
+            materials.forEach((material) => this.retiredMaterials.add(material));
+          }
+        });
+        this.scene.remove(child);
+      }
+    }
+    this.renderer.renderLists.dispose();
+    if (Stage.idle) this.dispose();
+    else Stage.idle = this;
+  }
+
   readonly canvas: HTMLCanvasElement;
   readonly renderer: THREE.WebGLRenderer;
   readonly scene = new THREE.Scene();
   readonly camera: THREE.PerspectiveCamera;
   private outline: OutlineEffect;
   /** Hauteur de monde visible (le dino mesure ~2 unités). */
-  readonly viewHeight: number;
+  viewHeight: number;
 
   constructor(width: number, height: number, viewHeight = 3.1, canvas?: HTMLCanvasElement) {
     this.canvas = canvas ?? document.createElement('canvas');
@@ -74,9 +111,14 @@ export class Stage {
 
   render() {
     this.outline.render(this.scene, this.camera);
+    // Release old materials after the replacement has acquired matching shader programs.
+    this.retiredMaterials.forEach((material) => material.dispose());
+    this.retiredMaterials.clear();
   }
 
   dispose() {
+    this.retiredMaterials.forEach((material) => material.dispose());
+    this.retiredMaterials.clear();
     this.scene.environment?.dispose();
     this.renderer.dispose();
     this.renderer.forceContextLoss();
