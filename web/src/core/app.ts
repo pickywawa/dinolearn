@@ -9,6 +9,10 @@ import { Sfx } from './sfx';
 import { KeyValueStore, MemoryStore, Progress } from './progress';
 import { Voice } from './voice';
 import { voiceSupported } from './ears';
+import { isFr } from '../i18n';
+
+/** Pays qui paient en euros. */
+const EURO_COUNTRIES = new Set(['fr', 'be', 'lu', 'de', 'at', 'it', 'es', 'pt', 'nl', 'ie', 'fi', 'gr', 'sk', 'si', 'ee', 'lv', 'lt', 'mt', 'cy', 'hr']);
 
 function storage(): KeyValueStore {
   try {
@@ -64,7 +68,10 @@ export function playableGames(): GameDef[] {
   const p = app.progress;
   // Application en anglais : pas de jeux pour apprendre l'anglais.
   const english = englishGamesAllowed(appLanguage());
+  // Hors français, le jeu de la monnaie (en euros) seulement pour les pays de l'euro.
+  const money = isFr() || EURO_COUNTRIES.has(p.settings.country);
   const forAge = gamesForAge(p.age).filter((g) => (!g.voice || voiceAvailable(g)) && (english || g.category !== 'foreign_language')
+    && (money || g.id !== 'LO-9')
     // Certains jeux attendent qu'un autre soit maîtrisé (les calculs sans images après ceux en images).
     && (!g.unlock || (p.gameLevel(g.unlock.game) ?? 0) >= g.unlock.level));
   const enabled = forAge.filter((g) => !p.settings.disabledGames.includes(g.id) && g.questions.length > 0);

@@ -16,6 +16,16 @@ import { StartScene } from './scenes/StartScene';
 import { TraceScene } from './scenes/TraceScene';
 import { WardrobeScene } from './scenes/WardrobeScene';
 import { isInstalledApp, offerInstall } from './ui/install';
+import { appLanguage } from './core/appSettings';
+import { isFr, setLang, t } from './i18n';
+
+// Langue de l'application (celle de l'appareil au premier lancement) : son catalogue avant tout le reste.
+await setLang(appLanguage());
+// Textes de la page (écran de chargement, « tourne ta tablette ») dans la langue de l'application.
+for (const [selector, key] of [['.loading-sign textPath', 'ui.loading'], ['#rotate .turn', 'ui.rotate'], ['#rotate .tap', 'ui.tap']] as const) {
+  const node = document.querySelector(selector);
+  if (node && !isFr()) node.textContent = t(key);
+}
 
 /**
  * Le jeu se joue en paysage : 720 px de haut, la largeur suit le format de

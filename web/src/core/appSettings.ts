@@ -1,3 +1,5 @@
+import { deviceLang } from '../domain/langs';
+
 /**
  * Réglages de l'application, communs à tous les enfants : la langue, et si la
  * fenêtre des téléchargements a déjà été montrée (elle ne revient plus).
@@ -10,11 +12,14 @@ interface AppSettings {
   packsAsked: boolean;
 }
 
+/** Au tout premier lancement : la langue de l'appareil (français si elle n'est pas proposée). */
+const deviceLanguage = () => (typeof navigator === 'undefined' ? 'fr' : deviceLang(navigator.languages?.length ? navigator.languages : [navigator.language]));
+
 function readSettings(): AppSettings {
   try {
-    return { language: 'fr', packsAsked: false, ...JSON.parse(localStorage.getItem(KEY) ?? '{}') };
+    return { language: deviceLanguage(), packsAsked: false, ...JSON.parse(localStorage.getItem(KEY) ?? '{}') };
   } catch {
-    return { language: 'fr', packsAsked: false };
+    return { language: deviceLanguage(), packsAsked: false };
   }
 }
 

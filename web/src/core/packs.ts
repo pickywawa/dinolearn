@@ -1,4 +1,4 @@
-import { ENGLISH_VOICE, PackId, SIZES_MB, asrLanguages, languageOf, remainingSeconds, throughput } from '../domain/packs';
+import { PackId, SIZES_MB, asrLanguages, languageOf, remainingSeconds, secondLanguage, throughput } from '../domain/packs';
 import { SpeechLang } from '../domain/speech';
 import { app } from './app';
 import { voiceAsset } from './native';
@@ -27,19 +27,24 @@ function markAsrInstalled(lang: SpeechLang) {
 /** Ce qui est déjà installé sur l'appareil. */
 export async function installedPacks(language = appLanguage()): Promise<Record<PackId, boolean>> {
   const lang = languageOf(language);
-  const [speech, english, asr] = await Promise.all([
+  const second = languageOf(secondLanguage(language));
+  const asrLangs = asrLanguages(language, true);
+  const [speech, secondVoice, asr] = await Promise.all([
     voiceStored(lang.voice).then((v) => v && engineReady()),
-    voiceStored(ENGLISH_VOICE).then((v) => v && engineReady()),
-    Promise.all(asrLanguages(language, false).map((l) => packInstalled(l as SpeechLang))).then((all) => all.length > 0 && all.every(Boolean)),
+    voiceStored(second.voice).then((v) => v && engineReady()),
+    // Pas de pack de reconnaissance dans cette langue : rien à installer.
+    asrLangs.length ? Promise.all(asrLangs.map((l) => packInstalled(l as SpeechLang))).then((all) => all.every(Boolean)) : true,
   ]);
-  return { speech, english, asr };
+  return { speech, second: secondVoice, asr };
 }
 
 /** Au lancement : les voix déjà téléchargées remplacent la voix du téléphone. */
 export async function enableInstalledVoices() {
-  const installed = await installedPacks();
-  if (installed.speech) setNeuralVoice('fr', languageOf(appLanguage()).voice);
-  if (installed.english) setNeuralVoice('en', ENGLISH_VOICE);
+  const language = appLanguage();
+  const installed = await installedPacks(language);
+  if (installed.speech) setNeuralVoice(languageOf(language).code, languageOf(language).voice);
+  const second = languageOf(secondLanguage(language));
+  if (installed.second) setNeuralVoice(second.code, second.voice);
 }
 
 // ---- Téléchargements ----
@@ -107,19 +112,19 @@ class Downloads {
   }
 
   /** Lance les téléchargements choisis, en parallèle (ceux déjà en cours ne repartent pas). */
-  start(ids: PackId[], language: string, withEnglish = ids.includes('english')) {
+  start(ids: PackId[], language: string, withSecond = true) {
     const lang = languageOf(language);
-    // Reconnaissance anglaise : si la voix anglaise est choisie ou déjà installée.
-    const englishChosen = withEnglish;
+    const second = languageOf(secondLanguage(language));
+    const secondChosen = withSecond;
     for (const id of ids) {
       const current = this.tasks.get(id);
       if (current && current.state !== 'error' && current.state !== 'done') continue;
       const task: TaskProgress = { id, state: 'waiting', loaded: 0, total: 0 };
       this.tasks.set(id, task);
       // Tailles connues d'avance (plus fiables que celles annoncées par les serveurs, souvent compressées).
-      const needsEngine = !engineReady() && (id === 'speech' || (id === 'english' && !ids.includes('speech')));
+      const needsEngine = !engineReady() && (id === 'speech' || (id === 'second' && !ids.includes('speech')));
       task.total = 1e6 * (id === 'speech' ? SIZES_MB.voices[lang.voice] ?? 0
-        : id === 'english' ? SIZES_MB.voices[ENGLISH_VOICE] : asrLanguages(language, englishChosen).reduce((n, l) => n + (SIZES_MB.asr[l] ?? 0), 0));
+        : id === 'second' ? SIZES_MB.voices[second.voice] ?? 0 : asrLanguages(language, secondChosen).reduce((n, l) => n + (SIZES_MB.asr[l] ?? 0), 0));
       if (needsEngine) task.total += SIZES_MB.engine * 1e6;
       const onBytes = (n: number) => {
         task.state = 'downloading';
@@ -128,13 +133,13 @@ class Downloads {
       const run = async () => {
         if (id === 'speech') {
           await Promise.all([ensureEngine(onBytes), downloadVoice(lang.voice, onBytes)]);
-          setNeuralVoice('fr', lang.voice);
-        } else if (id === 'english') {
+          setNeuralVoice(lang.code, lang.voice);
+        } else if (id === 'second') {
           // Le moteur est compté avec la voix du dino quand elle est aussi choisie.
-          await Promise.all([needsEngine ? ensureEngine(onBytes) : ensureEngine(() => undefined), downloadVoice(ENGLISH_VOICE, onBytes)]);
-          setNeuralVoice('en', ENGLISH_VOICE);
+          await Promise.all([needsEngine ? ensureEngine(onBytes) : ensureEngine(() => undefined), downloadVoice(second.voice, onBytes)]);
+          setNeuralVoice(second.code, second.voice);
         } else {
-          await this.installAsr(asrLanguages(language, englishChosen) as SpeechLang[], task, onBytes);
+          await this.installAsr(asrLanguages(language, secondChosen) as SpeechLang[], task, onBytes);
         }
       };
       const promise = run().then(() => {

@@ -1,8 +1,11 @@
 import { QuestionRef, Rng, mulberry32, shuffle } from '../domain/models';
 import { SayTarget, SpeechLang } from '../domain/speech';
 import {
-  CONCEPTS, categoryHint, Concept, DistractorStrategy, Speech, conceptById, conceptsFor, frWithArticle, pickDistractors,
+  CONCEPTS, categoryHint, Concept, DistractorStrategy, Speech, conceptById, conceptsFor, foreignWord, frWithArticle, pickDistractors,
+  theWord,
 } from './content';
+import { isFr, lang, num, phrase, second, t } from '../i18n';
+import { langInfo, type Lang } from '../domain/langs';
 import { PAIRS, SIZES, SYLLABLES, enNumber } from './extra';
 import { frNumber } from './numbers';
 import { LETTER_LEVELS, LETTER_NAMES, LOOKALIKE_LETTERS, READ_WORDS, SYLLABLES_TO_READ } from './reading';
@@ -60,7 +63,7 @@ export type Show =
   /** Un texte à lire (un mot, une phrase à trou). */
   | { kind: 'text'; value: string; script: Script }
   /** Memory (scène à part) : les images des paires, dites en français ou en anglais quand on les retourne. */
-  | { kind: 'memory'; images: string[]; lang: 'fr' | 'en' }
+  | { kind: 'memory'; images: string[]; lang: Lang }
   /** Un modèle à tracer avec le doigt (jeux de tracé, scène à part). */
   | { kind: 'trace'; model: string; mode: TraceMode }
   /**
@@ -104,6 +107,11 @@ export interface GameDef {
   voice?: SpeechLang;
   /** Proposé seulement quand un autre jeu est maîtrisé (niveau atteint dans ce jeu). */
   unlock?: { game: string; level: number };
+  /**
+   * Langues où le jeu existe (toutes par défaut). Les jeux de lecture, de sons, les
+   * histoires et les devinettes ne sont encore qu'en français.
+   */
+  langs?: (language: Lang) => boolean;
   /** Image de la bulle du jeu. */
   icon: string;
   /** Couleur de la bulle et du décor. */
@@ -133,7 +141,9 @@ const riddleConcept = (riddleId: string) => conceptById(riddleId.split('~')[0]);
 /** Indices d'une image : sa famille, puis sa devinette si elle en a une. */
 function conceptHints(c: Concept): Speech[] {
   const family = categoryHint(c);
-  const hints: Speech[] = family ? [{ text: `Indice : c'est ${family}.`, lang: 'fr' }] : [];
+  const hints: Speech[] = family ? [{ text: phrase(() => `Indice : c'est ${family}.`, 'g.hintFamily', { family }), lang: lang() }] : [];
+  // Les devinettes (indices fins) n'existent qu'en français.
+  if (!isFr()) return hints;
   const riddle = riddleText.get(c.id);
   if (riddle) {
     hints.push({ text: `Indice : ${riddle.replace(/ ?Qui suis-je \?$/, '').replace(/^Qui /, 'qui ')}`, lang: 'fr' });
@@ -190,7 +200,7 @@ const listenTap: GameDef = {
     // Plus facile : 2 images seulement, très différentes jusqu'au niveau 5.
     // Niveau CP (variante expert) : 4 images de la même sous-famille.
     const expert = isExpert(ref);
-    const word: Speech = { text: answer.en.word, lang: 'en', slow: !expert, pauseAfter: 700 };
+    const word: Speech = { text: foreignWord(answer), lang: second(), slow: !expert, pauseAfter: 700 };
     return {
       answer: conceptChoice(answer),
       distractors: expert
@@ -198,7 +208,7 @@ const listenTap: GameDef = {
         : pickDistractors(answer, conceptsFor('EN-1'), 1, strategyFor(level, 6, 9), rng).map(conceptChoice),
       // Le mot est dit deux fois, lentement.
       prompt: [word, { ...word, pauseAfter: undefined }],
-      reinforce: [{ text: answer.en.word, lang: 'en', slow: true }, { text: `${frWithArticle(answer)} !`, lang: 'fr' }],
+      reinforce: [{ text: foreignWord(answer), lang: second(), slow: true }, { text: phrase(() => `${frWithArticle(answer)} !`, 'g.word', { word: theWord(answer) }), lang: lang() }],
       hints: conceptHints(answer),
     };
   },
@@ -224,13 +234,14 @@ const showMe: GameDef = {
         ? pickDistractors(answer, conceptsFor('MO-1'), 5, 'same_category', rng).map(conceptChoice)
         : pickDistractors(answer, conceptsFor('MO-1'), 3, strategyFor(level, 1, 2), rng).map(conceptChoice),
       prompt: [{
-        text: oneOf(rng, [
+        text: phrase(() => oneOf(rng, [
           `Montre-moi ${frWithArticle(answer)} !`, `Où est ${frWithArticle(answer)} ?`, `Touche ${frWithArticle(answer)} !`,
           `Tu peux trouver ${frWithArticle(answer)} ?`, `Cherche ${frWithArticle(answer)} !`,
-        ]),
-        lang: 'fr',
+        ]), 'MO-1.prompt', { word: theWord(answer) }, rng),
+        lang: lang(),
       }],
-      reinforce: [{ text: oneOf(rng, [`Oui, ${frWithArticle(answer)} !`, `C'est bien ${frWithArticle(answer)} !`]), lang: 'fr' }],
+      reinforce: [{ text: phrase(() => oneOf(rng, [`Oui, ${frWithArticle(answer)} !`, `C'est bien ${frWithArticle(answer)} !`]),
+        'g.yesWord', { word: theWord(answer) }, rng), lang: lang() }],
       hints: conceptHints(answer),
     };
   },
@@ -363,17 +374,19 @@ const oddOneOut: GameDef = {
       answer: conceptChoice(odd),
       distractors: members.map(conceptChoice),
       prompt: [{
-        text: oneOf(rng, [
+        text: phrase(() => oneOf(rng, [
           'Trouve l\'intrus ! Lequel n\'est pas de la même famille ?',
           'Un intrus se cache ici. Lequel n\'est pas comme les autres ?',
           'Laquelle de ces images n\'est pas de la même famille ?',
-        ]),
-        lang: 'fr',
+        ]), 'LO-1.prompt', {}, rng),
+        lang: lang(),
       }],
-      reinforce: [{ text: `Oui, ${frWithArticle(odd)} ! Les autres sont ${FAMILY_NAMES[category]}.`, lang: 'fr' }],
+      reinforce: [{ text: phrase(() => `Oui, ${frWithArticle(odd)} ! Les autres sont ${FAMILY_NAMES[category]}.`, 'LO-1.yes',
+        { word: theWord(odd), family: t(`fam.${category}`) }), lang: lang() }],
       hints: [{
-        text: `Indice : ${isExpert(ref) ? 'cinq' : 'trois'} images sont ${FAMILY_NAMES[category]}. Cherche celle qui n'en est pas.`,
-        lang: 'fr',
+        text: phrase(() => `Indice : ${isExpert(ref) ? 'cinq' : 'trois'} images sont ${FAMILY_NAMES[category]}. Cherche celle qui n'en est pas.`,
+          'LO-1.hint', { n: isExpert(ref) ? 5 : 3, family: t(`fam.${category}`) }),
+        lang: lang(),
       }],
     };
   },
@@ -433,19 +446,21 @@ const counting: GameDef = {
       show: { kind: 'count', groups },
       prompt: [{
         text: groups.length > 1
-          ? `Combien y a-t-il ${ofPlural} ? Attention, compte seulement les ${plural} !`
-          : oneOf(rng, [`Combien y a-t-il ${ofPlural} ? Compte bien !`, `Compte les ${plural}. Combien y en a-t-il ?`]),
-        lang: 'fr',
+          ? phrase(() => `Combien y a-t-il ${ofPlural} ? Attention, compte seulement les ${plural} !`, 'LO-2.promptMixed', { things: t(`many.${image}`) })
+          : phrase(() => oneOf(rng, [`Combien y a-t-il ${ofPlural} ? Compte bien !`, `Compte les ${plural}. Combien y en a-t-il ?`]),
+            'LO-2.prompt', { things: t(`many.${image}`) }, rng),
+        lang: lang(),
       }],
       reinforce: [{
-        text: `${Array.from({ length: n }, (_, i) => frNumber(i + 1)).join(', ')}. Il y a ${howMany} ${name} !`,
-        lang: 'fr',
+        text: phrase(() => `${Array.from({ length: n }, (_, i) => frNumber(i + 1)).join(', ')}. Il y a ${howMany} ${name} !`,
+          'LO-2.yes', { list: Array.from({ length: n }, (_, i) => num(i + 1)).join(', '), n: num(n) }),
+        lang: lang(),
       }],
       hints: [{
         text: n > 10
-          ? 'Indice : compte d\'abord jusqu\'à dix, puis continue : onze, douze, treize…'
-          : 'Indice : touche chaque fruit avec ton doigt, en comptant tout doucement.',
-        lang: 'fr',
+          ? phrase(() => 'Indice : compte d\'abord jusqu\'à dix, puis continue : onze, douze, treize…', 'LO-2.hintBig')
+          : phrase(() => 'Indice : touche chaque fruit avec ton doigt, en comptant tout doucement.', 'LO-2.hint'),
+        lang: lang(),
       }],
     };
   },
@@ -472,11 +487,11 @@ const shadows: GameDef = {
         : pickDistractors(answer, conceptsFor('MO-1'), 3, strategyFor(level, 3, 6), rng).map(conceptChoice),
       show: { kind: 'silhouette', image: answer.id },
       prompt: [{
-        text: oneOf(rng, ['À qui est cette ombre ? Touche la bonne image !', 'Qui se cache derrière cette ombre ?',
-          'Regarde cette ombre. C\'est qui ?']),
-        lang: 'fr',
+        text: phrase(() => oneOf(rng, ['À qui est cette ombre ? Touche la bonne image !', 'Qui se cache derrière cette ombre ?',
+          'Regarde cette ombre. C\'est qui ?']), 'MO-3.prompt', {}, rng),
+        lang: lang(),
       }],
-      reinforce: [{ text: `Oui, c'est ${frWithArticle(answer)} !`, lang: 'fr' }],
+      reinforce: [{ text: phrase(() => `Oui, c'est ${frWithArticle(answer)} !`, 'g.yesItIs', { word: theWord(answer) }), lang: lang() }],
       hints: conceptHints(answer),
     };
   },
@@ -531,9 +546,10 @@ function buildNumberSequence(rule: string, variant: number, rng: Rng): BuiltQues
     answer: numberChoice(answer),
     distractors: nearNumbers(answer, 3, rng, [answer + delta, shown[3]], 0).map(numberChoice),
     show: { kind: 'numbers', items: [...shown, null] },
-    prompt: [{ text: `Regarde et écoute : ${said}. Quel nombre vient après ?`, lang: 'fr' }],
-    reinforce: [{ text: `Oui ! ${said}, ${frNumber(answer)} !`, lang: 'fr' }],
-    hints: [{ text: `Indice : ${hint}`, lang: 'fr' }],
+    prompt: [{ text: phrase(() => `Regarde et écoute : ${said}. Quel nombre vient après ?`, 'LO-3.numPrompt', { list: shown.join(', ') }), lang: lang() }],
+    reinforce: [{ text: phrase(() => `Oui ! ${said}, ${frNumber(answer)} !`, 'LO-3.numYes', { list: shown.join(', '), n: answer }), lang: lang() }],
+    hints: [{ text: phrase(() => `Indice : ${hint}`, step === 0 ? 'LO-3.hintGrow' : step > 0 ? 'LO-3.hintPlus' : 'LO-3.hintMinus',
+      { n: Math.abs(step) }), lang: lang() }],
   };
 }
 
@@ -570,9 +586,12 @@ const sequence: GameDef = {
       answer: choice(answer),
       distractors: distractors.map(choice),
       show: { kind: 'sequence', images: [...seq.slice(0, length).map((f) => `food-${f}`), null] },
-      prompt: [{ text: oneOf(rng, ['Regarde bien la suite. Quel fruit vient après ?', 'Quel fruit continue la suite ?']), lang: 'fr' }],
-      reinforce: [{ text: `Oui ! ${seq.slice(Math.max(0, length - 5)).map((f) => FRUIT_NAMES[f]).join(', ')} !`, lang: 'fr' }],
-      hints: [{ text: `Indice : la suite recommence toujours pareil. ${seq.slice(0, pattern.length).map((f) => FRUIT_NAMES[f]).join(', ')}…`, lang: 'fr' }],
+      prompt: [{ text: phrase(() => oneOf(rng, ['Regarde bien la suite. Quel fruit vient après ?', 'Quel fruit continue la suite ?']),
+        'LO-3.prompt', {}, rng), lang: lang() }],
+      reinforce: [{ text: phrase(() => `Oui ! ${seq.slice(Math.max(0, length - 5)).map((f) => FRUIT_NAMES[f]).join(', ')} !`,
+        'LO-3.yes', { list: seq.slice(Math.max(0, length - 5)).map((f) => t(`fruit.${f}`)).join(', ') }), lang: lang() }],
+      hints: [{ text: phrase(() => `Indice : la suite recommence toujours pareil. ${seq.slice(0, pattern.length).map((f) => FRUIT_NAMES[f]).join(', ')}…`,
+        'LO-3.hint', { list: seq.slice(0, pattern.length).map((f) => t(`fruit.${f}`)).join(', ') }), lang: lang() }],
     };
   },
 };
@@ -615,13 +634,14 @@ function buildCompare(level: number, mode: 'most' | 'least', rng: Rng): BuiltQue
   return {
     answer: numberChoice(target),
     distractors: numbers.filter((k) => k !== target).map(numberChoice),
-    prompt: [{ text: `Touche ${what} nombre !`, lang: 'fr' }],
-    reinforce: [{ text: `Oui ! ${frNumber(target)}, c'est ${what} !`, lang: 'fr' }],
+    prompt: [{ text: phrase(() => `Touche ${what} nombre !`, `LO-4.num.${mode}`), lang: lang() }],
+    reinforce: [{ text: phrase(() => `Oui ! ${frNumber(target)}, c'est ${what} !`, `LO-4.numYes.${mode}`, { n: target }), lang: lang() }],
     hints: [{
       text: level >= 14
-        ? 'Indice : regarde d\'abord le premier chiffre, celui des dizaines.'
-        : `Indice : quand on compte, ${what === 'le plus grand' ? 'le plus grand vient en dernier' : 'le plus petit vient en premier'}.`,
-      lang: 'fr',
+        ? phrase(() => 'Indice : regarde d\'abord le premier chiffre, celui des dizaines.', 'g.hintTens')
+        : phrase(() => `Indice : quand on compte, ${what === 'le plus grand' ? 'le plus grand vient en dernier' : 'le plus petit vient en premier'}.`,
+          `LO-4.numHint.${mode}`),
+      lang: lang(),
     }],
   };
 }
@@ -663,13 +683,14 @@ const most: GameDef = {
     return {
       answer: pile(target),
       distractors: ordered.filter((k) => k !== target).map(pile),
-      prompt: [{ text: `Où y a-t-il ${what} ${ofPlural} ? Touche la bonne carte !`, lang: 'fr' }],
-      reinforce: [{ text: `Oui ! Ici, il y en a ${frNumber(target)}. C'est ${what} !`, lang: 'fr' }],
+      prompt: [{ text: phrase(() => `Où y a-t-il ${what} ${ofPlural} ? Touche la bonne carte !`, `LO-4.pile.${mode}`,
+        { things: t(`many.${image}`) }), lang: lang() }],
+      reinforce: [{ text: phrase(() => `Oui ! Ici, il y en a ${frNumber(target)}. C'est ${what} !`, `LO-4.pileYes.${mode}`, { n: target }), lang: lang() }],
       hints: [{
         text: mode === 'least'
-          ? 'Indice : cherche la carte où il y a très peu de fruits.'
-          : 'Indice : cherche la carte la plus remplie.',
-        lang: 'fr',
+          ? phrase(() => 'Indice : cherche la carte où il y a très peu de fruits.', 'LO-4.pileHint.least')
+          : phrase(() => 'Indice : cherche la carte la plus remplie.', 'LO-4.pileHint.most'),
+        lang: lang(),
       }],
     };
   },
@@ -729,15 +750,15 @@ const calc: GameDef = {
         answer: numberChoice(answer),
         distractors: nearNumbers(answer, 3, rng, [b, a], 1).map(numberChoice),
         show: { kind: 'sum', a, b: answer, op: '+', total: b },
-        prompt: [{ text: `${frNumber(a)} plus combien, ça fait ${frNumber(b)} ?`, lang: 'fr' }],
-        reinforce: [{ text: `Oui ! ${frNumber(a)} plus ${frNumber(answer)}, ça fait ${frNumber(b)} !`, lang: 'fr' }],
-        hints: [{ text: `Indice : compte sur tes doigts, de ${frNumber(a)} jusqu'à ${frNumber(b)}.`, lang: 'fr' }],
+        prompt: [{ text: phrase(() => `${frNumber(a)} plus combien, ça fait ${frNumber(b)} ?`, 'LO-5.compl', { a, b }), lang: lang() }],
+        reinforce: [{ text: phrase(() => `Oui ! ${frNumber(a)} plus ${frNumber(answer)}, ça fait ${frNumber(b)} !`, 'LO-5.complYes', { a, x: answer, b }), lang: lang() }],
+        hints: [{ text: phrase(() => `Indice : compte sur tes doigts, de ${frNumber(a)} jusqu'à ${frNumber(b)}.`, 'LO-5.complHint', { a, b }), lang: lang() }],
       };
     }
     const plus = kind.endsWith('+');
     const answer = plus ? a + b : a - b;
-    const words = `${frNumber(a)} ${plus ? 'plus' : 'moins'} ${frNumber(b)}`;
-    const reinforce: Speech[] = [{ text: `Oui ! ${words}, ça fait ${frNumber(answer)} !`, lang: 'fr' }];
+    const words = isFr() ? `${frNumber(a)} ${plus ? 'plus' : 'moins'} ${frNumber(b)}` : t(plus ? 'g.plus' : 'g.minus', { a, b });
+    const reinforce: Speech[] = [{ text: phrase(() => `Oui ! ${words}, ça fait ${frNumber(answer)} !`, 'g.calcYes', { calc: words, n: answer }), lang: lang() }];
     if (kind.startsWith('p')) {
       // En images : on compte les fruits.
       const [image, singular, plural, feminine] = COUNTABLES[Math.floor(rng() * COUNTABLES.length)];
@@ -749,16 +770,18 @@ const calc: GameDef = {
         show: { kind: 'sum', a, b, op: plus ? '+' : '-', image },
         prompt: [{
           text: plus
-            ? `Il y a ${some(a)}. J'en ajoute ${b === 1 ? (feminine ? 'une' : 'un') : frNumber(b)}. Combien y en a-t-il en tout ?`
-            : `Il y a ${some(a)}. Dino en mange ${b === 1 ? (feminine ? 'une' : 'un') : frNumber(b)}. Combien en reste-t-il ?`,
-          lang: 'fr',
+            ? phrase(() => `Il y a ${some(a)}. J'en ajoute ${b === 1 ? (feminine ? 'une' : 'un') : frNumber(b)}. Combien y en a-t-il en tout ?`,
+              'LO-5.add', { a, b, things: t(`many.${image}`) })
+            : phrase(() => `Il y a ${some(a)}. Dino en mange ${b === 1 ? (feminine ? 'une' : 'un') : frNumber(b)}. Combien en reste-t-il ?`,
+              'LO-5.eat', { a, b, things: t(`many.${image}`) }),
+          lang: lang(),
         }],
         reinforce,
         hints: [{
           text: plus
-            ? 'Indice : compte tous les fruits, ceux de gauche et ceux de droite.'
-            : 'Indice : compte seulement les fruits qui ne sont pas barrés.',
-          lang: 'fr',
+            ? phrase(() => 'Indice : compte tous les fruits, ceux de gauche et ceux de droite.', 'LO-5.addHint')
+            : phrase(() => 'Indice : compte seulement les fruits qui ne sont pas barrés.', 'LO-5.eatHint'),
+          lang: lang(),
         }],
       };
     }
@@ -767,13 +790,13 @@ const calc: GameDef = {
       answer: numberChoice(answer),
       distractors: nearNumbers(answer, 3, rng, [plus ? Math.abs(a - b) : a + b], 0).map(numberChoice),
       show: { kind: 'sum', a, b, op: plus ? '+' : '-' },
-      prompt: [{ text: oneOf(rng, [`Combien font ${words} ?`, `${words}, ça fait combien ?`]), lang: 'fr' }],
+      prompt: [{ text: phrase(() => oneOf(rng, [`Combien font ${words} ?`, `${words}, ça fait combien ?`]), 'g.calcPrompt', { calc: words }, rng), lang: lang() }],
       reinforce,
       hints: [{
         text: plus
-          ? `Indice : pars de ${frNumber(big)}, et avance de ${frNumber(small)} sur tes doigts.`
-          : `Indice : pars de ${frNumber(a)}, et recule de ${frNumber(b)} sur tes doigts.`,
-        lang: 'fr',
+          ? phrase(() => `Indice : pars de ${frNumber(big)}, et avance de ${frNumber(small)} sur tes doigts.`, 'g.hintAdd', { a: big, b: small })
+          : phrase(() => `Indice : pars de ${frNumber(a)}, et recule de ${frNumber(b)} sur tes doigts.`, 'g.hintSub', { a, b }),
+        lang: lang(),
       }],
     };
   },
@@ -808,13 +831,13 @@ function mentalParts(ref: QuestionRef) {
   const b = Number(bStr);
   const plus = op === '+';
   const answer = plus ? a + b : a - b;
-  const words = `${frNumber(a)} ${plus ? 'plus' : 'moins'} ${frNumber(b)}`;
+  const words = isFr() ? `${frNumber(a)} ${plus ? 'plus' : 'moins'} ${frNumber(b)}` : t(plus ? 'g.plus' : 'g.minus', { a, b });
   const [big, small] = plus && b > a ? [b, a] : [a, b];
   const hint: Speech = {
     text: plus
-      ? `Indice : garde ${frNumber(big)} dans ta tête, et avance de ${frNumber(small)} sur tes doigts.`
-      : `Indice : pars de ${frNumber(a)}, et recule de ${frNumber(b)} sur tes doigts.`,
-    lang: 'fr',
+      ? phrase(() => `Indice : garde ${frNumber(big)} dans ta tête, et avance de ${frNumber(small)} sur tes doigts.`, 'g.hintAdd', { a: big, b: small })
+      : phrase(() => `Indice : pars de ${frNumber(a)}, et recule de ${frNumber(b)} sur tes doigts.`, 'g.hintSub', { a, b }),
+    lang: lang(),
   };
   return { a, b, plus, answer, words, hint };
 }
@@ -837,22 +860,28 @@ const mentalCalc: GameDef = {
     return {
       answer: numberChoice(answer),
       distractors: nearNumbers(answer, 3, rng, also, 0).map(numberChoice),
-      prompt: [{ text: oneOf(rng, [`Écoute bien : ${words}. Ça fait combien ?`, `Combien font ${words} ?`,
-        `Dans ta tête : ${words}. Touche le résultat !`]), lang: 'fr' }],
-      repeat: [{ text: `${words} ?`, lang: 'fr' }],
-      reinforce: [{ text: `Oui ! ${words}, ça fait ${frNumber(answer)} !`, lang: 'fr' }],
+      prompt: [{ text: phrase(() => oneOf(rng, [`Écoute bien : ${words}. Ça fait combien ?`, `Combien font ${words} ?`,
+        `Dans ta tête : ${words}. Touche le résultat !`]), 'LO-11.prompt', { calc: words }, rng), lang: lang() }],
+      repeat: [{ text: `${words} ?`, lang: lang() }],
+      reinforce: [{ text: phrase(() => `Oui ! ${words}, ça fait ${frNumber(answer)} !`, 'g.calcYes', { calc: words, n: answer }), lang: lang() }],
       hints: [hint],
     };
   },
 };
 
-/** Nombre dit à voix haute : « dix-sept » ou « dix sept » selon la reconnaissance. */
-const spoken = (n: number) => [...new Set([frNumber(n), frNumber(n).replace(/-/g, ' ')])];
+/**
+ * Nombre dit à voix haute : « dix-sept » ou « dix sept » selon la reconnaissance.
+ * Autres langues : les formes du catalogue (« num.17 », variantes séparées par « | »).
+ */
+const spoken = (n: number) => (isFr()
+  ? [...new Set([frNumber(n), frNumber(n).replace(/-/g, ' ')])]
+  : t(`num.${n}`, {}, String(n)).split('|').map((w) => w.trim()).filter(Boolean));
 
 const mentalCalcAloud: GameDef = {
   id: 'VO-13',
   category: 'logic',
-  voice: 'fr',
+  // Reconnaissance dans la langue de l'application (s'il en existe une).
+  get voice() { return lang(); },
   minAge: 5,
   unlock: { game: 'LO-5', level: 9 },
   icon: 'vo-calc',
@@ -869,13 +898,14 @@ const mentalCalcAloud: GameDef = {
     return {
       answer: numberChoice(answer),
       distractors: near.map(numberChoice),
-      prompt: [{ text: oneOf(rng, [`Combien font ${words} ? Dis-le-moi !`, `${words}, ça fait combien ? Réponds-moi !`]),
-        lang: 'fr' }],
-      say: { lang: 'fr', accept: spoken(answer), others: others.flatMap(spoken) },
-      repeat: [{ text: `${words} ?`, lang: 'fr' }],
-      reinforce: [{ text: `Oui ! ${words}, ça fait ${frNumber(answer)} !`, lang: 'fr' }],
-      repeatAfterMe: [{ text: `Écoute : ${words}, ça fait ${frNumber(answer)}. À toi de le dire !`, lang: 'fr' }],
-      fallback: { prompt: [{ text: `${words}, ça fait combien ? Touche le bon nombre !`, lang: 'fr' }] },
+      prompt: [{ text: phrase(() => oneOf(rng, [`Combien font ${words} ? Dis-le-moi !`, `${words}, ça fait combien ? Réponds-moi !`]),
+        'VO-13.prompt', { calc: words }, rng), lang: lang() }],
+      say: { lang: lang(), accept: spoken(answer), others: others.flatMap(spoken) },
+      repeat: [{ text: `${words} ?`, lang: lang() }],
+      reinforce: [{ text: phrase(() => `Oui ! ${words}, ça fait ${frNumber(answer)} !`, 'g.calcYes', { calc: words, n: answer }), lang: lang() }],
+      repeatAfterMe: [{ text: phrase(() => `Écoute : ${words}, ça fait ${frNumber(answer)}. À toi de le dire !`, 'VO-13.repeat',
+        { calc: words, n: answer }), lang: lang() }],
+      fallback: { prompt: [{ text: phrase(() => `${words}, ça fait combien ? Touche le bon nombre !`, 'VO-13.fallback', { calc: words }), lang: lang() }] },
       hints: [hint],
     };
   },
@@ -994,15 +1024,15 @@ const together: GameDef = {
         .map(conceptChoice),
       show: { kind: 'image', image: a.id },
       prompt: [{
-        text: oneOf(rng, [
+        text: phrase(() => oneOf(rng, [
           `Qu'est-ce qui va avec ${frWithArticle(a)} ?`,
           `Regarde : ${frWithArticle(a)}. Qu'est-ce qui va avec ?`,
           `Trouve ce qui va bien avec ${frWithArticle(a)} !`,
-        ]),
-        lang: 'fr',
+        ]), 'MO-4.prompt', { word: theWord(a) }, rng),
+        lang: lang(),
       }],
-      reinforce: [{ text: `Oui ! ${why}`, lang: 'fr' }],
-      hints: [{ text: `Indice : imagine ${frWithArticle(a)}. Qu'est-ce qu'on voit souvent avec ?`, lang: 'fr' }],
+      reinforce: [{ text: phrase(() => `Oui ! ${why}`, 'MO-4.yes', { a: theWord(a), b: theWord(b) }), lang: lang() }],
+      hints: [{ text: phrase(() => `Indice : imagine ${frWithArticle(a)}. Qu'est-ce qu'on voit souvent avec ?`, 'MO-4.hint', { word: theWord(a) }), lang: lang() }],
     };
   },
 };
@@ -1051,13 +1081,15 @@ const bigger: GameDef = {
         answer: conceptChoice(answer),
         distractors: picked.map(conceptChoice),
         prompt: [{
-          text: oneOf(rng, [`En vrai, lequel est ${what} ?`, `Qui est ${what}, en vrai ?`, `Touche ${what}, dans la vraie vie !`]),
-          lang: 'fr',
+          text: phrase(() => oneOf(rng, [`En vrai, lequel est ${what} ?`, `Qui est ${what}, en vrai ?`, `Touche ${what}, dans la vraie vie !`]),
+            `MO-5.prompt.${big ? 'big' : 'small'}`, {}, rng),
+          lang: lang(),
         }],
-        reinforce: [{ text: `Oui ! En vrai, ${frWithArticle(answer)}, c'est ${what} !`, lang: 'fr' }],
+        reinforce: [{ text: phrase(() => `Oui ! En vrai, ${frWithArticle(answer)}, c'est ${what} !`, `MO-5.yes.${big ? 'big' : 'small'}`,
+          { word: theWord(answer) }), lang: lang() }],
         hints: [{
-          text: 'Indice : sur les images, ils ont tous la même taille. Imagine-les en vrai, à côté de toi !',
-          lang: 'fr',
+          text: phrase(() => 'Indice : sur les images, ils ont tous la même taille. Imagine-les en vrai, à côté de toi !', 'MO-5.hint'),
+          lang: lang(),
         }],
       };
     }
@@ -1098,20 +1130,20 @@ const numbers: GameDef = {
     const n = Number(idOf(ref));
     const expert = isExpert(ref);
     const max = n <= 10 ? 10 : n <= 20 ? 20 : 100;
-    const said = frNumber(n);
+    const said = isFr() ? frNumber(n) : num(n);
     return {
       answer: numberChoice(n),
       distractors: numberLookalikes(n, expert ? 5 : 3, rng, max).map(numberChoice),
       prompt: [{
-        text: oneOf(rng, [`Touche le nombre ${said} !`, `Où est le nombre ${said} ?`, `Trouve ${said} !`]),
-        lang: 'fr',
+        text: phrase(() => oneOf(rng, [`Touche le nombre ${said} !`, `Où est le nombre ${said} ?`, `Trouve ${said} !`]), 'LO-6.prompt', { n }, rng),
+        lang: lang(),
       }],
-      reinforce: [{ text: `Oui ! Ça, c'est ${said} !`, lang: 'fr' }],
+      reinforce: [{ text: phrase(() => `Oui ! Ça, c'est ${said} !`, 'LO-6.yes', { n }), lang: lang() }],
       hints: [{
         text: n >= 10
-          ? 'Indice : regarde bien le premier chiffre, puis le deuxième.'
-          : `Indice : compte sur tes doigts jusqu'à ${said}, et cherche ce chiffre.`,
-        lang: 'fr',
+          ? phrase(() => 'Indice : regarde bien le premier chiffre, puis le deuxième.', 'LO-6.hintBig')
+          : phrase(() => `Indice : compte sur tes doigts jusqu'à ${said}, et cherche ce chiffre.`, 'LO-6.hint', { n }),
+        lang: lang(),
       }],
     };
   },
@@ -1139,7 +1171,9 @@ const englishNumbers: GameDef = {
   ].map((n) => ({ id: `EN-2:${n}`, level: enNumberLevel(n) })),
   build(ref, _level, rng) {
     const n = Number(idOf(ref));
-    const word: Speech = { text: enNumber(n), lang: 'en', slow: true, pauseAfter: 600 };
+    // Le nombre dans la langue apprise : en mots anglais, ou en chiffres (lus par la voix espagnole).
+    const foreignNumber = second() === 'en' ? enNumber(n) : num(n);
+    const word: Speech = { text: foreignNumber, lang: second(), slow: true, pauseAfter: 600 };
     // Les « -teen » et les « -ty » se ressemblent : 13 et 30, 14 et 40…
     const twin = n >= 13 && n <= 19 ? (n - 10) * 10 : n >= 30 && n <= 90 && n % 10 === 0 ? n / 10 + 10 : undefined;
     const easy = enNumberLevel(n) <= 4;
@@ -1148,9 +1182,9 @@ const englishNumbers: GameDef = {
       answer: choice(n),
       distractors: nearNumbers(n, easy ? 2 : 3, rng, twin ? [twin] : [], 1).map(choice),
       prompt: [word, { ...word, pauseAfter: undefined }],
-      reinforce: [{ text: enNumber(n), lang: 'en', slow: true }, { text: `${frNumber(n)} !`, lang: 'fr' }],
+      reinforce: [{ text: foreignNumber, lang: second(), slow: true }, { text: isFr() ? `${frNumber(n)} !` : `${num(n)}!`, lang: lang() }],
       // Sans dire le nombre en français (ce serait la réponse) : comment le retrouver.
-      hints: [{
+      hints: [!isFr() ? { text: t('EN-2.hint', { language: t(`lang.${second()}`) }), lang: lang() } : {
         text: n <= 10
           ? 'Indice : compte en anglais sur tes doigts : one, two, three… et arrête-toi quand tu entends le bon nombre.'
           : n <= 19
@@ -1562,8 +1596,15 @@ function shapeWords(card: ShapeCard, withSize: boolean): string {
 const shapeChoice = (card: ShapeCard): Choice =>
   ({ id: `s:${card.shape}:${card.color}:${card.small ? 's' : 'b'}`, shape: card });
 
+/** Noms des couleurs dans les catalogues (« color.red »…). */
+const COLOR_KEYS: Record<number, string> = {
+  0xe5484d: 'red', 0x2f6fde: 'blue', 0x30a46c: 'green', 0xf5c518: 'yellow', 0xf28c28: 'orange', 0x8e4ec6: 'purple', 0xf27aa6: 'pink',
+};
+
 /** Génère une question « Formes et couleurs » selon le niveau. */
-function buildShapes(level: number, rng: Rng): BuiltQuestion {
+function buildShapes(levelAsked: number, rng: Rng): BuiltQuestion {
+  // Autres langues : la taille et « qui n'est pas… » (grammaire propre à chaque langue) restent en français.
+  const level = isFr() ? levelAsked : Math.min(levelAsked, 13);
   const shapes = SHAPES.filter(([, , , from]) => from <= Math.max(level, 1)).map(([id]) => id);
   const pick = <T>(list: T[]) => list[Math.floor(rng() * list.length)];
   const colors = COLORS.map(([c]) => c);
@@ -1644,6 +1685,17 @@ function buildShapes(level: number, rng: Rng): BuiltQuestion {
     hint = `Indice : cherche toutes les formes ${fem ? 'pareilles' : 'pareilles'} à ${fem ? 'la' : 'le'} ${name}, et garde celle d'une autre couleur.`;
   }
   const [first, ...rest] = cards.map(shapeChoice);
+  if (!isFr()) {
+    const mode = level <= 1 || level === 3 ? 'shape' : level === 2 || level === 4 ? 'color' : 'both';
+    const params = { shape: t(`shape.${answer.shape}`), color: t(`color.${COLOR_KEYS[answer.color]}`) };
+    return {
+      answer: first,
+      distractors: rest,
+      prompt: [{ text: t(`LO-7.${mode}`, params, undefined, rng), lang: lang() }],
+      reinforce: [{ text: t(`LO-7.yes.${mode}`, params, undefined, rng), lang: lang() }],
+      hints: [{ text: mode === 'shape' ? t('g.hint', { hint: t(`clue.${answer.shape}`) }) : t(`LO-7.hint.${mode}`), lang: lang() }],
+    };
+  }
   return {
     answer: first,
     distractors: rest,
@@ -1720,8 +1772,23 @@ function buildClock(level: number, variant: number, rng: Rng): BuiltQuestion {
     if (minutes.length > 1) add(h, pick(minutes.filter((x) => x !== m)));
   }
   for (let guard = 0; others.length < count && guard < 50; guard++) add(1 + Math.floor(rng() * 12), pick(minutes));
-  const said = sayTime(h, m, afternoon);
   const choice = (c: { h: number; m: number }): Choice => ({ id: `c:${c.h}:${c.m}`, clock: c });
+  if (!isFr()) {
+    // Autres langues : l'heure dite avec les tournures du catalogue (pile, et demie, et quart, moins le quart, minutes).
+    const next = (h % 12) + 1;
+    const said = afternoon
+      ? t('time.24', { h: h + 12, mm: String(m).padStart(2, '0') })
+      : t(m === 0 ? 'time.0' : m === 30 ? 'time.30' : m === 15 ? 'time.15' : m === 45 ? 'time.45' : 'time.m',
+        { h, next, m, mm: String(m).padStart(2, '0') });
+    return {
+      answer: choice({ h, m }),
+      distractors: others.map(choice),
+      prompt: [{ text: t('LO-8.prompt', { time: said }, undefined, rng), lang: lang() }],
+      reinforce: [{ text: t('LO-8.yes', { time: said }), lang: lang() }],
+      hints: [{ text: t(level <= 11 ? 'LO-8.hint' : 'LO-8.hintHard'), lang: lang() }],
+    };
+  }
+  const said = sayTime(h, m, afternoon);
   return {
     answer: choice({ h, m }),
     distractors: others.map(choice),
@@ -1814,6 +1881,19 @@ function buildMoney(level: number, rng: Rng): BuiltQuestion {
   const card = (coins: number[], total: number): Choice => ({ id: `m:${total}`, money: coins });
   const distractors = totals.map((t) => makeChange(t, denoms, rng) ?? makeChange(t, [...denoms, 1, 2, 5, 10], rng)!)
     .map((coins, i) => card(coins, totals[i]));
+  if (!isFr()) {
+    const euros = Math.floor(target / 100);
+    const cents = target % 100;
+    const said = euros && cents ? t('money.ec', { e: euros, c: cents })
+      : euros ? t(euros === 1 ? 'money.e1' : 'money.e', { e: euros }) : t(cents === 1 ? 'money.c1' : 'money.c', { c: cents });
+    return {
+      answer: card(answer, target),
+      distractors,
+      prompt: [{ text: t('LO-9.prompt', { money: said }, undefined, rng), lang: lang() }],
+      reinforce: [{ text: t('LO-9.yes', { money: said }), lang: lang() }],
+      hints: [{ text: t('LO-9.hint'), lang: lang() }],
+    };
+  }
   const said = sayMoney(target);
   return {
     answer: card(answer, target),
@@ -1857,6 +1937,17 @@ function traceQuestions(gameId: string, models: TraceModel[], offsets: number[])
 function buildTrace(ref: QuestionRef, rng: Rng): BuiltQuestion {
   const [, id, mode] = ref.id.split(':') as [string, string, TraceMode];
   const model = traceModel(id)!;
+  if (!isFr()) {
+    // Autres langues : sans nommer le modèle (les noms des lettres changent d'une langue à l'autre).
+    return {
+      answer: { id: 'ok' },
+      distractors: [],
+      show: { kind: 'trace', model: id, mode },
+      prompt: [{ text: t(`TR.${mode}`, {}, undefined, rng), lang: lang() }],
+      reinforce: [{ text: t('TR.yes', {}, undefined, rng), lang: lang() }],
+      hints: [{ text: t('TR.hint'), lang: lang() }],
+    };
+  }
   const prompt = mode === 'free'
     ? oneOf(rng, [`Maintenant, dessine ${model.name} tout seul, comme le modèle !`, `À toi : dessine ${model.name}, sans les points !`])
     : mode === 'faint'
@@ -1895,6 +1986,8 @@ const traceLetters: GameDef = {
   introLine: 'intro.TR-2',
   homeLine: 'home.TR-2',
   shortLine: 'short.TR-2',
+  // Lettres de l'alphabet latin : seulement dans les langues qui l'utilisent.
+  langs: (l) => langInfo(l).latin,
   questions: traceQuestions('TR-2', LETTER_MODELS, [0, 6, 12]),
   build: (ref, _level, rng) => buildTrace(ref, rng),
 };
@@ -2023,17 +2116,19 @@ function memoryQuestions(gameId: string): QuestionRef[] {
   return refs;
 }
 
-function buildMemory(ref: QuestionRef, rng: Rng, lang: 'fr' | 'en'): BuiltQuestion {
+function buildMemory(ref: QuestionRef, rng: Rng, foreign: boolean): BuiltQuestion {
+  // Les cartes sont dites dans la langue de l'application, ou dans la langue apprise en plus.
+  const language: Lang = foreign ? second() : lang();
   const [, level, theme] = ref.id.split(':');
   const pairs = memoryPairs(Number(level));
-  const usable = (c: Concept) => c.group !== 'color' && (lang === 'fr' || c.levels['EN-1'] !== undefined);
+  const usable = (c: Concept) => c.group !== 'color' && (!foreign || c.levels['EN-1'] !== undefined);
   // La famille du plateau ; complétée par d'autres images s'il en manque (sans deux fois le même mot).
   const pool = [...shuffle(CONCEPTS.filter((c) => c.category === theme && usable(c)), rng),
     ...shuffle(CONCEPTS.filter((c) => c.category !== theme && usable(c)), rng)];
   const words = new Set<string>();
   const chosen: Concept[] = [];
   for (const c of pool) {
-    const word = lang === 'en' ? c.en.word : c.fr.word;
+    const word = foreign ? foreignWord(c, language) : isFr() ? c.fr.word : theWord(c);
     if (chosen.length >= pairs || words.has(word)) continue;
     words.add(word);
     chosen.push(c);
@@ -2041,13 +2136,15 @@ function buildMemory(ref: QuestionRef, rng: Rng, lang: 'fr' | 'en'): BuiltQuesti
   return {
     answer: { id: 'ok' },
     distractors: [],
-    show: { kind: 'memory', images: chosen.map((c) => c.id), lang },
-    prompt: [{ text: lang === 'en'
-      ? oneOf(rng, ['Retourne deux cartes, et trouve les paires ! J\'écoute… en anglais !', 'Trouve les paires, et écoute les mots anglais !'])
-      : oneOf(rng, ['Retourne deux cartes. Si ce sont les mêmes, tu gagnes la paire !', 'Trouve toutes les paires !']), lang: 'fr' }],
-    reinforce: [{ text: oneOf(rng, ['Bravo, tu as trouvé toutes les paires !', 'Quelle mémoire ! Toutes les paires !',
-      'Toutes les paires ! Tu es un champion du memory !']), lang: 'fr' }],
-    hints: [{ text: 'Souviens-toi bien où sont les images que tu as déjà vues !', lang: 'fr' }],
+    show: { kind: 'memory', images: chosen.map((c) => c.id), lang: language },
+    prompt: [{ text: foreign
+      ? phrase(() => oneOf(rng, ['Retourne deux cartes, et trouve les paires ! J\'écoute… en anglais !', 'Trouve les paires, et écoute les mots anglais !']),
+        'LO-10.promptForeign', { language: t(`lang.${language}`) }, rng)
+      : phrase(() => oneOf(rng, ['Retourne deux cartes. Si ce sont les mêmes, tu gagnes la paire !', 'Trouve toutes les paires !']),
+        'LO-10.prompt', {}, rng), lang: lang() }],
+    reinforce: [{ text: phrase(() => oneOf(rng, ['Bravo, tu as trouvé toutes les paires !', 'Quelle mémoire ! Toutes les paires !',
+      'Toutes les paires ! Tu es un champion du memory !']), 'LO-10.yes', {}, rng), lang: lang() }],
+    hints: [{ text: phrase(() => 'Souviens-toi bien où sont les images que tu as déjà vues !', 'LO-10.hint'), lang: lang() }],
   };
 }
 
@@ -2062,7 +2159,7 @@ const memory: GameDef = {
   homeLine: 'home.LO-10',
   shortLine: 'short.LO-10',
   questions: memoryQuestions('LO-10'),
-  build: (ref, _level, rng) => buildMemory(ref, rng, 'fr'),
+  build: (ref, _level, rng) => buildMemory(ref, rng, false),
 };
 
 const memoryEnglish: GameDef = {
@@ -2077,8 +2174,13 @@ const memoryEnglish: GameDef = {
   homeLine: 'home.EN-3',
   shortLine: 'short.EN-3',
   questions: memoryQuestions('EN-3'),
-  build: (ref, _level, rng) => buildMemory(ref, rng, 'en'),
+  build: (ref, _level, rng) => buildMemory(ref, rng, true),
 };
+
+/** Jeux qui n'existent encore qu'en français (lecture, sons, histoires, devinettes, Mon pays). */
+const FRENCH_ONLY = new Set(['MO-2', 'MO-6', 'FR-1', 'FR-2', 'FR-3', 'FR-4', 'FR-5', 'FR-6', 'FR-7', 'FR-8',
+  'VO-3', 'VO-4', 'VO-5', 'VO-6', 'VO-7', 'VO-8', 'VO-9', 'VO-10', 'VO-11', 'VO-12']);
+const onlyFrench = (l: Lang) => l === 'fr';
 
 export const GAMES: GameDef[] = [
   listenTap, englishNumbers, showMe, riddles, shadows, together, bigger, myCountry, missingWord, missingWordRead, listenStory, sounds,
@@ -2086,8 +2188,17 @@ export const GAMES: GameDef[] = [
   clockGame, moneyGame, memory, memoryEnglish, traceShapes, traceLetters, ...VOICE_GAMES, mentalCalcAloud,
 ];
 
-/** Jeux proposés à un enfant de cet âge. */
-export const gamesForAge = (age: number): GameDef[] => GAMES.filter((g) => age >= (g.minAge ?? 3));
+for (const g of GAMES) if (FRENCH_ONLY.has(g.id)) g.langs = onlyFrench;
+
+/**
+ * Le jeu existe dans la langue de l'application. Les jeux à voix haute demandent un
+ * pack de reconnaissance dans cette langue (pas d'arabe, d'ourdou ni de bengali).
+ */
+export const inLanguage = (g: GameDef, language: Lang = lang()) =>
+  (!g.langs || g.langs(language)) && (g.voice === undefined || !!langInfo(language).asr);
+
+/** Jeux proposés à un enfant de cet âge (dans la langue de l'application). */
+export const gamesForAge = (age: number): GameDef[] => GAMES.filter((g) => age >= (g.minAge ?? 3) && inLanguage(g));
 
 export const gameById = (id: string): GameDef => {
   const game = GAMES.find((g) => g.id === id);

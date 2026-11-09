@@ -2,8 +2,9 @@ import type { BuiltQuestion, Choice, GameDef, Script } from './games';
 import { QuestionRef, Rng, shuffle } from '../domain/models';
 import { SayTarget, withoutArticle } from '../domain/speech';
 import {
-  CONCEPTS, categoryHint, Concept, Speech, conceptById, conceptsFor, frWithArticle, pickDistractors,
+  CONCEPTS, categoryHint, Concept, Speech, conceptById, conceptsFor, foreignWord, frWithArticle, pickDistractors, theWord,
 } from './content';
+import { isFr, lang, second, t } from '../i18n';
 import { BANKNOTES, CELEBRATIONS, Country, FAR_FLAGS, FOREIGN_FOODS, OTHER_ANIMALS, currentCountry } from './countries';
 import {
   COUNTRY_NAMES, JOBS, NATURE, OralCard, OralRiddle, SEASONS, SHAPES_COLORS, SPACE, SPORTS, WORLD,
@@ -50,7 +51,7 @@ const namePool = conceptsFor('MO-1').filter((c) => c.group !== 'color');
 const nameIt: GameDef = {
   id: 'VO-1',
   category: 'world',
-  voice: 'fr',
+  get voice() { return lang(); },
   icon: 'vo-name',
   color: 0xe5484d,
   introLine: 'intro.VO-1',
@@ -59,6 +60,23 @@ const nameIt: GameDef = {
   questions: namePool.map((c) => ({ id: `VO-1:${c.id}`, level: c.levels['MO-1']! })),
   build(ref, level, rng) {
     const answer = conceptById(idOf(ref));
+    if (!isFr()) {
+      // Autres langues : le mot du catalogue (avec son article s'il y en a un).
+      const word = theWord(answer);
+      const say = (key: string) => ({ text: t(key, { word }, undefined, rng), lang: lang() });
+      return {
+        answer: conceptChoice(answer),
+        distractors: pickDistractors(answer, namePool, level >= 15 ? 5 : 3, level >= 2 ? 'same_group' : 'other_group', rng)
+          .map(conceptChoice),
+        show: { kind: 'image', image: answer.id },
+        prompt: [say('VO-1.prompt')],
+        say: { lang: lang(), accept: [word], others: unique(pickDistractors(answer, namePool, 12, 'same_group', rng).map(theWord)) },
+        reinforce: [say('g.yesWord')],
+        repeatAfterMe: [say('VO-1.repeat')],
+        fallback: { prompt: [say('MO-1.prompt')], hideShow: true },
+        hints: categoryHint(answer) ? [{ text: t('g.hintFamily', { family: categoryHint(answer)! }), lang: lang() }] : [],
+      };
+    }
     const name = frWithArticle(answer);
     return {
       answer: conceptChoice(answer),
@@ -86,7 +104,8 @@ const englishPool = conceptsFor('EN-1');
 const sayEnglish: GameDef = {
   id: 'VO-2',
   category: 'foreign_language',
-  voice: 'en',
+  // Reconnaissance dans la langue apprise (anglais, ou espagnol pour les anglophones).
+  get voice() { return second(); },
   minAge: 5,
   icon: 'flag-gb',
   color: 0x3b7de9,
@@ -96,6 +115,23 @@ const sayEnglish: GameDef = {
   questions: englishPool.map((c) => ({ id: `VO-2:${c.id}`, level: c.levels['EN-1']! })),
   build(ref, level, rng) {
     const answer = conceptById(idOf(ref));
+    if (!isFr()) {
+      const foreign = foreignWord(answer);
+      const spoken: Speech = { text: foreign, lang: second(), slow: true, pauseAfter: 500 };
+      const params = { word: theWord(answer), language: t(`lang.${second()}`) };
+      const say = (key: string) => ({ text: t(key, params, undefined, rng), lang: lang() });
+      return {
+        answer: conceptChoice(answer),
+        distractors: pickDistractors(answer, englishPool, 3, level >= 6 ? 'same_group' : 'other_group', rng).map(conceptChoice),
+        show: { kind: 'image', image: answer.id },
+        prompt: [say('VO-2.prompt')],
+        say: { lang: second(), accept: [foreign], others: unique(pickDistractors(answer, englishPool, 12, 'same_group', rng).map((c) => foreignWord(c))) },
+        reinforce: [{ ...spoken, pauseAfter: undefined }, say('VO-2.yes')],
+        repeatAfterMe: [say('VO-2.repeat'), spoken],
+        fallback: { prompt: [say('VO-2.fallback'), spoken, { ...spoken, pauseAfter: undefined }], hideShow: true },
+        hints: [say('VO-2.hint')],
+      };
+    }
     const name = frWithArticle(answer);
     const word: Speech = { text: answer.en.word, lang: 'en', slow: true, pauseAfter: 500 };
     return {

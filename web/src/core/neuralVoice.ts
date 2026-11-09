@@ -11,7 +11,8 @@ import { spokenSegments } from '../domain/sayable';
 /** Voix du dino plus aiguë, à la même vitesse (choisie à l'écoute : 1,40), en français comme en anglais. */
 export const DINO_PITCH = 1.4;
 
-type Lang = 'fr' | 'en';
+import type { Lang } from '../domain/langs';
+
 const voices: Partial<Record<Lang, string>> = {};
 
 /** Active (ou retire) une voix neuronale pour une langue des répliques. */
@@ -19,7 +20,7 @@ export function setNeuralVoice(lang: Lang, voiceId: string | undefined) {
   if (voiceId) {
     voices[lang] = voiceId;
     // On la prépare tout de suite (voix et prononciation) : la première phrase n'attendra pas le chargement.
-    void loadVoice(voiceId).then(() => synthesize(voiceId, lang === 'fr' ? 'Oui.' : 'Yes.')).catch(() => {
+    void loadVoice(voiceId).then(() => synthesize(voiceId, 'OK.')).catch(() => {
       if (voices[lang] === voiceId) delete voices[lang];
     });
   } else {

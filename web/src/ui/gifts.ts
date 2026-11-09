@@ -4,6 +4,8 @@ import { app } from '../core/app';
 import { Sfx } from '../core/sfx';
 import { Dino } from '../dino/Dino';
 import { unit } from './scenery';
+import { lang, t } from '../i18n';
+import { itemName } from '../content/items';
 
 /**
  * Le dino a grandi (au vestiaire) : l'enfant choisit son cadeau parmi 4 objets.
@@ -22,7 +24,7 @@ export async function chooseGifts(scene: Phaser.Scene, dino: Dino): Promise<Item
     received.push(item);
     dino.react('cheer');
     Sfx.play('levelUp');
-    await app.voice.say([{ text: `Oh, ${item.name} ! Merci !`, lang: 'fr' }]);
+    await app.voice.say([{ text: t('l.giftThanks', { item: itemName(item) }, `Oh, ${item.name} ! Merci !`), lang: lang() }]);
   }
   return received;
 }
@@ -75,8 +77,8 @@ function pickOne(scene: Phaser.Scene, dino: Dino): Promise<Item | undefined> {
       layer.add(bubble);
     });
     void app.voice.say([{
-      text: app.rng() < 0.5 ? 'J\'ai grandi ! Choisis un cadeau pour moi !' : 'Un cadeau ! Lequel tu veux me donner ?',
-      lang: 'fr',
+      text: t('l.gift', {}, app.rng() < 0.5 ? 'J\'ai grandi ! Choisis un cadeau pour moi !' : 'Un cadeau ! Lequel tu veux me donner ?'),
+      lang: lang(),
     }]);
   });
 }

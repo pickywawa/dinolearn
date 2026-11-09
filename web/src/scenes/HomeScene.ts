@@ -17,6 +17,7 @@ import { backdropPoint, drawBackdrop, VOLCANO_MOUND } from '../ui/backdrop';
 import { Music } from '../core/music';
 import { Sfx } from '../core/sfx';
 import { BaseScene } from './BaseScene';
+import { t } from '../i18n';
 
 /**
  * Accueil : le bouton vert, au centre, lance une série tout mélangée
@@ -79,7 +80,7 @@ export class HomeScene extends BaseScene {
         yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
     }
     this.tweens.add({ targets: title, angle: { from: -1.5, to: 1.5 }, duration: 2600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
-    woodSign(this, cx, H * 0.3, app.progress.name ? `Joue avec ton dino, ${app.progress.name} !` : 'Apprends et joue avec ton Dino !',
+    woodSign(this, cx, H * 0.3, app.progress.name ? t('ui.home.playWith', { name: app.progress.name }, 'Joue avec ton dino, {name} !') : t('ui.home.learn', {}, 'Apprends et joue avec ton Dino !'),
       u * 0.038, false);
 
     // Le gros bouton « Jouer » : une série de jeux au hasard (le tour du monde des jeux).
@@ -277,7 +278,7 @@ export class HomeScene extends BaseScene {
     const title = document.createElement('h2');
     title.textContent = `⭐ Niveau ${app.progress.dino.level}`;
     const summary = document.createElement('p');
-    summary.textContent = `${app.progress.seriesPlayed} parties terminées. Ton dino grandit avec toi !`;
+    summary.textContent = t('ui.home.summary', { n: app.progress.seriesPlayed }, '{n} parties terminées. Ton dino grandit avec toi !');
     const close = document.createElement('button');
     close.textContent = 'Continuer';
     close.style.cssText = 'border:0;border-radius:16px;background:#389f26;color:white;padding:14px 28px;font:inherit;cursor:pointer';
@@ -307,7 +308,7 @@ export class HomeScene extends BaseScene {
       this.input.enabled = false;
       const p = app.progress;
       const s = p.settings;
-      const child = await childForm('Comment s\'appelle l\'enfant ?', 'Le dino va l\'appeler par son prénom.', {
+      const child = await childForm(t('ui.child.title', {}, 'Comment s\'appelle l\'enfant ?'), t('ui.child.sub', {}, 'Le dino va l\'appeler par son prénom.'), {
         name: '', age: p.age, country: s.country, dailyMinutes: s.dailyMinutes, nightTime: s.nightTime, chooseGames: true,
       });
       if (child) {
@@ -351,7 +352,7 @@ export class HomeScene extends BaseScene {
         if (ok) this.scene.restart({});
       });
     }, 0.6).setAlpha(0.8);
-    this.add.text(unlock.x, unlock.y + u * 0.17, 'Chut… le dino dort.\nUn parent peut débloquer avec son code.', {
+    this.add.text(unlock.x, unlock.y + u * 0.17, t('ui.home.sleeping', {}, 'Chut… le dino dort.\nUn parent peut débloquer avec son code.'), {
       fontFamily: 'Arial, sans-serif', fontSize: `${Math.round(u * 0.036)}px`, color: '#ffffff', align: 'center',
       backgroundColor: '#2d3354cc', padding: { x: 14, y: 10 },
     }).setOrigin(0.5, 0);
@@ -388,7 +389,7 @@ export class HomeScene extends BaseScene {
         if (ok) this.scene.restart({});
       });
     }, 0.6);
-    const note = this.add.text(unlock.x, unlock.y + u * 0.19, 'Temps de jeu terminé.\nUn parent peut débloquer avec son code.', {
+    const note = this.add.text(unlock.x, unlock.y + u * 0.19, t('ui.home.timeUp', {}, 'Temps de jeu terminé.\nUn parent peut débloquer avec son code.'), {
       fontFamily: 'Arial, sans-serif', fontSize: `${Math.round(u * 0.036)}px`, color: '#ffffff', align: 'center',
       backgroundColor: '#2d3354cc', padding: { x: 14, y: 10 },
     }).setOrigin(0.5, 0);
@@ -418,8 +419,8 @@ export class HomeScene extends BaseScene {
     this.input.enabled = false;
     this.run(async () => {
       const ok = app.profiles.pin
-        ? await askParentCode('Espace parents', 'Tapez votre code parent.')
-        : await createParentCode('Code parent', 'Choisissez un code à 4 chiffres.', 'Annuler');
+        ? await askParentCode(t('ui.parents.title', {}, 'Espace parents'), t('ui.pin.type', {}, 'Tapez votre code parent.'))
+        : await createParentCode(t('ui.pin.title', {}, 'Code parent'), t('ui.pin.choose', {}, 'Choisissez un code à 4 chiffres.'), t('ui.cancel', {}, 'Annuler'));
       if (ok) openParents(() => this.scene.restart({}));
       else this.scene.restart({});
     });

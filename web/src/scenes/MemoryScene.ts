@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
-import { conceptById, frWithArticle } from '../content/content';
+import { conceptById, foreignWord, frWithArticle, theWord } from '../content/content';
+import { isFr, lang } from '../i18n';
 import { gameById } from '../content/games';
 import { app } from '../core/app';
 import { Series, sceneOf } from '../core/series';
@@ -195,8 +196,9 @@ export class MemoryScene extends BaseScene {
   private sayName(image: string) {
     const show = this.series.current.show;
     const c = conceptById(image);
-    if (show?.kind === 'memory' && show.lang === 'en') void app.voice.say([{ text: c.en.word, lang: 'en', slow: true }]);
-    else void app.voice.say([{ text: frWithArticle(c), lang: 'fr' }]);
+    // Mot de la carte : dans la langue apprise en plus (memory de langue étrangère), sinon dans celle de l'application.
+    if (show?.kind === 'memory' && show.lang !== lang()) void app.voice.say([{ text: foreignWord(c, show.lang), lang: show.lang, slow: true }]);
+    else void app.voice.say([{ text: isFr() ? frWithArticle(c) : theWord(c), lang: lang() }]);
   }
 
   private flip(card: Card) {

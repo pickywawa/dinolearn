@@ -1,5 +1,7 @@
 import conceptsJson from './concepts.json';
 import { Rng, shuffle } from '../domain/models';
+import { isFr, second, t } from '../i18n';
+import type { Lang } from '../domain/langs';
 
 export interface Concept {
   id: string;
@@ -11,6 +13,8 @@ export interface Concept {
   levels: Partial<Record<string, number>>;
   fr: { article: string; word: string };
   en: { word: string };
+  /** Mot espagnol (langue apprise par les anglophones). */
+  es?: { word: string };
 }
 
 export const CONCEPTS = conceptsJson.concepts as Concept[];
@@ -20,6 +24,16 @@ export function frWithArticle(c: Concept): string {
   const { article, word } = c.fr;
   if (!article) return word;
   return article.endsWith("'") ? `${article}${word}` : `${article} ${word}`;
+}
+
+/** Le mot d'une image dans la langue de l'application, avec son article si la langue en a (« the dog », « el perro »). */
+export function theWord(c: Concept): string {
+  return isFr() ? frWithArticle(c) : t(`c.${c.id}`, {}, c.en.word);
+}
+
+/** Le mot d'une image dans la langue apprise en plus (sans article) : anglais, ou espagnol. */
+export function foreignWord(c: Concept, language: Lang = second()): string {
+  return language === 'es' ? c.es?.word ?? c.en.word : c.en.word;
 }
 
 /**
@@ -32,7 +46,7 @@ export type DistractorStrategy = 'other_group' | 'same_group' | 'same_category';
 /** Un morceau de parole : texte et langue. */
 export interface Speech {
   text: string;
-  lang: 'fr' | 'en';
+  lang: Lang;
   slow?: boolean;
   /** Silence après ce morceau, en ms (180 par défaut). */
   pauseAfter?: number;
@@ -82,6 +96,7 @@ export function pickDistractors(
  * Indice « c'est un … » d'une image, sauf s'il donne la réponse (l'oiseau : « c'est un oiseau »).
  */
 export function categoryHint(c: { category: string; fr: { word: string } }): string | undefined {
+  if (!isFr()) return t(`cat.${c.category}`, {}, '') || undefined;
   const hint = CATEGORY_HINTS[c.category];
   const bare = (s: string) => s.toLowerCase().normalize('NFD').replace(/\p{M}/gu, '');
   if (!hint || bare(hint).includes(bare(c.fr.word))) return undefined;

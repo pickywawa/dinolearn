@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { pitchShift } from '../src/core/pitch';
 import {
-  ENGLISH_VOICE, LANGUAGES, SIZES_MB, asrLanguages, englishGamesAllowed, formatRemaining, packChoices, remainingSeconds, throughput,
+  LANGUAGES, SIZES_MB, asrLanguages, formatRemaining, packChoices, remainingSeconds, secondLanguage, throughput,
 } from '../src/domain/packs';
+import { LANGS, VOICE_URLS, deviceCountry, deviceLang } from '../src/domain/langs';
 
 const freq = (y: Float32Array, sr: number, a: number, b: number) => {
   let z = 0;
@@ -23,26 +24,39 @@ describe('voix du dino plus aiguë', () => {
 });
 
 describe('téléchargements', () => {
-  it('en français : voix du dino (moteur + UPMC), voix anglaise, reconnaissance française et anglaise', () => {
+  it('en français : voix du dino, voix anglaise, reconnaissance française et anglaise', () => {
     const choices = packChoices('fr', true);
-    expect(choices.map((c) => c.id)).toEqual(['speech', 'english', 'asr']);
-    expect(choices[0].sizeMb).toBeCloseTo(SIZES_MB.engine + SIZES_MB.voices['fr_FR-upmc-medium']);
-    expect(choices[1].sizeMb).toBeCloseTo(SIZES_MB.voices[ENGLISH_VOICE]);
+    expect(choices.map((c) => c.id)).toEqual(['speech', 'second', 'asr']);
+    expect(choices[0].sizeMb).toBeCloseTo(SIZES_MB.voices['fr_FR-upmc-medium']);
+    expect(choices[1].sizeMb).toBeCloseTo(SIZES_MB.voices['en_GB-alba-medium']);
     expect(choices[2].sizeMb).toBeCloseTo(SIZES_MB.asr.fr + SIZES_MB.asr.en);
-    // Sans la voix anglaise : la reconnaissance ne prend que le français.
+    // Sans la langue apprise en plus : la reconnaissance ne prend que le français.
     expect(packChoices('fr', false)[2].sizeMb).toBeCloseTo(SIZES_MB.asr.fr);
-    // Moteur déjà là : la voix seule.
-    expect(packChoices('fr', true, true)[0].sizeMb).toBeCloseTo(SIZES_MB.voices['fr_FR-upmc-medium']);
     expect(LANGUAGES.find((l) => l.code === 'fr')?.voice).toBe('fr_FR-upmc-medium');
   });
 
-  it('en anglais : pas de pack anglais, et pas de jeux d\'anglais', () => {
-    expect(packChoices('en', true).map((c) => c.id)).toEqual(['speech', 'asr']);
-    expect(asrLanguages('en', true)).toEqual(['en']);
-    expect(englishGamesAllowed('en')).toBe(false);
-    expect(englishGamesAllowed('fr')).toBe(true);
-    // Langue sans reconnaissance vocale : pas de pack de reconnaissance.
-    expect(packChoices('de', true).map((c) => c.id)).toEqual(['speech', 'english']);
+  it('langue apprise en plus : l\'anglais, ou l\'espagnol pour les anglophones', () => {
+    expect(secondLanguage('fr')).toBe('en');
+    expect(secondLanguage('zh')).toBe('en');
+    expect(secondLanguage('en')).toBe('es');
+    expect(asrLanguages('en', true)).toEqual(['en', 'es']);
+  });
+
+  it('sans reconnaissance vocale (arabe, ourdou, bengali) : pas de pack de reconnaissance', () => {
+    for (const code of ['ar', 'ur', 'bn']) {
+      expect(packChoices(code, true).map((c) => c.id)).toEqual(['speech', 'second']);
+      expect(asrLanguages(code, true)).toEqual([]);
+    }
+  });
+
+  it('chaque langue a sa voix (adresse et taille), et la langue de l\'appareil est reconnue', () => {
+    for (const l of LANGS) {
+      expect(VOICE_URLS[l.voice], l.code).toMatch(/^https:\/\/huggingface\.co\//);
+      expect(SIZES_MB.voices[l.voice], l.code).toBeGreaterThan(30);
+    }
+    expect(deviceLang(['pt-BR', 'en-US'])).toBe('pt');
+    expect(deviceLang(['ja-JP'])).toBe('fr');
+    expect(deviceCountry(['pt-BR'])).toBe('br');
   });
 
   it('temps restant : débit lissé et texte lisible', () => {
@@ -85,5 +99,15 @@ describe('répliques pour la voix neuronale', async () => {
     ]);
     expect(spokenSegments('Coucou Léa')).toEqual([{ text: 'Coucou Léa', pauseMs: 0 }]);
     expect(spokenSegments('Bravo ! Tu as trouvé...')).toEqual([{ text: 'Bravo !', pauseMs: 300 }, { text: 'Tu as trouvé…', pauseMs: 0 }]);
+  });
+});
+
+describe('packs de reconnaissance préparés au déploiement', () => {
+  it('scripts/voice-packs.mjs prépare exactement les modèles de langs.ts', async () => {
+    const { readFileSync } = await import('node:fs');
+    const script = readFileSync(new URL('../scripts/voice-packs.mjs', import.meta.url), 'utf8');
+    const listed = [...script.matchAll(/\{ lang: '(\w+)', model: '([\w.-]+)' \}/g)].map((m) => `${m[1]}:${m[2]}`).sort();
+    const expected = LANGS.filter((l) => l.asr).map((l) => `${l.code}:${l.asr!.model}`).sort();
+    expect(listed).toEqual(expected);
   });
 });

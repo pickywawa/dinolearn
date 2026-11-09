@@ -1,3 +1,4 @@
+import { VOICE_URLS } from '../domain/langs';
 /**
  * Moteur de voix neuronale Piper, dans le navigateur (aucune voix enregistrée :
  * chaque phrase est calculée sur l'appareil).
@@ -15,22 +16,13 @@
 
 /** Adresse d'un fichier du moteur embarqué. */
 const engineFile = (name: string) => new URL(`piper/${name}`, document.baseURI).href;
-const VOICES_BASE = 'https://huggingface.co/diffusionstudio/piper-voices/resolve/main/';
 const CACHE = 'dinolearn-voices-v1';
 
-/** Chemins des voix sur HuggingFace. */
-const VOICE_PATHS: Record<string, string> = {
-  'fr_FR-upmc-medium': 'fr/fr_FR/upmc/medium/fr_FR-upmc-medium.onnx',
-  'en_GB-alba-medium': 'en/en_GB/alba/medium/en_GB-alba-medium.onnx',
-  'es_ES-davefx-medium': 'es/es_ES/davefx/medium/es_ES-davefx-medium.onnx',
-  'de_DE-thorsten-medium': 'de/de_DE/thorsten/medium/de_DE-thorsten-medium.onnx',
-  'it_IT-paola-medium': 'it/it_IT/paola/medium/it_IT-paola-medium.onnx',
-};
-
+/** Adresses d'une voix (modèle et réglages). */
 const voiceUrls = (voiceId: string) => {
-  const path = VOICE_PATHS[voiceId];
-  if (!path) throw new Error(`Voix inconnue : ${voiceId}`);
-  return [`${VOICES_BASE}${path}`, `${VOICES_BASE}${path}.json`];
+  const base = VOICE_URLS[voiceId];
+  if (!base) throw new Error(`Voix inconnue : ${voiceId}`);
+  return [`${base}.onnx`, `${base}.onnx.json`];
 };
 
 export type OnBytes = (bytes: number, contentLength?: number) => void;

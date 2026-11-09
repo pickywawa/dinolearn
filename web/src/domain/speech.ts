@@ -1,3 +1,5 @@
+import type { Lang } from './langs';
+
 /**
  * Jeux à voix haute : ce que l'enfant doit dire, et la correction de ce que
  * la reconnaissance vocale a entendu. La reconnaissance ne choisit qu'entre
@@ -6,7 +8,7 @@
  * fiable qu'une dictée libre, même avec une voix d'enfant.
  */
 
-export type SpeechLang = 'fr' | 'en';
+export type SpeechLang = Lang;
 
 export interface SayTarget {
   lang: SpeechLang;
@@ -33,9 +35,16 @@ export const MIN_CONF_CORRECT = 0.3;
 export const MIN_CONF_WRONG = 0.6;
 
 /** Petits mots que les enfants ajoutent (« c'est un chien ! ») : reconnus, puis ignorés. */
-const FILLERS: Record<SpeechLang, string[]> = {
+const FILLERS: Partial<Record<SpeechLang, string[]>> = {
   fr: ['le', 'la', 'les', 'l\'', 'un', 'une', 'des', 'du', 'de', 'c\'est', 'est', 'euh', 'au', 'en'],
   en: ['the', 'a', 'an', 'it\'s', 'it', 'is', 'um'],
+  es: ['el', 'la', 'los', 'las', 'un', 'una', 'es', 'eh'],
+  it: ['il', 'lo', 'la', 'i', 'gli', 'le', 'l\'', 'un', 'una', 'uno', 'è', 'ehm'],
+  de: ['der', 'die', 'das', 'ein', 'eine', 'ist', 'äh'],
+  pt: ['o', 'a', 'os', 'as', 'um', 'uma', 'é'],
+  ru: ['это', 'э'],
+  zh: ['是', '这', '这是', '嗯'],
+  hi: ['यह', 'है', 'एक'],
 };
 
 /** Minuscules, apostrophes droites, ponctuation retirée, espaces simples. */
@@ -49,7 +58,7 @@ export function normalize(text: string): string {
 
 /** Mots d'une phrase, sans les petits mots ajoutés (articles, « c'est »). */
 function tokens(text: string, lang: SpeechLang): string[] {
-  const fillers = new Set(FILLERS[lang]);
+  const fillers = new Set(FILLERS[lang] ?? []);
   return normalize(text)
     // « l'oiseau » → « oiseau »
     .replace(/\b(l|d|c|qu)'/g, ' ')
@@ -59,7 +68,7 @@ function tokens(text: string, lang: SpeechLang): string[] {
 
 /** Variante sans article au début (« le chien » → « chien », « l'oiseau » → « oiseau ») ; les mots du milieu restent. */
 export function withoutArticle(phrase: string, lang: SpeechLang): string {
-  const fillers = new Set(FILLERS[lang]);
+  const fillers = new Set(FILLERS[lang] ?? []);
   const words = normalize(phrase).split(' ').filter(Boolean);
   while (words.length > 1 && fillers.has(words[0])) words.shift();
   if (words.length) words[0] = words[0].replace(/^(l|d|c|qu)'/, '');
@@ -80,7 +89,7 @@ function forms(phrase: string, lang: SpeechLang): string[] {
 export function grammarFor(target: SayTarget, vocab?: Set<string>): string[] {
   const known = (p: string) => !vocab || p.split(' ').every((w) => vocab.has(w));
   const phrases = [...target.accept, ...target.others].flatMap((p) => forms(p, target.lang));
-  const fillers = FILLERS[target.lang].filter((w) => !w.endsWith('\''));
+  const fillers = (FILLERS[target.lang] ?? []).filter((w) => !w.endsWith('\''));
   return [...new Set([...phrases, ...fillers])].filter(known).concat('[unk]');
 }
 

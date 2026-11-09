@@ -1,6 +1,7 @@
 import type { KaldiRecognizer, Model } from 'vosk-browser';
 import { Heard, SpeechLang } from '../domain/speech';
 import { voiceAsset } from './native';
+import { LANGS } from '../domain/langs';
 import { storedBlob } from './piper';
 
 /**
@@ -38,10 +39,10 @@ export interface VoicePack {
   name: string;
 }
 
-export const VOICE_PACKS: Record<SpeechLang, VoicePack> = {
-  fr: { file: 'voice/vosk-model-small-fr-0.22.tar.gz', words: 'voice/fr.words.txt', sizeMb: 41, name: 'Français' },
-  en: { file: 'voice/vosk-model-small-en-us-0.15.tar.gz', words: 'voice/en.words.txt', sizeMb: 40, name: 'Anglais' },
-};
+/** Packs de reconnaissance (ceux des langues qui en ont un léger), servis à côté du jeu. */
+export const VOICE_PACKS = Object.fromEntries(LANGS.filter((l) => l.asr).map((l) => [l.code, {
+  file: `voice/${l.asr!.model}.tar.gz`, words: `voice/${l.code}.words.txt`, sizeMb: l.asr!.sizeMb, name: l.name,
+}])) as Record<SpeechLang, VoicePack>;
 
 /** Adresse complète : le moteur tourne dans un worker, qui ne connaît pas le dossier du jeu. */
 const packUrl = (lang: SpeechLang) => voiceAsset(VOICE_PACKS[lang].file);

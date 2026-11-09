@@ -1,4 +1,5 @@
 import { Rng } from '../domain/models';
+import { isFr, second, t, variants as i18nVariants } from '../i18n';
 
 /**
  * Répliques du dino (spécifications §17.2). Le dino explique toujours
@@ -546,11 +547,13 @@ export class LinePicker {
   constructor(private rng: Rng, private lines = LINES) {}
 
   pick(group: string): string {
-    return withName(this.pickRaw(group), this.name());
+    // « {language} » : la langue apprise en plus (anglais, ou espagnol pour les anglophones).
+    return withName(this.pickRaw(group), this.name()).replace(/\{language\}/g, () => t(`lang.${second()}`));
   }
 
   private pickRaw(group: string): string {
-    const variants = this.lines[group];
+    // Autres langues : les répliques du catalogue (clés « l.<groupe> »).
+    const variants = isFr() ? this.lines[group] : i18nVariants(`l.${group}`) ?? [];
     if (!variants?.length) return '';
     const history = this.history.get(group) ?? [];
     const avoid = new Set(history.slice(0, Math.min(5, variants.length - 1)));

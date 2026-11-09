@@ -1,4 +1,10 @@
 import Phaser from 'phaser';
+import { isFr, lang, t } from '../i18n';
+import { asrLanguages } from '../domain/packs';
+import type { SpeechLang } from '../domain/speech';
+
+/** Couleur du dino dite par le dino (« vert », « green »…). */
+const dinoColorName = (i: number) => t(`dinocolor.${i}`, {}, DINO_COLORS[i].name);
 import { FIRST_NAMES } from '../content/names';
 import { app } from '../core/app';
 import { ears, packInstalled, voiceSupported } from '../core/ears';
@@ -76,7 +82,7 @@ export class HelloScene extends BaseScene {
     // Jeux à voix haute activés par défaut (si l'appareil sait écouter), même si le micro n'a pas servi ici.
     await firstLaunchSetup({ name, age, voice: voiceSupported() });
     // Les packs de reconnaissance déjà téléchargés (écran de chargement) servent aux jeux à voix haute.
-    const ready = (await Promise.all((['fr', 'en'] as const).map(async (l) => (await packInstalled(l) ? [l] : [])))).flat();
+    const ready = (await Promise.all(asrLanguages(lang(), true).map(async (l) => (await packInstalled(l as SpeechLang) ? [l as SpeechLang] : [])))).flat();
     if (ready.length) {
       app.progress.updateSettings({ voicePacks: [...new Set([...app.progress.settings.voicePacks, ...ready])] });
     }
@@ -92,7 +98,7 @@ export class HelloScene extends BaseScene {
   /** Un nouvel enfant de la famille : le dino le salue par son prénom, sans toute la présentation. */
   private async greetSibling() {
     this.dino.react('wave');
-    await app.voice.say([{ text: app.voice.lines.pick('hello.sibling').replace('{color}', DINO_COLORS[app.progress.color].name), lang: 'fr' }]);
+    await app.voice.say([{ text: app.voice.lines.pick('hello.sibling').replace('{color}', dinoColorName(app.progress.color)), lang: lang() }]);
     if (!this.alive) return;
     this.dino.react('cheer');
     await this.wait(400);
@@ -103,7 +109,7 @@ export class HelloScene extends BaseScene {
     const u = unit(this);
     const baseScale = this.dino.scale;
     this.dino.react('wave');
-    await app.voice.say([{ text: app.voice.lines.pick('hello.1').replace('{color}', DINO_COLORS[app.progress.color].name), lang: 'fr' }]);
+    await app.voice.say([{ text: app.voice.lines.pick('hello.1').replace('{color}', dinoColorName(app.progress.color)), lang: lang() }]);
     if (!this.alive) return;
 
     // Les jeux : des bulles qui apparaissent autour du dino.
@@ -193,7 +199,8 @@ export class HelloScene extends BaseScene {
 
   /** Le pack français (téléchargé dès l'ouverture du jeu) est-il prêt ? On l'attend un peu. */
   private async voiceReady(): Promise<boolean> {
-    if (!voiceSupported()) return false;
+    // Prénom et âge à la voix : seulement en français (prénoms et nombres reconnus) ; ailleurs, la fiche des parents.
+    if (!voiceSupported() || !isFr()) return false;
     const loading = loadFrench();
     let ready = await Promise.race([loading, this.wait(600).then(() => undefined)]);
     if (ready === undefined) {

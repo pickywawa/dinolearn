@@ -15,6 +15,9 @@
    },
    "en": {
     "word": "dog"
+   },
+   "es": {
+    "word": "el perro"
    }
   },
   {
@@ -32,6 +35,9 @@
    },
    "en": {
     "word": "cat"
+   },
+   "es": {
+    "word": "el gato"
    }
   },
   {
@@ -49,6 +55,9 @@
    },
    "en": {
     "word": "fish"
+   },
+   "es": {
+    "word": "el pez"
    }
   },
   {
@@ -66,6 +75,9 @@
    },
    "en": {
     "word": "bird"
+   },
+   "es": {
+    "word": "el pájaro"
    }
   },
   {
@@ -83,6 +95,9 @@
    },
    "en": {
     "word": "cow"
+   },
+   "es": {
+    "word": "la vaca"
    }
   },
   {
@@ -100,6 +115,9 @@
    },
    "en": {
     "word": "pig"
+   },
+   "es": {
+    "word": "el cerdo"
    }
   },
   {
@@ -117,6 +135,9 @@
    },
    "en": {
     "word": "horse"
+   },
+   "es": {
+    "word": "el caballo"
    }
   },
   {
@@ -134,6 +155,9 @@
    },
    "en": {
     "word": "duck"
+   },
+   "es": {
+    "word": "el pato"
    }
   },
   {
@@ -151,6 +175,9 @@
    },
    "en": {
     "word": "rabbit"
+   },
+   "es": {
+    "word": "el conejo"
    }
   },
   {
@@ -168,6 +195,9 @@
    },
    "en": {
     "word": "hen"
+   },
+   "es": {
+    "word": "la gallina"
    }
   },
   {
@@ -185,6 +215,9 @@
    },
    "en": {
     "word": "sheep"
+   },
+   "es": {
+    "word": "la oveja"
    }
   },
   {
@@ -202,6 +235,9 @@
    },
    "en": {
     "word": "frog"
+   },
+   "es": {
+    "word": "la rana"
    }
   },
   {
@@ -219,6 +255,9 @@
    },
    "en": {
     "word": "mouse"
+   },
+   "es": {
+    "word": "el ratón"
    }
   },
   {
@@ -236,6 +275,9 @@
    },
    "en": {
     "word": "dinosaur"
+   },
+   "es": {
+    "word": "el dinosaurio"
    }
   },
   {
@@ -252,6 +294,9 @@
    },
    "en": {
     "word": "red"
+   },
+   "es": {
+    "word": "rojo"
    }
   },
   {
@@ -268,6 +313,9 @@
    },
    "en": {
     "word": "blue"
+   },
+   "es": {
+    "word": "azul"
    }
   },
   {
@@ -284,6 +332,9 @@
    },
    "en": {
     "word": "green"
+   },
+   "es": {
+    "word": "verde"
    }
   },
   {
@@ -300,6 +351,9 @@
    },
    "en": {
     "word": "yellow"
+   },
+   "es": {
+    "word": "amarillo"
    }
   },
   {
@@ -316,6 +370,9 @@
    },
    "en": {
     "word": "orange"
+   },
+   "es": {
+    "word": "naranja"
    }
   },
   {
@@ -332,6 +389,9 @@
    },
    "en": {
     "word": "purple"
+   },
+   "es": {
+    "word": "violeta"
    }
   },
   {
@@ -348,6 +408,9 @@
    },
    "en": {
     "word": "pink"
+   },
+   "es": {
+    "word": "rosa"
    }
   },
   {
@@ -364,6 +427,9 @@
    },
    "en": {
     "word": "black"
+   },
+   "es": {
+    "word": "negro"
    }
   },
   {
@@ -380,6 +446,9 @@
    },
    "en": {
     "word": "white"
+   },
+   "es": {
+    "word": "blanco"
    }
   },
   {
@@ -396,6 +465,9 @@
    },
    "en": {
     "word": "brown"
+   },
+   "es": {
+    "word": "marrón"
    }
   },
   {
@@ -413,6 +485,9 @@
    },
    "en": {
     "word": "apple"
+   },
+   "es": {
+    "word": "la manzana"
    }
   },
   {
@@ -430,6 +505,9 @@
    },
    "en": {
     "word": "banana"
+   },
+   "es": {
+    "word": "el plátano"
    }
   },
   {
@@ -447,6 +525,9 @@
    },
    "en": {
     "word": "strawberry"
+   },
+   "es": {
+    "word": "la fresa"
    }
   },
   {
@@ -464,6 +545,9 @@
    },
    "en": {
     "word": "cherry"
+   },
+   "es": {
+    "word": "la cereza"
    }
   },
   {
@@ -481,6 +565,9 @@
    },
    "en": {
     "word": "orange"
+   },
+   "es": {
+    "word": "la naranja"
    }
   },
   {
@@ -498,6 +585,9 @@
    },
    "en": {
     "word": "egg"
+   },
+   "es": {
+    "word": "el huevo"
    }
   },
   {
@@ -515,6 +605,9 @@
    },
    "en": {
     "word": "ice cream"
+   },
+   "es": {
+    "word": "el helado"
    }
   },
   {
@@ -532,6 +625,9 @@
    },
    "en": {
     "word": "pizza"
+   },
+   "es": {
+    "word": "la pizza"
    }
   },
   {
@@ -549,6 +645,9 @@
    },
    "en": {
     "word": "grapes"
+   },
+   "es": {
+    "word": "las uvas"
    }
   },
   {
@@ -566,6 +665,9 @@
    },
    "en": {
     "word": "pear"
+   },
+   "es": {
+    "word": "la pera"
    }
   },
   {
@@ -583,6 +685,9 @@
    },
    "en": {
     "word": "lemon"
+   },
+   "es": {
+    "word": "el limón"
    }
   },
   {
@@ -600,6 +705,9 @@
    },
    "en": {
     "word": "carrot"
+   },
+   "es": {
+    "word": "la zanahoria"
    }
   },
   {
@@ -617,6 +725,9 @@
    },
    "en": {
     "word": "bread"
+   },
+   "es": {
+    "word": "el pan"
    }
   },
   {
@@ -634,6 +745,9 @@
    },
    "en": {
     "word": "milk"
+   },
+   "es": {
+    "word": "la leche"
    }
   },
   {
@@ -651,6 +765,9 @@
    },
    "en": {
     "word": "cake"
+   },
+   "es": {
+    "word": "la tarta"
    }
   },
   {
@@ -668,6 +785,9 @@
    },
    "en": {
     "word": "watermelon"
+   },
+   "es": {
+    "word": "la sandía"
    }
   },
   {
@@ -685,6 +805,9 @@
    },
    "en": {
     "word": "cookie"
+   },
+   "es": {
+    "word": "la galleta"
    }
   },
   {
@@ -702,6 +825,9 @@
    },
    "en": {
     "word": "cheese"
+   },
+   "es": {
+    "word": "el queso"
    }
   },
   {
@@ -719,6 +845,9 @@
    },
    "en": {
     "word": "tomato"
+   },
+   "es": {
+    "word": "el tomate"
    }
   },
   {
@@ -736,6 +865,9 @@
    },
    "en": {
     "word": "pineapple"
+   },
+   "es": {
+    "word": "la piña"
    }
   },
   {
@@ -753,6 +885,9 @@
    },
    "en": {
     "word": "peach"
+   },
+   "es": {
+    "word": "el melocotón"
    }
   },
   {
@@ -770,6 +905,9 @@
    },
    "en": {
     "word": "broccoli"
+   },
+   "es": {
+    "word": "el brócoli"
    }
   },
   {
@@ -787,6 +925,9 @@
    },
    "en": {
     "word": "corn"
+   },
+   "es": {
+    "word": "el maíz"
    }
   },
   {
@@ -804,6 +945,9 @@
    },
    "en": {
     "word": "kiwi"
+   },
+   "es": {
+    "word": "el kiwi"
    }
   },
   {
@@ -821,6 +965,9 @@
    },
    "en": {
     "word": "mango"
+   },
+   "es": {
+    "word": "el mango"
    }
   },
   {
@@ -838,6 +985,9 @@
    },
    "en": {
     "word": "blueberries"
+   },
+   "es": {
+    "word": "los arándanos"
    }
   },
   {
@@ -855,6 +1005,9 @@
    },
    "en": {
     "word": "coconut"
+   },
+   "es": {
+    "word": "el coco"
    }
   },
   {
@@ -872,6 +1025,9 @@
    },
    "en": {
     "word": "car"
+   },
+   "es": {
+    "word": "el coche"
    }
   },
   {
@@ -889,6 +1045,9 @@
    },
    "en": {
     "word": "ball"
+   },
+   "es": {
+    "word": "la pelota"
    }
   },
   {
@@ -906,6 +1065,9 @@
    },
    "en": {
     "word": "bus"
+   },
+   "es": {
+    "word": "el autobús"
    }
   },
   {
@@ -923,6 +1085,9 @@
    },
    "en": {
     "word": "train"
+   },
+   "es": {
+    "word": "el tren"
    }
   },
   {
@@ -940,6 +1105,9 @@
    },
    "en": {
     "word": "plane"
+   },
+   "es": {
+    "word": "el avión"
    }
   },
   {
@@ -957,6 +1125,9 @@
    },
    "en": {
     "word": "boat"
+   },
+   "es": {
+    "word": "el barco"
    }
   },
   {
@@ -974,6 +1145,9 @@
    },
    "en": {
     "word": "bike"
+   },
+   "es": {
+    "word": "la bicicleta"
    }
   },
   {
@@ -991,6 +1165,9 @@
    },
    "en": {
     "word": "balloon"
+   },
+   "es": {
+    "word": "el globo"
    }
   },
   {
@@ -1008,6 +1185,9 @@
    },
    "en": {
     "word": "teddy bear"
+   },
+   "es": {
+    "word": "el osito de peluche"
    }
   },
   {
@@ -1025,6 +1205,9 @@
    },
    "en": {
     "word": "book"
+   },
+   "es": {
+    "word": "el libro"
    }
   },
   {
@@ -1042,6 +1225,9 @@
    },
    "en": {
     "word": "house"
+   },
+   "es": {
+    "word": "la casa"
    }
   },
   {
@@ -1059,6 +1245,9 @@
    },
    "en": {
     "word": "kite"
+   },
+   "es": {
+    "word": "la cometa"
    }
   },
   {
@@ -1076,6 +1265,9 @@
    },
    "en": {
     "word": "bed"
+   },
+   "es": {
+    "word": "la cama"
    }
   },
   {
@@ -1093,6 +1285,9 @@
    },
    "en": {
     "word": "chair"
+   },
+   "es": {
+    "word": "la silla"
    }
   },
   {
@@ -1110,6 +1305,9 @@
    },
    "en": {
     "word": "door"
+   },
+   "es": {
+    "word": "la puerta"
    }
   },
   {
@@ -1127,6 +1325,9 @@
    },
    "en": {
     "word": "key"
+   },
+   "es": {
+    "word": "la llave"
    }
   },
   {
@@ -1144,6 +1345,9 @@
    },
    "en": {
     "word": "clock"
+   },
+   "es": {
+    "word": "el reloj"
    }
   },
   {
@@ -1161,6 +1365,9 @@
    },
    "en": {
     "word": "sun"
+   },
+   "es": {
+    "word": "el sol"
    }
   },
   {
@@ -1178,6 +1385,9 @@
    },
    "en": {
     "word": "moon"
+   },
+   "es": {
+    "word": "la luna"
    }
   },
   {
@@ -1195,6 +1405,9 @@
    },
    "en": {
     "word": "star"
+   },
+   "es": {
+    "word": "la estrella"
    }
   },
   {
@@ -1212,6 +1425,9 @@
    },
    "en": {
     "word": "flower"
+   },
+   "es": {
+    "word": "la flor"
    }
   },
   {
@@ -1229,6 +1445,9 @@
    },
    "en": {
     "word": "cloud"
+   },
+   "es": {
+    "word": "la nube"
    }
   },
   {
@@ -1246,6 +1465,9 @@
    },
    "en": {
     "word": "rainbow"
+   },
+   "es": {
+    "word": "el arcoíris"
    }
   },
   {
@@ -1263,6 +1485,9 @@
    },
    "en": {
     "word": "tree"
+   },
+   "es": {
+    "word": "el árbol"
    }
   },
   {
@@ -1280,6 +1505,9 @@
    },
    "en": {
     "word": "rain"
+   },
+   "es": {
+    "word": "la lluvia"
    }
   },
   {
@@ -1297,6 +1525,9 @@
    },
    "en": {
     "word": "snowflake"
+   },
+   "es": {
+    "word": "el copo de nieve"
    }
   },
   {
@@ -1314,6 +1545,9 @@
    },
    "en": {
     "word": "snowman"
+   },
+   "es": {
+    "word": "el muñeco de nieve"
    }
   },
   {
@@ -1331,6 +1565,9 @@
    },
    "en": {
     "word": "leaf"
+   },
+   "es": {
+    "word": "la hoja"
    }
   },
   {
@@ -1348,6 +1585,9 @@
    },
    "en": {
     "word": "mountain"
+   },
+   "es": {
+    "word": "la montaña"
    }
   },
   {
@@ -1365,6 +1605,9 @@
    },
    "en": {
     "word": "fire"
+   },
+   "es": {
+    "word": "el fuego"
    }
   },
   {
@@ -1382,6 +1625,9 @@
    },
    "en": {
     "word": "sunflower"
+   },
+   "es": {
+    "word": "el girasol"
    }
   },
   {
@@ -1399,6 +1645,9 @@
    },
    "en": {
     "word": "drop of water"
+   },
+   "es": {
+    "word": "la gota de agua"
    }
   },
   {
@@ -1416,6 +1665,9 @@
    },
    "en": {
     "word": "eye"
+   },
+   "es": {
+    "word": "el ojo"
    }
   },
   {
@@ -1433,6 +1685,9 @@
    },
    "en": {
     "word": "ear"
+   },
+   "es": {
+    "word": "la oreja"
    }
   },
   {
@@ -1450,6 +1705,9 @@
    },
    "en": {
     "word": "nose"
+   },
+   "es": {
+    "word": "la nariz"
    }
   },
   {
@@ -1467,6 +1725,9 @@
    },
    "en": {
     "word": "mouth"
+   },
+   "es": {
+    "word": "la boca"
    }
   },
   {
@@ -1484,6 +1745,9 @@
    },
    "en": {
     "word": "hand"
+   },
+   "es": {
+    "word": "la mano"
    }
   },
   {
@@ -1501,6 +1765,9 @@
    },
    "en": {
     "word": "foot"
+   },
+   "es": {
+    "word": "el pie"
    }
   },
   {
@@ -1518,6 +1785,9 @@
    },
    "en": {
     "word": "tooth"
+   },
+   "es": {
+    "word": "el diente"
    }
   },
   {
@@ -1535,6 +1805,9 @@
    },
    "en": {
     "word": "lion"
+   },
+   "es": {
+    "word": "el león"
    }
   },
   {
@@ -1552,6 +1825,9 @@
    },
    "en": {
     "word": "tiger"
+   },
+   "es": {
+    "word": "el tigre"
    }
   },
   {
@@ -1569,6 +1845,9 @@
    },
    "en": {
     "word": "elephant"
+   },
+   "es": {
+    "word": "el elefante"
    }
   },
   {
@@ -1586,6 +1865,9 @@
    },
    "en": {
     "word": "monkey"
+   },
+   "es": {
+    "word": "el mono"
    }
   },
   {
@@ -1603,6 +1885,9 @@
    },
    "en": {
     "word": "bear"
+   },
+   "es": {
+    "word": "el oso"
    }
   },
   {
@@ -1620,6 +1905,9 @@
    },
    "en": {
     "word": "giraffe"
+   },
+   "es": {
+    "word": "la jirafa"
    }
   },
   {
@@ -1637,6 +1925,9 @@
    },
    "en": {
     "word": "zebra"
+   },
+   "es": {
+    "word": "la cebra"
    }
   },
   {
@@ -1654,6 +1945,9 @@
    },
    "en": {
     "word": "panda"
+   },
+   "es": {
+    "word": "el panda"
    }
   },
   {
@@ -1671,6 +1965,9 @@
    },
    "en": {
     "word": "snake"
+   },
+   "es": {
+    "word": "la serpiente"
    }
   },
   {
@@ -1688,6 +1985,9 @@
    },
    "en": {
     "word": "turtle"
+   },
+   "es": {
+    "word": "la tortuga"
    }
   },
   {
@@ -1705,6 +2005,9 @@
    },
    "en": {
     "word": "crocodile"
+   },
+   "es": {
+    "word": "el cocodrilo"
    }
   },
   {
@@ -1722,6 +2025,9 @@
    },
    "en": {
     "word": "kangaroo"
+   },
+   "es": {
+    "word": "el canguro"
    }
   },
   {
@@ -1739,6 +2045,9 @@
    },
    "en": {
     "word": "hippo"
+   },
+   "es": {
+    "word": "el hipopótamo"
    }
   },
   {
@@ -1756,6 +2065,9 @@
    },
    "en": {
     "word": "gorilla"
+   },
+   "es": {
+    "word": "el gorila"
    }
   },
   {
@@ -1773,6 +2085,9 @@
    },
    "en": {
     "word": "rhino"
+   },
+   "es": {
+    "word": "el rinoceronte"
    }
   },
   {
@@ -1790,6 +2105,9 @@
    },
    "en": {
     "word": "butterfly"
+   },
+   "es": {
+    "word": "la mariposa"
    }
   },
   {
@@ -1807,6 +2125,9 @@
    },
    "en": {
     "word": "bee"
+   },
+   "es": {
+    "word": "la abeja"
    }
   },
   {
@@ -1824,6 +2145,9 @@
    },
    "en": {
     "word": "ladybird"
+   },
+   "es": {
+    "word": "la mariquita"
    }
   },
   {
@@ -1841,6 +2165,9 @@
    },
    "en": {
     "word": "spider"
+   },
+   "es": {
+    "word": "la araña"
    }
   },
   {
@@ -1858,6 +2185,9 @@
    },
    "en": {
     "word": "ant"
+   },
+   "es": {
+    "word": "la hormiga"
    }
   },
   {
@@ -1875,6 +2205,9 @@
    },
    "en": {
     "word": "snail"
+   },
+   "es": {
+    "word": "el caracol"
    }
   },
   {
@@ -1892,6 +2225,9 @@
    },
    "en": {
     "word": "dolphin"
+   },
+   "es": {
+    "word": "el delfín"
    }
   },
   {
@@ -1909,6 +2245,9 @@
    },
    "en": {
     "word": "whale"
+   },
+   "es": {
+    "word": "la ballena"
    }
   },
   {
@@ -1926,6 +2265,9 @@
    },
    "en": {
     "word": "octopus"
+   },
+   "es": {
+    "word": "el pulpo"
    }
   },
   {
@@ -1943,6 +2285,9 @@
    },
    "en": {
     "word": "crab"
+   },
+   "es": {
+    "word": "el cangrejo"
    }
   },
   {
@@ -1960,6 +2305,9 @@
    },
    "en": {
     "word": "shark"
+   },
+   "es": {
+    "word": "el tiburón"
    }
   },
   {
@@ -1977,6 +2325,9 @@
    },
    "en": {
     "word": "owl"
+   },
+   "es": {
+    "word": "el búho"
    }
   },
   {
@@ -1994,6 +2345,9 @@
    },
    "en": {
     "word": "penguin"
+   },
+   "es": {
+    "word": "el pingüino"
    }
   },
   {
@@ -2011,6 +2365,9 @@
    },
    "en": {
     "word": "parrot"
+   },
+   "es": {
+    "word": "el loro"
    }
   },
   {
@@ -2028,6 +2385,9 @@
    },
    "en": {
     "word": "flamingo"
+   },
+   "es": {
+    "word": "el flamenco"
    }
   },
   {
@@ -2045,6 +2405,9 @@
    },
    "en": {
     "word": "peacock"
+   },
+   "es": {
+    "word": "el pavo real"
    }
   },
   {
@@ -2062,6 +2425,9 @@
    },
    "en": {
     "word": "eagle"
+   },
+   "es": {
+    "word": "el águila"
    }
   },
   {
@@ -2079,6 +2445,9 @@
    },
    "en": {
     "word": "swan"
+   },
+   "es": {
+    "word": "el cisne"
    }
   },
   {
@@ -2096,6 +2465,9 @@
    },
    "en": {
     "word": "hat"
+   },
+   "es": {
+    "word": "el sombrero"
    }
   },
   {
@@ -2113,6 +2485,9 @@
    },
    "en": {
     "word": "shoe"
+   },
+   "es": {
+    "word": "el zapato"
    }
   },
   {
@@ -2130,6 +2505,9 @@
    },
    "en": {
     "word": "dress"
+   },
+   "es": {
+    "word": "el vestido"
    }
   },
   {
@@ -2147,6 +2525,9 @@
    },
    "en": {
     "word": "cap"
+   },
+   "es": {
+    "word": "la gorra"
    }
   },
   {
@@ -2164,6 +2545,9 @@
    },
    "en": {
     "word": "socks"
+   },
+   "es": {
+    "word": "los calcetines"
    }
   },
   {
@@ -2181,6 +2565,9 @@
    },
    "en": {
     "word": "gloves"
+   },
+   "es": {
+    "word": "los guantes"
    }
   },
   {
@@ -2198,6 +2585,9 @@
    },
    "en": {
     "word": "T-shirt"
+   },
+   "es": {
+    "word": "la camiseta"
    }
   },
   {
@@ -2215,6 +2605,9 @@
    },
    "en": {
     "word": "glasses"
+   },
+   "es": {
+    "word": "las gafas"
    }
   },
   {
@@ -2232,6 +2625,9 @@
    },
    "en": {
     "word": "umbrella"
+   },
+   "es": {
+    "word": "el paraguas"
    }
   },
   {
@@ -2249,6 +2645,9 @@
    },
    "en": {
     "word": "pencil"
+   },
+   "es": {
+    "word": "el lápiz"
    }
   },
   {
@@ -2266,6 +2665,9 @@
    },
    "en": {
     "word": "spoon"
+   },
+   "es": {
+    "word": "la cuchara"
    }
   },
   {
@@ -2283,6 +2685,9 @@
    },
    "en": {
     "word": "scissors"
+   },
+   "es": {
+    "word": "las tijeras"
    }
   },
   {
@@ -2300,6 +2705,9 @@
    },
    "en": {
     "word": "hammer"
+   },
+   "es": {
+    "word": "el martillo"
    }
   },
   {
@@ -2317,6 +2725,9 @@
    },
    "en": {
     "word": "ladder"
+   },
+   "es": {
+    "word": "la escalera"
    }
   },
   {
@@ -2334,6 +2745,9 @@
    },
    "en": {
     "word": "broom"
+   },
+   "es": {
+    "word": "la escoba"
    }
   },
   {
@@ -2351,6 +2765,9 @@
    },
    "en": {
     "word": "baby bottle"
+   },
+   "es": {
+    "word": "el biberón"
    }
   },
   {
@@ -2368,6 +2785,9 @@
    },
    "en": {
     "word": "toothbrush"
+   },
+   "es": {
+    "word": "el cepillo de dientes"
    }
   },
   {
@@ -2385,6 +2805,9 @@
    },
    "en": {
     "word": "guitar"
+   },
+   "es": {
+    "word": "la guitarra"
    }
   },
   {
@@ -2402,6 +2825,9 @@
    },
    "en": {
     "word": "drum"
+   },
+   "es": {
+    "word": "el tambor"
    }
   },
   {
@@ -2419,6 +2845,9 @@
    },
    "en": {
     "word": "piano"
+   },
+   "es": {
+    "word": "el piano"
    }
   },
   {
@@ -2436,6 +2865,9 @@
    },
    "en": {
     "word": "violin"
+   },
+   "es": {
+    "word": "el violín"
    }
   },
   {
@@ -2453,6 +2885,9 @@
    },
    "en": {
     "word": "trumpet"
+   },
+   "es": {
+    "word": "la trompeta"
    }
   },
   {
@@ -2470,6 +2905,9 @@
    },
    "en": {
     "word": "helicopter"
+   },
+   "es": {
+    "word": "el helicóptero"
    }
   },
   {
@@ -2487,6 +2925,9 @@
    },
    "en": {
     "word": "tractor"
+   },
+   "es": {
+    "word": "el tractor"
    }
   },
   {
@@ -2504,6 +2945,9 @@
    },
    "en": {
     "word": "rocket"
+   },
+   "es": {
+    "word": "el cohete"
    }
   },
   {
@@ -2521,6 +2965,9 @@
    },
    "en": {
     "word": "ambulance"
+   },
+   "es": {
+    "word": "la ambulancia"
    }
   },
   {
@@ -2538,6 +2985,9 @@
    },
    "en": {
     "word": "motorbike"
+   },
+   "es": {
+    "word": "la moto"
    }
   },
   {
@@ -2555,6 +3005,9 @@
    },
    "en": {
     "word": "fire engine"
+   },
+   "es": {
+    "word": "el camión de bomberos"
    }
   },
   {
@@ -2572,6 +3025,9 @@
    },
    "en": {
     "word": "police car"
+   },
+   "es": {
+    "word": "el coche de policía"
    }
   },
   {
@@ -2589,6 +3045,9 @@
    },
    "en": {
     "word": "scooter"
+   },
+   "es": {
+    "word": "el patinete"
    }
   },
   {
@@ -2606,6 +3065,9 @@
    },
    "en": {
     "word": "sled"
+   },
+   "es": {
+    "word": "el trineo"
    }
   },
   {
@@ -2623,6 +3085,9 @@
    },
    "en": {
     "word": "llama"
+   },
+   "es": {
+    "word": "la llama"
    }
   },
   {
@@ -2640,6 +3105,9 @@
    },
    "en": {
     "word": "goat"
+   },
+   "es": {
+    "word": "la cabra"
    }
   },
   {
@@ -2657,6 +3125,9 @@
    },
    "en": {
     "word": "camel"
+   },
+   "es": {
+    "word": "el camello"
    }
   },
   {
@@ -2674,6 +3145,9 @@
    },
    "en": {
     "word": "hedgehog"
+   },
+   "es": {
+    "word": "el erizo"
    }
   },
   {
@@ -2691,6 +3165,9 @@
    },
    "en": {
     "word": "squirrel"
+   },
+   "es": {
+    "word": "la ardilla"
    }
   },
   {
@@ -2708,6 +3185,9 @@
    },
    "en": {
     "word": "bat"
+   },
+   "es": {
+    "word": "el murciélago"
    }
   },
   {
@@ -2725,6 +3205,9 @@
    },
    "en": {
     "word": "deer"
+   },
+   "es": {
+    "word": "el ciervo"
    }
   },
   {
@@ -2742,6 +3225,9 @@
    },
    "en": {
     "word": "wolf"
+   },
+   "es": {
+    "word": "el lobo"
    }
   },
   {
@@ -2759,6 +3245,9 @@
    },
    "en": {
     "word": "fox"
+   },
+   "es": {
+    "word": "el zorro"
    }
   },
   {
@@ -2776,6 +3265,9 @@
    },
    "en": {
     "word": "raccoon"
+   },
+   "es": {
+    "word": "el mapache"
    }
   },
   {
@@ -2793,6 +3285,9 @@
    },
    "en": {
     "word": "beaver"
+   },
+   "es": {
+    "word": "el castor"
    }
   },
   {
@@ -2810,6 +3305,9 @@
    },
    "en": {
     "word": "otter"
+   },
+   "es": {
+    "word": "la nutria"
    }
   },
   {
@@ -2827,6 +3325,9 @@
    },
    "en": {
     "word": "sloth"
+   },
+   "es": {
+    "word": "el perezoso"
    }
   },
   {
@@ -2844,6 +3345,9 @@
    },
    "en": {
     "word": "skunk"
+   },
+   "es": {
+    "word": "la mofeta"
    }
   },
   {
@@ -2861,6 +3365,9 @@
    },
    "en": {
     "word": "bison"
+   },
+   "es": {
+    "word": "el bisonte"
    }
   },
   {
@@ -2878,6 +3385,9 @@
    },
    "en": {
     "word": "castle"
+   },
+   "es": {
+    "word": "el castillo"
    }
   },
   {
@@ -2895,6 +3405,9 @@
    },
    "en": {
     "word": "tent"
+   },
+   "es": {
+    "word": "la tienda de campaña"
    }
   },
   {
@@ -2912,6 +3425,9 @@
    },
    "en": {
     "word": "lighthouse"
+   },
+   "es": {
+    "word": "el faro"
    }
   },
   {
@@ -2929,6 +3445,9 @@
    },
    "en": {
     "word": "volcano"
+   },
+   "es": {
+    "word": "el volcán"
    }
   },
   {
@@ -2946,6 +3465,9 @@
    },
    "en": {
     "word": "island"
+   },
+   "es": {
+    "word": "la isla"
    }
   },
   {
@@ -2963,6 +3485,9 @@
    },
    "en": {
     "word": "anchor"
+   },
+   "es": {
+    "word": "el ancla"
    }
   },
   {
@@ -2980,6 +3505,9 @@
    },
    "en": {
     "word": "magnet"
+   },
+   "es": {
+    "word": "el imán"
    }
   },
   {
@@ -2997,6 +3525,9 @@
    },
    "en": {
     "word": "compass"
+   },
+   "es": {
+    "word": "la brújula"
    }
   },
   {
@@ -3014,6 +3545,9 @@
    },
    "en": {
     "word": "microscope"
+   },
+   "es": {
+    "word": "el microscopio"
    }
   },
   {
@@ -3031,6 +3565,9 @@
    },
    "en": {
     "word": "telescope"
+   },
+   "es": {
+    "word": "el telescopio"
    }
   },
   {
@@ -3048,6 +3585,9 @@
    },
    "en": {
     "word": "hourglass"
+   },
+   "es": {
+    "word": "el reloj de arena"
    }
   },
   {
@@ -3065,6 +3605,9 @@
    },
    "en": {
     "word": "jellyfish"
+   },
+   "es": {
+    "word": "la medusa"
    }
   },
   {
@@ -3082,6 +3625,9 @@
    },
    "en": {
     "word": "seal"
+   },
+   "es": {
+    "word": "la foca"
    }
   },
   {
@@ -3099,6 +3645,9 @@
    },
    "en": {
     "word": "lobster"
+   },
+   "es": {
+    "word": "la langosta"
    }
   },
   {
@@ -3116,6 +3665,9 @@
    },
    "en": {
     "word": "shrimp"
+   },
+   "es": {
+    "word": "la gamba"
    }
   },
   {
@@ -3133,6 +3685,9 @@
    },
    "en": {
     "word": "squid"
+   },
+   "es": {
+    "word": "el calamar"
    }
   },
   {
@@ -3150,6 +3705,9 @@
    },
    "en": {
     "word": "oyster"
+   },
+   "es": {
+    "word": "la ostra"
    }
   },
   {
@@ -3167,6 +3725,9 @@
    },
    "en": {
     "word": "beetle"
+   },
+   "es": {
+    "word": "el escarabajo"
    }
   },
   {
@@ -3184,6 +3745,9 @@
    },
    "en": {
     "word": "cricket"
+   },
+   "es": {
+    "word": "el grillo"
    }
   },
   {
@@ -3201,6 +3765,9 @@
    },
    "en": {
     "word": "mosquito"
+   },
+   "es": {
+    "word": "el mosquito"
    }
   },
   {
@@ -3218,6 +3785,9 @@
    },
    "en": {
     "word": "worm"
+   },
+   "es": {
+    "word": "el gusano"
    }
   },
   {
@@ -3235,6 +3805,9 @@
    },
    "en": {
     "word": "scorpion"
+   },
+   "es": {
+    "word": "el escorpión"
    }
   },
   {
@@ -3252,6 +3825,9 @@
    },
    "en": {
     "word": "rooster"
+   },
+   "es": {
+    "word": "el gallo"
    }
   },
   {
@@ -3269,6 +3845,9 @@
    },
    "en": {
     "word": "turkey"
+   },
+   "es": {
+    "word": "el pavo"
    }
   },
   {
@@ -3286,6 +3865,9 @@
    },
    "en": {
     "word": "donkey"
+   },
+   "es": {
+    "word": "el burro"
    }
   },
   {
@@ -3303,6 +3885,9 @@
    },
    "en": {
     "word": "ox"
+   },
+   "es": {
+    "word": "el buey"
    }
   },
   {
@@ -3320,6 +3905,9 @@
    },
    "en": {
     "word": "leopard"
+   },
+   "es": {
+    "word": "el leopardo"
    }
   },
   {
@@ -3337,6 +3925,9 @@
    },
    "en": {
     "word": "polar bear"
+   },
+   "es": {
+    "word": "el oso polar"
    }
   },
   {
@@ -3354,6 +3945,9 @@
    },
    "en": {
     "word": "koala"
+   },
+   "es": {
+    "word": "el koala"
    }
   },
   {
@@ -3371,6 +3965,9 @@
    },
    "en": {
     "word": "orangutan"
+   },
+   "es": {
+    "word": "el orangután"
    }
   },
   {
@@ -3388,6 +3985,9 @@
    },
    "en": {
     "word": "mammoth"
+   },
+   "es": {
+    "word": "el mamut"
    }
   },
   {
@@ -3405,6 +4005,9 @@
    },
    "en": {
     "word": "moose"
+   },
+   "es": {
+    "word": "el alce"
    }
   },
   {
@@ -3422,6 +4025,9 @@
    },
    "en": {
     "word": "badger"
+   },
+   "es": {
+    "word": "el tejón"
    }
   },
   {
@@ -3439,6 +4045,9 @@
    },
    "en": {
     "word": "avocado"
+   },
+   "es": {
+    "word": "el aguacate"
    }
   },
   {
@@ -3456,6 +4065,9 @@
    },
    "en": {
     "word": "eggplant"
+   },
+   "es": {
+    "word": "la berenjena"
    }
   },
   {
@@ -3473,6 +4085,9 @@
    },
    "en": {
     "word": "garlic"
+   },
+   "es": {
+    "word": "el ajo"
    }
   },
   {
@@ -3490,6 +4105,9 @@
    },
    "en": {
     "word": "onion"
+   },
+   "es": {
+    "word": "la cebolla"
    }
   },
   {
@@ -3507,6 +4125,9 @@
    },
    "en": {
     "word": "chili pepper"
+   },
+   "es": {
+    "word": "el chile"
    }
   },
   {
@@ -3524,6 +4145,9 @@
    },
    "en": {
     "word": "cucumber"
+   },
+   "es": {
+    "word": "el pepino"
    }
   },
   {
@@ -3541,6 +4165,9 @@
    },
    "en": {
     "word": "potato"
+   },
+   "es": {
+    "word": "la patata"
    }
   },
   {
@@ -3558,6 +4185,9 @@
    },
    "en": {
     "word": "mushroom"
+   },
+   "es": {
+    "word": "la seta"
    }
   },
   {
@@ -3575,6 +4205,9 @@
    },
    "en": {
     "word": "peanuts"
+   },
+   "es": {
+    "word": "los cacahuetes"
    }
   },
   {
@@ -3592,6 +4225,9 @@
    },
    "en": {
     "word": "croissant"
+   },
+   "es": {
+    "word": "el cruasán"
    }
   },
   {
@@ -3609,6 +4245,9 @@
    },
    "en": {
     "word": "pancakes"
+   },
+   "es": {
+    "word": "las tortitas"
    }
   },
   {
@@ -3626,6 +4265,9 @@
    },
    "en": {
     "word": "honey"
+   },
+   "es": {
+    "word": "la miel"
    }
   },
   {
@@ -3643,6 +4285,9 @@
    },
    "en": {
     "word": "spaghetti"
+   },
+   "es": {
+    "word": "los espaguetis"
    }
   },
   {
@@ -3660,6 +4305,9 @@
    },
    "en": {
     "word": "chips"
+   },
+   "es": {
+    "word": "las patatas fritas"
    }
   },
   {
@@ -3677,6 +4325,9 @@
    },
    "en": {
     "word": "sandwich"
+   },
+   "es": {
+    "word": "el sándwich"
    }
   },
   {
@@ -3694,6 +4345,9 @@
    },
    "en": {
     "word": "candle"
+   },
+   "es": {
+    "word": "la vela"
    }
   },
   {
@@ -3711,6 +4365,9 @@
    },
    "en": {
     "word": "mirror"
+   },
+   "es": {
+    "word": "el espejo"
    }
   },
   {
@@ -3728,6 +4385,9 @@
    },
    "en": {
     "word": "window"
+   },
+   "es": {
+    "word": "la ventana"
    }
   },
   {
@@ -3745,6 +4405,9 @@
    },
    "en": {
     "word": "bucket"
+   },
+   "es": {
+    "word": "el cubo"
    }
   },
   {
@@ -3762,6 +4425,9 @@
    },
    "en": {
     "word": "bell"
+   },
+   "es": {
+    "word": "la campana"
    }
   },
   {
@@ -3779,6 +4445,9 @@
    },
    "en": {
     "word": "padlock"
+   },
+   "es": {
+    "word": "el candado"
    }
   },
   {
@@ -3796,6 +4465,9 @@
    },
    "en": {
     "word": "light bulb"
+   },
+   "es": {
+    "word": "la bombilla"
    }
   },
   {
@@ -3813,6 +4485,9 @@
    },
    "en": {
     "word": "torch"
+   },
+   "es": {
+    "word": "la linterna"
    }
   },
   {
@@ -3830,6 +4505,9 @@
    },
    "en": {
     "word": "axe"
+   },
+   "es": {
+    "word": "el hacha"
    }
   },
   {
@@ -3847,6 +4525,9 @@
    },
    "en": {
     "word": "saw"
+   },
+   "es": {
+    "word": "la sierra"
    }
   },
   {
@@ -3864,6 +4545,9 @@
    },
    "en": {
     "word": "spanner"
+   },
+   "es": {
+    "word": "la llave inglesa"
    }
   },
   {
@@ -3881,6 +4565,9 @@
    },
    "en": {
     "word": "screwdriver"
+   },
+   "es": {
+    "word": "el destornillador"
    }
   },
   {
@@ -3898,6 +4585,9 @@
    },
    "en": {
     "word": "paintbrush"
+   },
+   "es": {
+    "word": "el pincel"
    }
   },
   {
@@ -3915,6 +4605,9 @@
    },
    "en": {
     "word": "crayon"
+   },
+   "es": {
+    "word": "la cera"
    }
   },
   {
@@ -3932,6 +4625,9 @@
    },
    "en": {
     "word": "trophy"
+   },
+   "es": {
+    "word": "el trofeo"
    }
   },
   {
@@ -3949,6 +4645,9 @@
    },
    "en": {
     "word": "medal"
+   },
+   "es": {
+    "word": "la medalla"
    }
   },
   {
@@ -3966,6 +4665,9 @@
    },
    "en": {
     "word": "ring"
+   },
+   "es": {
+    "word": "el anillo"
    }
   },
   {
@@ -3983,6 +4685,9 @@
    },
    "en": {
     "word": "skateboard"
+   },
+   "es": {
+    "word": "el monopatín"
    }
   },
   {
@@ -4000,6 +4705,9 @@
    },
    "en": {
     "word": "yo-yo"
+   },
+   "es": {
+    "word": "el yoyó"
    }
   },
   {
@@ -4017,6 +4725,9 @@
    },
    "en": {
     "word": "roller skate"
+   },
+   "es": {
+    "word": "el patín"
    }
   },
   {
@@ -4034,6 +4745,9 @@
    },
    "en": {
     "word": "canoe"
+   },
+   "es": {
+    "word": "la canoa"
    }
   },
   {
@@ -4051,6 +4765,9 @@
    },
    "en": {
     "word": "tram"
+   },
+   "es": {
+    "word": "el tranvía"
    }
   },
   {
@@ -4068,6 +4785,9 @@
    },
    "en": {
     "word": "parachute"
+   },
+   "es": {
+    "word": "el paracaídas"
    }
   },
   {
@@ -4085,6 +4805,9 @@
    },
    "en": {
     "word": "satellite"
+   },
+   "es": {
+    "word": "el satélite"
    }
   },
   {
@@ -4102,6 +4825,9 @@
    },
    "en": {
     "word": "brain"
+   },
+   "es": {
+    "word": "el cerebro"
    }
   },
   {
@@ -4119,6 +4845,9 @@
    },
    "en": {
     "word": "bone"
+   },
+   "es": {
+    "word": "el hueso"
    }
   },
   {
@@ -4136,6 +4865,9 @@
    },
    "en": {
     "word": "tongue"
+   },
+   "es": {
+    "word": "la lengua"
    }
   },
   {
@@ -4153,6 +4885,9 @@
    },
    "en": {
     "word": "leg"
+   },
+   "es": {
+    "word": "la pierna"
    }
   },
   {
@@ -4170,6 +4905,9 @@
    },
    "en": {
     "word": "tornado"
+   },
+   "es": {
+    "word": "el tornado"
    }
   },
   {
@@ -4187,6 +4925,9 @@
    },
    "en": {
     "word": "lightning"
+   },
+   "es": {
+    "word": "el rayo"
    }
   },
   {
@@ -4204,6 +4945,9 @@
    },
    "en": {
     "word": "comet"
+   },
+   "es": {
+    "word": "el cometa"
    }
   },
   {
@@ -4221,6 +4965,9 @@
    },
    "en": {
     "word": "cactus"
+   },
+   "es": {
+    "word": "el cactus"
    }
   },
   {
@@ -4238,6 +4985,9 @@
    },
    "en": {
     "word": "blossom"
+   },
+   "es": {
+    "word": "la flor del cerezo"
    }
   },
   {
@@ -4255,6 +5005,9 @@
    },
    "en": {
     "word": "feather"
+   },
+   "es": {
+    "word": "la pluma"
    }
   }
  ]

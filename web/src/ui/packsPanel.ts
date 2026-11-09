@@ -1,4 +1,5 @@
-import { LANGUAGES, PackId, formatRemaining, packChoices } from '../domain/packs';
+import { LANGUAGES, PackId, formatRemaining, languageOf, packChoices } from '../domain/packs';
+import { t } from '../i18n';
 import { appLanguage, downloads, installedPacks, markPacksAsked, setAppLanguage } from '../core/packs';
 import { engineReady } from '../core/piper';
 
@@ -32,7 +33,18 @@ const CSS = `
 .packs .task.err { color: #b91c1c; }
 `;
 
-const mb = (bytes: number) => `${Math.round(bytes / 1e6)} Mo`;
+const mb = (bytes: number) => t('ui.mb', { n: Math.round(bytes / 1e6) }, '{n} Mo');
+
+/** Textes des packs dans la langue de l'application. */
+const packTexts = () => ({
+  speech: (l: string) => t('ui.pack.speechTitle', { language: l }, 'Voix du dino ({language})'),
+  speechDetail: t('ui.pack.speechDetail', {}, 'Une voix naturelle, la même sur tous les appareils.'),
+  second: (l: string) => t('ui.pack.secondTitle', { language: l }, 'Voix {language}'),
+  secondDetail: t('ui.pack.secondDetail', {}, 'Pour les mots des jeux de langue étrangère.'),
+  asr: t('ui.pack.asrTitle', {}, 'Reconnaissance vocale'),
+  asrDetail: t('ui.pack.asrDetail', {}, 'Pour répondre à voix haute.'),
+});
+const nameOf = (code: string) => t(`lang.${code}`, {}, languageOf(code).name);
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Record<string, string> = {}, ...children: (Node | string)[]) {
   const node = document.createElement(tag);
@@ -44,30 +56,27 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Record<string,
 export function packsPanel(opts: { onStart?: () => void } = {}): HTMLElement {
   if (!document.getElementById('packs-css')) document.head.append(el('style', { id: 'packs-css' }, CSS));
   const root = el('div', { class: 'packs' });
-  const checked: Record<PackId, boolean> = { speech: true, english: true, asr: true };
-  let installed: Record<PackId, boolean> = { speech: false, english: false, asr: false };
+  const checked: Record<PackId, boolean> = { speech: true, second: true, asr: true };
+  let installed: Record<PackId, boolean> = { speech: false, second: false, asr: false };
   let titles: Partial<Record<PackId, string>> = {};
 
-  const langSelect = el('select', { 'aria-label': 'Langue' }) as HTMLSelectElement;
-  for (const l of LANGUAGES) {
-    const o = el('option', { value: l.code }, l.available ? l.name : `${l.name} (bientôt)`) as HTMLOptionElement;
-    o.disabled = !l.available;
-    langSelect.append(o);
-  }
+  const langSelect = el('select', { 'aria-label': t('ui.lang', {}, 'Langue') }) as HTMLSelectElement;
+  for (const l of LANGUAGES) langSelect.append(el('option', { value: l.code }, l.name));
   langSelect.value = appLanguage();
+  // Nouvelle langue : le jeu redémarre et télécharge les packs de cette langue (et de la langue apprise en plus).
   langSelect.addEventListener('change', () => {
     setAppLanguage(langSelect.value);
-    void refresh();
+    location.reload();
   });
   const list = el('div');
   const total = el('div', { class: 'total' });
-  const go = el('button', { class: 'go', type: 'button' }, 'Télécharger') as HTMLButtonElement;
+  const go = el('button', { class: 'go', type: 'button' }, t('ui.pack.download', {}, 'Télécharger')) as HTMLButtonElement;
   const progress = el('div', { class: 'progress' });
   progress.hidden = true;
-  root.append(el('div', { class: 'lang' }, el('span', {}, 'Langue :'), langSelect), list, total, go, progress);
+  root.append(el('div', { class: 'lang' }, el('span', {}, t('ui.langLabel', {}, 'Langue :')), langSelect), list, total, go, progress);
 
   const draw = () => {
-    const choices = packChoices(langSelect.value, checked.english || installed.english, engineReady());
+    const choices = packChoices(langSelect.value, checked.second || installed.second, engineReady(), packTexts(), nameOf);
     titles = Object.fromEntries(choices.map((c) => [c.id, c.title]));
     list.replaceChildren(...choices.map((c) => {
       const box = el('input', { type: 'checkbox', 'aria-label': c.title }) as HTMLInputElement;
@@ -80,13 +89,14 @@ export function packsPanel(opts: { onStart?: () => void } = {}): HTMLElement {
       });
       return el('label', { class: 'pack' }, box,
         el('span', {}, el('b', {}, c.title), el('small', {}, c.detail)),
-        el('span', { class: `size${done ? ' ok' : ''}` }, done ? 'Installé ✓' : `${Math.round(c.sizeMb)} Mo`));
+        el('span', { class: `size${done ? ' ok' : ''}` }, done ? t('ui.pack.installed', {}, 'Installé ✓') : t('ui.mb', { n: Math.round(c.sizeMb) }, '{n} Mo')));
     }));
     const wanted = choices.filter((c) => checked[c.id] && !installed[c.id]);
     const sum = wanted.reduce((n, c) => n + c.sizeMb, 0);
-    total.textContent = wanted.length ? `À télécharger : ${Math.round(sum)} Mo (de préférence en Wi-Fi).` : 'Tout est installé.';
+    total.textContent = wanted.length ? t('ui.pack.toDownload', { n: Math.round(sum) }, 'À télécharger : {n} Mo (de préférence en Wi-Fi).')
+      : t('ui.pack.allInstalled', {}, 'Tout est installé.');
     go.disabled = wanted.length === 0 || downloads.running;
-    go.textContent = downloads.running ? 'Téléchargement en cours…' : 'Télécharger';
+    go.textContent = downloads.running ? t('ui.pack.running', {}, 'Téléchargement en cours…') : t('ui.pack.download', {}, 'Télécharger');
   };
 
   const refresh = async () => {
@@ -95,12 +105,12 @@ export function packsPanel(opts: { onStart?: () => void } = {}): HTMLElement {
   };
 
   go.addEventListener('click', () => {
-    const withEnglish = checked.english || installed.english;
-    const ids = packChoices(langSelect.value, withEnglish, engineReady())
+    const withSecond = checked.second || installed.second;
+    const ids = packChoices(langSelect.value, withSecond, engineReady())
       .map((c) => c.id).filter((id) => checked[id] && !installed[id]);
     if (!ids.length) return;
     markPacksAsked();
-    downloads.start(ids, langSelect.value, withEnglish);
+    downloads.start(ids, langSelect.value, withSecond);
     opts.onStart?.();
   });
 
@@ -112,14 +122,14 @@ export function packsPanel(opts: { onStart?: () => void } = {}): HTMLElement {
     if (!p.tasks.length) return;
     progress.hidden = false;
     const pct = p.total ? Math.min(100, (p.loaded / p.total) * 100) : 0;
-    const eta = p.running ? `${mb(p.loaded)} / ${mb(p.total)} · ${formatRemaining(p.remaining)}` : 'Terminé.';
+    const eta = p.running ? `${mb(p.loaded)} / ${mb(p.total)} · ${formatRemaining(p.remaining)}` : t('ui.pack.finished', {}, 'Terminé.');
     progress.replaceChildren(
       el('div', { class: 'bar' }, el('span', { style: `width:${pct.toFixed(1)}%` })),
       el('div', { class: 'eta' }, eta),
-      ...p.tasks.map((t) => el('div', { class: `task${t.state === 'error' ? ' err' : ''}` },
-        el('span', {}, titles[t.id] ?? t.id),
-        el('span', {}, t.state === 'done' ? 'Installé ✓' : t.state === 'error' ? `Échec : ${t.error ?? ''}`
-          : t.state === 'installing' ? 'Installation…' : t.total ? `${Math.min(100, Math.round((t.loaded / t.total) * 100))} %` : 'En attente…'))),
+      ...p.tasks.map((x) => el('div', { class: `task${x.state === 'error' ? ' err' : ''}` },
+        el('span', {}, titles[x.id] ?? x.id),
+        el('span', {}, x.state === 'done' ? t('ui.pack.installed', {}, 'Installé ✓') : x.state === 'error' ? t('ui.pack.failed', { error: x.error ?? '' }, 'Échec : {error}')
+          : x.state === 'installing' ? t('ui.pack.installingShort', {}, 'Installation…') : x.total ? `${Math.min(100, Math.round((x.loaded / x.total) * 100))} %` : t('ui.pack.waiting', {}, 'En attente…')))),
     );
     if (!p.running) void refresh();
     else draw();

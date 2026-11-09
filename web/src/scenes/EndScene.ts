@@ -15,6 +15,7 @@ import { Guide } from '../ui/Guide';
 import { goTo, homeButton, unit } from '../ui/scenery';
 import { drawBackdrop } from '../ui/backdrop';
 import { BaseScene } from './BaseScene';
+import { t } from '../i18n';
 
 const MAX_SHOWN = 10;
 
@@ -73,9 +74,9 @@ export class EndScene extends BaseScene {
 
     const cx = W * 0.64, cy = H * 0.4;
     const panel = card(this, cx, cy, Math.min(W * 0.5, u * 0.95), u * 0.42);
-    const title = r.stars >= 3 ? 'Bravo !' : r.stars === 2 ? 'Super !' : r.stars === 1 ? 'Bien joué !' : 'On continue !';
+    const title = r.stars >= 3 ? t('ui.end.3', {}, 'Bravo !') : r.stars === 2 ? t('ui.end.2', {}, 'Super !') : r.stars === 1 ? t('ui.end.1', {}, 'Bien joué !') : t('ui.end.0', {}, 'On continue !');
     const banner = ribbonBanner(this, cx, cy - u * 0.24, title, u * 0.075, 'orange');
-    const text = label(this, cx, cy - u * 0.075, 'Tu as terminé la série !', { size: u * 0.05, color: INK, weight: '800' });
+    const text = label(this, cx, cy - u * 0.075, t('ui.end.done', {}, 'Tu as terminé la série !'), { size: u * 0.05, color: INK, weight: '800' });
     [panel, banner, text].forEach((o, i) => {
       o.setScale(0);
       this.tweens.add({ targets: o, scale: 1, duration: 380, delay: 80 * i, ease: 'Back.easeOut' });

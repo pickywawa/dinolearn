@@ -1,3 +1,5 @@
+import { t } from '../i18n';
+
 /**
  * Choix du temps de jeu par jour, le même dans la fiche de l'enfant (premier
  * lancement) et dans l'espace parents : − et + par pas de 5 minutes, et un
@@ -43,9 +45,9 @@ export function timeStepper(get: () => number, set: (minutes: number) => void): 
     return b;
   };
   const minus = make('−');
-  minus.setAttribute('aria-label', 'Moins de temps');
+  minus.setAttribute('aria-label', t('ui.time.less', {}, 'Moins de temps'));
   const plus = make('+');
-  plus.setAttribute('aria-label', 'Plus de temps');
+  plus.setAttribute('aria-label', t('ui.time.more', {}, 'Plus de temps'));
   const out = document.createElement('output');
   const unlimited = make('Illimité', 'unlimited');
   const draw = () => {

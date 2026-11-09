@@ -8,7 +8,8 @@ import { PRINT_KINDS } from '../print/catalog';
 import { preloadModels } from '../dino3d/model';
 import { loadBackdrops } from '../ui/backdrop';
 import { Progress, appLanguage, downloads, installedPacks, markPacksAsked } from '../core/packs';
-import { PackId, languageOf, packChoices } from '../domain/packs';
+import { PackId, languageOf, packChoices, secondLanguage } from '../domain/packs';
+import { t } from '../i18n';
 import { voiceSupported } from '../core/ears';
 import { engineReady } from '../core/piper';
 
@@ -172,9 +173,9 @@ export class BootScene extends Phaser.Scene {
   private showError(reason?: unknown) {
     void this.packs.then(() => {
       const title = document.querySelector('.loading-sign textPath');
-      if (title) title.textContent = 'Réessayer';
+      if (title) title.textContent = t('ui.retry', {}, 'Réessayer');
       const what = document.querySelector('.loading-what');
-      if (what) what.textContent = `Problème : ${reason instanceof Error ? reason.message : String(reason ?? 'inconnu')}`.slice(0, 120);
+      if (what) what.textContent = t('ui.problem', { reason: reason instanceof Error ? reason.message : String(reason ?? '?') }, 'Problème : {reason}').slice(0, 120);
       const screen = document.querySelector<HTMLElement>('#loading-screen');
       if (screen) {
         screen.onclick = () => location.reload();
@@ -209,10 +210,14 @@ const STALL_MS = 45_000;
 
 /** Ce qui se télécharge en ce moment, à droite du pourcentage. */
 function packLabel(p: Progress, language: string): string {
-  const name = (id: PackId) => id === 'speech' ? `pack ${languageOf(language).name.toLowerCase()}`
-    : id === 'english' ? 'pack anglais' : 'reconnaissance vocale';
+  const name = (id: PackId) => id === 'speech' ? t('ui.pack.voice', { language: langName(language) }, `pack ${languageOf(language).name.toLowerCase()}`)
+    : id === 'second' ? t('ui.pack.voice', { language: langName(secondLanguage(language)) }, 'pack anglais')
+      : t('ui.pack.asr', {}, 'reconnaissance vocale');
   const busy = p.tasks.filter((t) => t.state === 'waiting' || t.state === 'downloading');
-  if (busy.length) return 'Téléchargement : ' + busy.map((t) => name(t.id)).join(', ');
-  if (p.tasks.some((t) => t.state === 'installing')) return 'Installation de la reconnaissance vocale';
+  if (busy.length) return t('ui.pack.downloading', { list: busy.map((x) => name(x.id)).join(', ') }, 'Téléchargement : {list}');
+  if (p.tasks.some((x) => x.state === 'installing')) return t('ui.pack.installing', {}, 'Installation de la reconnaissance vocale');
   return '';
 }
+
+/** Nom d'une langue dans la langue de l'application (« anglais », « English »…). */
+const langName = (code: string) => t(`lang.${code}`, {}, languageOf(code).name);

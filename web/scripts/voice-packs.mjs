@@ -1,7 +1,7 @@
 // Prépare les packs de reconnaissance vocale (jeux à voix haute) dans public/voice/ :
 // les petits modèles Vosk officiels (Alpha Cephei, Apache 2.0), réemballés en .tar.gz
 // pour vosk-browser, et la liste des mots que chaque modèle connaît.
-// Les packs (≈ 40 Mo chacun) ne sont pas dans le dépôt : ce script les télécharge
+// Les packs (≈ 30 à 50 Mo chacun) ne sont pas dans le dépôt : ce script les télécharge
 // au déploiement. Ils sont servis à côté du jeu, sans aucun service tiers.
 //
 // Usage : npm run voice-packs   (VOICE_MODELS_URL pour une autre source que alphacephei.com)
@@ -11,9 +11,18 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+// Une entrée par langue de src/domain/langs.ts qui a un pack (« asr ») : même modèle.
+// L'arabe, l'ourdou et le bengali n'ont pas de petit modèle : pas de jeux à voix haute.
 const PACKS = [
   { lang: 'fr', model: 'vosk-model-small-fr-0.22' },
   { lang: 'en', model: 'vosk-model-small-en-us-0.15' },
+  { lang: 'es', model: 'vosk-model-small-es-0.42' },
+  { lang: 'it', model: 'vosk-model-small-it-0.22' },
+  { lang: 'de', model: 'vosk-model-small-de-0.15' },
+  { lang: 'pt', model: 'vosk-model-small-pt-0.3' },
+  { lang: 'ru', model: 'vosk-model-small-ru-0.22' },
+  { lang: 'zh', model: 'vosk-model-small-cn-0.22' },
+  { lang: 'hi', model: 'vosk-model-small-hi-0.22' },
 ];
 const SOURCE = process.env.VOICE_MODELS_URL ?? 'https://alphacephei.com/vosk/models';
 const OUT = fileURLToPath(new URL('../public/voice/', import.meta.url));

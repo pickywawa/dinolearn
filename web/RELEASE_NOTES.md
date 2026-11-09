@@ -1,3 +1,13 @@
+## DinoLearn 0.19.0 — DinoLearn parle 12 langues
+
+- Nouvelles langues : anglais, espagnol, italien, allemand, portugais, russe, chinois mandarin, hindi, arabe, ourdou et bengali, en plus du français.
+- La langue est choisie automatiquement au premier lancement selon le téléphone, et se change dans l'espace parents (Voix et téléchargements). Seuls les packs de la langue choisie sont téléchargés.
+- Le dino a une voix naturelle dans chaque langue. La langue apprise en plus est l'anglais, ou l'espagnol pour les anglophones.
+- Jeux à voix haute en français, anglais, espagnol, italien, allemand, portugais, russe, chinois et hindi. En arabe, ourdou et bengali (pas de reconnaissance vocale légère), ces jeux sont masqués.
+- Disponibles dans toutes les langues : images du monde, ombres, ce qui va ensemble, le plus grand, l'intrus, compter, suites, plus et moins, calculs, nombres, formes et couleurs, l'heure, memory, tracés, et les jeux de la langue apprise. L'argent (euros) n'est proposé que dans les pays de la zone euro ; le tracé des lettres seulement en alphabet latin.
+- Les jeux de lecture, de sons et de devinettes, la catégorie « Mon pays » et les fiches à imprimer restent en français pour l'instant.
+- Arabe et ourdou affichés de droite à gauche.
+
 ## DinoLearn 0.18.1 — Le chargement ne bloque plus
 
 - Correction : le chargement restait bloqué à 98 % (appli Android et site), à cause de l'image de la bouée absente de la version publiée. L'image est désormais générée avec les autres, et un test vérifie toutes les images du vestiaire.

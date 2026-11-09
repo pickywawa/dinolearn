@@ -1,3 +1,4 @@
+import { t } from '../i18n';
 import { shuffle } from '../domain/models';
 
 /**
@@ -59,6 +60,9 @@ export const sameSlot = (id: string) => {
 };
 
 export const itemTexture = (id: string) => `acc-${id}`;
+
+/** Nom d'un objet dans la langue de l'application (« le nounours », « the teddy bear »). */
+export const itemName = (item: Item) => t(`item.${item.id}`, {}, item.name);
 
 /** Quatre objets pas encore gagnés, d'emplacements différents si possible. */
 export function giftChoices(owned: readonly string[], rng: () => number): Item[] {

@@ -1,4 +1,5 @@
 import { isNative } from '../core/native';
+import { t } from '../i18n';
 
 /**
  * Au démarrage sur téléphone ou tablette (dans le navigateur) : on propose
@@ -89,7 +90,7 @@ function head(card: HTMLDivElement, text: string) {
   icon.src = 'icons/icon-192.png';
   icon.alt = '';
   const h = document.createElement('h2');
-  h.textContent = 'Installe DinoLearn sur ton téléphone';
+  h.textContent = t('inst.title', {}, 'Installe DinoLearn sur ton téléphone');
   const p = document.createElement('p');
   p.textContent = text;
   card.append(icon, h, p);
@@ -105,11 +106,11 @@ function buttons(card: HTMLDivElement, close: () => void, main?: { label: string
   }
   const later = document.createElement('button');
   later.className = 'later';
-  later.textContent = main ? 'Plus tard' : 'D\'accord';
+  later.textContent = main ? t('inst.later', {}, 'Plus tard') : t('inst.okay', {}, 'D\'accord');
   later.addEventListener('click', close);
   const no = document.createElement('button');
   no.className = 'never';
-  no.textContent = 'Ne plus demander';
+  no.textContent = t('inst.never', {}, 'Ne plus demander');
   no.addEventListener('click', () => {
     try { localStorage.setItem(NEVER_KEY, '1'); } catch { /* stockage indisponible */ }
     close();
@@ -119,7 +120,7 @@ function buttons(card: HTMLDivElement, close: () => void, main?: { label: string
 
 function offerAndroid() {
   dialog((card, close) => {
-    head(card, 'Il s\'ouvrira en plein écran, bien en paysage, comme une vraie appli. Rien d\'autre à télécharger.');
+    head(card, t('inst.android', {}, 'Il s\'ouvrira en plein écran, bien en paysage, comme une vraie appli. Rien d\'autre à télécharger.'));
     buttons(card, close, {
       label: 'Installer',
       onTap: async () => {
@@ -132,11 +133,9 @@ function offerAndroid() {
         }
         // Le navigateur n'a pas (encore) proposé l'installation : on montre le geste à faire.
         card.replaceChildren();
-        head(card, 'Dans le menu du navigateur :');
+        head(card, t('inst.menu', {}, 'Dans le menu du navigateur :'));
         const steps = document.createElement('ol');
-        steps.innerHTML = '<li>Touche <b>⋮</b> (les trois points, en haut à droite).</li>'
-          + '<li>Choisis <b>« Installer l\'application »</b> ou <b>« Ajouter à l\'écran d\'accueil »</b>.</li>'
-          + '<li>Ouvre le jeu avec l\'icône du dino.</li>';
+        steps.innerHTML = t('inst.androidSteps', {}, '<li>Touche <b>⋮</b> (les trois points, en haut à droite).</li><li>Choisis <b>« Installer l\'application »</b> ou <b>« Ajouter à l\'écran d\'accueil »</b>.</li><li>Ouvre le jeu avec l\'icône du dino.</li>');
         card.append(steps);
         buttons(card, close);
       },
@@ -146,11 +145,10 @@ function offerAndroid() {
 
 function offerIOS() {
   dialog((card, close) => {
-    head(card, 'Il s\'ouvrira en plein écran, sans les barres de Safari, comme une vraie appli.');
+    head(card, t('inst.ios', {}, 'Il s\'ouvrira en plein écran, sans les barres de Safari, comme une vraie appli.'));
     const steps = document.createElement('ol');
-    steps.innerHTML = `<li>Touche ${SHARE_SVG} <b>Partager</b> (en bas ou en haut de Safari).</li>`
-      + '<li>Choisis <b>« Sur l\'écran d\'accueil »</b>, puis <b>Ajouter</b>.</li>'
-      + '<li>Ouvre le jeu avec l\'icône du dino.</li>';
+    steps.innerHTML = t('inst.iosSteps', { share: SHARE_SVG }, '<li>Touche {share} <b>Partager</b> (en bas ou en haut de Safari).</li>'
+      + '<li>Choisis <b>« Sur l\'écran d\'accueil »</b>, puis <b>Ajouter</b>.</li><li>Ouvre le jeu avec l\'icône du dino.</li>');
     card.append(steps);
     buttons(card, close);
   });

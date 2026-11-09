@@ -7,6 +7,7 @@ import { drawBackdrop } from '../ui/backdrop';
 import { candyAt, roundButton, setHighlight, tileButton, woodSign, type Candy } from '../ui/kit';
 import { goTo, makeTickable, unit } from '../ui/scenery';
 import { BaseScene } from './BaseScene';
+import { t } from '../i18n';
 
 /**
  * Choix d'un jeu (tuile « Les jeux » de l'accueil) : une tuile bonbon par jeu,
@@ -49,11 +50,11 @@ export class ChooseScene extends BaseScene {
       icon: game.icon, text: shortTitle(game.id), line: game.homeLine, color: candyAt(i), go: () => this.play(game.id),
     }));
     if (!this.voice && playable.some((g) => g.voice)) {
-      entries.push({ icon: 'vo-micro', text: 'À voix haute', line: 'home.voice', color: 'red', go: () => this.openVoice() });
+      entries.push({ icon: 'vo-micro', text: t('ui.choose.voice', {}, 'À voix haute'), line: 'home.voice', color: 'red', go: () => this.openVoice() });
     }
 
     const area = { x: W * 0.36, y: H * 0.2, w: W * 0.61, h: H * 0.77 };
-    woodSign(this, area.x + area.w / 2, H * 0.09, this.voice ? 'Joue à voix haute !' : 'Choisis un jeu !', u * 0.055, true);
+    woodSign(this, area.x + area.w / 2, H * 0.09, this.voice ? t('ui.choose.voiceTitle', {}, 'Joue à voix haute !') : t('ui.choose.title', {}, 'Choisis un jeu !'), u * 0.055, true);
     const { cols, rows } = gridFor(entries.length, area.w / area.h);
     const cw = area.w / cols, ch = area.h / rows;
     const tw = Math.min(cw * 0.9, ch * 0.9 * 1.25, u * 0.4);

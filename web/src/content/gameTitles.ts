@@ -1,5 +1,8 @@
 /** Nom de chaque jeu (« Catégorie — Nom »), pour l'espace parents et les tuiles du choix des jeux. */
-export const TITLES: Record<string, string> = {
+import { isFr, second, t } from '../i18n';
+
+/** Noms d'origine (français). Autres langues : `title.<jeu>` et `short.<jeu>` dans les catalogues. */
+const FR_TITLES: Record<string, string> = {
   'EN-1': 'Anglais — Écoute et touche', 'EN-2': 'Anglais — Numbers', 'MO-1': 'Monde — Montre-moi',
   'MO-2': 'Monde — Devinettes', 'MO-3': 'Monde — Les ombres', 'MO-4': 'Monde — Ça va ensemble',
   'MO-5': 'Monde — Le plus grand', 'FR-1': 'Français — Les sons', 'FR-2': 'Français — Les syllabes',
@@ -27,5 +30,14 @@ const SHORT: Record<string, string> = {
   'LO-7': 'Formes', 'MO-4': 'Ça va ensemble',
 };
 
+/** Nom complet d'un jeu (« Catégorie — Nom »), dans la langue de l'application. */
+export const gameTitleOf = (id: string) => (isFr() ? FR_TITLES[id] ?? id
+  : t(`title.${id}`, { language: t(`lang.${second()}`) }, FR_TITLES[id] ?? id));
+
+/** Compatibilité : les noms de tous les jeux, dans la langue de l'application. */
+export const TITLES: Record<string, string> = new Proxy(FR_TITLES, { get: (_, id: string) => gameTitleOf(id) });
+
 /** Nom court d'un jeu (sans la catégorie) : « L'intrus », « Combien ? »… */
-export const shortTitle = (id: string) => SHORT[id] ?? (TITLES[id] ?? id).split(' — ').pop() ?? id;
+export const shortTitle = (id: string) => (isFr()
+  ? SHORT[id] ?? (FR_TITLES[id] ?? id).split(' — ').pop() ?? id
+  : t(`short.${id}`, { language: t(`lang.${second()}`) }, gameTitleOf(id).split(' — ').pop() ?? id));

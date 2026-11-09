@@ -16,6 +16,7 @@ import { goTo, homeButton, isPortrait, unit } from '../ui/scenery';
 import { drawBackdrop } from '../ui/backdrop';
 import { card } from '../ui/kit';
 import { BaseScene } from './BaseScene';
+import { lang, t } from '../i18n';
 
 interface Card {
   choice: Choice;
@@ -338,7 +339,7 @@ export class GameScene extends BaseScene {
       this.dino.react('think');
     }
     this.run(async () => {
-      if (verdict.kind === 'wrong') await app.voice.say([{ text: `J'ai entendu : ${verdict.heard}.`, lang: 'fr', pauseAfter: 300 }]);
+      if (verdict.kind === 'wrong') await app.voice.say([{ text: t('voice.heard', { word: verdict.heard }, 'J\'ai entendu : {word}.'), lang: lang(), pauseAfter: 300 }]);
       if (this.voiceMisses >= 2) {
         if (this.onlyUnheard && ++this.unheardInARow >= 3) {
           this.voiceOn = false;

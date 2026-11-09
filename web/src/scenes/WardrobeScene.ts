@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { ITEMS, Item, itemTexture, sameSlot } from '../content/items';
+import { ITEMS, Item, itemName, itemTexture, sameSlot } from '../content/items';
 import { app } from '../core/app';
 import { Sfx } from '../core/sfx';
 import { Dino } from '../dino/Dino';
@@ -10,6 +10,7 @@ import { goTo, homeButton, makeTickable, unit } from '../ui/scenery';
 import { arrowTexture, card, roundButton, woodSign } from '../ui/kit';
 import { drawBackdrop } from '../ui/backdrop';
 import { BaseScene } from './BaseScene';
+import { isFr, lang, t, variants } from '../i18n';
 
 // Local development only: equipment can be tried without granting collection rewards.
 const testEquipment = import.meta.env.DEV && ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname);
@@ -69,7 +70,7 @@ export class WardrobeScene extends BaseScene {
     // L'étagère des objets, sur une grande carte crème, sous son titre.
     const area = { x: W * 0.53, y: H * 0.2, w: W * 0.44, h: H * 0.76 };
     card(this, area.x + area.w / 2, area.y + area.h / 2, area.w, area.h);
-    woodSign(this, area.x + area.w / 2, H * 0.09, 'Mon Dino – Habillage', u * 0.05, true);
+    woodSign(this, area.x + area.w / 2, H * 0.09, t('ui.wardrobe.title', {}, 'Mon Dino – Habillage'), u * 0.05, true);
     const cols = 6;
     const rows = Math.ceil(ITEMS.length / cols);
     const cell = Math.min(area.w * 0.94 / cols, area.h * 0.9 / rows);
@@ -178,9 +179,10 @@ export class WardrobeScene extends BaseScene {
     this.refresh();
     Sfx.play('star');
     this.dino.react(replaced.length ? 'dance' : 'happy');
-    const reactions = ['Trop beau !', 'J\'adore !', 'Je suis magnifique !', 'Qu\'est-ce que je suis chic !'];
-    const said = app.voice.say([{ text: `${item.name.charAt(0).toUpperCase()}${item.name.slice(1)} ! ${
-      reactions[Math.floor(app.rng() * reactions.length)]}`, lang: 'fr' }]);
+    const reactions = variants('ui.wardrobe.reactions') && !isFr() ? variants('ui.wardrobe.reactions')! : ['Trop beau !', 'J\'adore !', 'Je suis magnifique !', 'Qu\'est-ce que je suis chic !'];
+    const name = itemName(item);
+    const said = app.voice.say([{ text: `${name.charAt(0).toUpperCase()}${name.slice(1)} ! ${
+      reactions[Math.floor(app.rng() * reactions.length)]}`, lang: lang() }]);
     // Le nouveau cadeau est mis : retour à l'accueil (après une série, au tour de l'enfant suivant si on alterne).
     if (item.id === this.newGift) {
       this.newGift = undefined;

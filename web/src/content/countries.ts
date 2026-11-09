@@ -1,3 +1,5 @@
+import { isFr, t } from '../i18n';
+
 /**
  * Le pays de l'enfant (choisi par les parents) et ce que le jeu « Mon pays »
  * sait de lui. Les images : drapeaux `flag-xx` (circle-flags), objets `cty-…`
@@ -99,3 +101,9 @@ export const BANKNOTES = ['cty-euro', 'cty-dollar', 'cty-yen', 'cty-pound'];
 let current = 'fr';
 export const setCountry = (code: string) => { current = code; };
 export const currentCountry = (): Country | undefined => COUNTRIES.find((c) => c.code === current);
+
+/** Nom d'un pays sans article (« France », « Canada »), dans la langue de l'application. */
+export function countryLabel(code: string): string {
+  const fr = COUNTRIES.find((c) => c.code === code)?.name.replace(/^(la|le|les|l') ?/, '') ?? code;
+  return isFr() ? fr : t(`country.${code}`, {}, fr);
+}

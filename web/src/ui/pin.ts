@@ -1,6 +1,12 @@
 import { app, switchChild } from '../core/app';
 import { NewChild } from '../core/profiles';
 import { DEFAULT_DAILY_MINUTES, timeStepper } from './timeStepper';
+import { lang, t } from '../i18n';
+import { langInfo } from '../domain/langs';
+import { countryLabel } from '../content/countries';
+
+/** Texte des fenêtres de code et de la fiche enfant (clé « pin.<nom> »). */
+const T = (key: string, fr: string, params?: Record<string, string | number>) => t(`pin.${key}`, params, fr);
 
 /**
  * Code parent : un clavier à 4 chiffres posé sur le jeu. Il sert à ouvrir
@@ -121,7 +127,7 @@ function pad(opts: PadOptions, check: (value: string) => string | true): Promise
       keys.append(b);
     }
     const erase = button('⌫');
-    erase.setAttribute('aria-label', 'Effacer');
+    erase.setAttribute('aria-label', T('erase', 'Effacer'));
     erase.addEventListener('click', () => {
       value = value.slice(0, -1);
       draw();
@@ -185,7 +191,7 @@ export function choose(title: string, help: string, labels: string[], cancel?: s
 /** Crée (ou change) le code : on le tape deux fois. Renvoie faux si annulé. */
 export async function createParentCode(title: string, help: string, cancel?: string): Promise<boolean> {
   // Une seule saisie : en cas d'oubli, « Code oublié ? » permet d'en créer un nouveau.
-  const code = await pad({ title, help: `${help} Retenez-le bien.`, cancel }, () => true);
+  const code = await pad({ title, help: `${help} ${T('remember', 'Retenez-le bien.')}`, cancel }, () => true);
   if (code === null) return false;
   app.profiles.setPin(code);
   return true;
@@ -197,13 +203,13 @@ async function forgotten(): Promise<boolean> {
   const b = 6 + Math.floor(Math.random() * 4);
   const answer = String(a * b).padStart(3, '0');
   const ok = await pad({
-    title: 'Code oublié ?',
-    help: `Question pour un adulte : combien font ${a} × ${b} ? (3 chiffres)`,
+    title: T('forgot', 'Code oublié ?'),
+    help: T('adultQuestion', 'Question pour un adulte : combien font {a} × {b} ? (3 chiffres)', { a, b }),
     digits: 3,
-    cancel: 'Annuler',
-  }, (v) => (v === answer ? true : 'Ce n\'est pas ça.'));
+    cancel: T('cancel', 'Annuler'),
+  }, (v) => (v === answer ? true : T('wrongAnswer', 'Ce n\'est pas ça.')));
   if (ok === null) return false;
-  return createParentCode('Nouveau code parent', 'Choisissez un nouveau code à 4 chiffres.', 'Annuler');
+  return createParentCode(T('newCode', 'Nouveau code parent'), T('newCodeHelp', 'Choisissez un nouveau code à 4 chiffres.'), T('cancel', 'Annuler'));
 }
 
 /** Demande le code parent. Vrai si le bon code est tapé. */
@@ -212,17 +218,29 @@ export async function askParentCode(title: string, help: string): Promise<boolea
   const result = await pad({
     title,
     help,
-    cancel: 'Annuler',
-    extra: { label: 'Code oublié ?', onClick: () => { forgot = true; } },
-  }, (v) => (app.profiles.checkPin(v) ? true : 'Code incorrect.'));
+    cancel: T('cancel', 'Annuler'),
+    extra: { label: T('forgot', 'Code oublié ?'), onClick: () => { forgot = true; } },
+  }, (v) => (app.profiles.checkPin(v) ? true : T('wrongCode', 'Code incorrect.')));
   if (result !== null) return true;
   return forgot ? forgotten() : false;
 }
 
 export const NIGHT_CHOICES = ['', '18:30', '19:00', '19:30', '20:00', '20:30', '21:00'];
-export const COUNTRY_CHOICES: [string, string][] = [
-  ['fr', 'France'], ['be', 'Belgique'], ['ch', 'Suisse'], ['ca', 'Canada'], ['lu', 'Luxembourg'], ['other', 'Autre pays'],
-];
+/** Pays proposés : ceux du jeu « Mon pays », puis le pays principal de chaque langue. */
+export const COUNTRY_CODES = ['fr', 'be', 'ch', 'ca', 'lu', 'gb', 'us', 'es', 'mx', 'it', 'de', 'at', 'pt', 'br', 'ru', 'cn', 'in', 'eg',
+  'ma', 'sa', 'pk', 'bd'];
+/** Choix de pays affichés : celui de la langue d'abord, puis les autres. */
+export const countryChoices = (): [string, string][] => {
+  const first = langInfo(lang()).country;
+  const codes = [first, ...COUNTRY_CODES.filter((c) => c !== first)];
+  return [...codes.map((c): [string, string] => [c, countryLabel(c)]), ['other', T('otherCountry', 'Autre pays')]];
+};
+/** Pays par défaut d'un nouvel enfant : celui de l'appareil s'il est proposé, sinon celui de la langue. */
+export const defaultCountry = () => {
+  const region = (navigator.languages?.[0] ?? navigator.language ?? '').split(/[-_]/)[1]?.toLowerCase();
+  return region && COUNTRY_CODES.includes(region) ? region : langInfo(lang()).country;
+};
+
 
 const FORM_CSS = `
 .pin form { text-align: left; }
@@ -249,7 +267,7 @@ export function childForm(title: string, help: string, initial?: Partial<NewChil
     style.textContent = FORM_CSS;
     document.head.append(style);
   }
-  const value: NewChild = { name: '', age: 4, country: 'fr', dailyMinutes: DEFAULT_DAILY_MINUTES, nightTime: '', voice: true,
+  const value: NewChild = { name: '', age: 4, country: defaultCountry(), dailyMinutes: DEFAULT_DAILY_MINUTES, nightTime: '', voice: true,
     chooseGames: true, ...initial };
   return new Promise((resolve) => {
     const { root, card } = mount();
@@ -267,7 +285,7 @@ export function childForm(title: string, help: string, initial?: Partial<NewChil
     };
     const name = document.createElement('input');
     name.type = 'text';
-    name.placeholder = 'Prénom';
+    name.placeholder = T('firstName', 'Prénom');
     name.value = value.name;
     name.maxLength = 20;
     name.autocomplete = 'off';
@@ -290,8 +308,7 @@ export function childForm(title: string, help: string, initial?: Partial<NewChil
     const micLabel = document.createElement('label');
     micLabel.className = 'check';
     const micText = document.createElement('span');
-    micText.innerHTML = '<b>Autoriser le micro</b> (jeux à voix haute)<br><small>Tout reste sur cet appareil : la voix '
-      + 'n\'est ni enregistrée, ni envoyée.</small>';
+    micText.innerHTML = T('micHtml', '<b>Autoriser le micro</b> (jeux à voix haute)<br><small>Tout reste sur cet appareil : la voix n\'est ni enregistrée, ni envoyée.</small>');
     micLabel.append(mic, micText);
     // Missions : l'enfant peut choisir ses jeux ; décoché, il ne joue qu'aux séries au hasard (bouton « Jouer »).
     const missions = document.createElement('input');
@@ -301,14 +318,13 @@ export function childForm(title: string, help: string, initial?: Partial<NewChil
     const missionsLabel = document.createElement('label');
     missionsLabel.className = 'check';
     const missionsText = document.createElement('span');
-    missionsText.innerHTML = '<b>Choix des missions</b><br><small>L\'enfant peut choisir ses jeux (bouton « Missions »). '
-      + 'Décoché : seulement des séries au hasard avec « Jouer ».</small>';
+    missionsText.innerHTML = T('missionsHtml', '<b>Choix des missions</b><br><small>L\'enfant peut choisir ses jeux (bouton « Missions »). Décoché : seulement des séries au hasard avec « Jouer ».</small>');
     missionsLabel.append(missions, missionsText);
     const error = document.createElement('div');
     error.className = 'error';
     const actions = document.createElement('div');
     actions.className = 'actions';
-    const ok = button('Valider', 'primary');
+    const ok = button(T('ok', 'Valider'), 'primary');
     ok.type = 'submit';
     actions.append(ok);
     if (cancel) {
@@ -320,7 +336,7 @@ export function childForm(title: string, help: string, initial?: Partial<NewChil
       e.preventDefault();
       value.name = name.value.trim();
       if (!value.name) {
-        error.textContent = 'Écrivez le prénom de l\'enfant.';
+        error.textContent = T('nameMissing', 'Écrivez le prénom de l\'enfant.');
         name.focus();
         return;
       }
@@ -328,14 +344,14 @@ export function childForm(title: string, help: string, initial?: Partial<NewChil
       resolve(value);
     });
     form.append(h, p,
-      field('Prénom'), name,
-      field('Âge'), segment([3, 4, 5, 6, 7].map((a) => [a, `${a} ans`]), () => value.age, (v) => { value.age = v; }),
-      field('Pays (jeu « Mon pays », dès 5 ans)'),
-      segment(COUNTRY_CHOICES.map(([c, n]) => [c, n]), () => value.country, (v) => { value.country = v; }),
-      field('Temps de jeu par jour'),
+      field(T('firstName', 'Prénom')), name,
+      field(T('age', 'Âge')), segment([3, 4, 5, 6, 7].map((a) => [a, T('years', '{n} ans', { n: a })]), () => value.age, (v) => { value.age = v; }),
+      field(T('country', 'Pays (jeu « Mon pays », dès 5 ans)')),
+      segment(countryChoices().map(([c, n]) => [c, n]), () => value.country, (v) => { value.country = v; }),
+      field(T('daily', 'Temps de jeu par jour')),
       timeStepper(() => value.dailyMinutes, (v) => { value.dailyMinutes = v; }),
-      field('Heure du coucher (mode nuit)'),
-      segment(NIGHT_CHOICES.map((t) => [t, t ? t.replace(':', ' h ') : 'Aucune']), () => value.nightTime, (v) => { value.nightTime = v; }),
+      field(T('night', 'Heure du coucher (mode nuit)')),
+      segment(NIGHT_CHOICES.map((t) => [t, t ? t.replace(':', ' h ') : T('none', 'Aucune')]), () => value.nightTime, (v) => { value.nightTime = v; }),
       missionsLabel, micLabel, error, actions);
     card.append(form);
     if (!initial?.name) setTimeout(() => name.focus(), 50);
@@ -357,26 +373,23 @@ export interface ChildIntro {
  */
 export async function firstLaunchSetup(intro: ChildIntro = {}) {
   if (app.profiles.count === 0) {
-    const child = await childForm('Bienvenue, parent !', intro.name || intro.age
-      ? 'Voici ce que votre enfant a dit au dino : corrigez si besoin. Vous pourrez ajouter d\'autres enfants et tout '
-        + 'modifier dans l\'espace parents (cadenas de l\'accueil).'
-      : 'Le prénom de votre enfant, son âge et ses réglages. Vous pourrez ajouter d\'autres enfants et tout modifier '
-        + 'dans l\'espace parents (cadenas de l\'accueil).',
+    const child = await childForm(T('welcome', 'Bienvenue, parent !'), intro.name || intro.age
+      ? T('welcomeHeard', 'Voici ce que votre enfant a dit au dino : corrigez si besoin. Vous pourrez ajouter d\'autres enfants et tout modifier dans l\'espace parents (cadenas de l\'accueil).')
+      : T('welcomeHelp', 'Le prénom de votre enfant, son âge et ses réglages. Vous pourrez ajouter d\'autres enfants et tout modifier dans l\'espace parents (cadenas de l\'accueil).'),
     { name: intro.name ?? '', age: intro.age ?? 4, voice: intro.voice ?? true });
     switchChild(app.profiles.add(child!));
   }
   if (!app.profiles.pin) {
     await createParentCode(
-      'Votre code parent',
-      'Choisissez un code à 4 chiffres. Il ouvre l\'espace parents (cadenas de l\'accueil) et débloque le jeu quand le '
-        + 'temps du jour est fini. Ne le donnez pas à l\'enfant !',
+      T('yourCode', 'Votre code parent'),
+      T('yourCodeHelp', 'Choisissez un code à 4 chiffres. Il ouvre l\'espace parents (cadenas de l\'accueil) et débloque le jeu quand le temps du jour est fini. Ne le donnez pas à l\'enfant !'),
     );
   }
 }
 
 /** Mode nuit : un parent peut laisser jouer encore ce soir avec son code. */
 export async function unlockNight(): Promise<boolean> {
-  if (!await askParentCode('Le dino dort', 'C\'est l\'heure du coucher. Tapez le code parent pour jouer encore ce soir.')) {
+  if (!await askParentCode(T('asleep', 'Le dino dort'), T('asleepHelp', 'C\'est l\'heure du coucher. Tapez le code parent pour jouer encore ce soir.'))) {
     return false;
   }
   app.progress.unlockNight();
@@ -385,12 +398,12 @@ export async function unlockNight(): Promise<boolean> {
 
 /** Le temps est fini : un parent peut ajouter du temps avec son code. Vrai si débloqué. */
 export async function unlockPlayTime(): Promise<boolean> {
-  if (!await askParentCode('Temps de jeu terminé', 'Tapez le code parent pour ajouter du temps de jeu aujourd\'hui.')) {
+  if (!await askParentCode(T('timeUp', 'Temps de jeu terminé'), T('timeUpHelp', 'Tapez le code parent pour ajouter du temps de jeu aujourd\'hui.'))) {
     return false;
   }
   const options = [15, 30, -1];
-  const index = await choose('Ajouter du temps', 'Pour aujourd\'hui seulement.',
-    ['15 minutes de plus', '30 minutes de plus', 'Illimité aujourd\'hui'], 'Annuler');
+  const index = await choose(T('addTime', 'Ajouter du temps'), T('todayOnly', 'Pour aujourd\'hui seulement.'),
+    [T('plus15', '15 minutes de plus'), T('plus30', '30 minutes de plus'), T('unlimited', 'Illimité aujourd\'hui')], T('cancel', 'Annuler'));
   if (index === null) return false;
   app.progress.unlockToday(options[index]);
   return true;

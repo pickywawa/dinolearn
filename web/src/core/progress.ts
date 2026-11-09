@@ -1,6 +1,7 @@
 import { BALANCE } from '../domain/balance';
 import { AnswerRecord, DinoState, Food } from '../domain/models';
 import { ENVELOPE_SERIES, MAX_PRINTABLES, diplomasBetween } from '../domain/printables';
+import { isFr } from '../i18n';
 
 /** Aliment gagné mais pas encore mangé (ventre plein), gardé pour plus tard. */
 export interface Leftover {
@@ -435,6 +436,8 @@ export class Progress {
    * quelques séries dans la journée.
    */
   envelopeDue(now = new Date()) {
+    // Les fiches à imprimer n'existent qu'en français.
+    if (!isFr()) return false;
     if (this.data.envelopeDay === dayKey(now)) return false;
     const s = this.data.settings;
     if (this.timeIsUp(now) || this.isSleeping(now)) return true;

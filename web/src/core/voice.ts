@@ -2,6 +2,8 @@ import EasySpeech from 'easy-speech';
 import { Speech } from '../content/content';
 import { LinePicker } from './lines';
 import { neuralVoiceFor, play, render, unlockAudio } from './neuralVoice';
+import { LANGS, Lang, langInfo } from '../domain/langs';
+import { lang as appLang } from '../i18n';
 
 type TalkListener = (talking: boolean) => void;
 /** Début d'un mot : durée estimée du mot, en millisecondes. */
@@ -18,7 +20,7 @@ type BoundaryListener = (wordMs: number) => void;
  * `boundary`) est signalé pour animer la bouche mot par mot.
  */
 export class Voice {
-  private voices: Partial<Record<'fr' | 'en', SpeechSynthesisVoice>> = {};
+  private voices: Partial<Record<Lang, SpeechSynthesisVoice>> = {};
   private ready = false;
   private generation = 0;
   private talkListeners = new Set<TalkListener>();
@@ -42,8 +44,8 @@ export class Voice {
     }
     if (this.ready) {
       const all = EasySpeech.voices();
-      this.voices.fr = bestVoice(all, 'fr');
-      this.voices.en = bestVoice(all, 'en');
+      // Voix du téléphone (en secours de la voix du dino) : une par langue.
+      for (const l of LANGS) this.voices[l.code] = bestVoice(all, l.code);
     }
     return this.ready;
   }
@@ -65,7 +67,8 @@ export class Voice {
 
   /** Voix choisies (pour l'espace parents). */
   voiceNames(): { fr?: string; en?: string } {
-    return { fr: this.voices.fr?.name, en: this.voices.en?.name };
+    const main = appLang();
+    return { fr: this.voices[main]?.name, en: this.voices[langInfo(main).second]?.name };
   }
 
   onTalk(fn: TalkListener) { this.talkListeners.add(fn); return () => this.talkListeners.delete(fn); }
@@ -79,7 +82,7 @@ export class Voice {
 
   /** Dit une réplique du dino (variante tirée au hasard). */
   line(group: string): Promise<void> {
-    return this.say([{ text: this.lines.pick(group), lang: 'fr' }]);
+    return this.say([{ text: this.lines.pick(group), lang: appLang() }]);
   }
 
   /** Dit une suite de morceaux ; une nouvelle demande coupe la précédente. */
@@ -125,7 +128,7 @@ export class Voice {
       await wait(estimate);
       return;
     }
-    const settings = part.lang === 'fr' ? Voice.DINO : Voice.WORD;
+    const settings = part.lang === appLang() ? Voice.DINO : Voice.WORD;
     const rate = part.slow ? settings.rate * 0.85 : settings.rate;
     const generation = this.generation;
     const speaking = EasySpeech.speak({
@@ -191,18 +194,19 @@ const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, 
 const WORDS = /[\p{L}\p{N}'’-]+/gu;
 
 /** Préférences : voix « naturelles » et connues pour bien sonner. */
-const PREFERRED: Record<'fr' | 'en', RegExp[]> = {
+const PREFERRED: Partial<Record<Lang, RegExp[]>> = {
   fr: [/premium|enhanced|amélioré/i, /natural|neural/i, /google/i, /amélie|amelie/i, /audrey/i, /thomas/i, /denise/i, /marie/i],
   // Voix anglaise : accent britannique, claire et douce, de préférence féminine.
   en: [/(sonia|libby|maisie).*(natural|neural)/i, /premium|enhanced/i, /sonia|libby|maisie/i, /google uk english female/i, /serena|kate|martha|stephanie/i,
     /google uk/i, /daniel/i, /natural/i, /samantha|karen|moira|tessa/i],
 };
 
-function bestVoice(all: SpeechSynthesisVoice[], lang: 'fr' | 'en'): SpeechSynthesisVoice | undefined {
+function bestVoice(all: SpeechSynthesisVoice[], lang: Lang): SpeechSynthesisVoice | undefined {
   const candidates = all.filter((v) => v.lang.toLowerCase().replace('_', '-').startsWith(lang));
-  const regional = candidates.filter((v) => (lang === 'en' ? /en-gb/i : /fr-fr/i).test(v.lang.replace('_', '-')));
+  const locale = langInfo(lang).locale.toLowerCase();
+  const regional = candidates.filter((v) => v.lang.toLowerCase().replace('_', '-') === locale);
   const pool = regional.length ? regional : candidates;
-  for (const pattern of PREFERRED[lang]) {
+  for (const pattern of PREFERRED[lang] ?? [/premium|enhanced/i, /natural|neural/i, /google/i]) {
     const voice = pool.find((v) => pattern.test(v.name));
     if (voice) return voice;
   }
