@@ -42,6 +42,21 @@ export const PACK_IMAGES = [
 ];
 
 /**
+ * Image SVG illisible (fichier absent : le serveur de l'appli renvoie alors la page du jeu) :
+ * Phaser plantait et le chargement restait bloqué. On la compte comme une image en erreur.
+ */
+const svgProto = Phaser.Loader.FileTypes.SVGFile.prototype as unknown as { onProcess(): void; onProcessError(): void; key: string };
+const svgProcess = svgProto.onProcess;
+svgProto.onProcess = function onProcess(this: typeof svgProto) {
+  try {
+    svgProcess.call(this);
+  } catch (e) {
+    console.warn('Image SVG illisible :', this.key, e);
+    this.onProcessError();
+  }
+};
+
+/**
  * Charge le jeu derrière un écran HTML visible dès l’ouverture, avant Phaser et les modèles.
  */
 export class BootScene extends Phaser.Scene {
@@ -60,12 +75,10 @@ export class BootScene extends Phaser.Scene {
   preload() {
     // Les modèles 3D se chargent en même temps que les images.
     this.models = preloadModels();
+    // Le dino de l'écran de chargement n'est qu'une décoration : s'il ne s'affiche pas, on continue sans.
     this.dinosaur = showLoadingDino().then((dispose) => {
       this.events.once(Phaser.Scenes.Events.SHUTDOWN, dispose);
-
-    });
-    void this.dinosaur.catch(() => this.showError());
-    void this.models.catch(() => this.showError());
+    }, (e) => console.warn('Dino du chargement indisponible', e));
     // The HTML loading screen is visible before Phaser and the model downloads.
     loadBackdrops(this);
     // Premier lancement : les packs de langue (voix, reconnaissance vocale) se téléchargent ici, en parallèle.
@@ -74,7 +87,8 @@ export class BootScene extends Phaser.Scene {
       this.assets = progress * .85;
       this.drawProgress();
     });
-    this.load.once('loaderror', () => this.showError());
+    // Une image manquante ne bloque pas le jeu (elle sera simplement absente) : on la signale seulement.
+    this.load.on('loaderror', (file: Phaser.Loader.File) => console.warn('Image non chargée :', file.key, file.url));
 
     for (const part of DINO_PARTS) {
       const url = URL.createObjectURL(new Blob([part.svg], { type: 'image/svg+xml' }));
@@ -108,14 +122,28 @@ export class BootScene extends Phaser.Scene {
     await new Promise<void>((resolve) => {
       let stop: (() => void) | undefined;
       let finished = false;
+      // Réseau bloqué (plus un octet depuis 45 s) : le jeu démarre quand même ; le téléchargement
+      // continue derrière, ou reprendra au prochain lancement.
+      let lastBytes = -1;
+      let lastChange = performance.now();
+      const done = () => {
+        if (finished) return;
+        finished = true;
+        clearInterval(watchdog);
+        stop?.();
+        resolve();
+      };
+      const watchdog = setInterval(() => {
+        if (performance.now() - lastChange > STALL_MS) done();
+      }, 1000);
       stop = downloads.subscribe((p) => {
+        if (p.loaded !== lastBytes) {
+          lastBytes = p.loaded;
+          lastChange = performance.now();
+        }
         this.packProgress = p.total ? Math.min(1, p.loaded / p.total) : 0;
         this.drawProgress(packLabel(p, language));
-        if (!p.running && !finished) {
-          finished = true;
-          stop?.();
-          resolve();
-        }
+        if (!p.running) done();
       });
       if (finished) stop();
     });
@@ -136,37 +164,48 @@ export class BootScene extends Phaser.Scene {
     if (what && label !== undefined) what.textContent = label;
   }
 
-  private showError() {
-    const title = document.querySelector('.loading-sign textPath');
-    if (title) title.textContent = 'Réessayer';
-    const screen = document.querySelector<HTMLElement>('#loading-screen');
-    if (screen) {
-      screen.onclick = () => location.reload();
-      screen.setAttribute('role', 'button');
-      screen.tabIndex = 0;
-      screen.onkeydown = (event) => {
-        if (event.key === 'Enter' || event.key === ' ') location.reload();
-      };
-    }
+  /**
+   * Le jeu ne peut pas démarrer (modèle du dino illisible…) : on propose de réessayer,
+   * mais seulement une fois les téléchargements des packs terminés (ils ne sont pas perdus),
+   * avec la raison en petit sous la barre.
+   */
+  private showError(reason?: unknown) {
+    void this.packs.then(() => {
+      const title = document.querySelector('.loading-sign textPath');
+      if (title) title.textContent = 'Réessayer';
+      const what = document.querySelector('.loading-what');
+      if (what) what.textContent = `Problème : ${reason instanceof Error ? reason.message : String(reason ?? 'inconnu')}`.slice(0, 120);
+      const screen = document.querySelector<HTMLElement>('#loading-screen');
+      if (screen) {
+        screen.onclick = () => location.reload();
+        screen.setAttribute('role', 'button');
+        screen.tabIndex = 0;
+        screen.onkeydown = (event) => {
+          if (event.key === 'Enter' || event.key === ' ') location.reload();
+        };
+      }
+    });
   }
+
 
   create() {
     void Promise.all([this.models, this.dinosaur]).then(() => {
-      if (this.load.totalFailed) return;
       this.assets = 1;
       this.drawProgress();
       return this.packs;
     }).then(() => {
-      if (this.load.totalFailed) return;
       this.packProgress = undefined;
       this.drawProgress('');
       this.time.delayedCall(150, () => {
         document.getElementById('loading-screen')?.remove();
         this.scene.start('Start');
       });
-    }).catch(() => this.showError());
+    }).catch((e) => this.showError(e));
   }
 }
+
+/** Téléchargement des packs sans progrès depuis ce délai : on n'attend plus pour jouer. */
+const STALL_MS = 45_000;
 
 /** Ce qui se télécharge en ce moment, à droite du pourcentage. */
 function packLabel(p: Progress, language: string): string {

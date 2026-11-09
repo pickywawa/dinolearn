@@ -152,6 +152,8 @@ const ACCESSORIES = [
   'magic-wand', 'lollipop', 'sunflower', 'teddy-bear',
 ];
 for (const icon of ACCESSORIES) write(`acc-${icon}`, noto, icon);
+// Bouée de piscine (🛟).
+write('acc-swim-ring', noto, 'ring-buoy');
 function cape(name, color, dark, star) {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
   <path d="M84 26 Q128 44 172 26 L234 226 Q128 252 22 226 Z" fill="${color}" stroke="#2d3354" stroke-width="7" stroke-linejoin="round"/>

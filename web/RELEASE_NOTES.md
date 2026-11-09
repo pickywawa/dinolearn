@@ -1,3 +1,11 @@
+## DinoLearn 0.18.1 — Le chargement ne bloque plus
+
+- Correction : le chargement restait bloqué à 98 % (appli Android et site), à cause de l'image de la bouée absente de la version publiée. L'image est désormais générée avec les autres, et un test vérifie toutes les images du vestiaire.
+- Une image manquante ne bloque plus jamais le jeu : elle est simplement ignorée.
+- « Réessayer » n'apparaît plus pendant le téléchargement des packs de langue, seulement si le jeu ne peut vraiment pas démarrer, avec la raison sous la barre.
+- Si le réseau se fige pendant le téléchargement des packs (45 s sans progrès), le jeu démarre quand même ; le téléchargement continue ou reprendra au lancement suivant.
+- Clés de signature Android retirées du dépôt public (rangées dans les secrets GitHub).
+
 ## DinoLearn 0.18.0 — L'appli Android et iOS
 
 - DinoLearn existe maintenant en appli Android et iOS (Capacitor). L'APK Android est joint à chaque release GitHub pour tester sans passer par Google Play.

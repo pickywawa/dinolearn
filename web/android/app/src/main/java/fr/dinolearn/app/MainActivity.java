@@ -34,9 +34,9 @@ public class MainActivity extends BridgeActivity {
             Insets cut = insets.getInsets(WindowInsetsCompat.Type.displayCutout() | WindowInsetsCompat.Type.systemBars());
             float d = getResources().getDisplayMetrics().density;
             safeAreaScript = String.format(Locale.ROOT,
-                "(function(s){s.setProperty('--app-safe-left','%.1fpx');s.setProperty('--app-safe-right','%.1fpx');"
+                "(function(r){if(!r)return;var s=r.style;s.setProperty('--app-safe-left','%.1fpx');s.setProperty('--app-safe-right','%.1fpx');"
                     + "s.setProperty('--app-safe-top','%.1fpx');s.setProperty('--app-safe-bottom','%.1fpx');"
-                    + "window.dispatchEvent(new Event('resize'));})(document.documentElement.style);",
+                    + "window.dispatchEvent(new Event('resize'));})(document.documentElement);",
                 cut.left / d, cut.right / d, cut.top / d, cut.bottom / d);
             webView.post(() -> webView.evaluateJavascript(safeAreaScript, null));
             return WindowInsetsCompat.CONSUMED;
