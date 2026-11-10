@@ -18,52 +18,42 @@ import { DINO_COLORS } from '../dino/parts';
 import { Guide } from '../ui/Guide';
 import { MicButton } from '../ui/MicButton';
 import { firstLaunchSetup } from '../ui/pin';
-import { ageSize, goTo, isPortrait, unit } from '../ui/scenery';
-import { drawBackdrop } from '../ui/backdrop';
+import { goTo, unit } from '../ui/scenery';
 import { BaseScene } from './BaseScene';
 
 /**
- * Juste après l'éclosion (premier lancement) : le bébé dino se présente, en
- * quelques phrases : on joue, on gagne des fruits, on le nourrit pour qu'il
- * grandisse, et il y a des récompenses. Puis il demande à l'enfant son prénom et
- * son âge, à voix haute (sinon, l'âge se choisit avec les gâteaux), et lui
- * demande d'aller chercher un parent : le formulaire est déjà rempli, le parent
- * corrige si besoin et crée son code.
+ * La présentation du dino, jouée sur la même page que l'œuf (voir StartScene) : juste après
+ * l'éclosion, le bébé dino explique en quelques phrases : on joue, on gagne des fruits, on le
+ * nourrit pour qu'il grandisse, et il y a des récompenses. Puis il demande à l'enfant son prénom
+ * et son âge, à voix haute (sinon, ils sont écrits par un parent), et lui demande d'aller
+ * chercher un parent : le formulaire est déjà rempli, le parent corrige si besoin et crée son code.
+ * Tout se passe sans changer de décor ni de scène : moins de chargements, pas de saccade.
  */
-export class HelloScene extends BaseScene {
-  private dino!: Dino;
-  private guide!: Guide;
+export abstract class HelloScene extends BaseScene {
+  protected dino!: Dino;
+  protected guide!: Guide;
   private shown: Phaser.GameObjects.GameObject[] = [];
   /** Le micro marche (pack français prêt, micro autorisé). */
   private voiceWorks = false;
   private vocab?: Set<string>;
 
-  constructor() {
-    super('Hello');
-  }
+  /** Premier lancement : après la présentation, prénom, âge, puis un parent. Sinon (nouvel enfant), juste la salutation. */
+  protected setup = true;
 
-  /** Premier lancement : après la présentation, prénom, âge, puis un parent. Sinon (nouvel enfant), juste la présentation. */
-  private setup = true;
-
-  create(data: { setup?: boolean } = {}) {
-    this.initBase();
-    this.setup = data.setup ?? true;
-    drawBackdrop(this, 'sunset');
-    const { width: W, height: H } = this.scale;
-    const u = unit(this);
-    this.dino = new Dino(this, W / 2, H * (isPortrait(this) ? 0.86 : 0.94), u * 0.42 * ageSize(app.progress.age));
-    this.guide = new Guide(this, u * 0.15);
+  /** Joue la suite de l'éclosion avec le dino déjà à l'écran. */
+  protected introduce(setup: boolean) {
+    this.setup = setup;
     this.shown = [];
     this.voiceWorks = false;
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       ears.stop();
       Music.hush(false);
+      this.game.loop.targetFps = 60;
     });
     this.run(() => this.script());
   }
 
   private async script() {
-    await this.wait(300);
     // Nouvel enfant (un frère, une sœur) : sa fiche est déjà remplie, une salutation suffit.
     if (!this.setup) {
       await this.greetSibling();
@@ -236,12 +226,15 @@ export class HelloScene extends BaseScene {
     this.guide.hide();
     try {
       Music.hush(true);
+      // Pendant l'écoute, le téléphone calcule la reconnaissance : on allège l'animation.
+      this.game.loop.targetFps = 30;
       mic.setMode('listening');
       return await ears.listen('fr', grammar, { maxMs: 6000, onLevel: (l) => mic.active && mic.setLevel(l), decisive });
     } catch {
       return null;
     } finally {
       Music.hush(false);
+      this.game.loop.targetFps = 60;
       mic.destroy();
     }
   }

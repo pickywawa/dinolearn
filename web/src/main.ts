@@ -9,7 +9,6 @@ import { BootScene } from './scenes/BootScene';
 import { ChooseScene } from './scenes/ChooseScene';
 import { EndScene } from './scenes/EndScene';
 import { GameScene } from './scenes/GameScene';
-import { HelloScene } from './scenes/HelloScene';
 import { MemoryScene } from './scenes/MemoryScene';
 import { HomeScene } from './scenes/HomeScene';
 import { StartScene } from './scenes/StartScene';
@@ -18,6 +17,7 @@ import { WardrobeScene } from './scenes/WardrobeScene';
 import { isInstalledApp, offerInstall } from './ui/install';
 import { appLanguage } from './core/appSettings';
 import { isFr, setLang, t } from './i18n';
+import { Music } from './core/music';
 
 // Langue de l'application (celle de l'appareil au premier lancement) : son catalogue avant tout le reste.
 await setLang(appLanguage());
@@ -46,6 +46,9 @@ void document.fonts?.load("800 40px 'Baloo 2'");
 void document.fonts?.load("700 40px 'Baloo 2'");
 void document.fonts?.load('40px "Playwrite FR Moderne"');
 
+// La musique démarre pendant l'écran de chargement (au premier toucher si le navigateur l'exige).
+Music.autostart();
+
 const size = gameSize();
 const game = new Phaser.Game({
   type: Phaser.AUTO,
@@ -56,7 +59,7 @@ const game = new Phaser.Game({
   // et les petits écarts (barre d'adresse, plein écran) sont rognés de quelques pixels.
   scale: { mode: Phaser.Scale.ENVELOP, autoCenter: Phaser.Scale.CENTER_BOTH },
   input: { activePointers: 2 },
-  scene: [BootScene, StartScene, HelloScene, HomeScene, ChooseScene, GameScene, EndScene, WardrobeScene, TraceScene, MemoryScene],
+  scene: [BootScene, StartScene, HomeScene, ChooseScene, GameScene, EndScene, WardrobeScene, TraceScene, MemoryScene],
 });
 
 // Fullscreen and browser chrome changes can resize the drawable area without a window resize.

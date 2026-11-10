@@ -129,7 +129,18 @@ export class HomeScene extends BaseScene {
       this.asleep(() => this.start(data, night));
       return;
     }
+    // Juste après l'œuf et les explications : les éléments de l'accueil apparaissent un à un.
+    if (data?.hatched) this.popIn(this.buttons().filter((b) => b.visible), 150);
     this.start(data, night);
+  }
+
+  /** Les boutons surgissent l'un après l'autre. */
+  private popIn(buttons: Phaser.GameObjects.Container[], delay: number) {
+    buttons.forEach((b, i) => {
+      const s = b.scale;
+      b.setVisible(true).setScale(0);
+      this.tweens.add({ targets: b, scale: s, duration: 380, delay: delay + i * 70, ease: 'Back.easeOut' });
+    });
   }
 
   /** Suite de l'accueil, dino réveillé. */
@@ -191,11 +202,7 @@ export class HomeScene extends BaseScene {
       app.awake = true;
       Sfx.play('boing');
       this.dino.wake();
-      buttons.forEach((b, i) => {
-        const s = b.scale;
-        b.setVisible(true).setScale(0);
-        this.tweens.add({ targets: b, scale: s, duration: 380, delay: 250 + i * 70, ease: 'Back.easeOut' });
-      });
+      this.popIn(buttons, 250);
       this.time.delayedCall(700, then);
     };
     this.input.once('pointerdown', wake);

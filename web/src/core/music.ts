@@ -39,6 +39,22 @@ class BackgroundMusic {
     if (this.enabled) this.start();
   }
 
+  /**
+   * Dès l'ouverture du jeu (écran de chargement) : la musique démarre tout de suite là où le
+   * navigateur le permet (appli installée, Android…), sinon au tout premier toucher, même sur
+   * l'écran de chargement.
+   */
+  autostart() {
+    this.unlock();
+    if (!this.ctx || this.ctx.state === 'running') return;
+    const events = ['pointerdown', 'touchend', 'click', 'keydown'];
+    const retry = () => {
+      this.unlock();
+      if (this.ctx?.state === 'running') events.forEach((e) => window.removeEventListener(e, retry, true));
+    };
+    events.forEach((e) => window.addEventListener(e, retry, true));
+  }
+
   setEnabled(on: boolean) {
     this.enabled = on;
     if (on) this.start();
