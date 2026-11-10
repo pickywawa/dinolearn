@@ -7,9 +7,9 @@ import { Sfx } from '../core/sfx';
 import { Dino } from '../dino/Dino';
 import { DINO_COLORS, EGG_ZIGZAG, PART_RESOLUTION } from '../dino/parts';
 import { Guide } from '../ui/Guide';
-import { ageSize, unit } from '../ui/scenery';
+import { ageSize, goTo, unit } from '../ui/scenery';
 import { backdropPoint, drawBackdrop, VOLCANO_MOUND } from '../ui/backdrop';
-import { HelloScene } from './HelloScene';
+import { BaseScene } from './BaseScene';
 
 /** Nombre de touchers pour faire éclore l'œuf. */
 const TAPS_TO_HATCH = 4;
@@ -25,13 +25,13 @@ const CRACKS: [number, number][][][] = [
  * Premier écran. Au premier lancement (et pour chaque nouvel enfant) : un œuf
  * qui tremble ; chaque toucher le fissure (le téléphone vibre), et au quatrième
  * il éclot : un bébé dino d'une couleur au hasard parmi 10 sort et se présente
- * (puis, au tout premier lancement, demande le prénom et l'âge, et un parent),
- * sans quitter cette page (voir HelloScene).
+ * (puis, au tout premier lancement, demande le prénom et l'âge, et un parent).
  * Les fois suivantes, on passe directement à l'accueil, où le dino dort sur
  * sa motte en attendant qu'on le réveille.
  * Le premier toucher débloque aussi le son et la voix (obligatoire sur iOS).
  */
-export class StartScene extends HelloScene {
+export class StartScene extends BaseScene {
+  private guide!: Guide;
   /** Centre de l'œuf (sur la motte). */
   private ex = 0;
   private ey = 0;
@@ -49,7 +49,6 @@ export class StartScene extends HelloScene {
     this.ex = mound.x;
     this.ey = Math.min(mound.y, this.scale.height * 0.97) - u * 0.22;
     this.guide = new Guide(this, u * 0.2);
-    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.game.loop.targetFps = 60);
     // Premier lancement (pas encore d'enfant) ou nouvel enfant : l'œuf à faire éclore.
     const setup = !app.profiles.pin || app.profiles.count === 0;
     // Dino déjà éclos : pas d'écran à part, il dort sur sa motte à l'accueil.
@@ -181,7 +180,7 @@ export class StartScene extends HelloScene {
     egg.destroy();
     this.chips(this.ex, (this.ey - u * 0.02), 12);
     const height = u * 0.45 * ageSize(app.progress.age);
-    const dino = this.dino = new Dino(this, this.ex, this.ey + u * 0.12, height, color).setDepth(2).setScale(0);
+    const dino = new Dino(this, this.ex, this.ey + u * 0.12, height, color).setDepth(2).setScale(0);
     this.tweens.add({ targets: top, y: top.y - u * 0.45, x: top.x + u * 0.25, angle: 65, alpha: 0, duration: 1700, ease: 'Quad.easeOut' });
     this.tweens.add({ targets: bottom, y: bottom.y + u * 0.05, duration: 300, ease: 'Bounce.easeOut' });
     this.tweens.add({ targets: dino, scale: height / Dino.HEIGHT, duration: 700, delay: 200, ease: 'Back.easeOut' });
@@ -193,7 +192,6 @@ export class StartScene extends HelloScene {
     dino.react('cheer');
     this.tweens.add({ targets: [bottom, shadow], alpha: 0, duration: 800, delay: 600 });
     await this.say('egg.hatched');
-    // La suite se joue sur cette même page : explications, prénom, âge, parent, puis l'accueil.
-    this.introduce(setup);
+    goTo(this, 'Hello', { setup });
   }
 }
