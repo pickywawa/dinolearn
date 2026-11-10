@@ -5,7 +5,7 @@
  * d'écriture. Logique pure, sans navigateur.
  */
 
-export type Lang = 'fr' | 'en' | 'es' | 'it' | 'de' | 'pt' | 'ru' | 'zh' | 'hi' | 'ar' | 'ur' | 'bn';
+export type Lang = 'fr' | 'en' | 'es' | 'it' | 'de' | 'pt' | 'ru' | 'zh' | 'hi' | 'ar' | 'ur' | 'bn' | 'id' | 'vi' | 'tr' | 'fa' | 'pl' | 'uk' | 'ne' | 'ko';
 
 export interface LangInfo {
   code: Lang;
@@ -48,6 +48,20 @@ export const LANGS: LangInfo[] = [
   { code: 'ar', name: 'العربية', locale: 'ar', dir: 'rtl', latin: false, voice: 'ar_JO-kareem-medium', second: 'en', country: 'eg' },
   { code: 'ur', name: 'اردو', locale: 'ur-PK', dir: 'rtl', latin: false, voice: 'ur_PK-aegis_female-medium', second: 'en', country: 'pk' },
   { code: 'bn', name: 'বাংলা', locale: 'bn-BD', dir: 'ltr', latin: false, voice: 'bn_BD-google-medium', second: 'en', country: 'bd' },
+  { code: 'id', name: 'Bahasa Indonesia', locale: 'id-ID', dir: 'ltr', latin: true, voice: 'id_ID-news_tts-medium', second: 'en', country: 'id' },
+  { code: 'vi', name: 'Tiếng Việt', locale: 'vi-VN', dir: 'ltr', latin: true, voice: 'vi_VN-vais1000-medium',
+    asr: { model: 'vosk-model-small-vn-0.4', sizeMb: 33.7 }, second: 'en', country: 'vn' },
+  { code: 'tr', name: 'Türkçe', locale: 'tr-TR', dir: 'ltr', latin: true, voice: 'tr_TR-dfki-medium',
+    asr: { model: 'vosk-model-small-tr-0.3', sizeMb: 36.9 }, second: 'en', country: 'tr' },
+  { code: 'fa', name: 'فارسی', locale: 'fa-IR', dir: 'rtl', latin: false, voice: 'fa_IR-gyro-medium',
+    asr: { model: 'vosk-model-small-fa-0.5', sizeMb: 62.2 }, second: 'en', country: 'ir' },
+  { code: 'pl', name: 'Polski', locale: 'pl-PL', dir: 'ltr', latin: true, voice: 'pl_PL-gosia-medium',
+    asr: { model: 'vosk-model-small-pl-0.22', sizeMb: 53.0 }, second: 'en', country: 'pl' },
+  { code: 'uk', name: 'Українська', locale: 'uk-UA', dir: 'ltr', latin: false, voice: 'uk_UA-tetiana-high',
+    asr: { model: 'vosk-model-small-uk-v3-nano', sizeMb: 77.6 }, second: 'en', country: 'ua' },
+  { code: 'ko', name: '한국어', locale: 'ko-KR', dir: 'ltr', latin: false, voice: 'ko_KR-kss-medium',
+    asr: { model: 'vosk-model-small-ko-0.22', sizeMb: 86.9 }, second: 'en', country: 'kr' },
+  { code: 'ne', name: 'नेपाली', locale: 'ne-NP', dir: 'ltr', latin: false, voice: 'ne_NP-chitwan-medium', second: 'en', country: 'np' },
 ];
 
 export const isLang = (code: string): code is Lang => LANGS.some((l) => l.code === code);
@@ -56,7 +70,8 @@ export const langInfo = (code: string): LangInfo => LANGS.find((l) => l.code ===
 /** Langue de l'appareil (« pt-BR » → pt), sinon le français. */
 export function deviceLang(languages: readonly string[]): Lang {
   for (const tag of languages) {
-    const base = tag.toLowerCase().split(/[-_]/)[0];
+    // « in » est l'ancien code de l'indonésien (encore donné par certains Android).
+    const base = tag.toLowerCase().split(/[-_]/)[0].replace(/^in$/, 'id');
     if (isLang(base)) return base;
   }
   return 'fr';
@@ -92,4 +107,7 @@ export const VOICE_SIZES_MB: Record<string, number> = {
   'fr_FR-upmc-medium': 76.7, 'en_GB-alba-medium': 63.2, 'es_MX-claude-high': 63.1, 'it_IT-paola-medium': 63.5,
   'de_DE-thorsten-medium': 63.2, 'pt_BR-faber-medium': 63.2, 'ru_RU-irina-medium': 63.2, 'zh_CN-huayan-medium': 63.2,
   'hi_IN-priyamvada-medium': 63.5, 'ar_JO-kareem-medium': 63.2, 'ur_PK-aegis_female-medium': 63.5, 'bn_BD-google-medium': 76.8,
+  'id_ID-news_tts-medium': 62.9, 'vi_VN-vais1000-medium': 63.2, 'tr_TR-dfki-medium': 63.2, 'fa_IR-gyro-medium': 63.1,
+  'pl_PL-gosia-medium': 63.2, 'uk_UA-tetiana-high': 114.2,
+  'ko_KR-kss-medium': 63.2, 'ne_NP-chitwan-medium': 63.2,
 };

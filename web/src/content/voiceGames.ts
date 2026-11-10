@@ -5,7 +5,7 @@ import {
   CONCEPTS, categoryHint, Concept, Speech, conceptById, conceptsFor, foreignWord, frWithArticle, pickDistractors, theWord,
 } from './content';
 import { isFr, lang, second, t } from '../i18n';
-import { BANKNOTES, CELEBRATIONS, Country, FAR_FLAGS, FOREIGN_FOODS, OTHER_ANIMALS, currentCountry } from './countries';
+import { CELEBRATIONS, Country, FAR_FLAGS, FOREIGN_FOODS, OTHER_ANIMALS, currencyCards, currentCountry } from './countries';
 import {
   COUNTRY_NAMES, JOBS, NATURE, OralCard, OralRiddle, SEASONS, SHAPES_COLORS, SPACE, SPORTS, WORLD,
 } from './oral';
@@ -299,24 +299,30 @@ export const ORAL_THEMES: Theme[] = [
 
 // ---- « Mon pays », à voix haute ----
 
-const FOREIGN_FOOD_NAMES = ['les sushis', 'les tacos', 'le curry', 'les raviolis', 'les nems', 'la paella'];
-const CURRENCY_NAMES = ['l\'euro', 'le dollar', 'le yen', 'la livre', 'le franc'];
+const FOREIGN_FOOD_NAMES = ['les sushis', 'les tacos', 'le curry', 'les raviolis', 'les nems', 'la paella', 'le hamburger',
+  'les falafels', 'le bretzel'];
+const CURRENCY_NAMES = ['l\'euro', 'le dollar', 'le yen', 'la livre', 'le franc', 'la livre sterling', 'le yuan', 'la roupie'];
 const LANGUAGE_NAMES = ['l\'anglais', 'l\'espagnol', 'l\'italien', 'l\'allemand', 'le chinois', 'le japonais', 'le portugais',
   'le français', 'le néerlandais', 'le russe', 'l\'arabe'];
 const DAYS = ['le quatorze juillet', 'le vingt et un juillet', 'le premier août', 'le premier juillet', 'le vingt-trois juin',
-  'le vingt-cinq décembre', 'le premier janvier', 'le premier mai', 'le quatre juillet'];
+  'le vingt-cinq décembre', 'le premier janvier', 'le premier mai', 'le quatre juillet', 'le premier octobre', 'le quinze août',
+  'le sept septembre', 'le seize septembre', 'le trois octobre', 'le douze octobre', 'le deux juin', 'le douze juin',
+  'le quatorze août', 'le vingt-six mars', 'le vingt-trois juillet', 'le vingt-trois septembre', 'le vingt-six octobre',
+  'le dix juin', 'le trente juillet'];
 const FAR_COUNTRIES: Record<string, string> = {
   jp: 'le Japon', br: 'le Brésil', us: 'les États-Unis', cn: 'la Chine', mx: 'le Mexique', in: 'l\'Inde', sn: 'le Sénégal', gb: 'l\'Angleterre',
 };
 const LANDMARKS = ['la tour Eiffel', 'la statue de la Liberté', 'les pyramides', 'la tour de Tokyo', 'les Alpes', 'le désert',
-  'la plage', 'les châteaux forts', 'le hockey sur glace', 'le basket', 'le tennis', 'le football américain'];
+  'la plage', 'les châteaux forts', 'le hockey sur glace', 'le basket', 'le tennis', 'le football américain', 'le football',
+  'le cricket', 'les volcans', 'la piñata', 'les lanternes rouges', 'le sapin de Noël'];
 const PEOPLES = WORLD.filter((r) => r.id.startsWith('p-')).flatMap((r) => [r.answer, ...(r.also ?? [])]);
 
 /** Symbole animal du pays (« le coq »), s'il en a un. */
 const animalSymbol = (c: Country) => c.symbols.find(([image]) => CONCEPTS.some((x) => x.id === image && x.group === 'animal'));
 
 function myCountryQuestions(c: Country): QuestionRef[] {
-  const q: [string, number][] = [['name', 4], ['language', 5], ['people', 6], ['capital', 8], ['day', 10], ['neighbour', 12]];
+  const q: [string, number][] = [['name', 4], ['language', 5], ['people', 6], ['capital', 8], ['neighbour', 12]];
+  if (c.nationalDay) q.push(['day', 10]);
   if (c.foods.length) q.push(['food', 6]);
   if (c.currency) q.push(['currency', 7]);
   if (animalSymbol(c)) q.push(['symbol', 7]);
@@ -370,8 +376,9 @@ function buildMyCountry(ref: QuestionRef, rng: Rng): BuiltQuestion {
         image(c.foods[0][0]), take(FOREIGN_FOODS, 3).map(image), `Miam ! C'est une spécialité ${c.of} !`,
         `Lequel est une spécialité ${c.of} ? Touche-le !`, `pense à ce qu'on achète à la boulangerie ou au marché.`);
     case 'currency': {
-      const [img, name] = c.currency!;
-      return q(`Avec quel argent est-ce qu'on paie ${c.in} ?`, [name], CURRENCY_NAMES, image(img), take(BANKNOTES, 3, [img]).map(image),
+      const [, name] = c.currency!;
+      const cards = currencyCards(c, rng);
+      return q(`Avec quel argent est-ce qu'on paie ${c.in} ?`, [name], CURRENCY_NAMES, cards.answer, cards.distractors,
         `Oui ! ${capitalize(c.in)}, on paie avec ${name} !`);
     }
     case 'symbol': {
@@ -385,8 +392,8 @@ function buildMyCountry(ref: QuestionRef, rng: Rng): BuiltQuestion {
       return q(question, [name], LANDMARKS, image(img), take(others, 3).map(image), `Oui ! C'est ${name} !`);
     }
     case 'day':
-      return q(`Quel jour est la fête nationale ${c.of} ?`, [c.nationalDay], DAYS, image('cty-fireworks'),
-        take(CELEBRATIONS, 3).map(image), `Oui ! ${capitalize(c.nationalDay)}, c'est la fête nationale ${c.of} !`,
+      return q(`Quel jour est la fête nationale ${c.of} ?`, [c.nationalDay!], DAYS, image('cty-fireworks'),
+        take(CELEBRATIONS, 3).map(image), `Oui ! ${capitalize(c.nationalDay!)}, c'est la fête nationale ${c.of} !`,
         `Le jour de la fête nationale ${c.of}, qu'est-ce qu'on regarde dans le ciel, le soir ?`, 'c\'est en été.');
     default: {
       const names = c.neighbours.map((n) => COUNTRY_NAMES[n]).filter(Boolean);

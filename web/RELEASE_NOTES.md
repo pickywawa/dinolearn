@@ -1,3 +1,11 @@
+## DinoLearn 0.20.0 — 20 langues et 54 pays
+
+- 8 nouvelles langues : indonésien, vietnamien, turc, persan, polonais, ukrainien, coréen et népalais. Jeux à voix haute aussi en vietnamien, turc, persan, polonais, ukrainien et coréen.
+- « Mon pays » existe maintenant dans toutes les langues et pour 54 pays : drapeau, drapeaux qui se ressemblent, voisins, symbole, spécialités, fête nationale, monnaie, lieu ou sport célèbre, et capitale à lire.
+- Le jeu de l'argent marche avec la monnaie de chaque pays : pièces et billets dessinés avec leurs couleurs et leur symbole (dollar, roupie, yuan, naira, won…).
+- Tracé des lettres dans d'autres écritures : cyrillique (russe, ukrainien), caractères chinois simples, hangeul coréen, lettres arabes et persanes ; chiffres pour le hindi, le bengali et le népalais.
+- Les jeux à voix haute sont masqués dans les langues sans reconnaissance vocale (arabe, ourdou, bengali, indonésien, népalais).
+
 ## DinoLearn 0.19.1 — Reconnaissance vocale en portugais
 
 - Le pack de reconnaissance vocale portugais est maintenant publié (son modèle a une organisation différente des autres).

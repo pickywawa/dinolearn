@@ -12,7 +12,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 // Une entrée par langue de src/domain/langs.ts qui a un pack (« asr ») : même modèle.
-// L'arabe, l'ourdou et le bengali n'ont pas de petit modèle : pas de jeux à voix haute.
+// L'arabe, l'ourdou, le bengali et l'indonésien n'ont pas de petit modèle : pas de jeux à voix haute.
 const PACKS = [
   { lang: 'fr', model: 'vosk-model-small-fr-0.22' },
   { lang: 'en', model: 'vosk-model-small-en-us-0.15' },
@@ -23,6 +23,12 @@ const PACKS = [
   { lang: 'ru', model: 'vosk-model-small-ru-0.22' },
   { lang: 'zh', model: 'vosk-model-small-cn-0.22' },
   { lang: 'hi', model: 'vosk-model-small-hi-0.22' },
+  { lang: 'vi', model: 'vosk-model-small-vn-0.4' },
+  { lang: 'tr', model: 'vosk-model-small-tr-0.3' },
+  { lang: 'fa', model: 'vosk-model-small-fa-0.5' },
+  { lang: 'pl', model: 'vosk-model-small-pl-0.22' },
+  { lang: 'uk', model: 'vosk-model-small-uk-v3-nano' },
+  { lang: 'ko', model: 'vosk-model-small-ko-0.22' },
 ];
 const SOURCE = process.env.VOICE_MODELS_URL ?? 'https://alphacephei.com/vosk/models';
 const OUT = fileURLToPath(new URL('../public/voice/', import.meta.url));

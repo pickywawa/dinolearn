@@ -458,6 +458,38 @@ const hi: Catalog = {
     paintbrush=ब्रश; crayon=क्रेयॉन; trophy=ट्रॉफ़ी; medal=पदक; ring=अँगूठी; skateboard=स्केटबोर्ड; yoyo=यो-यो;
     roller_skate=स्केट; canoe=डोंगी; tram=ट्राम; parachute=पैराशूट; satellite=उपग्रह; brain=दिमाग; bone=हड्डी;
     tongue=जीभ; leg=टाँग; tornado=बवंडर; lightning=बिजली; comet=धूमकेतु; cactus=कैक्टस; blossom=फूलों की डाली; feather=पंख`),
+
+  // ---- Mon pays ----
+  "lang.ko": "कोरियाई", "lang.ne": "नेपाली",
+  "lang.vi": "वियतनामी", "lang.tr": "तुर्की", "lang.fa": "फ़ारसी", "lang.pl": "पोलिश", "lang.uk": "यूक्रेनी",
+  "lang.id": "इंडोनेशियाई",
+  "country.cd": "कांगो लोकतांत्रिक गणराज्य",
+  "title.MO-6": "दुनिया — मेरा देश",
+  "l.home.MO-6": ["नक्शा: तुम्हारे देश के बारे में सवाल!"],
+  "l.intro.MO-6": ["चलो तुम्हारे देश के बारे में बात करें! ध्यान से सुनो और सही तस्वीर छुओ।", "क्या तुम अपने देश को अच्छी तरह जानते हो? मैं सवाल पूछता हूँ!"],
+  "l.short.MO-6": ["तुम्हारे देश के बारे में एक सवाल!"],
+  "cty.flag": "{country} का झंडा कौन-सा है?",
+  "cty.flagHard": "ध्यान दो, ये एक जैसे दिखते हैं! {country} का झंडा कौन-सा है?",
+  "cty.flagYes": "हाँ! यह {country} का झंडा है!",
+  "cty.flagHint": "रंग और उनका क्रम ध्यान से देखो",
+  "cty.symbol": "{country} का प्रतीक कौन-सा है?",
+  "cty.symbolYes": "हाँ! यह {country} का प्रतीक है!",
+  "cty.symbolYesName": "हाँ! {name}, {country} का प्रतीक है!",
+  "cty.food": ["{country} का खास खाना कौन-सा है?", "{country} में लोग क्या खाना पसंद करते हैं?"],
+  "cty.foodYes": "यम! यह {country} का खास खाना है!",
+  "cty.day": "{date} को {country} का राष्ट्रीय दिवस है! शाम को आसमान में हम क्या देखते हैं?",
+  "cty.dayYes": "हाँ! {date} को खूब आतिशबाज़ी होती है!",
+  "cty.currency": "{country} में किस पैसे से भुगतान करते हैं?",
+  "cty.currencyYes": "हाँ! {country} में {money} से भुगतान करते हैं!",
+  "cty.place": "{country} में कौन-सी मशहूर जगह दिखती है?",
+  "cty.sport": "{country} में लोगों को कौन-सा खेल पसंद है?",
+  "cty.thing": "{country} में त्योहारों पर अक्सर क्या दिखता है?",
+  "cty.landmarkYes": "हाँ! शाबाश, तुम अपने देश को अच्छी तरह जानते हो!",
+  "cty.capital": "{country} की राजधानी कौन-सी है? शहरों के नाम ध्यान से पढ़ो!",
+  "cty.capitalYes": "हाँ! {country} की राजधानी {city} है!",
+  "cty.neighbour": "इनमें से कौन-सा झंडा {country} के पड़ोसी देश का है?",
+  "cty.neighbourYes": "हाँ! यह देश {country} के ठीक बगल में है!",
+  "cty.neighbourHint": "पड़ोसी बहुत पास होते हैं, उसी महाद्वीप पर",
 };
 
 export default hi;

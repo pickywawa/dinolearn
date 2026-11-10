@@ -369,6 +369,27 @@ export const WORLD: OralRiddle[] = [
 export const COUNTRY_NAMES: Record<string, string> = {
   fr: 'la France', be: 'la Belgique', ch: 'la Suisse', de: 'l\'Allemagne', it: 'l\'Italie', es: 'l\'Espagne',
   lu: 'le Luxembourg', nl: 'les Pays-Bas', at: 'l\'Autriche', li: 'le Liechtenstein', us: 'les États-Unis', ca: 'le Canada',
+  gb: 'le Royaume-Uni', ie: 'l\'Irlande', mx: 'le Mexique', gt: 'le Guatemala', bz: 'le Belize', cn: 'la Chine', ru: 'la Russie',
+  in: 'l\'Inde', pk: 'le Pakistan', mn: 'la Mongolie', vn: 'le Viêt Nam', np: 'le Népal', kz: 'le Kazakhstan',
+  kp: 'la Corée du Nord', bd: 'le Bangladesh', bt: 'le Bhoutan', mm: 'la Birmanie', br: 'le Brésil', ar: 'l\'Argentine',
+  uy: 'l\'Uruguay', py: 'le Paraguay', bo: 'la Bolivie', pe: 'le Pérou', co: 'la Colombie', ve: 'le Venezuela',
+  dk: 'le Danemark', pl: 'la Pologne', cz: 'la Tchéquie', pt: 'le Portugal', ad: 'l\'Andorre', si: 'la Slovénie',
+  sm: 'Saint-Marin', fi: 'la Finlande', ua: 'l\'Ukraine', by: 'la Biélorussie', no: 'la Norvège', ee: 'l\'Estonie',
+  af: 'l\'Afghanistan', ir: 'l\'Iran', eg: 'l\'Égypte', ly: 'la Libye', sd: 'le Soudan', sa: 'l\'Arabie saoudite',
+  jo: 'la Jordanie', iq: 'l\'Irak', kw: 'le Koweït', ye: 'le Yémen', om: 'Oman', ae: 'les Émirats arabes unis', qa: 'le Qatar',
+  sk: 'la Slovaquie', hu: 'la Hongrie', ma: 'le Maroc', dz: 'l\'Algérie', mr: 'la Mauritanie',
+  ao: 'l\'Angola', bf: 'le Burkina Faso', bi: 'le Burundi', bj: 'le Bénin', bw: 'le Botswana', cd: 'la RD Congo',
+  cf: 'la Centrafrique', cg: 'le Congo', cl: 'le Chili', cm: 'le Cameroun', ec: 'l\'Équateur', er: 'l\'Érythrée',
+  et: 'l\'Éthiopie', ga: 'le Gabon', gh: 'le Ghana', gn: 'la Guinée', gq: 'la Guinée équatoriale', id: 'l\'Indonésie',
+  ke: 'le Kenya', lr: 'le Liberia', ls: 'le Lesotho', ml: 'le Mali', mw: 'le Malawi', my: 'la Malaisie', mz: 'le Mozambique',
+  na: 'la Namibie', ne: 'le Niger', ng: 'le Nigeria', pa: 'le Panama', pg: 'la Papouasie', rw: 'le Rwanda', so: 'la Somalie',
+  ss: 'le Soudan du Sud', sy: 'la Syrie', sz: 'l\'Eswatini', td: 'le Tchad', tl: 'le Timor oriental', tn: 'la Tunisie',
+  tr: 'la Turquie', tw: 'Taïwan', tz: 'la Tanzanie', ug: 'l\'Ouganda', zm: 'la Zambie', zw: 'le Zimbabwe',
+  ph: 'les Philippines', za: 'l\'Afrique du Sud', ci: 'la Côte d\'Ivoire',
+  am: 'l\'Arménie', az: 'l\'Azerbaïdjan', bg: 'la Bulgarie', ge: 'la Géorgie', gr: 'la Grèce', kh: 'le Cambodge', la: 'le Laos',
+  lt: 'la Lituanie', md: 'la Moldavie', ro: 'la Roumanie', tm: 'le Turkménistan', th: 'la Thaïlande',
+  gy: 'le Guyana', jp: 'le Japon', km: 'les Comores', lb: 'le Liban', mu: 'Maurice', sc: 'les Seychelles', tg: 'le Togo',
+  tj: 'le Tadjikistan', uz: 'l\'Ouzbékistan',
 };
 
 // ---- La nature (en plus des devinettes de plantes, de paysages et d'éléments) ----

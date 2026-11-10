@@ -17,6 +17,8 @@ import { drawBackdrop } from '../ui/backdrop';
 import { card } from '../ui/kit';
 import { BaseScene } from './BaseScene';
 import { lang, t } from '../i18n';
+import { CURRENCIES, isNote, moneyLabel } from '../domain/currencies';
+import { langInfo } from '../domain/langs';
 
 interface Card {
   choice: Choice;
@@ -848,7 +850,7 @@ export class GameScene extends BaseScene {
     } else if (choice.clock) {
       container.add(this.clockFace(choice.clock.h, choice.clock.m, size));
     } else if (choice.money) {
-      container.add(this.moneyFace(choice.money, size));
+      container.add(choice.currency ? this.currencyFace(choice.money, choice.currency, size) : this.moneyFace(choice.money, size));
     } else if (choice.shape) {
       container.add(this.shapeFace(choice.shape, size));
     } else if (choice.text) {
@@ -971,6 +973,69 @@ export class GameScene extends BaseScene {
       g.fillStyle(outer, 1).fillCircle(x, cy, r).lineStyle(0.007 * k, 0x2d3354, 0.8).strokeCircle(x, cy, r);
       if (inner !== outer) g.fillStyle(inner, 1).fillCircle(x, cy, r * 0.68);
       label(x, cy, c >= 100 ? `${c / 100}€` : `${c}c`, r * 0.85);
+    });
+    return objects;
+  }
+
+  /**
+   * Pièces et billets d'une autre monnaie (montants entiers) : billets colorés en haut,
+   * pièces dorées ou argentées en dessous, avec le symbole de la monnaie.
+   */
+  private currencyFace(items: number[], code: string, size: number): Phaser.GameObjects.GameObject[] {
+    const cur = CURRENCIES[code];
+    const locale = langInfo(lang()).locale;
+    const objects: Phaser.GameObjects.GameObject[] = [];
+    const g = this.add.graphics();
+    objects.push(g);
+    const label = (x: number, y: number, value: number, room: number) => {
+      const text = moneyLabel(code, value, locale);
+      // Le texte rétrécit s'il est long (« 10 000 Rp »).
+      const px = Math.min(room * 0.42, (room * 1.7) / Math.max(3, text.length));
+      objects.push(this.add.text(x, y, text, {
+        fontFamily: 'Andika, Arial, sans-serif', fontSize: `${Math.round(px)}px`, color: '#2d3354', fontStyle: 'bold',
+      }).setOrigin(0.5));
+    };
+    const bills = items.filter((v) => isNote(cur, v));
+    const coins = items.filter((v) => !isNote(cur, v));
+    const coinsPerRow = coins.length <= 4 ? coins.length : 3;
+    const billRows = Math.ceil(bills.length / 2);
+    const coinRows = coinsPerRow ? Math.ceil(coins.length / coinsPerRow) : 0;
+    const billRow = 0.25;
+    const coinRow = 0.23;
+    const height = billRows * billRow + coinRows * coinRow;
+    const k = size * Math.min(1, 0.9 / height);
+    let y = (-height / 2) * k;
+    const bw = 0.4 * k;
+    const bh = 0.21 * k;
+    for (let row = 0; row < billRows; row++) {
+      const inRow = bills.slice(row * 2, row * 2 + 2);
+      const cy = y + (billRow * k) / 2;
+      inRow.forEach((v, i) => {
+        const x = (i - (inRow.length - 1) / 2) * bw * 1.1;
+        g.fillStyle(cur.notes[v], 1).fillRoundedRect(x - bw / 2, cy - bh / 2, bw, bh, 0.02 * k)
+          .lineStyle(0.008 * k, 0x2d3354, 0.8).strokeRoundedRect(x - bw / 2, cy - bh / 2, bw, bh, 0.02 * k);
+        // Un médaillon clair pour que la valeur se lise sur toutes les couleurs.
+        g.fillStyle(0xffffff, 0.55).fillEllipse(x, cy, bw * 0.7, bh * 0.62);
+        label(x, cy, v, bh);
+      });
+      y += billRow * k;
+    }
+    const metals: Record<string, [number, number]> = {
+      gold: [0xe2b33c, 0xe2b33c], silver: [0xc9ccd3, 0xc9ccd3], copper: [0xc8794a, 0xc8794a],
+      'gold-silver': [0xe2b33c, 0xc9ccd3], 'silver-gold': [0xc9ccd3, 0xe2b33c],
+    };
+    const values = Object.keys(cur.coins).map(Number).sort((a, b) => a - b);
+    coins.forEach((v, i) => {
+      const row = Math.floor(i / coinsPerRow);
+      const inRow = Math.min(coinsPerRow, coins.length - row * coinsPerRow);
+      const x = ((i % coinsPerRow) - (inRow - 1) / 2) * coinRow * k;
+      const cy = y + (row + 0.5) * coinRow * k;
+      // Les grosses pièces sont un peu plus grandes.
+      const r = (0.08 + (0.024 * values.indexOf(v)) / Math.max(1, values.length - 1)) * k;
+      const [outer, inner] = metals[cur.coins[v]];
+      g.fillStyle(outer, 1).fillCircle(x, cy, r).lineStyle(0.007 * k, 0x2d3354, 0.8).strokeCircle(x, cy, r);
+      if (inner !== outer) g.fillStyle(inner, 1).fillCircle(x, cy, r * 0.68);
+      label(x, cy, v, r * 1.6);
     });
     return objects;
   }

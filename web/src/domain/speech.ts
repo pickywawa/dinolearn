@@ -45,6 +45,11 @@ const FILLERS: Partial<Record<SpeechLang, string[]>> = {
   ru: ['это', 'э'],
   zh: ['是', '这', '这是', '嗯'],
   hi: ['यह', 'है', 'एक'],
+  vi: ['con', 'cái', 'quả', 'củ', 'chiếc', 'đây', 'là', 'một', 'màu'],
+  tr: ['bu', 'bir'],
+  fa: ['این', 'یک', 'است'],
+  pl: ['to', 'jest'],
+  uk: ['це'],
 };
 
 /** Minuscules, apostrophes droites, ponctuation retirée, espaces simples. */

@@ -467,6 +467,38 @@ const de: Catalog = {
     canoe=das Kanu; tram=die Straßenbahn; parachute=der Fallschirm; satellite=der Satellit; brain=das Gehirn; bone=der Knochen;
     tongue=die Zunge; leg=das Bein; tornado=der Tornado; lightning=der Blitz; comet=der Komet; cactus=der Kaktus;
     blossom=die Kirschblüte; feather=die Feder`),
+
+  // ---- Mon pays ----
+  "lang.ko": "Koreanisch", "lang.ne": "Nepalesisch",
+  "lang.vi": "Vietnamesisch", "lang.tr": "Türkisch", "lang.fa": "Persisch", "lang.pl": "Polnisch", "lang.uk": "Ukrainisch",
+  "lang.id": "Indonesisch",
+  "country.cd": "DR Kongo",
+  "title.MO-6": "Die Welt — Mein Land",
+  "l.home.MO-6": ["Die Landkarte: Fragen über dein Land!"],
+  "l.intro.MO-6": ["Wir sprechen über dein Land! Hör gut zu und tippe auf das richtige Bild.", "Kennst du dein Land gut? Ich stelle dir Fragen!"],
+  "l.short.MO-6": ["Eine Frage über dein Land!"],
+  "cty.flag": "Welche Flagge gehört zu: {country}?",
+  "cty.flagHard": "Achtung, sie sehen sich ähnlich! Welche Flagge gehört zu: {country}?",
+  "cty.flagYes": "Ja! Das ist die Flagge von: {country}!",
+  "cty.flagHint": "schau dir die Farben und ihre Reihenfolge gut an",
+  "cty.symbol": "Was ist ein Symbol für: {country}?",
+  "cty.symbolYes": "Ja! Das ist ein Symbol für: {country}!",
+  "cty.symbolYesName": "Ja! {name}: ein Symbol für {country}!",
+  "cty.food": ["Was ist eine Spezialität? Land: {country}.", "Was isst man gern? Land: {country}."],
+  "cty.foodYes": "Mmm! Das ist eine Spezialität! Land: {country}.",
+  "cty.day": "Am {date} ist der Nationalfeiertag! Land: {country}. Was sieht man abends am Himmel?",
+  "cty.dayYes": "Ja! Am {date} gibt es ein großes Feuerwerk!",
+  "cty.currency": "Mit welchem Geld bezahlt man? Land: {country}.",
+  "cty.currencyYes": "Ja! Man bezahlt mit: {money}!",
+  "cty.place": "Welchen berühmten Ort sieht man? Land: {country}.",
+  "cty.sport": "Welchen Sport liebt man dort? Land: {country}.",
+  "cty.thing": "Was sieht man oft bei Festen? Land: {country}.",
+  "cty.landmarkYes": "Ja! Bravo, du kennst dein Land gut!",
+  "cty.capital": "Was ist die Hauptstadt? Land: {country}. Lies die Namen der Städte gut!",
+  "cty.capitalYes": "Ja! Die Hauptstadt ist {city}!",
+  "cty.neighbour": "Welche dieser Flaggen gehört zu einem Nachbarland? Land: {country}.",
+  "cty.neighbourYes": "Ja! Dieses Land liegt direkt daneben!",
+  "cty.neighbourHint": "Nachbarn sind ganz nah, auf demselben Kontinent",
 };
 
 export default de;

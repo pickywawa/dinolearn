@@ -467,6 +467,38 @@ const pt: Catalog = {
     canoe=a canoa; tram=o bonde; parachute=o paraquedas; satellite=o satélite; brain=o cérebro; bone=o osso;
     tongue=a língua; leg=a perna; tornado=o tornado; lightning=o raio; comet=o cometa; cactus=o cacto;
     blossom=a flor de cerejeira; feather=a pena`),
+
+  // ---- Mon pays ----
+  "lang.ko": "coreano", "lang.ne": "nepalês",
+  "lang.vi": "vietnamita", "lang.tr": "turco", "lang.fa": "persa", "lang.pl": "polonês", "lang.uk": "ucraniano",
+  "lang.id": "indonésio",
+  "country.cd": "RD do Congo",
+  "title.MO-6": "O mundo — Meu país",
+  "l.home.MO-6": ["O mapa: perguntas sobre o seu país!"],
+  "l.intro.MO-6": ["Vamos falar do seu país! Ouça bem e toque na imagem certa.", "Você conhece bem o seu país? Vou fazer perguntas!"],
+  "l.short.MO-6": ["Uma pergunta sobre o seu país!"],
+  "cty.flag": "Qual é a bandeira do país: {country}?",
+  "cty.flagHard": "Cuidado, elas se parecem! Qual é a bandeira do país: {country}?",
+  "cty.flagYes": "Sim! É a bandeira do país: {country}!",
+  "cty.flagHint": "olhe bem as cores e a ordem delas",
+  "cty.symbol": "Qual é um símbolo do país: {country}?",
+  "cty.symbolYes": "Sim! É um símbolo do país: {country}!",
+  "cty.symbolYesName": "Sim! {name} é um símbolo do país: {country}!",
+  "cty.food": ["Qual é uma comida típica do país: {country}?", "O que se gosta de comer no país: {country}?"],
+  "cty.foodYes": "Nham! É uma comida típica do país: {country}!",
+  "cty.day": "Dia {date} é a festa nacional do país: {country}! O que olhamos no céu à noite?",
+  "cty.dayYes": "Sim! Dia {date} tem uma grande queima de fogos!",
+  "cty.currency": "Com que dinheiro se paga no país: {country}?",
+  "cty.currencyYes": "Sim! Paga-se com: {money}!",
+  "cty.place": "Que lugar famoso se vê no país: {country}?",
+  "cty.sport": "Qual esporte o povo adora no país: {country}?",
+  "cty.thing": "O que se vê muito nas festas do país: {country}?",
+  "cty.landmarkYes": "Sim! Parabéns, você conhece bem o seu país!",
+  "cty.capital": "Qual é a capital do país: {country}? Leia bem os nomes das cidades!",
+  "cty.capitalYes": "Sim! A capital é {city}!",
+  "cty.neighbour": "Qual destas bandeiras é de um país vizinho do país: {country}?",
+  "cty.neighbourYes": "Sim! Este país fica bem ao lado!",
+  "cty.neighbourHint": "os vizinhos ficam bem perto, no mesmo continente",
 };
 
 export default pt;

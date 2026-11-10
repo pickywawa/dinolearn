@@ -455,6 +455,38 @@ const ar: Catalog = {
     skateboard=لوح التزلج; yoyo=اليويو; roller_skate=حذاء التزلج; canoe=الزورق; tram=الترام; parachute=المظلة الهوائية;
     satellite=القمر الصناعي; brain=الدماغ; bone=العظمة; tongue=اللسان; leg=الساق; tornado=الإعصار; lightning=البرق;
     comet=المذنّب; cactus=الصبّار; blossom=زهر الكرز; feather=الريشة`),
+
+  // ---- Mon pays ----
+  "lang.ko": "الكورية", "lang.ne": "النيبالية",
+  "lang.vi": "الفيتنامية", "lang.tr": "التركية", "lang.fa": "الفارسية", "lang.pl": "البولندية", "lang.uk": "الأوكرانية",
+  "lang.id": "الإندونيسية",
+  "country.cd": "الكونغو الديمقراطية",
+  "title.MO-6": "العالم — بلدي",
+  "l.home.MO-6": ["الخريطة: أسئلة عن بلدك!"],
+  "l.intro.MO-6": ["لنتحدّث عن بلدك! استمع جيدًا والمس الصورة الصحيحة.", "هل تعرف بلدك جيدًا؟ سأطرح عليك أسئلة!"],
+  "l.short.MO-6": ["سؤال عن بلدك!"],
+  "cty.flag": "ما هو علم {country}؟",
+  "cty.flagHard": "انتبه، إنها متشابهة! ما هو علم {country}؟",
+  "cty.flagYes": "نعم! هذا علم {country}!",
+  "cty.flagHint": "انظر جيدًا إلى الألوان وترتيبها",
+  "cty.symbol": "ما هو رمز من رموز {country}؟",
+  "cty.symbolYes": "نعم! هذا رمز من رموز {country}!",
+  "cty.symbolYesName": "نعم! {name} رمز من رموز {country}!",
+  "cty.food": ["ما هي الأكلة المشهورة في {country}؟", "ماذا يحب الناس أن يأكلوا في {country}؟"],
+  "cty.foodYes": "يمّ! هذه أكلة مشهورة في {country}!",
+  "cty.day": "في {date} العيد الوطني لـ{country}! ماذا نشاهد في السماء في المساء؟",
+  "cty.dayYes": "نعم! في {date} ألعاب نارية كبيرة!",
+  "cty.currency": "بأي نقود ندفع في {country}؟",
+  "cty.currencyYes": "نعم! في {country} ندفع بـ{money}!",
+  "cty.place": "ما المكان المشهور الذي نراه في {country}؟",
+  "cty.sport": "ما الرياضة التي يحبها الناس في {country}؟",
+  "cty.thing": "ماذا نرى غالبًا في الأعياد في {country}؟",
+  "cty.landmarkYes": "نعم! أحسنت، أنت تعرف بلدك جيدًا!",
+  "cty.capital": "ما هي عاصمة {country}؟ اقرأ أسماء المدن جيدًا!",
+  "cty.capitalYes": "نعم! عاصمة {country} هي {city}!",
+  "cty.neighbour": "أيّ هذه الأعلام لبلد جار لـ{country}؟",
+  "cty.neighbourYes": "نعم! هذا البلد بجانب {country} تمامًا!",
+  "cty.neighbourHint": "الجيران قريبون جدًا، في القارة نفسها",
 };
 
 export default ar;

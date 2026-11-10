@@ -6,14 +6,18 @@ import {
 } from './content';
 import { isFr, lang, num, phrase, second, t } from '../i18n';
 import { langInfo, type Lang } from '../domain/langs';
+import { CURRENCIES, isNote, moneyLevel, moneySaid } from '../domain/currencies';
 import { PAIRS, SIZES, SYLLABLES, enNumber } from './extra';
 import { frNumber } from './numbers';
 import { LETTER_LEVELS, LETTER_NAMES, LOOKALIKE_LETTERS, READ_WORDS, SYLLABLES_TO_READ } from './reading';
 import { RIDDLES, excludedFor } from './riddles';
-import { BANKNOTES, CELEBRATIONS, COUNTRIES, Country, FAR_FLAGS, FOREIGN_FOODS, OTHER_ANIMALS, currentCountry } from './countries';
+import {
+  CELEBRATIONS, COUNTRIES, Country, FAR_FLAGS, FOREIGN_FOODS, OTHER_ANIMALS, citiesIn, currencyCards, currencyName, currentCountry,
+  nationalDate, regionName,
+} from './countries';
 import { SENTENCES } from './sentences';
 import { STORIES } from './stories';
-import { LETTER_MODELS, SHAPE_MODELS, TRACE_MODES, TraceMode, TraceModel, traceModel } from './tracing';
+import { LETTER_MODELS, SCRIPT_MODELS, SHAPE_MODELS, TRACE_MODES, TraceMode, TraceModel, traceModel } from './tracing';
 import { ONSETS, RHYMES } from './sounds';
 import { VOICE_GAMES } from './voiceGames';
 
@@ -36,6 +40,8 @@ export interface Choice {
   clock?: { h: number; m: number };
   /** Pièces et billets, en centimes (jeu « La monnaie »). */
   money?: number[];
+  /** Monnaie des pièces et billets (code ISO) ; l'euro, en centimes, si absent. */
+  currency?: string;
 }
 
 export interface ShapeCard {
@@ -1863,7 +1869,46 @@ function makeChange(total: number, denoms: number[], rng: Rng): number[] | undef
   return undefined;
 }
 
+/** Monnaie du jeu : celle du pays de l'enfant (l'euro par défaut, en France ou ailleurs). */
+export const moneyCurrency = (): string => currentCountry()?.currency?.[2] ?? 'EUR';
+
+/** Une monnaie autre que l'euro : montants entiers, pièces et billets du pays, dessinés. */
+function buildMoneyIn(code: string, level: number, rng: Rng): BuiltQuestion {
+  const cur = CURRENCIES[code];
+  const { values, pieces, cards } = moneyLevel(cur, level);
+  const pick = () => values[Math.floor(rng() * values.length)];
+  const count = pieces[0] + Math.floor(rng() * (pieces[1] - pieces[0] + 1));
+  const answer = Array.from({ length: count }, pick).sort((a, b) => b - a);
+  const target = answer.reduce((a, b) => a + b, 0);
+  const step = values[0];
+  const card = (coins: number[], total: number): Choice => ({ id: `m:${total}`, money: coins, currency: code });
+  const distractors: Choice[] = [];
+  for (const k of shuffle([1, -1, 2, -2, 3, -3, 4, 5, 6, -4], rng)) {
+    const total = target + k * step;
+    if (total <= 0 || distractors.length >= cards - 1 || distractors.some((d) => d.id === `m:${total}`)) continue;
+    const change = makeChange(total, values, rng);
+    if (change) distractors.push(card(change, total));
+  }
+  const locale = langInfo(lang()).locale;
+  const said = moneySaid(code, target, locale);
+  const hasCoins = answer.some((v) => !isNote(cur, v));
+  const fr = isFr();
+  return {
+    answer: card(answer, target),
+    distractors,
+    prompt: [fr
+      ? { text: oneOf(rng, [`Touche la carte où il y a ${said} !`, `Où y a-t-il exactement ${said} ?`]), lang: 'fr' }
+      : { text: t('LO-9.prompt', { money: said }, undefined, rng), lang: lang() }],
+    reinforce: [fr ? { text: `Oui ! Ça fait bien ${said} !`, lang: 'fr' } : { text: t('LO-9.yes', { money: said }), lang: lang() }],
+    hints: [fr
+      ? { text: hasCoins ? 'Indice : compte d\'abord les billets, puis ajoute les pièces.' : 'Indice : compte d\'abord les plus gros billets.', lang: 'fr' }
+      : { text: t('LO-9.hint'), lang: lang() }],
+  };
+}
+
 function buildMoney(level: number, rng: Rng): BuiltQuestion {
+  const code = moneyCurrency();
+  if (code !== 'EUR' && CURRENCIES[code]) return buildMoneyIn(code, level, rng);
   const [denoms, min, max, step, cards] = MONEY_LEVELS[level - 1];
   const amount = () => min + step * Math.floor(rng() * ((max - min) / step + 1));
   let target = amount();
@@ -1986,9 +2031,12 @@ const traceLetters: GameDef = {
   introLine: 'intro.TR-2',
   homeLine: 'home.TR-2',
   shortLine: 'short.TR-2',
-  // Lettres de l'alphabet latin : seulement dans les langues qui l'utilisent.
-  langs: (l) => langInfo(l).latin,
-  questions: traceQuestions('TR-2', LETTER_MODELS, [0, 6, 12]),
+  // Lettres latines, ou celles de l'écriture de la langue (cyrillique, chinois, arabe…) quand on les a.
+  langs: (l) => langInfo(l).latin || !!SCRIPT_MODELS[l],
+  get questions() {
+    const models = langInfo(lang()).latin ? LETTER_MODELS : SCRIPT_MODELS[lang()] ?? LETTER_MODELS;
+    return traceQuestions('TR-2', models, [0, 6, 12]);
+  },
   build: (ref, _level, rng) => buildTrace(ref, rng),
 };
 
@@ -1996,19 +2044,88 @@ const traceLetters: GameDef = {
 
 /** Questions sur un pays : [type, niveau], selon ce qu'on sait de lui. */
 function countryQuestions(c: Country): QuestionRef[] {
-  const q: [string, number][] = [['flag', 1], ['symbol:0', 2], ['day', 4], ['flag-hard', 10], ['capital', 12],
-    ['neighbour', 14], ['flag-hard6', 16], ['neighbour6', 18], ['capital6', 20]];
+  const q: [string, number][] = [['flag', 1], ['flag-hard', 10], ['neighbour', 14], ['flag-hard6', 16], ['neighbour6', 18]];
+  // La capitale se lit : seulement si les villes sont écrites dans la langue de l'enfant.
+  if (citiesIn(c)) q.push(['capital', 12], ['capital6', 20]);
   c.foods.forEach((_, i) => q.push([`food:${i}`, [3, 5, 7][i]]));
-  if (c.symbols[1]) q.push(['symbol:1', 9]);
+  c.symbols.forEach((_, i) => q.push([`symbol:${i}`, [2, 9][i]]));
+  if (c.day) q.push(['day', 4]);
   if (c.currency) q.push(['currency', 6]);
-  if (c.landmark) q.push(['landmark', 8]);
-  if (c.code === 'fr') q.push(['hexagon', 9]);
+  if (c.landmark && (isFr() || c.landmarkKind)) q.push(['landmark', 8]);
+  if (c.code === 'fr' && isFr()) q.push(['hexagon', 9]);
   return q.map(([type, level]) => ({ id: `MO-6:${c.code}:${type}`, level }));
+}
+
+const capitalized = (text: string) => text.charAt(0).toLocaleUpperCase(langInfo(lang()).locale) + text.slice(1);
+
+/** « Mon pays » dans les autres langues : les phrases du catalogue, avec le nom du pays traduit. */
+function buildCountryIntl(c: Country, type: string, index: string, rng: Rng): BuiltQuestion {
+  const img = (key: string): Choice => ({ id: key, image: key });
+  const flag = (code: string): Choice => img(`flag-${code}`);
+  const take = <T>(list: T[], n: number, not: T[] = []) => shuffle(list.filter((x) => !not.includes(x)), rng).slice(0, n);
+  // Nom dans une phrase (« the United States ») si le catalogue en donne un, sinon le nom du pays.
+  const country = t(`cty.name.${c.code}`, {}, regionName(c.code));
+  const say = (key: string, params: Record<string, string | number> = {}) =>
+    ({ text: t(key, { country, ...params }, undefined, rng), lang: lang() });
+  const fact = (prompt: string, answer: Choice, distractors: Choice[], reinforce: string, hint?: string,
+    params: Record<string, string | number> = {}): BuiltQuestion => ({
+    answer, distractors, prompt: [say(prompt, params)], reinforce: [say(reinforce, params)],
+    hints: hint ? [{ text: t('g.hint', { hint: t(hint, { country }) }), lang: lang() }] : [],
+  });
+  const avoid = [c.code, ...(c.avoid ?? [])];
+  /** Nom d'une image (concept connu), pour le dire dans la bonne langue. */
+  const named = (image: string) => CONCEPTS.find((x) => x.id === image);
+  switch (type) {
+    case 'flag':
+      return fact('cty.flag', flag(c.code), take(FAR_FLAGS, 2, [c.code, ...c.neighbours, ...c.flagTraps]).map(flag), 'cty.flagYes');
+    case 'flag-hard':
+    case 'flag-hard6': {
+      const n = type === 'flag-hard' ? 3 : 5;
+      const traps = take(c.flagTraps, n);
+      const more = take(FAR_FLAGS, n - traps.length, [c.code, ...traps]);
+      return fact('cty.flagHard', flag(c.code), [...traps, ...more].map(flag), 'cty.flagYes', 'cty.flagHint');
+    }
+    case 'symbol': {
+      const [image] = c.symbols[Number(index)];
+      const concept = named(image);
+      return fact('cty.symbol', img(image), take(OTHER_ANIMALS, 3, [image, ...avoid, ...c.symbols.map(([i]) => i)]).map(img),
+        concept ? 'cty.symbolYesName' : 'cty.symbolYes', undefined, concept ? { name: capitalized(theWord(concept)) } : {});
+    }
+    case 'food': {
+      const [image] = c.foods[Number(index)];
+      return fact('cty.food', img(image), take(FOREIGN_FOODS, 3, [...avoid, ...c.foods.map(([i]) => i)]).map(img), 'cty.foodYes');
+    }
+    case 'day':
+      return fact('cty.day', img('cty-fireworks'), take(CELEBRATIONS, 3).map(img), 'cty.dayYes', undefined,
+        { date: nationalDate(c) ?? '' });
+    case 'currency': {
+      const cards = currencyCards(c, rng);
+      return fact('cty.currency', cards.answer, cards.distractors, 'cty.currencyYes', undefined, { money: currencyName(c) ?? '' });
+    }
+    case 'landmark': {
+      const [image, , , decoys] = c.landmark!;
+      return fact(`cty.${c.landmarkKind}`, img(image), take(decoys, 3).map(img), 'cty.landmarkYes');
+    }
+    case 'capital':
+    case 'capital6': {
+      const n = type === 'capital' ? 3 : 5;
+      const [capital, ...cities] = citiesIn(c)!;
+      const word = (w: string) => ({ id: `t:${w}`, text: { value: w.toLocaleUpperCase(langInfo(lang()).locale), script: 'caps' as Script } });
+      return fact('cty.capital', word(capital), take(cities, n).map(word), 'cty.capitalYes', undefined, { city: capital });
+    }
+    default: {
+      const n = type === 'neighbour' ? 3 : 5;
+      const neighbour = take(c.neighbours, 1)[0];
+      return fact('cty.neighbour', flag(neighbour), take(FAR_FLAGS, n, [c.code, ...c.neighbours]).map(flag),
+        'cty.neighbourYes', 'cty.neighbourHint');
+    }
+  }
 }
 
 function buildCountry(ref: QuestionRef, rng: Rng): BuiltQuestion {
   const [, code, type, index] = ref.id.split(':');
   const c = COUNTRIES.find((x) => x.code === code)!;
+  if (!isFr()) return buildCountryIntl(c, type, index, rng);
   const img = (key: string): Choice => ({ id: key, image: key });
   const flag = (code: string): Choice => img(`flag-${code}`);
   const take = <T>(list: T[], n: number, not: T[] = []) => shuffle(list.filter((x) => !not.includes(x)), rng).slice(0, n);
@@ -2019,7 +2136,7 @@ function buildCountry(ref: QuestionRef, rng: Rng): BuiltQuestion {
   const country = c.name.charAt(0).toUpperCase() + c.name.slice(1);
   switch (type) {
     case 'flag':
-      return fact(`Quel est le drapeau ${c.of} ?`, flag(c.code), take(FAR_FLAGS, 2, [c.code, ...c.neighbours]).map(flag),
+      return fact(`Quel est le drapeau ${c.of} ?`, flag(c.code), take(FAR_FLAGS, 2, [c.code, ...c.neighbours, ...c.flagTraps]).map(flag),
         `Oui ! C'est le drapeau ${c.of} !`);
     case 'flag-hard':
     case 'flag-hard6': {
@@ -2032,21 +2149,27 @@ function buildCountry(ref: QuestionRef, rng: Rng): BuiltQuestion {
     }
     case 'symbol': {
       const [image, name] = c.symbols[Number(index)];
-      return fact(`Quel est un symbole ${c.of} ?`, img(image), take(OTHER_ANIMALS, 3, [image]).map(img),
+      return fact(`Quel est un symbole ${c.of} ?`, img(image),
+        take(OTHER_ANIMALS, 3, [image, ...(c.avoid ?? []), ...c.symbols.map(([i]) => i)]).map(img),
         `Oui ! ${name.charAt(0).toUpperCase()}${name.slice(1)}, c'est un symbole ${c.of} !`);
     }
     case 'food': {
       const [image, name] = c.foods[Number(index)];
       return fact(oneOf(rng, [`Lequel est une spécialité ${c.of} ?`, `Qu'est-ce qu'on aime manger ${c.in} ?`]), img(image),
-        take(FOREIGN_FOODS, 3).map(img), `Miam ! ${name.charAt(0).toUpperCase()}${name.slice(1)}, c'est une spécialité ${c.of} !`);
+        take(FOREIGN_FOODS, 3, [...(c.avoid ?? []), ...c.foods.map(([i]) => i)]).map(img),
+        `Miam ! ${name.charAt(0).toUpperCase()}${name.slice(1)}, c'est une spécialité ${c.of} !`);
     }
     case 'day':
-      return fact(`${c.nationalDay.charAt(0).toUpperCase()}${c.nationalDay.slice(1)}, c'est la fête nationale ${c.of} ! `
+    {
+      const day = c.nationalDay!;
+      return fact(`${day.charAt(0).toUpperCase()}${day.slice(1)}, c'est la fête nationale ${c.of} ! `
         + 'Qu\'est-ce qu\'on regarde dans le ciel, le soir ?', img('cty-fireworks'), take(CELEBRATIONS, 3).map(img),
-      `Oui ! ${c.nationalDay.charAt(0).toUpperCase()}${c.nationalDay.slice(1)}, il y a un grand feu d'artifice !`);
+      `Oui ! ${day.charAt(0).toUpperCase()}${day.slice(1)}, il y a un grand feu d'artifice !`);
+    }
     case 'currency': {
-      const [image, name] = c.currency!;
-      return fact(`Avec quel argent est-ce qu'on paie ${c.in} ?`, img(image), take(BANKNOTES, 3, [image]).map(img),
+      const [, name] = c.currency!;
+      const cards = currencyCards(c, rng);
+      return fact(`Avec quel argent est-ce qu'on paie ${c.in} ?`, cards.answer, cards.distractors,
         `Oui ! ${c.in.charAt(0).toUpperCase()}${c.in.slice(1)}, on paie avec ${name} !`);
     }
     case 'landmark': {
@@ -2178,7 +2301,7 @@ const memoryEnglish: GameDef = {
 };
 
 /** Jeux qui n'existent encore qu'en français (lecture, sons, histoires, devinettes, Mon pays). */
-const FRENCH_ONLY = new Set(['MO-2', 'MO-6', 'FR-1', 'FR-2', 'FR-3', 'FR-4', 'FR-5', 'FR-6', 'FR-7', 'FR-8',
+const FRENCH_ONLY = new Set(['MO-2', 'FR-1', 'FR-2', 'FR-3', 'FR-4', 'FR-5', 'FR-6', 'FR-7', 'FR-8',
   'VO-3', 'VO-4', 'VO-5', 'VO-6', 'VO-7', 'VO-8', 'VO-9', 'VO-10', 'VO-11', 'VO-12']);
 const onlyFrench = (l: Lang) => l === 'fr';
 

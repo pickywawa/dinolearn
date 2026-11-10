@@ -29,11 +29,12 @@ export const second = (): Lang => langInfo(current).second;
 
 /** Charge le catalogue d'une langue (avant de lancer le jeu, ou quand les parents changent de langue). */
 export async function setLang(code: string) {
-  const next: Lang = isLang(code) ? code : deviceLang(navigator.languages ?? [navigator.language]);
+  const next: Lang = isLang(code) ? code : deviceLang(typeof navigator === 'undefined' ? [] : navigator.languages ?? [navigator.language]);
   const [main, en] = await Promise.all([next === 'fr' ? {} : load(next), next === 'en' || next === 'fr' ? {} : load('en')]);
   current = next;
   catalog = main;
   english = next === 'en' ? main : en;
+  if (typeof document === 'undefined') return;
   const info = langInfo(next);
   document.documentElement.lang = info.locale;
   document.documentElement.dir = info.dir;

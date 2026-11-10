@@ -449,6 +449,38 @@ const zh: Catalog = {
     crayon=蜡笔; trophy=奖杯; medal=奖牌; ring=戒指; skateboard=滑板; yoyo=溜溜球; roller_skate=旱冰鞋; canoe=独木舟;
     tram=有轨电车; parachute=降落伞; satellite=卫星; brain=大脑; bone=骨头; tongue=舌头; leg=腿; tornado=龙卷风;
     lightning=闪电; comet=彗星; cactus=仙人掌; blossom=樱花; feather=羽毛`),
+
+  // ---- Mon pays ----
+  "lang.ko": "韩语", "lang.ne": "尼泊尔语",
+  "lang.vi": "越南语", "lang.tr": "土耳其语", "lang.fa": "波斯语", "lang.pl": "波兰语", "lang.uk": "乌克兰语",
+  "lang.id": "印尼语",
+  "country.cd": "刚果民主共和国",
+  "title.MO-6": "世界 — 我的国家",
+  "l.home.MO-6": ["地图：关于你的国家的问题！"],
+  "l.intro.MO-6": ["我们来聊聊你的国家！仔细听，点正确的图片。", "你了解你的国家吗？我来问你问题！"],
+  "l.short.MO-6": ["一个关于你的国家的问题！"],
+  "cty.flag": "{country}的国旗是哪一面？",
+  "cty.flagHard": "注意，它们很像！{country}的国旗是哪一面？",
+  "cty.flagYes": "对！这是{country}的国旗！",
+  "cty.flagHint": "仔细看颜色和它们的顺序",
+  "cty.symbol": "哪一个是{country}的象征？",
+  "cty.symbolYes": "对！这是{country}的象征！",
+  "cty.symbolYesName": "对！{name}是{country}的象征！",
+  "cty.food": ["哪一个是{country}的特色美食？", "在{country}，大家喜欢吃什么？"],
+  "cty.foodYes": "好吃！这是{country}的特色美食！",
+  "cty.day": "{date}是{country}的国庆节！晚上我们在天空中看什么？",
+  "cty.dayYes": "对！{date}有很大的烟花！",
+  "cty.currency": "在{country}用什么钱？",
+  "cty.currencyYes": "对！在{country}用{money}！",
+  "cty.place": "在{country}能看到哪个有名的地方？",
+  "cty.sport": "在{country}，大家喜欢什么运动？",
+  "cty.thing": "在{country}的节日里经常看到什么？",
+  "cty.landmarkYes": "对！真棒，你很了解你的国家！",
+  "cty.capital": "{country}的首都是哪里？仔细读城市的名字！",
+  "cty.capitalYes": "对！{country}的首都是{city}！",
+  "cty.neighbour": "这些国旗中，哪一面是{country}邻国的？",
+  "cty.neighbourYes": "对！这个国家就在{country}旁边！",
+  "cty.neighbourHint": "邻国离得很近，在同一个大洲",
 };
 
 export default zh;

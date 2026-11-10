@@ -228,7 +228,8 @@ export async function askParentCode(title: string, help: string): Promise<boolea
 export const NIGHT_CHOICES = ['', '18:30', '19:00', '19:30', '20:00', '20:30', '21:00'];
 /** Pays proposés : ceux du jeu « Mon pays », puis le pays principal de chaque langue. */
 export const COUNTRY_CODES = ['fr', 'be', 'ch', 'ca', 'lu', 'gb', 'us', 'es', 'mx', 'it', 'de', 'at', 'pt', 'br', 'ru', 'cn', 'in', 'eg',
-  'ma', 'sa', 'pk', 'bd'];
+  'ma', 'sa', 'pk', 'bd', 'ng', 'ph', 'cd', 'tz', 'za', 'co', 'ar', 'sd', 'dz', 'iq', 'ke', 'ug', 'ci', 'cm', 'id', 'vn',
+  'tr', 'ir', 'pl', 'ua', 'th', 'ye', 'ao', 'gh', 'mz', 'pe', 'mg', 've', 'sy', 'af', 'np', 'kr'];
 /** Choix de pays affichés : celui de la langue d'abord, puis les autres. */
 export const countryChoices = (): [string, string][] => {
   const first = langInfo(lang()).country;

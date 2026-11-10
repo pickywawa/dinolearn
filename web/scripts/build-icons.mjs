@@ -25,6 +25,16 @@ const DECOR = ['palm-tree', 'sauropod', 't-rex', 'herb', 'butterfly', 'fly', 'bi
 const FLAGS = [
   'gb', 'fr', 'be', 'ch', 'ca', 'lu', 'it', 'ie', 'nl', 'de', 'es', 'us', 'jp', 'br', 'cn', 'mx', 'at', 'ro', 'pe', 'dk',
   'ru', 'td', 'li', 'in', 'sn', 'lb', 'to', 'au', 'eg', 'gr', 'ma', 'pt',
+  // Pays de « Mon pays » : leurs voisins et les drapeaux qui leur ressemblent.
+  'ad', 'ae', 'af', 'al', 'am', 'ar', 'bd', 'bo', 'bt', 'by', 'bz', 'ci', 'co', 'cu', 'cz', 'dz', 'ee', 'fi', 'fj', 'ga',
+  'gt', 'gw', 'hu', 'iq', 'ir', 'jm', 'jo', 'kg', 'km', 'kp', 'kw', 'kz', 'lr', 'lt', 'lv', 'ly', 'md', 'mm', 'mn', 'mr',
+  'mv', 'my', 'ne', 'no', 'np', 'nz', 'om', 'pk', 'pl', 'pr', 'pw', 'py', 'qa', 'sa', 'sd', 'si', 'sk', 'sm', 'sy', 'tr',
+  'ua', 'ug', 'uy', 've', 'vn', 'ye', 'za',
+  'ao', 'bf', 'bi', 'bj', 'bw', 'cd', 'cf', 'cg', 'cl', 'cm', 'ec', 'er', 'et', 'gh', 'gn', 'gq', 'gy', 'hn', 'id', 'ke',
+  'ls', 'mc', 'ml', 'mw', 'mz', 'na', 'ng', 'ni', 'pa', 'pg', 'ph', 'ps', 'rw', 'sb', 'sc', 'sg', 'so', 'ss', 'sv', 'sz',
+  'tl', 'tn', 'tw', 'tz', 'vu', 'zm', 'zw',
+  'az', 'bg', 'bs', 'cr', 'ge', 'kh', 'la', 'se', 'th', 'tj', 'tm',
+  'kr', 'lk', 'mg', 'mu', 'tg', 'uz',
 ];
 
 function write(name, set, icon) {
@@ -173,6 +183,15 @@ const COUNTRY_ICONS = {
   dollar: 'dollar-banknote', yen: 'yen-banknote', pound: 'pound-banknote', taco: 'taco', sushi: 'sushi', burrito: 'burrito',
   'curry-rice': 'curry-rice', dumpling: 'dumpling', 'ice-hockey': 'ice-hockey', moai: 'moai', basketball: 'basketball',
   tennis: 'tennis', 'american-football': 'american-football', 'tokyo-tower': 'tokyo-tower',
+  'cooked-rice': 'cooked-rice', 'crescent-moon': 'crescent-moon', 'cricket-game': 'cricket-game', custard: 'custard',
+  dragon: 'dragon', falafel: 'falafel', flatbread: 'flatbread', hamburger: 'hamburger', 'hot-dog': 'hot-dog',
+  'moon-cake': 'moon-cake', olive: 'olive', 'palm-tree': 'palm-tree', pinata: 'pinata', pretzel: 'pretzel',
+  'red-paper-lantern': 'red-paper-lantern', 'shallow-pan-of-food': 'shallow-pan-of-food', 'soccer-ball': 'soccer-ball',
+  'steaming-bowl': 'steaming-bowl', 'teacup-without-handle': 'teacup-without-handle', teapot: 'teapot',
+  'cut-of-meat': 'cut-of-meat',
+  'hot-beverage': 'hot-beverage',
+  'mate': 'mate',
+  'rugby-football': 'rugby-football',
 };
 for (const [name, icon] of Object.entries(COUNTRY_ICONS)) write(`cty-${name}`, noto, icon);
 write('cty-eiffel-tower', openmoji, 'eiffel-tower');

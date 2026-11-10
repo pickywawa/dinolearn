@@ -450,6 +450,38 @@ const bn: Catalog = {
     screwdriver=স্ক্রুড্রাইভার; paintbrush=তুলি; crayon=রং পেনসিল; trophy=ট্রফি; medal=পদক; ring=আংটি; skateboard=স্কেটবোর্ড;
     yoyo=ইয়ো-ইয়ো; roller_skate=স্কেট; canoe=ডিঙি; tram=ট্রাম; parachute=প্যারাশুট; satellite=উপগ্রহ; brain=মস্তিষ্ক; bone=হাড়;
     tongue=জিভ; leg=ঠ্যাং; tornado=ঘূর্ণিঝড়; lightning=বিদ্যুৎ চমক; comet=ধূমকেতু; cactus=ক্যাকটাস; blossom=ফুলের ডাল; feather=পালক`),
+
+  // ---- Mon pays ----
+  "lang.ko": "কোরীয়", "lang.ne": "নেপালি",
+  "lang.vi": "ভিয়েতনামী", "lang.tr": "তুর্কি", "lang.fa": "ফারসি", "lang.pl": "পোলিশ", "lang.uk": "ইউক্রেনীয়",
+  "lang.id": "ইন্দোনেশীয়",
+  "country.cd": "গণতান্ত্রিক কঙ্গো",
+  "title.MO-6": "পৃথিবী — আমার দেশ",
+  "l.home.MO-6": ["মানচিত্র: তোমার দেশ নিয়ে প্রশ্ন!"],
+  "l.intro.MO-6": ["চলো তোমার দেশের কথা বলি! মন দিয়ে শোনো আর সঠিক ছবিটা ছোঁও।", "তুমি কি তোমার দেশকে ভালো করে চেনো? আমি প্রশ্ন করছি!"],
+  "l.short.MO-6": ["তোমার দেশ নিয়ে একটা প্রশ্ন!"],
+  "cty.flag": "{country}-এর পতাকা কোনটা?",
+  "cty.flagHard": "সাবধান, এগুলো দেখতে একরকম! {country}-এর পতাকা কোনটা?",
+  "cty.flagYes": "হ্যাঁ! এটা {country}-এর পতাকা!",
+  "cty.flagHint": "রংগুলো আর তাদের ক্রম মন দিয়ে দেখো",
+  "cty.symbol": "{country}-এর প্রতীক কোনটা?",
+  "cty.symbolYes": "হ্যাঁ! এটা {country}-এর প্রতীক!",
+  "cty.symbolYesName": "হ্যাঁ! {name} হলো {country}-এর প্রতীক!",
+  "cty.food": ["{country}-এর বিখ্যাত খাবার কোনটা?", "{country}-এ মানুষ কী খেতে ভালোবাসে?"],
+  "cty.foodYes": "ইয়াম! এটা {country}-এর বিখ্যাত খাবার!",
+  "cty.day": "{date} হলো {country}-এর জাতীয় দিবস! সন্ধ্যায় আকাশে আমরা কী দেখি?",
+  "cty.dayYes": "হ্যাঁ! {date} তারিখে অনেক আতশবাজি হয়!",
+  "cty.currency": "{country}-এ কোন টাকা দিয়ে কেনাকাটা হয়?",
+  "cty.currencyYes": "হ্যাঁ! {country}-এ {money} দিয়ে কেনাকাটা হয়!",
+  "cty.place": "{country}-এ কোন বিখ্যাত জায়গা দেখা যায়?",
+  "cty.sport": "{country}-এ মানুষ কোন খেলা ভালোবাসে?",
+  "cty.thing": "{country}-এর উৎসবে প্রায়ই কী দেখা যায়?",
+  "cty.landmarkYes": "হ্যাঁ! সাবাশ, তুমি তোমার দেশকে ভালো চেনো!",
+  "cty.capital": "{country}-এর রাজধানী কোনটা? শহরগুলোর নাম মন দিয়ে পড়ো!",
+  "cty.capitalYes": "হ্যাঁ! {country}-এর রাজধানী {city}!",
+  "cty.neighbour": "এই পতাকাগুলোর মধ্যে কোনটা {country}-এর প্রতিবেশী দেশের?",
+  "cty.neighbourYes": "হ্যাঁ! এই দেশটা {country}-এর ঠিক পাশেই!",
+  "cty.neighbourHint": "প্রতিবেশীরা খুব কাছে থাকে, একই মহাদেশে",
 };
 
 export default bn;
