@@ -18,41 +18,31 @@ import { DINO_COLORS } from '../dino/parts';
 import { Guide } from '../ui/Guide';
 import { MicButton } from '../ui/MicButton';
 import { firstLaunchSetup } from '../ui/pin';
-import { ageSize, goTo, isPortrait, unit } from '../ui/scenery';
-import { drawBackdrop } from '../ui/backdrop';
+import { growthFactor, unit } from '../ui/scenery';
 import { BaseScene } from './BaseScene';
 
 /**
- * Juste après l'éclosion (premier lancement) : le bébé dino se présente, en
- * quelques phrases : on joue, on gagne des fruits, on le nourrit pour qu'il
- * grandisse, et il y a des récompenses. Puis il demande à l'enfant son prénom et
- * son âge, à voix haute (sinon, l'âge se choisit avec les gâteaux), et lui
- * demande d'aller chercher un parent : le formulaire est déjà rempli, le parent
- * corrige si besoin et crée son code.
+ * La suite de l'éclosion, jouée sur la même page que l'œuf (StartScene en hérite) : le bébé
+ * dino, posé sur sa motte comme à l'accueil, explique en quelques phrases : on joue, on gagne
+ * des fruits, on le nourrit pour qu'il grandisse, et il y a des récompenses. Puis il demande à
+ * l'enfant son prénom et son âge, à voix haute (sinon, un parent les écrit), et lui demande
+ * d'aller chercher un parent : le formulaire est déjà rempli, le parent corrige si besoin et crée
+ * son code. Enfin, les boutons de l'accueil apparaissent autour de lui, sans changer de décor.
  */
-export class HelloScene extends BaseScene {
-  private dino!: Dino;
-  private guide!: Guide;
+export abstract class HelloScene extends BaseScene {
+  protected dino!: Dino;
+  protected guide!: Guide;
   private shown: Phaser.GameObjects.GameObject[] = [];
-  /** Le micro marche (pack français prêt, micro autorisé). */
+  /** Le micro marche (pack de reconnaissance prêt, micro autorisé). */
   private voiceWorks = false;
   private vocab?: Set<string>;
 
-  constructor() {
-    super('Hello');
-  }
+  /** Premier lancement : après la présentation, prénom, âge, puis un parent. Sinon (nouvel enfant), juste la salutation. */
+  protected setup = true;
 
-  /** Premier lancement : après la présentation, prénom, âge, puis un parent. Sinon (nouvel enfant), juste la présentation. */
-  private setup = true;
-
-  create(data: { setup?: boolean } = {}) {
-    this.initBase();
-    this.setup = data.setup ?? true;
-    drawBackdrop(this, 'sunset');
-    const { width: W, height: H } = this.scale;
-    const u = unit(this);
-    this.dino = new Dino(this, W / 2, H * (isPortrait(this) ? 0.86 : 0.94), u * 0.42 * ageSize(app.progress.age));
-    this.guide = new Guide(this, u * 0.15);
+  /** Joue la suite de l'éclosion avec le dino déjà sur sa motte. */
+  protected introduce(setup: boolean) {
+    this.setup = setup;
     this.shown = [];
     this.voiceWorks = false;
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
@@ -62,12 +52,21 @@ export class HelloScene extends BaseScene {
     this.run(() => this.script());
   }
 
+  /** Vers l'accueil, sans fondu : même décor, le dino garde sa place et sa taille, les boutons surgissent. */
+  private async toHome() {
+    const u = unit(this);
+    const height = u * 0.62 * growthFactor(app.progress.dino.level);
+    await new Promise<void>((resolve) => this.tweens.add({ targets: this.dino, scale: height / Dino.HEIGHT, duration: 400,
+      ease: 'Sine.easeInOut', onComplete: () => resolve() }));
+    app.voice.stop();
+    this.scene.start('Home', { hatched: true, seamless: true });
+  }
+
   private async script() {
-    await this.wait(300);
     // Nouvel enfant (un frère, une sœur) : sa fiche est déjà remplie, une salutation suffit.
     if (!this.setup) {
       await this.greetSibling();
-      goTo(this, 'Home', { hatched: true });
+      await this.toHome();
       return;
     }
     await this.present();
@@ -90,7 +89,7 @@ export class HelloScene extends BaseScene {
     this.input.enabled = true;
     this.dino.react('cheer');
     await this.say('parent_code_done');
-    goTo(this, 'Home', { hatched: true });
+    await this.toHome();
   }
 
   // ---- La présentation ----

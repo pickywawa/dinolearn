@@ -1,3 +1,13 @@
+## DinoLearn 0.21.1 — Nouvelle icône, démarrage d'un seul tenant, premier lancement fluide
+
+- Nouvelle icône (Android, iOS, site) et nouvel écran de démarrage : l'écran de chargement est la grande image de DinoLearn. Sur Android, l'écran de démarrage du système reste affiché jusqu'à ce qu'elle soit prête (plus d'écran vide entre les deux) ; sur iOS, c'est la même image dès l'ouverture.
+- Nouvelle barre de chargement, avec ce qui se télécharge écrit dedans.
+- La musique démarre dès l'écran de chargement.
+- Le jeu attend toujours la voix du dino et la reconnaissance vocale de la langue avant de démarrer (en cas de problème : message, et un toucher pour réessayer). La voix et la reconnaissance de la langue apprise en plus se téléchargent ensuite, en arrière-plan, une fois à l'accueil : moins d'attente au premier lancement.
+- La voix du dino est calculée à part (worker) : l'animation ne se fige plus quand il parle, ni quand il demande le prénom et l'âge.
+- L'œuf, les explications, le prénom et l'âge se passent sur une seule page ; le dino sort de l'œuf directement sur sa motte, à sa place de l'accueil, puis les boutons de l'accueil apparaissent autour de lui.
+- Fiche de bienvenue des parents compacte (prénom et âge sur une ligne, pays et coucher en listes déroulantes) et clavier du code parent sur deux colonnes : tout tient sur un téléphone sans défiler.
+
 ## DinoLearn 0.20.0 — 20 langues et 54 pays
 
 - 8 nouvelles langues : indonésien, vietnamien, turc, persan, polonais, ukrainien, coréen et népalais. Jeux à voix haute aussi en vietnamien, turc, persan, polonais, ukrainien et coréen.

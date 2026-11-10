@@ -9,7 +9,6 @@ import { BootScene } from './scenes/BootScene';
 import { ChooseScene } from './scenes/ChooseScene';
 import { EndScene } from './scenes/EndScene';
 import { GameScene } from './scenes/GameScene';
-import { HelloScene } from './scenes/HelloScene';
 import { MemoryScene } from './scenes/MemoryScene';
 import { HomeScene } from './scenes/HomeScene';
 import { StartScene } from './scenes/StartScene';
@@ -18,11 +17,15 @@ import { WardrobeScene } from './scenes/WardrobeScene';
 import { isInstalledApp, offerInstall } from './ui/install';
 import { appLanguage } from './core/appSettings';
 import { isFr, setLang, t } from './i18n';
+import { Music } from './core/music';
+
+// La musique démarre dès l'écran de chargement (au premier toucher si l'appareil l'exige).
+Music.autostart();
 
 // Langue de l'application (celle de l'appareil au premier lancement) : son catalogue avant tout le reste.
 await setLang(appLanguage());
 // Textes de la page (écran de chargement, « tourne ta tablette ») dans la langue de l'application.
-for (const [selector, key] of [['.loading-sign textPath', 'ui.loading'], ['#rotate .turn', 'ui.rotate'], ['#rotate .tap', 'ui.tap']] as const) {
+for (const [selector, key] of [['.loading-what', 'ui.loading'], ['#rotate .turn', 'ui.rotate'], ['#rotate .tap', 'ui.tap']] as const) {
   const node = document.querySelector(selector);
   if (node && !isFr()) node.textContent = t(key);
 }
@@ -56,7 +59,7 @@ const game = new Phaser.Game({
   // et les petits écarts (barre d'adresse, plein écran) sont rognés de quelques pixels.
   scale: { mode: Phaser.Scale.ENVELOP, autoCenter: Phaser.Scale.CENTER_BOTH },
   input: { activePointers: 2 },
-  scene: [BootScene, StartScene, HelloScene, HomeScene, ChooseScene, GameScene, EndScene, WardrobeScene, TraceScene, MemoryScene],
+  scene: [BootScene, StartScene, HomeScene, ChooseScene, GameScene, EndScene, WardrobeScene, TraceScene, MemoryScene],
 });
 
 // Fullscreen and browser chrome changes can resize the drawable area without a window resize.

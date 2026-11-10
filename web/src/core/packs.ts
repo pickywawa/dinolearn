@@ -202,3 +202,30 @@ class Downloads {
 }
 
 export const downloads = new Downloads();
+
+/**
+ * Packs manquants de la langue de l'appli : voix du dino et reconnaissance vocale de la
+ * langue (`withSecond` : aussi la voix et la reconnaissance de la langue apprise en plus).
+ */
+export async function missingPacks(withSecond: boolean, language = appLanguage()): Promise<PackId[]> {
+  const installed = await installedPacks(language);
+  const primary = asrLanguages(language, false) as SpeechLang[];
+  const asrNeeded = voiceSupported() && primary.length > 0;
+  const ids: PackId[] = [];
+  if (!installed.speech) ids.push('speech');
+  if (asrNeeded && (withSecond ? !installed.asr : (await Promise.all(primary.map(packInstalled))).some((ok) => !ok))) ids.push('asr');
+  if (withSecond && !installed.second) ids.push('second');
+  return ids;
+}
+
+let secondStarted = false;
+/**
+ * La langue apprise en plus (voix, reconnaissance) : téléchargée en arrière-plan une fois à
+ * l'accueil (pas pendant l'éclosion, où le dino écoute le prénom), une fois par lancement.
+ */
+export async function prepareSecondPacks() {
+  if (secondStarted) return;
+  secondStarted = true;
+  const ids = await missingPacks(true);
+  if (ids.length) downloads.start(ids, appLanguage(), true);
+}

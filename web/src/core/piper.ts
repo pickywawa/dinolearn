@@ -1,4 +1,5 @@
 import { VOICE_URLS } from '../domain/langs';
+import { store } from './voiceStore';
 /**
  * Moteur de voix neuronale Piper, dans le navigateur (aucune voix enregistrée :
  * chaque phrase est calculée sur l'appareil).
@@ -14,9 +15,6 @@ import { VOICE_URLS } from '../domain/langs';
  * HuggingFace. Le texte ne quitte jamais l'appareil.
  */
 
-/** Adresse d'un fichier du moteur embarqué. */
-const engineFile = (name: string) => new URL(`piper/${name}`, document.baseURI).href;
-const CACHE = 'dinolearn-voices-v1';
 
 /** Adresses d'une voix (modèle et réglages). */
 const voiceUrls = (voiceId: string) => {
@@ -51,62 +49,6 @@ export function engineReady(): boolean {
 
 export async function downloadEngine(_onBytes: OnBytes): Promise<void> {
   // Embarqué : plus de téléchargement.
-}
-
-// ---- Rangement des voix : Cache API, ou IndexedDB quand elle n'existe pas ----
-
-interface BlobStore {
-  get(url: string): Promise<Blob | undefined>;
-  put(url: string, blob: Blob): Promise<void>;
-  clear(): Promise<void>;
-}
-
-const cacheStore: BlobStore = {
-  async get(url) {
-    const res = await (await caches.open(CACHE)).match(url);
-    return res ? res.blob() : undefined;
-  },
-  async put(url, blob) {
-    await (await caches.open(CACHE)).put(url, new Response(blob, { headers: { 'content-type': blob.type } }));
-  },
-  async clear() { await caches.delete(CACHE); },
-};
-
-function idb<T>(mode: IDBTransactionMode, run: (s: IDBObjectStore) => IDBRequest<T>): Promise<T> {
-  return new Promise((resolve, reject) => {
-    const open = indexedDB.open(CACHE, 1);
-    open.onupgradeneeded = () => open.result.createObjectStore('files');
-    open.onerror = () => reject(open.error);
-    open.onsuccess = () => {
-      const db = open.result;
-      const req = run(db.transaction('files', mode).objectStore('files'));
-      req.onsuccess = () => { db.close(); resolve(req.result); };
-      req.onerror = () => { db.close(); reject(req.error); };
-    };
-  });
-}
-
-const idbStore: BlobStore = {
-  get: (url) => idb<Blob | undefined>('readonly', (s) => s.get(url) as IDBRequest<Blob | undefined>),
-  put: (url, blob) => idb('readwrite', (s) => s.put(blob, url)).then(() => undefined),
-  clear: () => idb('readwrite', (s) => s.clear()).then(() => undefined),
-};
-
-/** Le Cache API manque dans certaines vues d'appli (iOS) : IndexedDB prend le relais. */
-let storePromise: Promise<BlobStore> | undefined;
-function store(): Promise<BlobStore> {
-  storePromise ??= (async () => {
-    try {
-      if (typeof caches !== 'undefined') {
-        await caches.open(CACHE);
-        return cacheStore;
-      }
-    } catch {
-      // Cache API refusée : IndexedDB.
-    }
-    return idbStore;
-  })();
-  return storePromise;
 }
 
 /** Fichiers gardés sur l'appareil (voix, listes de mots des packs). */
@@ -149,111 +91,67 @@ export async function removeVoices(): Promise<void> {
   }
 }
 
-// ---- Calcul ----
+// ---- Calcul, dans un worker ----
 
-interface OrtLike {
-  env: { wasm: { wasmPaths?: string; numThreads?: number } };
-  InferenceSession: { create(model: Uint8Array, opts: object): Promise<OrtSession> };
-  Tensor: new (type: string, data: unknown, dims: number[]) => unknown;
-}
-interface OrtSession { run(feeds: Record<string, unknown>): Promise<Record<string, { data: Float32Array }>> }
-interface PiperConfig {
-  audio: { sample_rate: number };
-  espeak: { voice: string };
-  inference: { noise_scale: number; length_scale: number; noise_w: number };
-  speaker_id_map?: Record<string, number>;
-}
-interface Phonemizer { callMain(args: string[]): void }
+type Reply = { id: number; ok: true; pcm?: Float32Array; sampleRate?: number } | { id: number; ok: false; error: string };
+let worker: Worker | undefined | null;
+let nextId = 1;
+const pending = new Map<number, { resolve: (r: Reply) => void }>();
 
-let ortPromise: Promise<OrtLike> | undefined;
-function ort(): Promise<OrtLike> {
-  ortPromise ??= import(/* @vite-ignore */ engineFile('ort.wasm.min.js')).then((m) => {
-    const lib = (m.default ?? m) as OrtLike;
-    lib.env.wasm.wasmPaths = engineFile('');
-    lib.env.wasm.numThreads = 1;
-    return lib;
-  });
-  ortPromise.catch(() => { ortPromise = undefined; });
-  return ortPromise;
-}
-
-/** Le phonétiseur est créé une fois ; sa sortie est aiguillée vers la phrase en cours. */
-let phonemizer: Promise<Phonemizer> | undefined;
-let onPrint: ((line: string) => void) | undefined;
-function getPhonemizer(): Promise<Phonemizer> {
-  phonemizer ??= import(/* @vite-ignore */ engineFile('piper-phonemize.js')).then((m) => m.createPiperPhonemize({
-    print: (line: string) => onPrint?.(line),
-    printErr: () => undefined,
-    locateFile: (file: string) => (file.endsWith('.wasm') ? engineFile('piper_phonemize.wasm')
-      : file.endsWith('.data') ? engineFile('piper_phonemize.data') : file),
-  }) as Promise<Phonemizer>);
-  phonemizer.catch(() => { phonemizer = undefined; });
-  return phonemizer;
-}
-
-async function phonemeIds(text: string, espeakVoice: string): Promise<number[]> {
-  const run = async () => {
-    const module = await getPhonemizer();
-    return new Promise<number[]>((resolve, reject) => {
-      onPrint = (line) => {
-        try {
-          resolve(JSON.parse(line).phoneme_ids);
-        } catch (e) {
-          reject(e);
-        }
-      };
-      try {
-        module.callMain(['-l', espeakVoice, '--input', JSON.stringify([{ text }]), '--espeak_data', '/espeak-ng-data']);
-      } catch (e) {
-        if ((e as { name?: string })?.name !== 'ExitStatus') reject(e);
-      }
-      setTimeout(() => reject(new Error('Phonétisation sans réponse')), 4000);
-    });
-  };
+/** Le worker du calcul de la voix (null s'il ne peut pas démarrer : calcul dans la page). */
+function engineWorker(): Worker | null {
+  if (worker !== undefined) return worker;
   try {
-    return await run();
+    worker = new Worker(new URL('./piperWorker.ts', import.meta.url), { type: 'module' });
+    worker.onmessage = (e: MessageEvent<Reply>) => {
+      pending.get(e.data.id)?.resolve(e.data);
+      pending.delete(e.data.id);
+    };
+    worker.onerror = () => {
+      // Worker en panne (vue web trop ancienne…) : la suite se calcule dans la page.
+      worker?.terminate();
+      worker = null;
+      for (const [id, p] of pending) p.resolve({ id, ok: false, error: 'worker' });
+      pending.clear();
+    };
   } catch {
-    // Le module n'aime pas toujours être relancé : on en recrée un, une fois.
-    phonemizer = undefined;
-    return run();
+    worker = null;
   }
+  return worker;
 }
 
-const sessions = new Map<string, Promise<{ session: OrtSession; config: PiperConfig }>>();
-
-/** Prépare une voix (lecture depuis le cache et chargement dans le moteur, quelques secondes). */
-export function loadVoice(voiceId: string) {
-  let s = sessions.get(voiceId);
-  if (!s) {
-    s = (async () => {
-      const s = await store();
-      const [modelUrl, configUrl] = voiceUrls(voiceId);
-      const [model, config] = await Promise.all([s.get(modelUrl), s.get(configUrl)]);
-      if (!model || !config) throw new Error('Voix pas encore téléchargée');
-      const lib = await ort();
-      const session = await lib.InferenceSession.create(new Uint8Array(await model.arrayBuffer()), { executionProviders: ['wasm'] });
-      return { session, config: JSON.parse(await config.text()) as PiperConfig };
-    })();
-    s.catch(() => sessions.delete(voiceId));
-    sessions.set(voiceId, s);
-  }
-  return s;
+let inPage: Promise<typeof import('./piperEngine')> | undefined;
+function pageEngine() {
+  inPage ??= import('./piperEngine').then((m) => { m.setEngineBase(document.baseURI); return m; });
+  return inPage;
 }
 
-/** Calcule une phrase : le son (−1 à 1) et sa fréquence d'échantillonnage. `slow` : débit ralenti (× durée). */
-export async function synthesize(voiceId: string, text: string, slow = 1): Promise<{ pcm: Float32Array; sampleRate: number }> {
-  const [{ session, config }, lib] = await Promise.all([loadVoice(voiceId), ort()]);
-  const ids = await phonemeIds(text.trim(), config.espeak.voice);
-  const { noise_scale: noise, length_scale: length, noise_w: noiseW } = config.inference;
-  const feeds: Record<string, unknown> = {
-    input: new lib.Tensor('int64', BigInt64Array.from(ids.map((i) => BigInt(i))), [1, ids.length]),
-    input_lengths: new lib.Tensor('int64', BigInt64Array.of(BigInt(ids.length)), [1]),
-    scales: new lib.Tensor('float32', Float32Array.of(noise, length * slow, noiseW), [3]),
-  };
-  // Voix à plusieurs locuteurs (UPMC : 0 = Jessica, 1 = Pierre) : la première.
-  if (config.speaker_id_map && Object.keys(config.speaker_id_map).length) {
-    feeds.sid = new lib.Tensor('int64', BigInt64Array.of(0n), [1]);
+async function call(msg: { kind: 'load' | 'speech'; voiceId: string; text?: string; slow?: boolean }) {
+  const w = engineWorker();
+  if (w) {
+    const id = nextId++;
+    const reply = await new Promise<Reply>((resolve) => {
+      pending.set(id, { resolve });
+      w.postMessage({ ...msg, id, base: document.baseURI });
+    });
+    if (reply.ok) return reply;
+    if (reply.error !== 'worker') throw new Error(reply.error);
   }
-  const out = await session.run(feeds);
-  return { pcm: out.output.data, sampleRate: config.audio.sample_rate };
+  const engine = await pageEngine();
+  if (msg.kind === 'load') {
+    await engine.loadVoice(msg.voiceId);
+    return { id: 0, ok: true as const };
+  }
+  return { id: 0, ok: true as const, ...await engine.speech(msg.voiceId, msg.text ?? '', !!msg.slow) };
+}
+
+/** Prépare une voix (lecture depuis l'appareil et chargement dans le moteur, quelques secondes, hors de la page). */
+export async function loadVoice(voiceId: string): Promise<void> {
+  await call({ kind: 'load', voiceId });
+}
+
+/** Une réplique calculée, prête à jouer (voix du dino : pauses et voix aiguë comprises). */
+export async function speech(voiceId: string, text: string, slow = false): Promise<{ pcm: Float32Array; sampleRate: number }> {
+  const r = await call({ kind: 'speech', voiceId, text, slow });
+  return { pcm: r.pcm!, sampleRate: r.sampleRate! };
 }

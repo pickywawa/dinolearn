@@ -36,6 +36,18 @@ const CSS = `
 .pin .primary { background: #43b649; color: #fff; }
 .pin .link { background: none; color: #2563eb; text-decoration: underline; min-height: 40px; }
 .pin .shake { animation: pin-shake .35s; }
+.pin .padcard { display: flex; flex-direction: column; }
+.pin .padcard .side { display: contents; }
+.pin .padcard .actions { order: 2; }
+@media (max-height: 520px) and (orientation: landscape) {
+  .pin .padcard { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: 640px; align-items: center; padding: 14px 18px; }
+  .pin .padcard .side { display: block; }
+  .pin .padcard h2 { font-size: 18px; }
+  .pin .padcard p { font-size: 13px; line-height: 1.35; margin-bottom: 8px; }
+  .pin .padcard .keys { gap: 6px; margin: 0; }
+  .pin .padcard .keys button { min-height: 0; height: min(54px, calc((100dvh - 80px) / 4)); font-size: 20px; }
+  .pin .padcard .actions { margin-top: 8px; }
+}
 @keyframes pin-shake { 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
 `;
 
@@ -150,7 +162,12 @@ function pad(opts: PadOptions, check: (value: string) => string | true): Promise
       b.addEventListener('click', () => done(null));
       actions.append(b);
     }
-    card.append(title, help, dots, error, keys, actions);
+    // Paysage peu haut (téléphone) : explications à gauche, clavier à droite (voir CSS).
+    const side = document.createElement('div');
+    side.className = 'side';
+    side.append(title, help, dots, error, actions);
+    card.classList.add('padcard');
+    card.append(side, keys);
     draw();
   });
 }
@@ -244,17 +261,33 @@ export const defaultCountry = () => {
 
 
 const FORM_CSS = `
+.pin { padding: max(10px, var(--safe-top, 0px)) max(12px, var(--safe-right, 0px)) max(10px, var(--safe-bottom, 0px)) max(12px, var(--safe-left, 0px)); }
+.pin, .pin * { box-sizing: border-box; }
 .pin form { text-align: left; }
-.pin label.field { display: block; margin: 12px 0 6px; font-weight: 600; font-size: 15px; }
-.pin input[type=text] { width: 100%; font: inherit; font-size: 18px; padding: 10px 12px; border-radius: 10px;
-  border: 2px solid #d1d5db; }
-.pin .seg { display: flex; flex-wrap: wrap; gap: 6px; }
-.pin .seg button { font-size: 15px; min-height: 40px; padding: 0 12px; font-weight: 500; }
-.pin .seg button.on { background: #2d3354; color: #fff; }
-.pin label.check { display: flex; gap: 10px; align-items: flex-start; margin-top: 14px; font-size: 15px; }
-.pin label.check input { width: 22px; height: 22px; margin-top: 2px; flex: none; }
-.pin label.check small { color: #6b7280; }
-.pin .card.wide { max-width: 460px; max-height: 92vh; overflow-y: auto; }
+.pin .card.wide { max-width: 640px; padding: 10px 16px; max-height: calc(100dvh - 20px); overflow-y: auto; }
+.pin .card.wide h2 { font-size: 18px; margin: 0 0 2px; }
+.pin .card.wide p { font-size: 13px; line-height: 1.3; margin: 0 0 8px; }
+.pin .grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px 10px; }
+.pin .grid > * { min-width: 0; }
+.pin .s6 { grid-column: span 6; } .pin .s4 { grid-column: span 4; } .pin .s3 { grid-column: span 3; } .pin .s2 { grid-column: span 2; }
+.pin label.field { display: block; margin: 0; font-weight: 600; font-size: 12px; color: #4b5563; }
+.pin label.field > * { display: block; margin-top: 2px; }
+.pin label.field > .time-stepper { display: flex; }
+.pin input[type=text], .pin select { width: 100%; font: inherit; font-size: 16px; color: #1f2937; padding: 7px 10px; height: 40px;
+  border-radius: 10px; border: 2px solid #d1d5db; background: #fff; }
+.pin .checks { display: flex; flex-direction: column; gap: 6px; justify-content: center; }
+.pin label.check { display: flex; gap: 8px; align-items: center; margin: 0; font-size: 13px; line-height: 1.25; }
+.pin label.check input { width: 20px; height: 20px; margin: 0; flex: none; }
+.pin label.check small { display: none; }
+.pin .error { min-height: 0; font-size: 13px; }
+.pin .error:empty { display: none; }
+.pin .card.wide .actions { margin-top: 8px; }
+.pin .card.wide .actions button { min-height: 40px; }
+.pin .time-stepper { gap: 6px; flex-wrap: nowrap; }
+.pin .time-stepper button { min-height: 40px; min-width: 42px; font-size: 20px; padding: 0 8px; }
+.pin .time-stepper button.unlimited { font-size: 13px; }
+.pin .time-stepper output { min-width: 64px; font-size: 17px; }
+@media (max-width: 520px) { .pin .s3 { grid-column: span 6; } }
 `;
 
 /**
@@ -290,16 +323,18 @@ export function childForm(title: string, help: string, initial?: Partial<NewChil
     name.value = value.name;
     name.maxLength = 20;
     name.autocomplete = 'off';
-    const segment = <T>(options: [T, string][], get: () => T, set: (v: T) => void) => {
-      const row = document.createElement('div');
-      row.className = 'seg';
-      const draw = () => row.replaceChildren(...options.map(([v, label]) => {
-        const b = button(label, get() === v ? 'on' : '');
-        b.addEventListener('click', () => { set(v); draw(); });
-        return b;
-      }));
-      draw();
-      return row;
+    /** Liste déroulante (une ligne de haut : tout tient sur un écran de téléphone). */
+    const select = <V extends string | number>(options: [V, string][], get: () => V, set: (v: V) => void) => {
+      const el = document.createElement('select');
+      for (const [v, label] of options) {
+        const o = document.createElement('option');
+        o.value = String(v);
+        o.textContent = label;
+        el.append(o);
+      }
+      el.value = String(get());
+      el.addEventListener('change', () => { set((typeof get() === 'number' ? Number(el.value) : el.value) as V); });
+      return el;
     };
     // Micro (jeux à voix haute) : la voix reste sur l'appareil.
     const mic = document.createElement('input');
@@ -344,16 +379,26 @@ export function childForm(title: string, help: string, initial?: Partial<NewChil
       root.remove();
       resolve(value);
     });
-    form.append(h, p,
-      field(T('firstName', 'Prénom')), name,
-      field(T('age', 'Âge')), segment([3, 4, 5, 6, 7].map((a) => [a, T('years', '{n} ans', { n: a })]), () => value.age, (v) => { value.age = v; }),
-      field(T('country', 'Pays (jeu « Mon pays », dès 5 ans)')),
-      segment(countryChoices().map(([c, n]) => [c, n]), () => value.country, (v) => { value.country = v; }),
-      field(T('daily', 'Temps de jeu par jour')),
-      timeStepper(() => value.dailyMinutes, (v) => { value.dailyMinutes = v; }),
-      field(T('night', 'Heure du coucher (mode nuit)')),
-      segment(NIGHT_CHOICES.map((t) => [t, t ? t.replace(':', ' h ') : T('none', 'Aucune')]), () => value.nightTime, (v) => { value.nightTime = v; }),
-      missionsLabel, micLabel, error, actions);
+    const cell = (cls: string, label: string, control: HTMLElement) => {
+      const l = field(label);
+      l.className = `field ${cls}`;
+      l.append(control);
+      return l;
+    };
+    // Les explications sous les cases sont masquées : la fiche doit tenir sans défiler.
+    const checks = document.createElement('div');
+    checks.className = 's3 checks';
+    checks.append(missionsLabel, micLabel);
+    const grid = document.createElement('div');
+    grid.className = 'grid';
+    grid.append(
+      cell('s4', T('firstName', 'Prénom'), name),
+      cell('s2', T('age', 'Âge'), select([3, 4, 5, 6, 7].map((a): [number, string] => [a, T('years', '{n} ans', { n: a })]), () => value.age, (v) => { value.age = v; })),
+      cell('s3', T('country', 'Pays (jeu « Mon pays », dès 5 ans)'), select(countryChoices(), () => value.country, (v) => { value.country = v; })),
+      cell('s3', T('night', 'Heure du coucher (mode nuit)'), select(NIGHT_CHOICES.map((n): [string, string] => [n, n ? n.replace(':', ' h ') : T('none', 'Aucune')]), () => value.nightTime, (v) => { value.nightTime = v; })),
+      cell('s3', T('daily', 'Temps de jeu par jour'), timeStepper(() => value.dailyMinutes, (v) => { value.dailyMinutes = v; })),
+      checks);
+    form.append(h, p, grid, error, actions);
     card.append(form);
     if (!initial?.name) setTimeout(() => name.focus(), 50);
   });

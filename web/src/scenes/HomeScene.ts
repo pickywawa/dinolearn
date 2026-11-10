@@ -15,6 +15,7 @@ import { drawSkyLife } from '../ui/sky';
 import { goTo, growthFactor, makeTickable, unit } from '../ui/scenery';
 import { backdropPoint, drawBackdrop, VOLCANO_MOUND } from '../ui/backdrop';
 import { Music } from '../core/music';
+import { prepareSecondPacks } from '../core/packs';
 import { Sfx } from '../core/sfx';
 import { BaseScene } from './BaseScene';
 import { t } from '../i18n';
@@ -44,13 +45,15 @@ export class HomeScene extends BaseScene {
     super('Home');
   }
 
-  create(data: { hatched?: boolean; switched?: boolean }) {
+  create(data: { hatched?: boolean; switched?: boolean; seamless?: boolean }) {
     // Pas encore d'enfant, ou l'œuf de l'enfant n'est pas éclos : retour à l'œuf.
     if (!app.profiles.pin || app.profiles.count === 0 || !app.progress.hatched) {
       this.scene.start('Start');
       return;
     }
-    this.initBase();
+    this.initBase(!data?.seamless);
+    // Voix et reconnaissance de la langue apprise en plus : en arrière-plan, maintenant que l'éclosion est passée.
+    void prepareSecondPacks();
     // Après l'heure du coucher : ciel de nuit.
     const night = app.progress.isNight();
     const bg = drawBackdrop(this, 'volcano', { night, animatedHome: true });
@@ -129,7 +132,18 @@ export class HomeScene extends BaseScene {
       this.asleep(() => this.start(data, night));
       return;
     }
+    // Juste après l'œuf et les explications : les éléments de l'accueil surgissent autour du dino.
+    if (data?.seamless) this.popIn(this.buttons().filter((b) => b.visible), 100);
     this.start(data, night);
+  }
+
+  /** Les boutons surgissent l'un après l'autre. */
+  private popIn(buttons: Phaser.GameObjects.Container[], delay: number) {
+    buttons.forEach((b, i) => {
+      const s = b.scale;
+      b.setVisible(true).setScale(0);
+      this.tweens.add({ targets: b, scale: s, duration: 380, delay: delay + i * 70, ease: 'Back.easeOut' });
+    });
   }
 
   /** Suite de l'accueil, dino réveillé. */
@@ -191,11 +205,7 @@ export class HomeScene extends BaseScene {
       app.awake = true;
       Sfx.play('boing');
       this.dino.wake();
-      buttons.forEach((b, i) => {
-        const s = b.scale;
-        b.setVisible(true).setScale(0);
-        this.tweens.add({ targets: b, scale: s, duration: 380, delay: 250 + i * 70, ease: 'Back.easeOut' });
-      });
+      this.popIn(buttons, 250);
       this.time.delayedCall(700, then);
     };
     this.input.once('pointerdown', wake);

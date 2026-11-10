@@ -9,7 +9,7 @@ const config: CapacitorConfig = {
   appId: 'fr.dinolearn.app',
   appName: 'DinoLearn',
   webDir: 'dist',
-  backgroundColor: '#16b6ed',
+  backgroundColor: '#3097cb',
   android: {
     // Les sons et la voix démarrent sans attendre un geste supplémentaire.
     allowMixedContent: false,

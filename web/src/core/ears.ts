@@ -161,14 +161,33 @@ class Ears {
     return vocab;
   }
 
-  /** Télécharge et installe un pack (espace parents). */
+  /**
+   * Télécharge et installe un pack (décompression sur l'appareil). Le modèle en mémoire
+   * (celui qui écoute l'enfant) n'est pas délogé : le pack est chargé à part, puis libéré.
+   */
   async install(lang: SpeechLang): Promise<void> {
     try {
       await navigator.storage?.persist?.();
     } catch {
       // Stockage non persistant : le navigateur pourra effacer le pack s'il manque de place.
     }
-    await this.load(lang);
+    if (this.models.size === 0 || this.models.has(lang)) {
+      await this.load(lang);
+    } else {
+      const { Model } = await import('vosk-browser');
+      await new Promise<void>((resolve, reject) => {
+        const m = new Model(packUrl(lang), -1);
+        m.on('load', (message) => {
+          m.terminate();
+          if (message.event === 'load' && message.result) resolve();
+          else reject(new Error('Modèle illisible'));
+        });
+        m.on('error', (message) => {
+          m.terminate();
+          reject(new Error(message.event === 'error' ? message.error : 'Erreur du moteur'));
+        });
+      });
+    }
     await this.vocab(lang);
   }
 

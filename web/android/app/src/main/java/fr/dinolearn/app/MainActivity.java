@@ -2,10 +2,13 @@ package fr.dinolearn.app;
 
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.WindowManager;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import androidx.core.graphics.Insets;
+import androidx.core.splashscreen.SplashScreen;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -19,12 +22,19 @@ import java.util.Locale;
  * bord les fait réapparaître un instant), décor jusque sous l'encoche de la
  * caméra, et marges de l'encoche passées au jeu (variables CSS --app-safe-*)
  * pour que les boutons restent visibles. Sons et voix sans geste préalable.
+ * L'écran de démarrage du système reste affiché jusqu'à ce que la page du jeu
+ * (et l'image de l'écran de chargement) soit prête : pas d'écran vide entre les deux.
  */
 public class MainActivity extends BridgeActivity {
     private String safeAreaScript = "";
+    private volatile boolean pageReady = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        SplashScreen splash = SplashScreen.installSplashScreen(this);
+        splash.setKeepOnScreenCondition(() -> !pageReady);
+        // Au pire (page lente à charger), on n'attend pas plus de 4 s.
+        new Handler(Looper.getMainLooper()).postDelayed(() -> pageReady = true, 4000);
         super.onCreate(savedInstanceState);
         WebView webView = getBridge().getWebView();
         WebSettings settings = webView.getSettings();
@@ -45,6 +55,8 @@ public class MainActivity extends BridgeActivity {
             @Override
             public void onPageLoaded(WebView view) {
                 if (!safeAreaScript.isEmpty()) view.evaluateJavascript(safeAreaScript, null);
+                // L'image de l'écran de chargement a le temps d'être peinte avant de quitter le démarrage.
+                view.postDelayed(() -> pageReady = true, 120);
             }
         });
     }

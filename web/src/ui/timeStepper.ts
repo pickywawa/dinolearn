@@ -16,7 +16,7 @@ export function stepMinutes(current: number, dir: -1 | 1): number {
   return Math.max(MINUTES_STEP, Math.min(MAX_DAILY_MINUTES, current + dir * MINUTES_STEP));
 }
 
-export const minutesLabel = (m: number) => (m === 0 ? 'Illimité' : m >= 60 && m % 60 === 0 ? `${m / 60} h`
+export const minutesLabel = (m: number) => (m === 0 ? t('ui.time.unlimited', {}, 'Illimité') : m >= 60 && m % 60 === 0 ? `${m / 60} h`
   : m > 60 ? `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')}` : `${m} min`);
 
 const CSS = `
@@ -49,7 +49,7 @@ export function timeStepper(get: () => number, set: (minutes: number) => void): 
   const plus = make('+');
   plus.setAttribute('aria-label', t('ui.time.more', {}, 'Plus de temps'));
   const out = document.createElement('output');
-  const unlimited = make('Illimité', 'unlimited');
+  const unlimited = make(t('ui.time.unlimited', {}, 'Illimité'), 'unlimited');
   const draw = () => {
     const m = get();
     out.textContent = minutesLabel(m);

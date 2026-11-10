@@ -9,10 +9,11 @@ export abstract class BaseScene extends Phaser.Scene {
   protected alive = true;
   private idleTimers: Phaser.Time.TimerEvent[] = [];
 
-  protected initBase() {
+  /** `fade` faux : pas de fondu d'arrivée (enchaînement sans coupure depuis une page au même décor). */
+  protected initBase(fade = true) {
     this.alive = true;
     this.input.enabled = true;
-    this.cameras.main.fadeIn(220, 255, 255, 255);
+    if (fade) this.cameras.main.fadeIn(220, 255, 255, 255);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.alive = false;
       this.clearIdle();

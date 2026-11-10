@@ -1,5 +1,4 @@
 import Phaser from 'phaser';
-import { showLoadingDino } from '../ui/loadingDino';
 import { DINO_PARTS, PART_RESOLUTION } from '../dino/parts';
 import { FRUITS } from '../domain/models';
 import { GAMES } from '../content/games';
@@ -7,11 +6,9 @@ import { ITEMS, itemTexture } from '../content/items';
 import { PRINT_KINDS } from '../print/catalog';
 import { preloadModels } from '../dino3d/model';
 import { loadBackdrops } from '../ui/backdrop';
-import { Progress, appLanguage, downloads, installedPacks, markPacksAsked } from '../core/packs';
-import { PackId, languageOf, packChoices, secondLanguage } from '../domain/packs';
+import { Progress, appLanguage, downloads, markPacksAsked, missingPacks } from '../core/packs';
+import { PackId, languageOf, secondLanguage } from '../domain/packs';
 import { t } from '../i18n';
-import { voiceSupported } from '../core/ears';
-import { engineReady } from '../core/piper';
 
 export const UI_IMAGES = [...new Set([
   'ui-play', 'ui-home', 'ui-star', 'ui-sparkles', 'ui-globe', 'ui-cloud', 'ui-cake', 'flag-gb',
@@ -58,16 +55,18 @@ svgProto.onProcess = function onProcess(this: typeof svgProto) {
 };
 
 /**
- * Charge le jeu derrière un écran HTML visible dès l’ouverture, avant Phaser et les modèles.
+ * Charge le jeu derrière l'écran de chargement HTML (la grande image de DinoLearn, visible dès
+ * l'ouverture). Le jeu ne démarre qu'avec la voix du dino et la reconnaissance vocale de la
+ * langue de l'appli : sans elles, l'œuf et les questions à voix haute ne marchent pas. La voix
+ * et la reconnaissance de la langue apprise en plus se téléchargent ensuite, en arrière-plan.
  */
 export class BootScene extends Phaser.Scene {
   private models!: Promise<unknown>;
-  private dinosaur!: Promise<void>;
-  private packs!: Promise<void>;
   /** Avancement des images et modèles (0 à 1). */
   private assets = 0;
-  /** Avancement des packs de langue, quand il faut les télécharger (premier lancement). */
+  /** Avancement des packs indispensables (undefined : rien à télécharger). */
   private packProgress?: number;
+  private label = '';
 
   constructor() {
     super('Boot');
@@ -76,16 +75,9 @@ export class BootScene extends Phaser.Scene {
   preload() {
     // Les modèles 3D se chargent en même temps que les images.
     this.models = preloadModels();
-    // Le dino de l'écran de chargement n'est qu'une décoration : s'il ne s'affiche pas, on continue sans.
-    this.dinosaur = showLoadingDino().then((dispose) => {
-      this.events.once(Phaser.Scenes.Events.SHUTDOWN, dispose);
-    }, (e) => console.warn('Dino du chargement indisponible', e));
-    // The HTML loading screen is visible before Phaser and the model downloads.
     loadBackdrops(this);
-    // Premier lancement : les packs de langue (voix, reconnaissance vocale) se téléchargent ici, en parallèle.
-    this.packs = this.preparePacks().catch(() => undefined);
     this.load.on('progress', (progress: number) => {
-      this.assets = progress * .85;
+      this.assets = progress;
       this.drawProgress();
     });
     // Une image manquante ne bloque pas le jeu (elle sera simplement absente) : on la signale seulement.
@@ -106,114 +98,125 @@ export class BootScene extends Phaser.Scene {
   }
 
   /**
-   * Télécharge les packs de la langue de l'appli qui manquent : voix du dino,
-   * voix anglaise, reconnaissance vocale (si l'appareil sait écouter). Ils
-   * partent tous en même temps ; un échec (hors ligne…) n'empêche pas de jouer,
-   * on réessaiera au prochain lancement.
+   * Télécharge la voix du dino et la reconnaissance de la langue de l'appli, en même temps.
+   * Résout quand tout est prêt ; rejette en cas de problème (hors ligne, plus de place…),
+   * ou si plus rien n'arrive depuis 45 s.
    */
-  private async preparePacks() {
+  private async preparePacks(): Promise<void> {
     const language = appLanguage();
-    const installed = await installedPacks(language);
-    const ids = packChoices(language, true, engineReady()).map((c) => c.id)
-      .filter((id) => !installed[id] && (id !== 'asr' || voiceSupported()));
     markPacksAsked();
+    const ids = await missingPacks(false);
     if (!ids.length) return;
     this.packProgress = 0;
-    downloads.start(ids, language, true);
-    await new Promise<void>((resolve) => {
-      let stop: (() => void) | undefined;
-      let finished = false;
-      // Réseau bloqué (plus un octet depuis 45 s) : le jeu démarre quand même ; le téléchargement
-      // continue derrière, ou reprendra au prochain lancement.
+    downloads.start(ids, language, false);
+    await new Promise<void>((resolve, reject) => {
       let lastBytes = -1;
       let lastChange = performance.now();
-      const done = () => {
-        if (finished) return;
-        finished = true;
+      let settled = false;
+      let stop: () => void = () => undefined;
+      const end = (error?: string) => {
+        if (settled) return;
+        settled = true;
         clearInterval(watchdog);
-        stop?.();
-        resolve();
+        queueMicrotask(() => stop());
+        if (error) reject(new Error(error));
+        else resolve();
       };
       const watchdog = setInterval(() => {
-        if (performance.now() - lastChange > STALL_MS) done();
+        if (performance.now() - lastChange > STALL_MS) end(t('ui.pack.stalled', {}, 'Le téléchargement n\'avance plus. Vérifiez la connexion.'));
       }, 1000);
       stop = downloads.subscribe((p) => {
         if (p.loaded !== lastBytes) {
           lastBytes = p.loaded;
           lastChange = performance.now();
         }
-        this.packProgress = p.total ? Math.min(1, p.loaded / p.total) : 0;
-        this.drawProgress(packLabel(p, language));
-        if (!p.running) done();
+        const mine = p.tasks.filter((x) => ids.includes(x.id));
+        const total = mine.reduce((n, x) => n + Math.max(x.total, x.loaded), 0);
+        this.packProgress = total ? Math.min(1, mine.reduce((n, x) => n + x.loaded, 0) / total) : 0;
+        // Fin du téléchargement : reste l'installation de la reconnaissance (décompression).
+        if (mine.some((x) => x.state === 'installing')) this.packProgress = Math.min(this.packProgress, .97);
+        this.label = packLabel(p, language);
+        this.drawProgress();
+        const failed = mine.find((x) => x.state === 'error');
+        if (failed) end(failed.error ?? '?');
+        else if (mine.every((x) => x.state === 'done')) end();
       });
-      if (finished) stop();
     });
-    this.drawProgress('');
   }
 
-  private drawProgress(label?: string) {
+  private drawProgress() {
     // Avec les packs, ce sont eux le plus long : l'essentiel de la barre.
-    const progress = this.packProgress === undefined ? this.assets : this.assets * .15 + this.packProgress * .85;
-    const percent = Math.round(progress * 100);
+    const progress = this.packProgress === undefined ? this.assets : this.assets * .1 + this.packProgress * .9;
+    const percent = Math.min(100, Math.round(progress * 100));
     const bar = document.querySelector<HTMLElement>('.loading-progress');
     bar?.style.setProperty('--progress', percent + '%');
-    bar?.classList.toggle('empty', percent === 0);
     bar?.setAttribute('aria-valuenow', String(percent));
     const text = document.querySelector('.loading-percent');
     if (text) text.textContent = percent + ' %';
     const what = document.querySelector('.loading-what');
-    if (what && label !== undefined) what.textContent = label;
+    if (what) what.textContent = this.label || t('ui.loading', {}, 'Chargement…');
   }
 
   /**
-   * Le jeu ne peut pas démarrer (modèle du dino illisible…) : on propose de réessayer,
-   * mais seulement une fois les téléchargements des packs terminés (ils ne sont pas perdus),
-   * avec la raison en petit sous la barre.
+   * Problème (hors ligne, plus de place…) : le message s'affiche sous la barre, et un toucher
+   * relance (les morceaux déjà téléchargés ne sont pas perdus).
    */
-  private showError(reason?: unknown) {
-    void this.packs.then(() => {
-      const title = document.querySelector('.loading-sign textPath');
-      if (title) title.textContent = t('ui.retry', {}, 'Réessayer');
-      const what = document.querySelector('.loading-what');
-      if (what) what.textContent = t('ui.problem', { reason: reason instanceof Error ? reason.message : String(reason ?? '?') }, 'Problème : {reason}').slice(0, 120);
-      const screen = document.querySelector<HTMLElement>('#loading-screen');
-      if (screen) {
-        screen.onclick = () => location.reload();
-        screen.setAttribute('role', 'button');
-        screen.tabIndex = 0;
-        screen.onkeydown = (event) => {
-          if (event.key === 'Enter' || event.key === ' ') location.reload();
-        };
-      }
-    });
+  private showError(reason: unknown, retry: () => void) {
+    const screen = document.querySelector<HTMLElement>('#loading-screen');
+    const what = document.querySelector('.loading-what');
+    if (!screen || !what) return;
+    screen.classList.add('error');
+    what.textContent = t('ui.problem', { reason: reason instanceof Error ? reason.message : String(reason ?? '?') }, 'Problème : {reason}').slice(0, 140)
+      + ' — ' + t('ui.retry', {}, 'Réessayer');
+    screen.setAttribute('role', 'button');
+    screen.tabIndex = 0;
+    const again = () => {
+      screen.onclick = null;
+      screen.onkeydown = null;
+      screen.classList.remove('error');
+      screen.removeAttribute('role');
+      this.label = '';
+      this.drawProgress();
+      retry();
+    };
+    screen.onclick = again;
+    screen.onkeydown = (event) => {
+      if (event.key === 'Enter' || event.key === ' ') again();
+    };
   }
 
-
   create() {
-    void Promise.all([this.models, this.dinosaur]).then(() => {
+    const assets = this.models.then(() => {
       this.assets = 1;
       this.drawProgress();
-      return this.packs;
-    }).then(() => {
-      this.packProgress = undefined;
-      this.drawProgress('');
-      this.time.delayedCall(150, () => {
-        document.getElementById('loading-screen')?.remove();
-        this.scene.start('Start');
-      });
-    }).catch((e) => this.showError(e));
+    });
+    assets.catch((e) => this.showError(e, () => location.reload()));
+    const packs = () => this.preparePacks().then(() => this.ready(assets), (e) => this.showError(e, packs));
+    void packs();
+  }
+
+  /** Tout est prêt : l'écran de chargement s'efface sur l'œuf (ou l'accueil). */
+  private async ready(assets: Promise<void>) {
+    await assets;
+    this.packProgress = undefined;
+    this.label = '';
+    this.drawProgress();
+    this.scene.start('Start');
+    const screen = document.getElementById('loading-screen');
+    screen?.classList.add('done');
+    setTimeout(() => screen?.remove(), 400);
   }
 }
 
-/** Téléchargement des packs sans progrès depuis ce délai : on n'attend plus pour jouer. */
+/** Téléchargement des packs sans progrès depuis ce délai : on prévient (toucher pour réessayer). */
 const STALL_MS = 45_000;
 
-/** Ce qui se télécharge en ce moment, à droite du pourcentage. */
+/** Ce qui se télécharge en ce moment, à gauche du pourcentage. */
 function packLabel(p: Progress, language: string): string {
   const name = (id: PackId) => id === 'speech' ? t('ui.pack.voice', { language: langName(language) }, `pack ${languageOf(language).name.toLowerCase()}`)
     : id === 'second' ? t('ui.pack.voice', { language: langName(secondLanguage(language)) }, 'pack anglais')
       : t('ui.pack.asr', {}, 'reconnaissance vocale');
-  const busy = p.tasks.filter((t) => t.state === 'waiting' || t.state === 'downloading');
+  const busy = p.tasks.filter((x) => x.state === 'waiting' || x.state === 'downloading');
   if (busy.length) return t('ui.pack.downloading', { list: busy.map((x) => name(x.id)).join(', ') }, 'Téléchargement : {list}');
   if (p.tasks.some((x) => x.state === 'installing')) return t('ui.pack.installing', {}, 'Installation de la reconnaissance vocale');
   return '';
