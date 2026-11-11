@@ -286,6 +286,24 @@ const ko: Catalog = {
     lightning=번개; comet=혜성; cactus=선인장; blossom=벚꽃; feather=깃털`),
   // Espace parents : onglets.
   'p.dailyShort': '그다음엔 공룡이 자러 가요.', 'p.credits': '만든 사람과 라이선스', 'p.creditsHelp': 'DinoLearn은 이 프로그램, 목소리, 그림, 글꼴, 소리로 만들어졌어요. 만든 분들께 감사드려요!', 'p.credits.voices': '공룡 목소리', 'p.credits.asr': '음성 인식', 'p.credits.code': '게임 엔진', 'p.credits.images': '그림과 글꼴', 'p.credits.sounds': '효과음', 'p.tab.control': '관리', 'p.tab.print': '인쇄', 'p.printOffer': '인쇄용 활동지 주기', 'p.printOfferHelp': '놀이 시간이 끝나면 공룡이 봉투 세 개를 줘요. 아이가 하루에 하나를 고르면 활동지가 인쇄 탭에 들어와요.', 'p.tab.profile': '프로필', 'p.tab.progress': '성장', 'p.tab.games': '놀이', 'p.tab.settings': '설정', 'p.summary': '한눈에', 'p.lower': '낮추기', 'p.higher': '높이기',
+  // Programme le dino (LO-12).
+  'title.LO-12': '논리 — 공룡 프로그래밍',
+  'l.intro.LO-12': ['프로그래밍해 보자! 화살표가 어디로 갈지 알려 줘. 사과를 찾게 도와줘!'],
+  'l.home.LO-12': ['화살표: 공룡을 프로그래밍해!'],
+  'l.short.LO-12': ['공룡을 프로그래밍해!'],
+  'LO-12.prompt': '화살표를 눌러서 나를 사과까지 데려다줘!',
+  'LO-12.promptProgram': '화살표를 놓고, 초록 버튼을 누르면 내가 움직여!',
+  'LO-12.promptLoop': '화살표를 놓고 “번” 버튼으로 화살표를 반복해 봐. 그다음 초록 버튼을 눌러!',
+  'LO-12.promptFruits': '과일 두 개를 다 주워! 화살표를 모두 놓고 초록 버튼을 눌러.',
+  'LO-12.yes': '냠냠! 잘했어, 나를 아주 잘 프로그래밍했어!',
+  'LO-12.hint': '잘 봐: 깜빡이는 화살표가 맞는 방향이야!',
+  'LO-12.bumpRock': '앗, 바위다!',
+  'LO-12.bumpWater': '안 돼, 물이야! 나는 수영을 못해.',
+  'LO-12.bumpEdge': '앗, 정원 밖으로는 못 나가!',
+  'LO-12.short': '화살표가 모자라: 아직 도착 못 했어!',
+  'LO-12.empty': '먼저 아래에 화살표를 놓고 초록 버튼을 눌러!',
+  'LO-12.full': '자리가 없어! 아래 화살표를 눌러서 빼 줘.',
+  'LO-12.best': '게다가 가장 짧은 프로그램까지 찾았어!',
 };
 
 export default ko;

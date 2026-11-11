@@ -479,6 +479,24 @@ const id: Catalog = {
     tornado=angin puting beliung; lightning=petir; comet=komet; cactus=kaktus; blossom=bunga sakura; feather=bulu burung`),
   // Espace parents : onglets.
   'p.dailyShort': 'Lalu dino pergi tidur.', 'p.credits': 'Kredit dan lisensi', 'p.creditsHelp': 'DinoLearn dibuat dengan program, suara, gambar, fon, dan efek suara ini. Terima kasih kepada para pembuatnya!', 'p.credits.voices': 'Suara dino', 'p.credits.asr': 'Pengenalan suara', 'p.credits.code': 'Mesin permainan', 'p.credits.images': 'Gambar dan fon', 'p.credits.sounds': 'Efek suara', 'p.tab.control': 'Kontrol', 'p.tab.print': 'Cetak', 'p.printOffer': 'Tawarkan lembar untuk dicetak', 'p.printOfferHelp': 'Di akhir waktu bermain, dino menawarkan tiga amplop; anak memilih satu (sekali sehari) dan lembarnya muncul di tab Cetak.', 'p.tab.profile': 'Profil', 'p.tab.progress': 'Kemajuan', 'p.tab.games': 'Permainan', 'p.tab.settings': 'Pengaturan', 'p.summary': 'Ringkasan', 'p.lower': 'Turunkan', 'p.higher': 'Naikkan',
+  // Programme le dino (LO-12).
+  'title.LO-12': 'Logika — Program dino',
+  'l.intro.LO-12': ['Ayo memprogram! Panah memberi tahu ke mana aku pergi: bantu aku menemukan apel!'],
+  'l.home.LO-12': ['Panah: program dino!'],
+  'l.short.LO-12': ['Program dino!'],
+  'LO-12.prompt': 'Sentuh panahnya untuk membawaku ke apel!',
+  'LO-12.promptProgram': 'Pasang panahnya, lalu tekan tombol hijau supaya aku jalan!',
+  'LO-12.promptLoop': 'Pasang panahnya, dan pakai tombol “kali” untuk mengulang panah. Lalu tekan tombol hijau!',
+  'LO-12.promptFruits': 'Ambil kedua buahnya! Pasang semua panah, lalu tekan tombol hijau.',
+  'LO-12.yes': 'Nyam! Hebat, kamu memprogramku dengan baik!',
+  'LO-12.hint': 'Lihat baik-baik: panah yang berkedip itu arah yang benar!',
+  'LO-12.bumpRock': 'Ups, ada batu!',
+  'LO-12.bumpWater': 'Oh tidak, air! Aku tidak bisa berenang.',
+  'LO-12.bumpEdge': 'Ups, aku tidak boleh keluar dari kebun!',
+  'LO-12.short': 'Panahnya masih kurang: aku belum sampai!',
+  'LO-12.empty': 'Pasang dulu panah di bawah, lalu tekan tombol hijau!',
+  'LO-12.full': 'Tempatnya penuh! Sentuh panah di bawah untuk menghapusnya.',
+  'LO-12.best': 'Dan kamu bahkan menemukan program terpendek!',
 };
 
 export default id;

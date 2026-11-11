@@ -57,6 +57,7 @@ export const LINES: Record<string, string[]> = {
   'home.FR-6': ['La bulle : trouve le mot qui manque !'],
   'home.FR-8': ['Les livres : écoute mes histoires !'],
   'home.LO-10': ['Les cartes : le memory !'],
+  'home.LO-12': ['Les flèches : programme le dino !'],
   'home.EN-3': ['Le joker : le memory en anglais !'],
   'home.FR-7': ['La feuille : complète la phrase avec le bon mot écrit !'],
   'home.LO-7': ['La palette : les formes et les couleurs !'],
@@ -93,6 +94,7 @@ export const LINES: Record<string, string[]> = {
   'short.FR-5': ['Lis le mot !', 'Qu\'est-ce qui est écrit ?'],
   'short.FR-6': ['Le mot qui manque !', 'Une phrase à trou !'],
   'short.LO-10': ['Le memory !'],
+  'short.LO-12': ['Programme le dino !'],
   'short.EN-3': ['Memory en anglais !'],
   'short.FR-8': ['Une histoire !', 'Écoute bien l\'histoire !'],
   'short.FR-7': ['Complète la phrase !'],
@@ -194,6 +196,7 @@ export const LINES: Record<string, string[]> = {
     'Je dis une phrase, mais il manque un mot ! Touche l\'image du mot qui manque.',
     'Oh non, j\'ai oublié un mot dans ma phrase ! Tu m\'aides à le retrouver ?',
   ],
+  'intro.LO-12': ['On va programmer ! Les flèches me disent où aller : aide-moi à trouver la pomme !'],
   'intro.LO-10': [
     'On joue au memory ! Retourne deux cartes : si ce sont les mêmes images, tu gagnes la paire !',
     'Le memory ! Touche une carte, puis une autre. Retiens bien où sont les images !',

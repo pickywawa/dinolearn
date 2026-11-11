@@ -100,6 +100,10 @@ export class GameScene extends BaseScene {
       this.scene.start('Memory', data);
       return;
     }
+    if (!data.series && data.gameId && gameById(data.gameId).code) {
+      this.scene.start('Code', data);
+      return;
+    }
     this.initBase();
     this.playMs = 0;
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.savePlayTime());
@@ -740,7 +744,7 @@ export class GameScene extends BaseScene {
       this.drawSum(show, area, pop);
       return;
     }
-    if (show.kind === 'trace' || show.kind === 'memory') return;
+    if (show.kind === 'trace' || show.kind === 'memory' || show.kind === 'code') return;
 
     // Objets à compter : on mélange les groupes (aux niveaux difficiles, il y a des intrus).
     const items = Phaser.Utils.Array.Shuffle(show.groups.flatMap((g, gi) =>

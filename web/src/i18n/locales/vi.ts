@@ -348,6 +348,24 @@ const vi: Catalog = {
     comet=sao chổi; cactus=cây xương rồng; blossom=hoa anh đào; feather=chiếc lông vũ`),
   // Espace parents : onglets.
   'p.dailyShort': 'Sau đó khủng long đi ngủ.', 'p.credits': 'Ghi công và giấy phép', 'p.creditsHelp': 'DinoLearn được làm từ các phần mềm, giọng nói, hình ảnh, phông chữ và âm thanh này. Cảm ơn các tác giả!', 'p.credits.voices': 'Giọng khủng long', 'p.credits.asr': 'Nhận dạng giọng nói', 'p.credits.code': 'Bộ máy trò chơi', 'p.credits.images': 'Hình ảnh và phông chữ', 'p.credits.sounds': 'Hiệu ứng âm thanh', 'p.tab.control': 'Kiểm soát', 'p.tab.print': 'In', 'p.printOffer': 'Đề xuất phiếu để in', 'p.printOfferHelp': 'Khi hết giờ chơi, khủng long tặng ba phong bì; bé chọn một (mỗi ngày một lần) và phiếu sẽ có trong thẻ In.', 'p.tab.profile': 'Hồ sơ', 'p.tab.progress': 'Tiến bộ', 'p.tab.games': 'Trò chơi', 'p.tab.settings': 'Cài đặt', 'p.summary': 'Tóm tắt', 'p.lower': 'Giảm', 'p.higher': 'Tăng',
+  // Programme le dino (LO-12).
+  'title.LO-12': 'Tư duy — Lập trình cho khủng long',
+  'l.intro.LO-12': ['Mình cùng lập trình nhé! Các mũi tên chỉ cho mình đường đi: giúp mình tìm quả táo nào!'],
+  'l.home.LO-12': ['Mũi tên: lập trình cho khủng long!'],
+  'l.short.LO-12': ['Lập trình cho khủng long!'],
+  'LO-12.prompt': 'Chạm vào mũi tên để đưa mình tới quả táo nhé!',
+  'LO-12.promptProgram': 'Đặt các mũi tên, rồi bấm nút xanh để mình đi nào!',
+  'LO-12.promptLoop': 'Đặt các mũi tên, và dùng nút “nhân” để lặp lại một mũi tên. Rồi bấm nút xanh!',
+  'LO-12.promptFruits': 'Nhặt cả hai quả nhé! Đặt hết các mũi tên, rồi bấm nút xanh.',
+  'LO-12.yes': 'Ngon quá! Giỏi lắm, bạn lập trình cho mình rất tốt!',
+  'LO-12.hint': 'Nhìn kỹ nhé: mũi tên nhấp nháy là hướng đúng đấy!',
+  'LO-12.bumpRock': 'Ối, một tảng đá!',
+  'LO-12.bumpWater': 'Ôi không, nước! Mình không biết bơi.',
+  'LO-12.bumpEdge': 'Ối, mình không được ra khỏi khu vườn!',
+  'LO-12.short': 'Mình còn thiếu mũi tên: mình chưa tới nơi!',
+  'LO-12.empty': 'Hãy đặt mũi tên ở dưới trước, rồi bấm nút xanh nhé!',
+  'LO-12.full': 'Hết chỗ rồi! Chạm vào một mũi tên ở dưới để bỏ nó đi.',
+  'LO-12.best': 'Và bạn còn tìm ra chương trình ngắn nhất nữa!',
 };
 
 export default vi;

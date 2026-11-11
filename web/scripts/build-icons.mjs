@@ -146,6 +146,10 @@ write('missing-word-read', noto, 'memo');
 write('story', noto, 'books');
 write('memory', noto, 'flower-playing-cards');
 write('memory-en', noto, 'joker');
+// Programme le dino : la bulle du jeu, et les obstacles du plateau.
+write('coding', noto, 'robot');
+write('code-rock', noto, 'rock');
+write('code-water', noto, 'water-wave');
 write('shapes', noto, 'artist-palette');
 write('clock', noto, 'alarm-clock');
 write('money', noto, 'euro-banknote');

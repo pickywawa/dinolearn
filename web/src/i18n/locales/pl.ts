@@ -309,6 +309,24 @@ const pl: Catalog = {
     lightning=błyskawica; comet=kometa; cactus=kaktus; blossom=kwiat wiśni; feather=piórko`),
   // Espace parents : onglets.
   'p.dailyShort': 'Potem dino idzie spać.', 'p.credits': 'Podziękowania i licencje', 'p.creditsHelp': 'DinoLearn powstał dzięki tym programom, głosom, obrazkom, czcionkom i dźwiękom. Dziękujemy ich autorom!', 'p.credits.voices': 'Głosy dino', 'p.credits.asr': 'Rozpoznawanie mowy', 'p.credits.code': 'Silnik gry', 'p.credits.images': 'Obrazki i czcionki', 'p.credits.sounds': 'Efekty dźwiękowe', 'p.tab.control': 'Kontrola', 'p.tab.print': 'Drukowanie', 'p.printOffer': 'Proponuj karty do druku', 'p.printOfferHelp': 'Po zakończeniu czasu gry dino daje trzy koperty; dziecko wybiera jedną (raz dziennie), a karta trafia do zakładki Drukowanie.', 'p.tab.profile': 'Profil', 'p.tab.progress': 'Postępy', 'p.tab.games': 'Gry', 'p.tab.settings': 'Ustawienia', 'p.summary': 'W skrócie', 'p.lower': 'Niżej', 'p.higher': 'Wyżej',
+  // Programme le dino (LO-12).
+  'title.LO-12': 'Logika — Zaprogramuj dino',
+  'l.intro.LO-12': ['Programujemy! Strzałki mówią mi, dokąd iść: pomóż mi znaleźć jabłko!'],
+  'l.home.LO-12': ['Strzałki: zaprogramuj dino!'],
+  'l.short.LO-12': ['Zaprogramuj dino!'],
+  'LO-12.prompt': 'Dotykaj strzałek, żeby zaprowadzić mnie do jabłka!',
+  'LO-12.promptProgram': 'Ułóż strzałki, a potem naciśnij zielony przycisk, żebym ruszył!',
+  'LO-12.promptLoop': 'Ułóż strzałki i użyj przycisku „razy”, żeby powtórzyć strzałkę. Potem naciśnij zielony przycisk!',
+  'LO-12.promptFruits': 'Zbierz oba owoce! Ułóż wszystkie strzałki, a potem naciśnij zielony przycisk.',
+  'LO-12.yes': 'Mniam! Brawo, świetnie mnie zaprogramowałeś!',
+  'LO-12.hint': 'Patrz uważnie: migająca strzałka to dobry kierunek!',
+  'LO-12.bumpRock': 'Ups, kamień!',
+  'LO-12.bumpWater': 'O nie, woda! Nie umiem pływać.',
+  'LO-12.bumpEdge': 'Ups, nie mogę wyjść z ogrodu!',
+  'LO-12.short': 'Brakuje mi strzałek: jeszcze nie dotarłem!',
+  'LO-12.empty': 'Najpierw ułóż strzałki na dole, a potem naciśnij zielony przycisk!',
+  'LO-12.full': 'Nie ma już miejsca! Dotknij strzałki na dole, żeby ją usunąć.',
+  'LO-12.best': 'I do tego znalazłeś najkrótszy program!',
 };
 
 export default pl;

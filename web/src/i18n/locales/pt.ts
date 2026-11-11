@@ -502,6 +502,24 @@ const pt: Catalog = {
   "cty.neighbourHint": "os vizinhos ficam bem perto, no mesmo continente",
   // Espace parents : onglets.
   'p.dailyShort': 'Depois, o dino vai dormir.', 'p.credits': 'Créditos e licenças', 'p.creditsHelp': 'O DinoLearn é feito com estes programas, vozes, imagens, tipos de letra e sons. Obrigado aos seus autores!', 'p.credits.voices': 'Vozes do dino', 'p.credits.asr': 'Reconhecimento de voz', 'p.credits.code': 'Motor do jogo', 'p.credits.images': 'Imagens e tipos de letra', 'p.credits.sounds': 'Efeitos sonoros', 'p.tab.control': 'Controlo', 'p.tab.print': 'Impressão', 'p.printOffer': 'Propor fichas para imprimir', 'p.printOfferHelp': 'No fim do tempo de jogo, o dino oferece três envelopes; a criança escolhe um (uma vez por dia) e a ficha chega ao separador Impressão.', 'p.tab.profile': 'Perfil', 'p.tab.progress': 'Progresso', 'p.tab.games': 'Jogos', 'p.tab.settings': 'Definições', 'p.summary': 'Em resumo', 'p.lower': 'Baixar', 'p.higher': 'Subir',
+  // Programme le dino (LO-12).
+  'title.LO-12': 'Lógica — Programa o dino',
+  'l.intro.LO-12': ['Vamos programar! As setas dizem-me para onde ir: ajuda-me a encontrar a maçã!'],
+  'l.home.LO-12': ['As setas: programa o dino!'],
+  'l.short.LO-12': ['Programa o dino!'],
+  'LO-12.prompt': 'Toca nas setas para me levares até à maçã!',
+  'LO-12.promptProgram': 'Põe as setas e depois carrega no botão verde para eu andar!',
+  'LO-12.promptLoop': 'Põe as setas e usa o botão «vezes» para repetir uma seta. Depois carrega no botão verde!',
+  'LO-12.promptFruits': 'Apanha os dois frutos! Põe todas as setas e depois carrega no botão verde.',
+  'LO-12.yes': 'Nham! Boa, programaste-me muito bem!',
+  'LO-12.hint': 'Olha bem: a seta que pisca é a direção certa!',
+  'LO-12.bumpRock': 'Ups, uma pedra!',
+  'LO-12.bumpWater': 'Oh não, água! Eu não sei nadar.',
+  'LO-12.bumpEdge': 'Ups, não posso sair do jardim!',
+  'LO-12.short': 'Faltam-me setas: ainda não cheguei!',
+  'LO-12.empty': 'Primeiro põe setas em baixo e depois carrega no botão verde!',
+  'LO-12.full': 'Já não há lugar! Toca numa seta em baixo para a tirar.',
+  'LO-12.best': 'E ainda encontraste o programa mais curto!',
 };
 
 export default pt;

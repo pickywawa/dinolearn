@@ -605,6 +605,24 @@ const en: Catalog = {
   "cty.neighbourHint": "neighbours are very close, on the same continent",
   // Espace parents : onglets.
   'p.dailyShort': 'Then the dino goes to bed.', 'p.credits': 'Credits and licences', 'p.creditsHelp': 'DinoLearn is built with these programs, voices, images, fonts and sounds. Thanks to their authors!', 'p.credits.voices': 'Dino voices', 'p.credits.asr': 'Speech recognition', 'p.credits.code': 'Game engine', 'p.credits.images': 'Images and fonts', 'p.credits.sounds': 'Sound effects', 'p.tab.control': 'Controls', 'p.tab.print': 'Printing', 'p.printOffer': 'Offer printable sheets', 'p.printOfferHelp': 'At the end of play time, the dino offers three envelopes; the child picks one (once a day) and the sheet arrives in the Printing tab.', 'p.tab.profile': 'Profile', 'p.tab.progress': 'Progress', 'p.tab.games': 'Games', 'p.tab.settings': 'Settings', 'p.summary': 'At a glance', 'p.lower': 'Lower', 'p.higher': 'Higher',
+  // Programme le dino (LO-12).
+  'title.LO-12': 'Logic — Program the dino',
+  'l.intro.LO-12': ['Let\'s program! The arrows tell me where to go: help me find the apple!'],
+  'l.home.LO-12': ['The arrows: program the dino!'],
+  'l.short.LO-12': ['Program the dino!'],
+  'LO-12.prompt': 'Touch the arrows to take me to the apple!',
+  'LO-12.promptProgram': 'Place the arrows, then press the green button to make me move!',
+  'LO-12.promptLoop': 'Place the arrows, and use the “times” button to repeat an arrow. Then press the green button!',
+  'LO-12.promptFruits': 'Pick up both fruits! Place all the arrows, then press the green button.',
+  'LO-12.yes': 'Yum! Well done, you programmed me perfectly!',
+  'LO-12.hint': 'Look carefully: the blinking arrow is the right way!',
+  'LO-12.bumpRock': 'Oops, a rock!',
+  'LO-12.bumpWater': 'Oh no, water! I can\'t swim.',
+  'LO-12.bumpEdge': 'Oops, I can\'t leave the garden!',
+  'LO-12.short': 'I\'m missing some arrows: I\'m not there yet!',
+  'LO-12.empty': 'First place some arrows at the bottom, then press the green button!',
+  'LO-12.full': 'No more room! Touch an arrow at the bottom to remove it.',
+  'LO-12.best': 'And you even found the shortest program!',
 };
 
 export default en;

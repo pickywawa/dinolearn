@@ -484,6 +484,24 @@ const zh: Catalog = {
   "cty.neighbourHint": "邻国离得很近，在同一个大洲",
   // Espace parents : onglets.
   'p.dailyShort': '之后恐龙就去睡觉。', 'p.credits': '致谢与许可', 'p.creditsHelp': 'DinoLearn 使用了以下软件、语音、图片、字体和声音。感谢它们的作者！', 'p.credits.voices': '恐龙的声音', 'p.credits.asr': '语音识别', 'p.credits.code': '游戏引擎', 'p.credits.images': '图片和字体', 'p.credits.sounds': '音效', 'p.tab.control': '控制', 'p.tab.print': '打印', 'p.printOffer': '提供可打印的练习纸', 'p.printOfferHelp': '游戏时间结束时，恐龙会送出三个信封；孩子每天可选一个，练习纸会出现在“打印”页。', 'p.tab.profile': '资料', 'p.tab.progress': '进步', 'p.tab.games': '游戏', 'p.tab.settings': '设置', 'p.summary': '概览', 'p.lower': '降低', 'p.higher': '提高',
+  // Programme le dino (LO-12).
+  'title.LO-12': '逻辑 — 给恐龙编程',
+  'l.intro.LO-12': ['我们来编程吧！箭头告诉我往哪儿走：帮我找到苹果！'],
+  'l.home.LO-12': ['箭头：给恐龙编程！'],
+  'l.short.LO-12': ['给恐龙编程！'],
+  'LO-12.prompt': '点箭头，带我走到苹果那儿！',
+  'LO-12.promptProgram': '先摆好箭头，再按绿色按钮让我出发！',
+  'LO-12.promptLoop': '摆好箭头，用“乘”按钮重复一个箭头。然后按绿色按钮！',
+  'LO-12.promptFruits': '把两个水果都捡起来！摆好所有箭头，再按绿色按钮。',
+  'LO-12.yes': '好吃！真棒，你把我编程得很好！',
+  'LO-12.hint': '仔细看：闪烁的箭头就是正确的方向！',
+  'LO-12.bumpRock': '哎呀，一块石头！',
+  'LO-12.bumpWater': '哦不，是水！我不会游泳。',
+  'LO-12.bumpEdge': '哎呀，我不能走出花园！',
+  'LO-12.short': '箭头还不够：我还没到呢！',
+  'LO-12.empty': '先在下面摆好箭头，再按绿色按钮！',
+  'LO-12.full': '没有位置了！点下面的箭头可以把它拿掉。',
+  'LO-12.best': '而且你还找到了最短的程序！',
 };
 
 export default zh;

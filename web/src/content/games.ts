@@ -7,6 +7,7 @@ import {
 import { isFr, lang, num, phrase, second, t } from '../i18n';
 import { langInfo, type Lang } from '../domain/langs';
 import { CURRENCIES, isNote, moneyLevel, moneySaid } from '../domain/currencies';
+import { levelSpec as codeLevelSpec } from '../domain/coding';
 import { PAIRS, SIZES, SYLLABLES, enNumber } from './extra';
 import { frNumber } from './numbers';
 import { LETTER_LEVELS, LETTER_NAMES, LOOKALIKE_LETTERS, READ_WORDS, SYLLABLES_TO_READ } from './reading';
@@ -72,6 +73,8 @@ export type Show =
   | { kind: 'memory'; images: string[]; lang: Lang }
   /** Un modèle à tracer avec le doigt (jeux de tracé, scène à part). */
   | { kind: 'trace'; model: string; mode: TraceMode }
+  /** Un plateau de « Programme le dino » (scène à part), tiré du niveau et de la graine. */
+  | { kind: 'code'; level: number; seed: number }
   /**
    * Un calcul. Avec `image` : en images (a fruits, puis + b fruits, ou b fruits
    * barrés pour « − ») ; sans image : écrit en chiffres. `total` : « a + ? = total ».
@@ -105,6 +108,8 @@ export interface GameDef {
   trace?: boolean;
   /** Memory : il se joue dans sa propre scène (dans une série de la planète, le temps d'un plateau). */
   memory?: boolean;
+  /** « Programme le dino » : sa propre scène (dans une série de la planète, le temps d'un plateau). */
+  code?: boolean;
   /** Nombre de questions d'une série, s'il ne dépend pas de l'âge (un plateau de memory est long). */
   seriesLength?: number;
   /** Âge minimum de l'enfant pour que le jeu soit proposé (3 par défaut). */
@@ -2300,6 +2305,46 @@ const memoryEnglish: GameDef = {
   build: (ref, _level, rng) => buildMemory(ref, rng, true),
 };
 
+// ---- Programme le dino (dès 3 ans) : des flèches pour l'amener jusqu'au fruit ----
+
+function codeQuestions(): QuestionRef[] {
+  const refs: QuestionRef[] = [];
+  for (let level = 1; level <= 20; level++) for (let k = 0; k < 4; k++) refs.push({ id: `LO-12:${level}:${k}`, level });
+  return refs;
+}
+
+const codeGame: GameDef = {
+  id: 'LO-12',
+  category: 'logic',
+  code: true,
+  seriesLength: 4,
+  icon: 'coding',
+  color: 0x16a34a,
+  introLine: 'intro.LO-12',
+  homeLine: 'home.LO-12',
+  shortLine: 'short.LO-12',
+  questions: codeQuestions(),
+  build: (ref, _level, rng) => {
+    const level = Number(ref.id.split(':')[1]);
+    const spec = codeLevelSpec(level);
+    const say = (fr: () => string, key: string): Speech[] => [{ text: phrase(fr, key, {}, rng), lang: lang() }];
+    return {
+      answer: { id: 'ok' },
+      distractors: [],
+      show: { kind: 'code', level, seed: Math.floor(rng() * 1e9) },
+      prompt: spec.mode === 'direct'
+        ? say(() => oneOf(rng, ['Touche les flèches pour m\'amener jusqu\'à la pomme !', 'Aide-moi à aller jusqu\'à la pomme : touche les flèches !']), 'LO-12.prompt')
+        : spec.loops
+          ? say(() => 'Pose les flèches, et utilise le bouton « fois » pour répéter une flèche. Puis appuie sur le bouton vert !', 'LO-12.promptLoop')
+          : spec.fruits > 1
+            ? say(() => 'Ramasse les deux fruits ! Pose toutes les flèches, puis appuie sur le bouton vert.', 'LO-12.promptFruits')
+            : say(() => oneOf(rng, ['Pose les flèches, puis appuie sur le bouton vert pour me faire avancer !', 'Prépare mon chemin avec les flèches, puis appuie sur le bouton vert !']), 'LO-12.promptProgram'),
+      reinforce: say(() => oneOf(rng, ['Miam ! Bravo, tu m\'as bien programmé !', 'Super, j\'ai trouvé le chemin grâce à toi !', 'Bravo, tu es un vrai programmeur !']), 'LO-12.yes'),
+      hints: say(() => 'Regarde bien : la flèche qui clignote, c\'est la bonne direction !', 'LO-12.hint'),
+    };
+  },
+};
+
 /** Jeux qui n'existent encore qu'en français (lecture, sons, histoires, devinettes, Mon pays). */
 const FRENCH_ONLY = new Set(['MO-2', 'FR-1', 'FR-2', 'FR-3', 'FR-4', 'FR-5', 'FR-6', 'FR-7', 'FR-8',
   'VO-3', 'VO-4', 'VO-5', 'VO-6', 'VO-7', 'VO-8', 'VO-9', 'VO-10', 'VO-11', 'VO-12']);
@@ -2308,7 +2353,7 @@ const onlyFrench = (l: Lang) => l === 'fr';
 export const GAMES: GameDef[] = [
   listenTap, englishNumbers, showMe, riddles, shadows, together, bigger, myCountry, missingWord, missingWordRead, listenStory, sounds,
   syllables, readWord, readPicture, letters, oddOneOut, shapesGame, counting, numbers, sequence, most, calc, mentalCalc,
-  clockGame, moneyGame, memory, memoryEnglish, traceShapes, traceLetters, ...VOICE_GAMES, mentalCalcAloud,
+  clockGame, moneyGame, memory, memoryEnglish, codeGame, traceShapes, traceLetters, ...VOICE_GAMES, mentalCalcAloud,
 ];
 
 for (const g of GAMES) if (FRENCH_ONLY.has(g.id)) g.langs = onlyFrench;

@@ -502,6 +502,24 @@ const it: Catalog = {
   "cty.neighbourHint": "i vicini sono molto vicini, sullo stesso continente",
   // Espace parents : onglets.
   'p.dailyShort': 'Poi il dino va a dormire.', 'p.credits': 'Crediti e licenze', 'p.creditsHelp': 'DinoLearn è fatto con questi programmi, voci, immagini, caratteri e suoni. Grazie ai loro autori!', 'p.credits.voices': 'Voci del dino', 'p.credits.asr': 'Riconoscimento vocale', 'p.credits.code': 'Motore del gioco', 'p.credits.images': 'Immagini e caratteri', 'p.credits.sounds': 'Effetti sonori', 'p.tab.control': 'Controllo', 'p.tab.print': 'Stampa', 'p.printOffer': 'Proponi schede da stampare', 'p.printOfferHelp': 'Alla fine del tempo di gioco, il dino offre tre buste; il bambino ne sceglie una (una volta al giorno) e la scheda arriva nella scheda Stampa.', 'p.tab.profile': 'Profilo', 'p.tab.progress': 'Progressi', 'p.tab.games': 'Giochi', 'p.tab.settings': 'Impostazioni', 'p.summary': 'In breve', 'p.lower': 'Giù', 'p.higher': 'Su',
+  // Programme le dino (LO-12).
+  'title.LO-12': 'Logica — Programma il dino',
+  'l.intro.LO-12': ['Programmiamo! Le frecce mi dicono dove andare: aiutami a trovare la mela!'],
+  'l.home.LO-12': ['Le frecce: programma il dino!'],
+  'l.short.LO-12': ['Programma il dino!'],
+  'LO-12.prompt': 'Tocca le frecce per portarmi fino alla mela!',
+  'LO-12.promptProgram': 'Metti le frecce, poi premi il pulsante verde per farmi muovere!',
+  'LO-12.promptLoop': 'Metti le frecce e usa il pulsante «per» per ripetere una freccia. Poi premi il pulsante verde!',
+  'LO-12.promptFruits': 'Raccogli i due frutti! Metti tutte le frecce, poi premi il pulsante verde.',
+  'LO-12.yes': 'Gnam! Bravo, mi hai programmato benissimo!',
+  'LO-12.hint': 'Guarda bene: la freccia che lampeggia è la direzione giusta!',
+  'LO-12.bumpRock': 'Ops, una roccia!',
+  'LO-12.bumpWater': 'Oh no, acqua! Non so nuotare.',
+  'LO-12.bumpEdge': 'Ops, non posso uscire dal giardino!',
+  'LO-12.short': 'Mi mancano delle frecce: non sono ancora arrivato!',
+  'LO-12.empty': 'Prima metti delle frecce in basso, poi premi il pulsante verde!',
+  'LO-12.full': 'Non c\'è più posto! Tocca una freccia in basso per toglierla.',
+  'LO-12.best': 'E hai anche trovato il programma più corto!',
 };
 
 export default it;

@@ -502,6 +502,24 @@ const de: Catalog = {
   "cty.neighbourHint": "Nachbarn sind ganz nah, auf demselben Kontinent",
   // Espace parents : onglets.
   'p.dailyShort': 'Danach geht der Dino schlafen.', 'p.credits': 'Danksagungen und Lizenzen', 'p.creditsHelp': 'DinoLearn verwendet diese Programme, Stimmen, Bilder, Schriften und Klänge. Danke an ihre Autorinnen und Autoren!', 'p.credits.voices': 'Stimmen des Dinos', 'p.credits.asr': 'Spracherkennung', 'p.credits.code': 'Spiel-Engine', 'p.credits.images': 'Bilder und Schriften', 'p.credits.sounds': 'Geräusche', 'p.tab.control': 'Kontrolle', 'p.tab.print': 'Drucken', 'p.printOffer': 'Druckblätter anbieten', 'p.printOfferHelp': 'Am Ende der Spielzeit bietet der Dino drei Umschläge an; das Kind wählt einen (einmal am Tag) und das Blatt erscheint unter „Drucken“.', 'p.tab.profile': 'Profil', 'p.tab.progress': 'Fortschritt', 'p.tab.games': 'Spiele', 'p.tab.settings': 'Einstellungen', 'p.summary': 'Auf einen Blick', 'p.lower': 'Niedriger', 'p.higher': 'Höher',
+  // Programme le dino (LO-12).
+  'title.LO-12': 'Logik — Programmiere den Dino',
+  'l.intro.LO-12': ['Wir programmieren! Die Pfeile sagen mir, wohin ich gehen soll: Hilf mir, den Apfel zu finden!'],
+  'l.home.LO-12': ['Die Pfeile: Programmiere den Dino!'],
+  'l.short.LO-12': ['Programmiere den Dino!'],
+  'LO-12.prompt': 'Tippe auf die Pfeile, um mich zum Apfel zu bringen!',
+  'LO-12.promptProgram': 'Lege die Pfeile hin und drücke dann den grünen Knopf, damit ich losgehe!',
+  'LO-12.promptLoop': 'Lege die Pfeile hin und benutze den „mal“-Knopf, um einen Pfeil zu wiederholen. Dann drücke den grünen Knopf!',
+  'LO-12.promptFruits': 'Sammle beide Früchte ein! Lege alle Pfeile hin und drücke dann den grünen Knopf.',
+  'LO-12.yes': 'Mmh! Super, du hast mich toll programmiert!',
+  'LO-12.hint': 'Schau genau: Der blinkende Pfeil zeigt die richtige Richtung!',
+  'LO-12.bumpRock': 'Hoppla, ein Stein!',
+  'LO-12.bumpWater': 'Oh nein, Wasser! Ich kann nicht schwimmen.',
+  'LO-12.bumpEdge': 'Hoppla, ich kann den Garten nicht verlassen!',
+  'LO-12.short': 'Mir fehlen noch Pfeile: Ich bin noch nicht da!',
+  'LO-12.empty': 'Lege zuerst unten Pfeile hin und drücke dann den grünen Knopf!',
+  'LO-12.full': 'Kein Platz mehr! Tippe unten auf einen Pfeil, um ihn wegzunehmen.',
+  'LO-12.best': 'Und du hast sogar das kürzeste Programm gefunden!',
 };
 
 export default de;

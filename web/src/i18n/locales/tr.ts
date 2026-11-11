@@ -315,6 +315,24 @@ const tr: Catalog = {
     cactus=kaktüs; blossom=kiraz çiçeği; feather=tüy`),
   // Espace parents : onglets.
   'p.dailyShort': 'Sonra dino uyumaya gider.', 'p.credits': 'Emeği geçenler ve lisanslar', 'p.creditsHelp': 'DinoLearn bu programlar, sesler, görseller, yazı tipleri ve ses efektleriyle yapıldı. Yapımcılarına teşekkürler!', 'p.credits.voices': 'Dinonun sesleri', 'p.credits.asr': 'Konuşma tanıma', 'p.credits.code': 'Oyun motoru', 'p.credits.images': 'Görseller ve yazı tipleri', 'p.credits.sounds': 'Ses efektleri', 'p.tab.control': 'Denetim', 'p.tab.print': 'Yazdırma', 'p.printOffer': 'Yazdırılacak sayfalar öner', 'p.printOfferHelp': 'Oyun süresi bitince dino üç zarf sunar; çocuk günde bir tane seçer ve sayfa Yazdırma sekmesine gelir.', 'p.tab.profile': 'Profil', 'p.tab.progress': 'İlerleme', 'p.tab.games': 'Oyunlar', 'p.tab.settings': 'Ayarlar', 'p.summary': 'Özet', 'p.lower': 'Azalt', 'p.higher': 'Artır',
+  // Programme le dino (LO-12).
+  'title.LO-12': 'Mantık — Dinoyu programla',
+  'l.intro.LO-12': ['Hadi programlayalım! Oklar bana nereye gideceğimi söyler: elmayı bulmama yardım et!'],
+  'l.home.LO-12': ['Oklar: dinoyu programla!'],
+  'l.short.LO-12': ['Dinoyu programla!'],
+  'LO-12.prompt': 'Beni elmaya götürmek için oklara dokun!',
+  'LO-12.promptProgram': 'Okları yerleştir, sonra yürümem için yeşil düğmeye bas!',
+  'LO-12.promptLoop': 'Okları yerleştir ve bir oku tekrarlamak için “kere” düğmesini kullan. Sonra yeşil düğmeye bas!',
+  'LO-12.promptFruits': 'İki meyveyi de topla! Bütün okları yerleştir, sonra yeşil düğmeye bas.',
+  'LO-12.yes': 'Nefis! Aferin, beni çok iyi programladın!',
+  'LO-12.hint': 'Dikkatli bak: yanıp sönen ok doğru yönü gösteriyor!',
+  'LO-12.bumpRock': 'Hop, bir kaya!',
+  'LO-12.bumpWater': 'Olamaz, su! Ben yüzmeyi bilmiyorum.',
+  'LO-12.bumpEdge': 'Hop, bahçeden çıkamam!',
+  'LO-12.short': 'Okum eksik: daha varmadım!',
+  'LO-12.empty': 'Önce aşağıya ok yerleştir, sonra yeşil düğmeye bas!',
+  'LO-12.full': 'Yer kalmadı! Silmek için aşağıdaki bir oka dokun.',
+  'LO-12.best': 'Üstelik en kısa programı da buldun!',
 };
 
 export default tr;

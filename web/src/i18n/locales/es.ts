@@ -503,6 +503,24 @@ const es: Catalog = {
   "cty.neighbourHint": "los vecinos están muy cerca, en el mismo continente",
   // Espace parents : onglets.
   'p.dailyShort': 'Después, el dino se va a dormir.', 'p.credits': 'Créditos y licencias', 'p.creditsHelp': 'DinoLearn está hecho con estos programas, voces, imágenes, fuentes y sonidos. ¡Gracias a sus autores!', 'p.credits.voices': 'Voces del dino', 'p.credits.asr': 'Reconocimiento de voz', 'p.credits.code': 'Motor del juego', 'p.credits.images': 'Imágenes y fuentes', 'p.credits.sounds': 'Efectos de sonido', 'p.tab.control': 'Control', 'p.tab.print': 'Impresión', 'p.printOffer': 'Proponer fichas para imprimir', 'p.printOfferHelp': 'Al final del tiempo de juego, el dino ofrece tres sobres; el niño elige uno (una vez al día) y la ficha llega a la pestaña Impresión.', 'p.tab.profile': 'Perfil', 'p.tab.progress': 'Progreso', 'p.tab.games': 'Juegos', 'p.tab.settings': 'Ajustes', 'p.summary': 'En resumen', 'p.lower': 'Bajar', 'p.higher': 'Subir',
+  // Programme le dino (LO-12).
+  'title.LO-12': 'Lógica — Programa al dino',
+  'l.intro.LO-12': ['¡Vamos a programar! Las flechas me dicen adónde ir: ¡ayúdame a encontrar la manzana!'],
+  'l.home.LO-12': ['Las flechas: ¡programa al dino!'],
+  'l.short.LO-12': ['¡Programa al dino!'],
+  'LO-12.prompt': '¡Toca las flechas para llevarme hasta la manzana!',
+  'LO-12.promptProgram': '¡Pon las flechas y luego pulsa el botón verde para que avance!',
+  'LO-12.promptLoop': 'Pon las flechas y usa el botón «veces» para repetir una flecha. ¡Luego pulsa el botón verde!',
+  'LO-12.promptFruits': '¡Recoge las dos frutas! Pon todas las flechas y luego pulsa el botón verde.',
+  'LO-12.yes': '¡Ñam! ¡Bravo, me has programado muy bien!',
+  'LO-12.hint': 'Mira bien: ¡la flecha que parpadea es la buena dirección!',
+  'LO-12.bumpRock': '¡Uy, una roca!',
+  'LO-12.bumpWater': '¡Oh no, agua! No sé nadar.',
+  'LO-12.bumpEdge': '¡Uy, no puedo salir del jardín!',
+  'LO-12.short': 'Me faltan flechas: ¡todavía no he llegado!',
+  'LO-12.empty': 'Primero pon flechas abajo y luego pulsa el botón verde.',
+  'LO-12.full': '¡No queda sitio! Toca una flecha de abajo para quitarla.',
+  'LO-12.best': '¡Y además has encontrado el programa más corto!',
 };
 
 export default es;
