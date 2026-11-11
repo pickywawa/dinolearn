@@ -4,9 +4,10 @@ import { Sfx } from '../core/sfx';
 export type MicState = 'idle' | 'loading' | 'listening';
 
 /**
- * Gros bouton micro des jeux à voix haute. Au repos, il respire doucement
- * (« touche-moi ») ; pendant l'écoute, il devient vert et des ondes grandissent
- * avec le volume de la voix : l'enfant voit que le dino l'entend.
+ * Gros bouton micro des jeux à voix haute. Il s'allume tout seul quand c'est à
+ * l'enfant de parler (vert) ; pendant l'écoute, il gonfle, penche et lance des
+ * ondes avec le volume de la voix : l'enfant voit que le dino l'entend. Au repos
+ * (rouge), il respire doucement, et un toucher relance l'écoute.
  */
 export class MicButton extends Phaser.GameObjects.Container {
   private disc: Phaser.GameObjects.Arc;
@@ -45,7 +46,7 @@ export class MicButton extends Phaser.GameObjects.Container {
     this.breath?.stop();
     this.spin?.stop();
     this.spinner.clear();
-    this.setScale(1);
+    this.setScale(1).setAngle(0);
     this.disc.setFillStyle(mode === 'listening' ? 0x30a46c : 0xe5484d);
     this.setLevel(0);
     if (mode === 'idle') {
@@ -65,6 +66,10 @@ export class MicButton extends Phaser.GameObjects.Container {
     this.level = level > this.level ? level : this.level * 0.7 + level * 0.3;
     this.waves.clear();
     if (this.mode !== 'listening') return;
+    // Le micro bouge avec la voix : il gonfle et penche un peu.
+    const l = Math.min(1, this.level * 1.6);
+    this.setScale(1 + l * 0.22);
+    this.setAngle(Math.sin(this.scene.time.now / 70) * l * 10);
     const r = this.radius;
     for (let i = 1; i <= 3; i++) {
       const grow = Math.min(1, this.level * 1.6) * i * 0.16;

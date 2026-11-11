@@ -280,9 +280,13 @@ class Ears {
     const model = await this.load(lang);
     this.wake();
     const ctx = this.ctx!;
+    // Sans annulation d'écho : avec elle, Android et iOS passent en mode « appel téléphonique »
+    // (son envoyé dans l'écouteur, volume très bas) et la voix du dino devient inaudible
+    // quelques secondes après l'écoute. Le dino ne parle jamais pendant qu'il écoute.
     const stream = await navigator.mediaDevices.getUserMedia({
-      audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 },
+      audio: { echoCancellation: false, noiseSuppression: true, autoGainControl: true, channelCount: 1 },
     });
+    if (ctx.state !== 'running') await ctx.resume().catch(() => undefined);
     const recognizer: KaldiRecognizer = new model.KaldiRecognizer(ctx.sampleRate, JSON.stringify(grammar));
     recognizer.setWords(true);
     const source = ctx.createMediaStreamSource(stream);
@@ -308,7 +312,8 @@ class Ears {
         }
         this.cancel = undefined;
         opts.onLevel?.(0);
-        resolve(heard);
+        // Le temps que le téléphone rende le son au haut-parleur avant que le dino reparle.
+        setTimeout(() => resolve(heard), 350);
       };
       this.cancel = () => finish({ text: '' });
 

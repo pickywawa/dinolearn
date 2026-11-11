@@ -97,7 +97,13 @@ const nameIt: GameDef = {
   },
 };
 
-// ---- « Say it in English! » ----
+// ---- « Say it in English! » : le dino dit le mot, l'enfant le répète ----
+
+/** Mots proches à ne pas confondre avec la réponse, sauf ceux qui la contiennent (« police car » pour « car »). */
+const notContaining = (word: string, others: string[]) => {
+  const w = word.toLowerCase();
+  return others.filter((o) => !o.toLowerCase().includes(w) && !w.includes(o.toLowerCase()));
+};
 
 const englishPool = conceptsFor('EN-1');
 
@@ -115,6 +121,7 @@ const sayEnglish: GameDef = {
   questions: englishPool.map((c) => ({ id: `VO-2:${c.id}`, level: c.levels['EN-1']! })),
   build(ref, level, rng) {
     const answer = conceptById(idOf(ref));
+    // Le dino montre l'image et dit le mot dans la langue apprise ; l'enfant n'a qu'à le répéter.
     if (!isFr()) {
       const foreign = foreignWord(answer);
       const spoken: Speech = { text: foreign, lang: second(), slow: true, pauseAfter: 500 };
@@ -124,12 +131,13 @@ const sayEnglish: GameDef = {
         answer: conceptChoice(answer),
         distractors: pickDistractors(answer, englishPool, 3, level >= 6 ? 'same_group' : 'other_group', rng).map(conceptChoice),
         show: { kind: 'image', image: answer.id },
-        prompt: [say('VO-2.prompt')],
-        say: { lang: second(), accept: [foreign], others: unique(pickDistractors(answer, englishPool, 12, 'same_group', rng).map((c) => foreignWord(c))) },
+        prompt: [say('VO-2.prompt'), spoken, say('VO-2.repeatNow')],
+        say: { lang: second(), accept: [foreign], others: notContaining(foreign, unique(pickDistractors(answer, englishPool, 12, 'same_group', rng).map((c) => foreignWord(c)))) },
         reinforce: [{ ...spoken, pauseAfter: undefined }, say('VO-2.yes')],
         repeatAfterMe: [say('VO-2.repeat'), spoken],
         fallback: { prompt: [say('VO-2.fallback'), spoken, { ...spoken, pauseAfter: undefined }], hideShow: true },
-        hints: [say('VO-2.hint')],
+        // L'indice : le mot redit, lentement.
+        hints: [spoken],
       };
     }
     const name = frWithArticle(answer);
@@ -138,18 +146,17 @@ const sayEnglish: GameDef = {
       answer: conceptChoice(answer),
       distractors: pickDistractors(answer, englishPool, 3, level >= 6 ? 'same_group' : 'other_group', rng).map(conceptChoice),
       show: { kind: 'image', image: answer.id },
-      prompt: [fr(oneOf(rng, [`Comment dit-on ${name} en anglais ?`, `En anglais, ${name}, ça se dit comment ?`,
-        `Dis-moi ${name} en anglais !`]))],
+      prompt: [fr(oneOf(rng, [`Regarde : ${name} ! En anglais, on dit :`, `C'est ${name}. En anglais, ça se dit :`])), word,
+        fr(oneOf(rng, ['À toi, répète !', 'Répète après moi !', 'Vas-y, répète !']))],
       say: {
         lang: 'en', accept: [answer.en.word],
-        others: unique(pickDistractors(answer, englishPool, 12, 'same_group', rng).map((c) => c.en.word)),
+        others: notContaining(answer.en.word, unique(pickDistractors(answer, englishPool, 12, 'same_group', rng).map((c) => c.en.word))),
       },
       reinforce: [{ ...word, pauseAfter: undefined }, fr(oneOf(rng, ['Bravo, très bien dit !', 'Super, tu parles anglais !',
         'Yes ! C\'est parfait !']))],
       repeatAfterMe: [fr('Écoute bien, et répète après moi :'), word],
       fallback: { prompt: [fr('Touche l\'image du mot anglais :'), word, { ...word, pauseAfter: undefined }], hideShow: true },
-      // Pas le mot anglais lui-même (ce serait la réponse) : sa première lettre.
-      hints: [fr(`Indice : en anglais, ça commence par la lettre ${LETTER_NAMES[answer.en.word[0].toUpperCase()] ?? answer.en.word[0]}.`)],
+      hints: [word],
     };
   },
 };

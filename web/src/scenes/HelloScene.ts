@@ -270,27 +270,17 @@ export abstract class HelloScene extends BaseScene {
   }
 
   /**
-   * Un gros micro : l'enfant le touche, le dino écoute. Renvoie ce qu'il a
-   * entendu, ou null si le micro ne marche pas (refusé, en panne).
+   * Le gros micro apparaît et s'allume tout seul : l'enfant n'a qu'à parler. Renvoie ce que
+   * le dino a entendu, ou null si le micro ne marche pas (refusé, en panne).
    */
   private async listen(grammar: string[], decisive: (h: Heard) => boolean): Promise<Heard | null> {
     const { width: W, height: H } = this.scale;
     const u = unit(this);
-    let tapped: () => void = () => undefined;
-    const tap = new Promise<void>((resolve) => { tapped = resolve; });
-    const mic = new MicButton(this, W / 2, H * 0.3, u * 0.12, () => {
-      app.voice.stop();
-      ears.wake();
-      tapped();
-    });
-    this.armIdle([[7000, () => this.run(async () => {
-      this.guide.tap(mic);
-      await this.say('voice.tap_mic');
-      this.guide.hide();
-    })]]);
-    await tap;
-    this.clearIdle();
-    this.guide.hide();
+    const mic = new MicButton(this, W / 2, H * 0.3, u * 0.12, () => undefined);
+    app.voice.stop();
+    ears.wake();
+    // Le temps que le micro apparaisse, puis on écoute.
+    await this.wait(450);
     try {
       Music.hush(true);
       mic.setMode('listening');

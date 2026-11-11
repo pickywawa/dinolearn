@@ -10,23 +10,22 @@ import { Stage } from '../dino3d/stage';
 export type DinoReaction =
   | 'happy' | 'cheer' | 'dance' | 'oops' | 'think' | 'eat' | 'levelUp' | 'tickle'
   | 'wave' | 'spin' | 'yawn' | 'roar' | 'lookAround' | 'hop'
-  | 'burp' | 'fart' | 'growl' | 'beg' | 'gape'
+  | 'growl' | 'beg' | 'gape'
   | 'celebrate' | 'clap' | 'fistPump' | 'wink' | 'nodYes' | 'sad' | 'surprised' | 'march';
 
 /** Petites animations jouées au hasard quand le dino attend. */
-/** (Le rot, de temps en temps : le vrai bruit enregistré, avec sa bulle.) */
-const IDLE_FUN: DinoReaction[] = ['wave', 'yawn', 'burp', 'lookAround', 'hop', 'spin', 'wink', 'march', 'clap', 'surprised'];
+const IDLE_FUN: DinoReaction[] = ['wave', 'yawn', 'lookAround', 'hop', 'spin', 'wink', 'march', 'clap', 'surprised'];
 
 /** Chaque réaction est une animation du modèle 3D (clip glTF, fait dans Blender). */
 const CLIPS: Record<DinoReaction, string> = {
   happy: 'happy', cheer: 'cheer', dance: 'dance', oops: 'oops', think: 'think', eat: 'eat', levelUp: 'levelUp',
   tickle: 'tickle', wave: 'wave', spin: 'spin', yawn: 'yawn', roar: 'roar', lookAround: 'lookAround', hop: 'hop',
-  burp: 'burp', fart: 'fart', growl: 'growl', beg: 'beg', gape: 'gape', celebrate: 'celebrate', clap: 'clap',
+  growl: 'growl', beg: 'beg', gape: 'gape', celebrate: 'celebrate', clap: 'clap',
   fistPump: 'fistPump', wink: 'wink', nodYes: 'yes', sad: 'sad', surprised: 'surprised', march: 'march',
 };
 
 /** Réactions qui occupent la bouche (la voix ne la fait pas bouger pendant ce temps). */
-const MOUTH_BUSY: DinoReaction[] = ['eat', 'roar', 'yawn', 'gape', 'burp', 'tickle', 'growl'];
+const MOUTH_BUSY: DinoReaction[] = ['eat', 'roar', 'yawn', 'gape', 'tickle', 'growl'];
 
 /** Bravo pour une bonne réponse : une animation au hasard, pour varier. */
 export const SUCCESS_REACTIONS: DinoReaction[] = ['happy', 'clap', 'fistPump', 'wink', 'nodYes', 'happy'];
@@ -519,7 +518,6 @@ export class Dino extends Phaser.GameObjects.Container {
   // ---- Réactions ----
 
   react(reaction: DinoReaction) {
-    const t = this.scene.tweens;
     const p = this.rig.pose;
     this.stopPose(['x', 'y', 'spin', 'lean', 'bow', 'squash', 'grow', 'headTilt', 'headNod', 'headTurn',
       'headScale', 'armL', 'armR', 'armLFwd', 'armRFwd', 'legL', 'legR', 'tailLift', 'eyeX', 'eyeY']);
@@ -551,39 +549,11 @@ export class Dino extends Phaser.GameObjects.Container {
         this.scene.time.delayedCall(900, () => this.active && this.starBurst(5));
         this.sparkle();
         break;
-      case 'burp': {
-        Sfx.play('burp');
-        const m = this.mouthLocal();
-        const bubble = this.scene.add.circle(m.x, m.y, 18, 0xbfe6ff, 0.7).setStrokeStyle(4, 0xffffff);
-        this.add(bubble);
-        t.add({ targets: bubble, y: m.y - 160, x: m.x + 60, scale: 2.2, duration: 900, ease: 'Sine.easeOut',
-          onComplete: () => t.add({ targets: bubble, scale: 3, alpha: 0, duration: 120, onComplete: () => bubble.destroy() }) });
-        this.scene.time.delayedCall(1100, () => this.active && this.react('oops'));
-        break;
-      }
-      case 'fart': {
-        Sfx.play('fart');
-        const back = p.yaw >= 0 ? -1 : 1;
-        for (let i = 0; i < 4; i++) {
-          const puff = this.scene.add.circle(back * (120 + i * 12), -60 - i * 6, 26, 0xa5d36b, 0.75);
-          this.addAt(puff, 0);
-          t.add({ targets: puff, x: back * (220 + i * 30), y: -80 - i * 25, scale: 2.4, alpha: 0, duration: 1300,
-            delay: 150 + i * 120, onComplete: () => puff.destroy() });
-        }
-        break;
-      }
     }
   }
 
   /** Vrai si le dino est libre (ne parle pas, ne mange pas, ne fait pas une grimace). */
   get free() { return !this.busy && !app.voice.talking; }
-
-  /** Bouche, en coordonnées du conteneur. */
-  private mouthLocal() {
-    const w = this.mouthWorldPoint();
-    const local = this.getWorldTransformMatrix().applyInverse(w.x, w.y);
-    return { x: local.x, y: local.y };
-  }
 
   /**
    * Coup de langue : la langue rose part de la bouche jusqu'à la cible (une

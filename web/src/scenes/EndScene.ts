@@ -179,15 +179,18 @@ export class EndScene extends BaseScene {
     })]]);
   }
 
-  /** Après un bon repas : un rot ou un prout (le téléphone vibre), et le dino s'excuse. */
+  /**
+   * Après un bon repas, une fois sur deux : le ventre du dino gargouille (le téléphone vibre
+   * doucement), et il dit que son ventre est content.
+   */
   private async afterMeal() {
+    if (Math.random() < 0.5) return;
     await this.wait(400);
-    const burp = Math.random() < 0.5;
-    vibrate(burp ? [250] : [90, 50, 300]);
-    // Le bruit (vrai enregistrement) est joué par la réaction du dino.
-    this.dino.react(burp ? 'burp' : 'fart');
-    await this.wait(700);
-    await this.say(burp ? 'burp' : 'fart');
+    Sfx.play('rumble');
+    vibrate([120, 80, 160]);
+    this.dino.react('happy');
+    await this.wait(900);
+    await this.say('tummy');
   }
 
   /** Le panier vient à la bouche du dino, qui mange les fruits un par un. */

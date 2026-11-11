@@ -1,8 +1,8 @@
 import { ZZFX, zzfx } from 'zzfx';
 
 /**
- * Petits effets sonores. Les bruits du dino (manger, gober une mouche, roter,
- * péter, coup de langue) sont de vrais enregistrements (`public/sfx/`, CC0) ;
+ * Petits effets sonores. Les bruits du dino (manger, gober une mouche, coup de
+ * langue) sont de vrais enregistrements (`public/sfx/`, CC0) ;
  * les autres sont générés par ZzFX (https://killedbyapixel.github.io/ZzFX/),
  * qui sert aussi de secours tant qu'un enregistrement n'est pas chargé.
  */
@@ -18,8 +18,6 @@ const SOUNDS = {
   squawk: [0.9, , 700, 0.01, 0.06, 0.12, 2, 1.6, -18, , , , , 0.3, , , , 0.5],
   crack: [1.3, , 380, , 0.01, 0.07, 4, 2.6, , , , , , 1.4, , 0.4, , 0.7],
   hatch: [1.3, , 300, 0.01, 0.2, 0.3, 4, 2, , , 500, 0.1, , 1, , 0.2, 0.05, 0.7],
-  burp: [1.8, , 85, 0.02, 0.18, 0.3, 1, 1.4, -1.5, , , , , 0.9, 12, 0.1, , 0.7, 0.05],
-  fart: [1.8, , 60, 0.03, 0.35, 0.3, 3, 0.4, 0.5, , , , 0.04, 1.6, 30, 0.2, , 0.6, 0.1],
   rumble: [1.2, , 50, 0.08, 0.5, 0.4, 3, 0.8, , , , , 0.1, 1.2, , 0.1, , 0.6],
   slurp: [1, , 220, 0.01, 0.06, 0.1, , 1.4, 40, , , , , , , , , 0.6],
   whoosh: [0.5, , 900, 0.2, 0.3, 0.5, 4, 0, -2, , , , , 1.8, , , , 0.4],
@@ -32,8 +30,6 @@ export type SoundName = keyof typeof SOUNDS;
 const SAMPLES: Partial<Record<SoundName, string[]>> = {
   chomp: ['crunch-1', 'crunch-2', 'crunch-3'],
   gulp: ['gulp-1', 'gulp-2'],
-  burp: ['burp-1', 'burp-2'],
-  fart: ['fart-1', 'fart-2'],
   slurp: ['slurp-1'],
 };
 const buffers = new Map<string, AudioBuffer>();
@@ -96,6 +92,52 @@ function playShell(hatching: boolean) {
   source.start();
 }
 
+/**
+ * Ventre qui gargouille : des « glouglous » graves et ronds (bruit filtré très grave, qui
+ * monte et descend par petites bulles), doux pour les oreilles, jamais deux fois pareils.
+ */
+function playRumble() {
+  const ctx = ZZFX.audioContext;
+  const duration = 1.3;
+  const rate = ctx.sampleRate;
+  const buffer = ctx.createBuffer(1, Math.ceil(rate * duration), rate);
+  const out = buffer.getChannelData(0);
+  // Bruit brun (très grave) comme fond de « gargouillis ».
+  let brown = 0;
+  for (let i = 0; i < out.length; i++) {
+    brown = (brown + 0.02 * (Math.random() * 2 - 1)) / 1.02;
+    out[i] = brown * 3;
+  }
+  // Des bulles : petits « blop » qui montent en hauteur, à des moments au hasard.
+  const bubbles = 5 + Math.floor(Math.random() * 4);
+  for (let b = 0; b < bubbles; b++) {
+    const start = Math.floor((0.05 + Math.random() * 0.85) * duration * rate);
+    const length = Math.floor((0.06 + Math.random() * 0.12) * rate);
+    const f0 = 70 + Math.random() * 60;
+    let phase = 0;
+    for (let i = 0; i < length && start + i < out.length; i++) {
+      const t = i / length;
+      phase += (2 * Math.PI * f0 * (1 + 0.9 * t)) / rate;
+      out[start + i] += Math.sin(phase) * Math.sin(Math.PI * t) * 0.5;
+    }
+  }
+  // Fondu d'entrée et de sortie.
+  for (let i = 0; i < out.length; i++) {
+    const t = i / out.length;
+    out[i] *= Math.min(1, t * 8, (1 - t) * 5);
+  }
+  const source = ctx.createBufferSource();
+  source.buffer = buffer;
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.value = 420;
+  const gain = ctx.createGain();
+  gain.gain.value = 0.9;
+  source.connect(filter).connect(gain).connect(ctx.destination);
+  source.onended = () => { source.disconnect(); filter.disconnect(); gain.disconnect(); };
+  source.start();
+}
+
 export const Sfx = {
   /** Coupé depuis l'espace parents. */
   enabled: true,
@@ -103,6 +145,7 @@ export const Sfx = {
     if (!Sfx.enabled) return;
     try {
       if (name === 'crack' || name === 'hatch') playShell(name === 'hatch');
+      else if (name === 'rumble') playRumble();
       else if (!playSample(name)) zzfx(...SOUNDS[name]);
     } catch {
       // Audio indisponible.

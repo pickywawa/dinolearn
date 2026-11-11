@@ -90,7 +90,6 @@ export const CREDITS: CreditGroup[] = [
     items: [
       { name: '7 Eating Crunches', license: 'CC0', source: 'opengameart.org/content/7-eating-crunches' },
       { name: '80 CC0 creature SFX', author: 'rubberduck', license: 'CC0', source: 'opengameart.org/content/80-cc0-creature-sfx' },
-      { name: 'Gastric distress', author: 'LFA', license: 'CC0', source: 'opengameart.org/content/gastric-distress' },
       { name: '8 wet squish, slurp impacts', license: 'CC0', source: 'opengameart.org/content/8-wet-squish-slurp-impacts' },
     ],
   },

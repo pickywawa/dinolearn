@@ -241,10 +241,14 @@ export class GameScene extends BaseScene {
       // Le dino pose la question en réfléchissant (avec son « ? »).
       this.dino.react('think');
       await app.voice.say(this.currentPrompt());
-      // Les premières fois, le dino rappelle comment répondre à voix haute.
-      if (this.voiceActive() && index < 2 && this.phase === 'asking') await this.say('voice.tap_mic');
       // Si ce jeu est difficile en ce moment, un indice tout de suite.
       if (this.struggling() && this.phase === 'asking') await this.giveHint();
+      // À voix haute : le micro s'allume tout seul après la question (les premières fois, le dino dit « à toi, parle ! »).
+      if (this.voiceActive() && this.phase === 'asking') {
+        if (index < 2) await this.say('voice.tap_mic');
+        if (this.phase === 'asking') this.onMic();
+        return;
+      }
       // Les relances ne commencent qu'une fois la consigne finie (une histoire peut être longue).
       if (this.phase === 'asking') this.armReminders();
     });
@@ -277,7 +281,7 @@ export class GameScene extends BaseScene {
     this.cardMode = !say || !this.langs.has(say.lang) || !canRecognize(say, this.vocabs.get(say.lang));
   }
 
-  /** L'enfant a touché le micro : le dino écoute, puis corrige. */
+  /** Le micro s'allume (tout seul après la question, ou au toucher) : le dino écoute, puis corrige. */
   private onMic() {
     const mic = this.mic;
     const target = this.series.current.say;
@@ -363,7 +367,8 @@ export class GameScene extends BaseScene {
         await this.say('voice.unheard');
       }
       this.phase = 'asking';
-      this.armReminders();
+      // Deuxième essai : le micro se rallume tout seul.
+      this.onMic();
     });
   }
 
@@ -429,10 +434,8 @@ export class GameScene extends BaseScene {
         this.run(async () => {
           this.dino.react('think');
           await app.voice.say(this.shortPrompt());
-          if (this.phase !== 'asking' || !this.mic) return;
-          this.guide.tap(this.mic);
-          await this.say('voice.tap_mic');
-          if (this.phase === 'asking') this.guide.hide();
+          // Le micro se rallume tout seul.
+          if (this.phase === 'asking' && this.mic) this.onMic();
         });
       }]]);
       return;

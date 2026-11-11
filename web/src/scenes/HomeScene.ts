@@ -15,6 +15,7 @@ import { drawSkyLife } from '../ui/sky';
 import { goTo, growthFactor, makeTickable, unit } from '../ui/scenery';
 import { backdropPoint, drawBackdrop, VOLCANO_MOUND } from '../ui/backdrop';
 import { Music } from '../core/music';
+import { ears } from '../core/ears';
 import { prepareSecondPacks } from '../core/packs';
 import { Sfx } from '../core/sfx';
 import { BaseScene } from './BaseScene';
@@ -202,6 +203,7 @@ export class HomeScene extends BaseScene {
       app.voice.unlock();
       Sfx.unlock();
       Music.unlock();
+      ears.wake();
       app.awake = true;
       Sfx.play('boing');
       this.dino.wake();
@@ -242,7 +244,8 @@ export class HomeScene extends BaseScene {
   }
 
   private async reminder() {
-    if (this.dino.free && !app.voice.talking) await this.say('home.ambient');
+    // De temps en temps, le dino dit qu'il a faim (sans bruit) ; sinon, une petite phrase sur l'île.
+    if (this.dino.free && !app.voice.talking) await this.say(Math.random() < 0.5 ? 'home.hungry' : 'home.ambient');
     this.armIdle([[65000, () => this.run(() => this.reminder())]]);
   }
 

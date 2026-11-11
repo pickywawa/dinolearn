@@ -3,6 +3,7 @@ import { app } from '../core/app';
 import { preloadFrench } from '../core/voicePrep';
 import { vibrate } from '../core/haptics';
 import { Music } from '../core/music';
+import { ears } from '../core/ears';
 import { Sfx } from '../core/sfx';
 import { Dino } from '../dino/Dino';
 import { DINO_COLORS, EGG_ZIGZAG, PART_RESOLUTION } from '../dino/parts';
@@ -68,6 +69,8 @@ export class StartScene extends HelloScene {
     app.voice.unlock();
     Sfx.unlock();
     Music.unlock();
+    // Le son du micro aussi (iOS ne le permet que pendant un toucher) : le dino pourra écouter tout seul.
+    ears.wake();
     app.awake = true;
   }
 
