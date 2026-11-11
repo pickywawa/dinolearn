@@ -1,0 +1,50 @@
+name: Publier les packs de reconnaissance vocale
+
+# Les packs (≈ 700 Mo en tout) ne changent presque jamais : ils sont publiés une seule fois
+# sur HuggingFace (dataset public), d'où le jeu les télécharge. Le site n'a plus à les
+# embarquer à chaque mise en ligne (quota de stockage GitHub Actions).
+# À relancer quand la liste des packs change (scripts/voice-packs.mjs) : seuls les fichiers
+# nouveaux ou modifiés sont envoyés.
+
+on:
+  push:
+    branches: [main, claude/dinosaur-educational-game-fe9wof]
+    paths: ['web/scripts/voice-packs.mjs', '.github/workflows/voice-packs.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/cache@v4
+        with:
+          path: web/public/voice
+          key: voice-packs-v1-${{ hashFiles('web/scripts/voice-packs.mjs') }}
+      - run: node scripts/voice-packs.mjs
+      - run: pip install --quiet "huggingface_hub>=0.26"
+      - name: Envoi sur HuggingFace
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_REPO_NAME: dinolearn-voice-packs
+        run: |
+          python - <<'PY'
+          import os
+          from huggingface_hub import HfApi
+          api = HfApi(token=os.environ['HF_TOKEN'])
+          user = api.whoami()['name']
+          repo = f"{user}/{os.environ['HF_REPO_NAME']}"
+          api.create_repo(repo, repo_type='dataset', private=False, exist_ok=True)
+          api.upload_folder(folder_path='public/voice', repo_id=repo, repo_type='dataset',
+                            commit_message='Packs de reconnaissance vocale DinoLearn')
+          print(f'Packs publiés : https://huggingface.co/datasets/{repo}/resolve/main/')
+          PY
