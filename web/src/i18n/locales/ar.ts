@@ -488,6 +488,8 @@ const ar: Catalog = {
   "cty.neighbour": "أيّ هذه الأعلام لبلد جار لـ{country}؟",
   "cty.neighbourYes": "نعم! هذا البلد بجانب {country} تمامًا!",
   "cty.neighbourHint": "الجيران قريبون جدًا، في القارة نفسها",
+  // Espace parents : onglets.
+  'p.dailyShort': 'بعدها يذهب الديناصور للنوم.', 'p.tab.profile': 'الملف', 'p.tab.progress': 'التقدّم', 'p.tab.games': 'الألعاب', 'p.tab.settings': 'الإعدادات', 'p.summary': 'باختصار', 'p.lower': 'أقل', 'p.higher': 'أعلى',
 };
 
 export default ar;

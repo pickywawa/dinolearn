@@ -603,6 +603,8 @@ const en: Catalog = {
   "cty.neighbour": "Which of these flags belongs to a neighbour of {country}?",
   "cty.neighbourYes": "Yes! This country is right next to {country}!",
   "cty.neighbourHint": "neighbours are very close, on the same continent",
+  // Espace parents : onglets.
+  'p.dailyShort': 'Then the dino goes to bed.', 'p.tab.profile': 'Profile', 'p.tab.progress': 'Progress', 'p.tab.games': 'Games', 'p.tab.settings': 'Settings', 'p.summary': 'At a glance', 'p.lower': 'Lower', 'p.higher': 'Higher',
 };
 
 export default en;

@@ -500,6 +500,8 @@ const de: Catalog = {
   "cty.neighbour": "Welche dieser Flaggen gehört zu einem Nachbarland? Land: {country}.",
   "cty.neighbourYes": "Ja! Dieses Land liegt direkt daneben!",
   "cty.neighbourHint": "Nachbarn sind ganz nah, auf demselben Kontinent",
+  // Espace parents : onglets.
+  'p.dailyShort': 'Danach geht der Dino schlafen.', 'p.tab.profile': 'Profil', 'p.tab.progress': 'Fortschritt', 'p.tab.games': 'Spiele', 'p.tab.settings': 'Einstellungen', 'p.summary': 'Auf einen Blick', 'p.lower': 'Niedriger', 'p.higher': 'Höher',
 };
 
 export default de;

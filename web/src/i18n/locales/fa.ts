@@ -300,6 +300,8 @@ const fa: Catalog = {
     ring=انگشتر; skateboard=اسکیت‌برد; yoyo=یویو; roller_skate=اسکیت; canoe=کانو; tram=تراموا; parachute=چتر نجات; satellite=ماهواره;
     brain=مغز; bone=استخوان; tongue=زبان; leg=ساق پا; tornado=گردباد; lightning=رعد و برق; comet=دنباله‌دار; cactus=کاکتوس;
     blossom=شکوفه; feather=پر`),
+  // Espace parents : onglets.
+  'p.dailyShort': 'بعد دایناسور می‌رود بخوابد.', 'p.tab.profile': 'نمایه', 'p.tab.progress': 'پیشرفت', 'p.tab.games': 'بازی‌ها', 'p.tab.settings': 'تنظیمات', 'p.summary': 'در یک نگاه', 'p.lower': 'کمتر', 'p.higher': 'بیشتر',
 };
 
 export default fa;

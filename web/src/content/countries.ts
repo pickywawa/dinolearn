@@ -878,7 +878,7 @@ export function regionName(code: string, language: Lang = lang()): string {
 
 /** Nom d'un pays sans article (« France », « Canada »), dans la langue de l'application. */
 export function countryLabel(code: string): string {
-  const fr = COUNTRIES.find((c) => c.code === code)?.name.replace(/^(la|le|les|l') ?/, '') ?? code;
+  const fr = COUNTRIES.find((c) => c.code === code)?.name.replace(/^(?:les |la |le |l')/, '') ?? code;
   return isFr() ? fr : regionName(code);
 }
 

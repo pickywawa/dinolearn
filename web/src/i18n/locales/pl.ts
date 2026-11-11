@@ -307,6 +307,8 @@ const pl: Catalog = {
     paintbrush=pędzel; crayon=kredka; trophy=puchar; medal=medal; ring=pierścionek; skateboard=deskorolka; yoyo=jojo; roller_skate=wrotka;
     canoe=kajak; tram=tramwaj; parachute=spadochron; satellite=satelita; brain=mózg; bone=kość; tongue=język; leg=noga; tornado=tornado;
     lightning=błyskawica; comet=kometa; cactus=kaktus; blossom=kwiat wiśni; feather=piórko`),
+  // Espace parents : onglets.
+  'p.dailyShort': 'Potem dino idzie spać.', 'p.tab.profile': 'Profil', 'p.tab.progress': 'Postępy', 'p.tab.games': 'Gry', 'p.tab.settings': 'Ustawienia', 'p.summary': 'W skrócie', 'p.lower': 'Niżej', 'p.higher': 'Wyżej',
 };
 
 export default pl;

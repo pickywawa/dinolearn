@@ -284,6 +284,8 @@ const ko: Catalog = {
     wrench=스패너; screwdriver=드라이버; paintbrush=붓; crayon=크레용; trophy=트로피; medal=메달; ring=반지; skateboard=스케이트보드; yoyo=요요;
     roller_skate=롤러스케이트; canoe=카누; tram=전차; parachute=낙하산; satellite=인공위성; brain=뇌; bone=뼈; tongue=혀; leg=다리; tornado=회오리바람;
     lightning=번개; comet=혜성; cactus=선인장; blossom=벚꽃; feather=깃털`),
+  // Espace parents : onglets.
+  'p.dailyShort': '그다음엔 공룡이 자러 가요.', 'p.tab.profile': '프로필', 'p.tab.progress': '성장', 'p.tab.games': '놀이', 'p.tab.settings': '설정', 'p.summary': '한눈에', 'p.lower': '낮추기', 'p.higher': '높이기',
 };
 
 export default ko;

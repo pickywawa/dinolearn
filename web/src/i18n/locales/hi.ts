@@ -491,6 +491,8 @@ const hi: Catalog = {
   "cty.neighbour": "इनमें से कौन-सा झंडा {country} के पड़ोसी देश का है?",
   "cty.neighbourYes": "हाँ! यह देश {country} के ठीक बगल में है!",
   "cty.neighbourHint": "पड़ोसी बहुत पास होते हैं, उसी महाद्वीप पर",
+  // Espace parents : onglets.
+  'p.dailyShort': 'फिर डायनो सोने चला जाता है।', 'p.tab.profile': 'प्रोफ़ाइल', 'p.tab.progress': 'प्रगति', 'p.tab.games': 'खेल', 'p.tab.settings': 'सेटिंग्स', 'p.summary': 'एक नज़र में', 'p.lower': 'कम', 'p.higher': 'ज़्यादा',
 };
 
 export default hi;

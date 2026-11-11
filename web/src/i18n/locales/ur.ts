@@ -484,6 +484,8 @@ const ur: Catalog = {
   "cty.neighbour": "ان میں سے کون سا جھنڈا {country} کے پڑوسی ملک کا ہے؟",
   "cty.neighbourYes": "ہاں! یہ ملک {country} کے بالکل ساتھ ہے!",
   "cty.neighbourHint": "پڑوسی بہت قریب ہوتے ہیں، اسی براعظم پر",
+  // Espace parents : onglets.
+  'p.dailyShort': 'پھر ڈائنو سونے چلا جاتا ہے۔', 'p.tab.profile': 'پروفائل', 'p.tab.progress': 'پیش رفت', 'p.tab.games': 'کھیل', 'p.tab.settings': 'ترتیبات', 'p.summary': 'مختصراً', 'p.lower': 'کم', 'p.higher': 'زیادہ',
 };
 
 export default ur;

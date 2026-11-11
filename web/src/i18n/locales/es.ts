@@ -501,6 +501,8 @@ const es: Catalog = {
   "cty.neighbour": "¿Cuál de estas banderas es de un país vecino de {country}?",
   "cty.neighbourYes": "¡Sí! ¡Este país está justo al lado de {country}!",
   "cty.neighbourHint": "los vecinos están muy cerca, en el mismo continente",
+  // Espace parents : onglets.
+  'p.dailyShort': 'Después, el dino se va a dormir.', 'p.tab.profile': 'Perfil', 'p.tab.progress': 'Progreso', 'p.tab.games': 'Juegos', 'p.tab.settings': 'Ajustes', 'p.summary': 'En resumen', 'p.lower': 'Bajar', 'p.higher': 'Subir',
 };
 
 export default es;

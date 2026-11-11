@@ -504,6 +504,8 @@ const ru: Catalog = {
   "cty.neighbour": "Какой из этих флагов принадлежит соседу страны {country}?",
   "cty.neighbourYes": "Да! Эта страна — соседка страны {country}!",
   "cty.neighbourHint": "соседи совсем близко, на том же континенте",
+  // Espace parents : onglets.
+  'p.dailyShort': 'Потом дино ложится спать.', 'p.tab.profile': 'Профиль', 'p.tab.progress': 'Успехи', 'p.tab.games': 'Игры', 'p.tab.settings': 'Настройки', 'p.summary': 'Кратко', 'p.lower': 'Ниже', 'p.higher': 'Выше',
 };
 
 export default ru;

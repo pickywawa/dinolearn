@@ -483,6 +483,8 @@ const bn: Catalog = {
   "cty.neighbour": "এই পতাকাগুলোর মধ্যে কোনটা {country}-এর প্রতিবেশী দেশের?",
   "cty.neighbourYes": "হ্যাঁ! এই দেশটা {country}-এর ঠিক পাশেই!",
   "cty.neighbourHint": "প্রতিবেশীরা খুব কাছে থাকে, একই মহাদেশে",
+  // Espace parents : onglets.
+  'p.dailyShort': 'তারপর ডাইনো ঘুমাতে যায়।', 'p.tab.profile': 'প্রোফাইল', 'p.tab.progress': 'অগ্রগতি', 'p.tab.games': 'খেলা', 'p.tab.settings': 'সেটিংস', 'p.summary': 'এক নজরে', 'p.lower': 'কম', 'p.higher': 'বেশি',
 };
 
 export default bn;

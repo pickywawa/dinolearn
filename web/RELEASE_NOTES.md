@@ -1,3 +1,11 @@
+## DinoLearn 0.23.0 — Nouvel espace parents
+
+- Espace parents réorganisé en quatre onglets, plus compact et pensé pour le téléphone : **Profil**, **Progrès**, **Jeux**, **Réglages**. Les enfants sont en haut (un toucher pour changer, « + » pour en ajouter).
+- Profil : la fiche de l'enfant se modifie directement (prénom, âge, pays, temps de jeu, heure du coucher), sans passer par un bouton « Modifier ».
+- Niveau du dino : boutons − et + au lieu du curseur, qu'on pouvait changer sans le vouloir en faisant défiler la page.
+- Textes raccourcis et clarifiés ; le bouton « Missions » se règle dans l'onglet Jeux.
+- Correction : « les États-Unis » s'affichait « s États-Unis » dans la liste des pays.
+
 ## DinoLearn 0.22.0 — Accueil traduit, séries variées, présentation plus riche, sons plus doux
 
 - Les boutons de l'accueil (Jouer, Missions, Mon Dino, Paramètres) et « Rejouer » sont traduits dans les 20 langues.

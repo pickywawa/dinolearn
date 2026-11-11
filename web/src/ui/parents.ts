@@ -6,8 +6,7 @@ import { Sfx } from '../core/sfx';
 import { BALANCE } from '../domain/balance';
 import { baseLevel } from '../domain/difficulty';
 import { mulberry32 } from '../domain/models';
-import { COUNTRIES, countryLabel } from '../content/countries';
-import { childForm, createParentCode } from './pin';
+import { NIGHT_CHOICES, childForm, countryChoices, createParentCode } from './pin';
 import { VOICE_PACKS, askMicPermission, ears, voiceSupported } from '../core/ears';
 import { printKind } from '../print/catalog';
 import { openPrintView, thumbnail } from './printView';
@@ -25,62 +24,105 @@ const T = (key: string, fr: string, params?: Record<string, string | number>) =>
 const dateLocale = () => langInfo(lang()).locale;
 
 /**
- * Espace parents : une page HTML classique posée sur le jeu (lisible et
- * défilable), ouverte depuis le cadenas de l'accueil avec le code parent. On y règle l'âge, le niveau du dino et de chaque jeu, les jeux
- * proposés et le temps de jeu, et on suit la progression.
+ * Espace parents : une page HTML posée sur le jeu, ouverte avec le code parent.
+ * En haut : les enfants (un toucher pour passer de l'un à l'autre, « + » pour en
+ * ajouter) et quatre onglets :
+ * - Profil : la fiche de l'enfant, modifiable sur place (prénom, âge, pays, temps de
+ *   jeu, coucher, missions) et le niveau du dino (boutons − et +, pas de curseur :
+ *   un glissement involontaire ne change plus rien) ;
+ * - Progrès : chiffres clés, temps de jeu de la semaine, questions à retravailler,
+ *   fiches à imprimer ;
+ * - Jeux : chaque jeu sur une ligne (suivi, niveau, activé ou non) ;
+ * - Réglages : son, micro, langue et téléchargements, code parent, données.
+ * Pensée pour un téléphone en paysage : compacte, une colonne de cartes qui s'élargit
+ * en deux sur les grands écrans.
  */
 
 export const gameTitle = (g: GameDef) => TITLES[g.id] ?? g.id;
 
 
 const CSS = `
-.parents { position: fixed; inset: 0; z-index: 1000; overflow-y: auto; -webkit-overflow-scrolling: touch;
-  background: #eceefe url('bg/parents.webp') center / cover no-repeat fixed; color: #1f2937; font: 16px/1.45 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+.parents { position: fixed; inset: 0; z-index: 1000; display: flex; flex-direction: column; color: #1f2937;
+  background: linear-gradient(#eef6ff, #f7f3ea); font: 15px/1.4 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
 .parents * { box-sizing: border-box; }
-.parents header { position: sticky; top: 0; z-index: 1; display: flex; align-items: center; justify-content: space-between;
-  gap: 12px; padding: 14px 16px; background: #2d3354; color: #fff; }
-.parents header h1 { margin: 0; font-size: 20px; }
-.parents main { max-width: 760px; margin: 0 auto; padding: 16px 16px 48px; }
-.parents section { background: #fff; border-radius: 14px; padding: 16px; margin-bottom: 16px;
-  box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+.parents h1, .parents h2, .parents nav button { font-family: 'Baloo 2', system-ui, sans-serif; }
+.parents header { flex: none; display: flex; align-items: center; gap: 10px; background: #2d3354; color: #fff;
+  padding: max(8px, var(--safe-top, 0px)) max(14px, var(--safe-right, 0px)) 8px max(14px, var(--safe-left, 0px));
+  box-shadow: 0 3px 10px rgba(30,40,80,.25); }
+.parents header h1 { margin: 0; font-size: 20px; white-space: nowrap; }
+.parents .kids { flex: 1; min-width: 0; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+.parents .kids button { flex: none; display: flex; align-items: center; gap: 6px; padding: 3px 12px 3px 3px; border-radius: 999px;
+  background: rgba(255,255,255,.14); color: #fff; font-weight: 700; min-height: 40px; }
+.parents .kids button img { width: 34px; height: 34px; border-radius: 50%; background: #fff; }
+.parents .kids button.on { background: #fff; color: #2d3354; }
+.parents .kids button.add { padding: 3px 14px; background: transparent; border: 2px dashed rgba(255,255,255,.55); }
+.parents header .back { flex: none; border-radius: 999px; padding: 8px 18px; font-weight: 800; color: #fff;
+  background: linear-gradient(#5fd34a, #34a52a); box-shadow: 0 3px 0 #237a1a; }
+.parents nav { flex: none; display: flex; gap: 2px; overflow-x: auto; background: #fff; border-bottom: 1px solid #e3e7ef;
+  padding: 0 max(10px, var(--safe-right, 0px)) 0 max(10px, var(--safe-left, 0px)); }
+.parents nav button { background: none; border-radius: 0; padding: 8px 16px 6px; min-height: 42px; font-size: 16px; font-weight: 800;
+  color: #6b7280; border-bottom: 3px solid transparent; }
+.parents nav button.on { background: none; color: #2d3354; border-bottom-color: #43b649; }
+.parents main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  padding: 12px max(12px, var(--safe-right, 0px)) 28px max(12px, var(--safe-left, 0px)); }
+.parents .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; max-width: 1100px;
+  margin: 0 auto; align-items: start; }
+.parents section { background: #fff; border-radius: 14px; padding: 12px 14px; box-shadow: 0 1px 6px rgba(30,40,80,.08); }
+.parents section.wide { grid-column: 1 / -1; }
 .parents h2 { margin: 0 0 4px; font-size: 18px; }
-.parents .help { margin: 0 0 12px; color: #6b7280; font-size: 14px; }
-.parents button { font: inherit; border: 0; border-radius: 10px; padding: 10px 14px; cursor: pointer;
-  background: #e5e7eb; color: #1f2937; min-height: 44px; }
-.parents button.primary { background: #43b649; color: #fff; font-weight: 600; }
+.parents .help { margin: 0 0 8px; color: #6b7280; font-size: 13px; }
+.parents button { font: inherit; border: 0; border-radius: 10px; padding: 8px 12px; cursor: pointer; background: #eef0f5;
+  color: #1f2937; min-height: 40px; }
 .parents button.danger { background: #fee2e2; color: #b91c1c; }
 .parents button.on { background: #2d3354; color: #fff; }
 .parents .row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.parents .stat { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
-.parents .stat div { background: #f4f6fb; border-radius: 10px; padding: 10px; }
-.parents .stat b { display: block; font-size: 22px; }
-.parents input[type=range] { width: 100%; height: 36px; accent-color: #43b649; }
-.parents .level { display: flex; align-items: center; gap: 12px; }
-.parents .level output { min-width: 48px; text-align: center; font-size: 26px; font-weight: 700; }
-.parents .game { border-top: 1px solid #e5e7eb; padding: 12px 0; }
+/* Une ligne de réglage : l'intitulé à gauche, le contrôle à droite. */
+.parents .field { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 7px 0;
+  border-top: 1px solid #f0f2f6; min-height: 48px; }
+.parents .field:first-of-type { border-top: 0; }
+.parents .field > span { font-weight: 600; }
+.parents .field small { display: block; font-weight: 400; color: #6b7280; font-size: 12px; }
+.parents input[type=text], .parents select { font: inherit; color: #1f2937; padding: 6px 10px; min-height: 40px; border-radius: 10px;
+  border: 1.5px solid #d1d5db; background: #fff; width: 210px; max-width: 55vw; }
+.parents .stepper { display: flex; align-items: center; gap: 6px; }
+.parents .stepper button { min-width: 42px; padding: 0; font-size: 22px; font-weight: 800; }
+.parents .stepper output { min-width: 46px; text-align: center; font-size: 22px; font-weight: 800; }
+.parents .time-stepper { gap: 6px; flex-wrap: nowrap; }
+.parents .time-stepper button { min-height: 40px; min-width: 42px; font-size: 20px; padding: 0 8px; }
+.parents .time-stepper button.unlimited { font-size: 13px; }
+.parents .time-stepper output { min-width: 62px; font-size: 17px; }
+.parents .kid { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; }
+.parents .kid img { width: 64px; height: 64px; border-radius: 50%; background: radial-gradient(#fff, #ffe3f0); }
+.parents .kid b { font-family: 'Baloo 2', sans-serif; font-size: 20px; display: block; line-height: 1.1; }
+.parents .kid small { color: #6b7280; }
+.parents .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(84px, 1fr)); gap: 8px; }
+.parents .tiles div { background: #f6f8fc; border: 1px solid #e3e9f2; border-radius: 12px; padding: 8px; text-align: center;
+  color: #4b5563; font-size: 13px; }
+.parents .tiles b { display: block; font-family: 'Baloo 2', sans-serif; font-size: 24px; color: #2d3354; line-height: 1.1; }
+.parents .game { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 10px; padding: 8px 0;
+  border-top: 1px solid #f0f2f6; }
 .parents .game:first-of-type { border-top: 0; }
-.parents .game.off { opacity: .55; }
-.parents .game .top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.parents .game .name { font-weight: 600; }
-.parents .game .meta { color: #6b7280; font-size: 14px; }
-.parents .game select { font: inherit; padding: 8px; border-radius: 8px; border: 1px solid #d1d5db; min-height: 40px; }
-.parents .bar { height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; margin-top: 6px; }
+.parents .game.off .info { opacity: .55; }
+.parents .game .name { font-weight: 700; }
+.parents .game .meta { color: #6b7280; font-size: 12px; }
+.parents .game select { width: auto; min-height: 36px; padding: 4px 6px; }
+.parents .bar { height: 5px; background: #e5e7eb; border-radius: 3px; overflow: hidden; margin-top: 4px; max-width: 320px; }
 .parents .bar span { display: block; height: 100%; background: #43b649; }
-.parents .switch { position: relative; width: 52px; height: 32px; flex: none; }
+.parents .switch { position: relative; width: 50px; height: 30px; flex: none; }
 .parents .switch input { opacity: 0; width: 0; height: 0; }
-.parents .switch span { position: absolute; inset: 0; background: #d1d5db; border-radius: 16px; transition: .2s; }
-.parents .switch span::after { content: ''; position: absolute; left: 3px; top: 3px; width: 26px; height: 26px;
+.parents .switch span { position: absolute; inset: 0; background: #d1d5db; border-radius: 15px; transition: .2s; }
+.parents .switch span::after { content: ''; position: absolute; left: 3px; top: 3px; width: 24px; height: 24px;
   background: #fff; border-radius: 50%; transition: .2s; }
 .parents .switch input:checked + span { background: #43b649; }
 .parents .switch input:checked + span::after { transform: translateX(20px); }
-.parents .week { display: flex; align-items: flex-end; gap: 6px; height: 110px; margin-top: 8px; }
+.parents .week { display: flex; align-items: flex-end; gap: 6px; height: 96px; margin-top: 6px; }
 .parents .week div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
   height: 100%; font-size: 12px; color: #6b7280; }
 .parents .week i { display: block; width: 100%; background: #8e4ec6; border-radius: 6px 6px 0 0; min-height: 2px; }
 .parents ul.fails { margin: 0; padding-left: 18px; }
 .parents ul.fails li { margin: 6px 0; }
 .parents ul.fails small { color: #6b7280; }
-.parents .prints { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
+.parents .prints { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
 .parents .print { position: relative; display: flex; flex-direction: column; gap: 6px; padding: 8px; border-radius: 12px;
   background: #f4f6fb; border: 0; text-align: left; cursor: pointer; min-height: 0; }
 .parents .print .thumb { background: #fff; aspect-ratio: 210 / 297; border-radius: 6px; overflow: hidden;
@@ -90,38 +132,7 @@ const CSS = `
 .parents .print small { color: #6b7280; font-size: 12px; }
 .parents .print .new { position: absolute; top: 4px; right: 4px; background: #e5484d; color: #fff; font-size: 12px;
   font-weight: 700; border-radius: 10px; padding: 2px 8px; }
-`;
-
-// Habillage « île aux dinos » (maquette) : en-tête bleu nuit, colonne des enfants, cartes arrondies.
-const THEME = `
-.parents { background: linear-gradient(#eef6ff, #f7f3ea); }
-.parents h1, .parents h2, .parents .kid-name, .parents .tiles b { font-family: 'Baloo 2', system-ui, sans-serif; }
-.parents header { padding: 12px 20px; box-shadow: 0 4px 14px rgba(30,40,80,.25); }
-.parents header h1 { font-size: 26px; display: flex; align-items: center; gap: 12px; }
-.parents header h1 .icon { display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: 50%;
-  background: #fff; color: #2d3354; font-size: 24px; }
-.parents header button.primary { border-radius: 999px; padding: 10px 22px; font-family: 'Baloo 2', sans-serif; font-size: 18px;
-  font-weight: 800; background: linear-gradient(#5fd34a, #34a52a); box-shadow: 0 3px 0 #237a1a; }
-.parents main { max-width: 1180px; display: grid; grid-template-columns: 230px 1fr; gap: 18px; align-items: start; }
-.parents aside { position: sticky; top: 86px; background: #fff; border-radius: 18px; padding: 14px;
-  box-shadow: 0 2px 10px rgba(30,40,80,.08); display: flex; flex-direction: column; gap: 10px; }
-.parents aside button { display: flex; align-items: center; gap: 10px; text-align: left; border-radius: 12px; font-weight: 700;
-  background: #f1f4f9; }
-.parents aside button img { width: 34px; height: 34px; border-radius: 50%; background: #fff; }
-.parents aside button.on { background: #2d3354; color: #fff; }
-.parents aside button.add { background: #e7f8df; color: #2a7f1d; border: 2px dashed #8fd47a; }
-.parents section { border-radius: 18px; box-shadow: 0 2px 10px rgba(30,40,80,.08); }
-.parents .kid { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
-.parents .kid img.avatar { width: 112px; height: 112px; border-radius: 50%; background: radial-gradient(#fff, #ffe3f0);
-  box-shadow: 0 3px 10px rgba(30,40,80,.15); }
-.parents .kid-name { font-size: 24px; font-weight: 800; margin: 0; }
-.parents .kid small { color: #6b7280; }
-.parents .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-top: 14px; }
-.parents .tiles div { background: #f6f8fc; border: 1px solid #e3e9f2; border-radius: 14px; padding: 12px; text-align: center;
-  color: #4b5563; font-size: 14px; }
-.parents .tiles b { display: block; font-size: 28px; color: #2d3354; line-height: 1.1; }
-.parents button.edit { border-radius: 999px; background: #eef1f6; font-weight: 700; }
-@media (max-width: 760px) { .parents main { grid-template-columns: 1fr; } .parents aside { position: static; } }
+@media (max-width: 560px) { .parents header h1 { display: none; } }
 `;
 
 const minutes = (ms: number) => Math.round(ms / 60_000);
@@ -134,45 +145,86 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Record<string,
   return node;
 }
 
+/** Interrupteur (case à cocher habillée). */
+function switchBox(checked: boolean, label: string, onChange: (on: boolean) => void) {
+  const input = el('input', { type: 'checkbox', 'aria-label': label }) as HTMLInputElement;
+  input.checked = checked;
+  input.addEventListener('change', () => onChange(input.checked));
+  return el('label', { class: 'switch' }, input, el('span'));
+}
+
+/** Une ligne de réglage : intitulé (et précision en petit) à gauche, contrôle à droite. */
+function field(label: string, control: Node, hint?: string) {
+  return el('div', { class: 'field' }, el('span', {}, label, hint ? el('small', {}, hint) : ''), control);
+}
+
+/** Liste déroulante. */
+function selectBox<V extends string | number>(options: [V, string][], value: V, label: string, onChange: (v: V) => void) {
+  const s = el('select', { 'aria-label': label }) as HTMLSelectElement;
+  for (const [v, text] of options) s.append(el('option', { value: String(v) }, text));
+  s.value = String(value);
+  s.addEventListener('change', () => onChange((typeof value === 'number' ? Number(s.value) : s.value) as V));
+  return s;
+}
+
+type Tab = 'profile' | 'progress' | 'games' | 'settings';
+/** Onglet ouvert la dernière fois (gardé pendant la partie). */
+let lastTab: Tab = 'profile';
+
 /** Ouvre l'espace parents ; `onClose` relance l'accueil pour appliquer les réglages. */
 export function openParents(onClose: () => void) {
-  // Enfant affiché (onglets en haut) ; un enfant ajouté devra ouvrir son œuf en sortant.
+  // Enfant affiché ; un enfant ajouté devra ouvrir son œuf en sortant.
   let selected = app.profiles.activeId;
   let p = app.profiles.progressOf(selected);
   let added: string | undefined;
-  if (!document.getElementById('parents-css')) {
-    document.head.append(el('style', { id: 'parents-css' }, CSS + THEME));
-  }
+  let tab: Tab = lastTab;
+  document.getElementById('parents-css')?.remove();
+  document.head.append(el('style', { id: 'parents-css' }, CSS));
   const root = el('div', { class: 'parents', role: 'dialog', 'aria-label': T('title', 'Espace parents') });
-  const close = el('button', { class: 'primary' }, T('back', 'Retour au jeu'));
+  const close = el('button', { class: 'back' }, T('back', 'Retour au jeu'));
   close.addEventListener('click', () => {
     root.remove();
     if (added) switchChild(added);
     else applyChildSettings();
     onClose();
   });
-  root.append(el('header', {}, el('h1', {}, el('span', { class: 'icon' }, '👨‍👩‍👧'), T('title', 'Espace parents')), close));
+  const kids = el('div', { class: 'kids' });
+  const nav = el('nav', { role: 'tablist' });
   const main = el('main');
-  root.append(main);
+  root.append(el('header', {}, el('h1', {}, T('title', 'Espace parents')), kids, close), nav, main);
   document.body.append(root);
 
+  const TABS: [Tab, string, string][] = [
+    ['profile', 'tab.profile', 'Profil'], ['progress', 'tab.progress', 'Progrès'], ['games', 'tab.games', 'Jeux'],
+    ['settings', 'tab.settings', 'Réglages'],
+  ];
+
   const render = () => {
-    main.replaceChildren(
-      el('aside', {}, ...childTabs()),
-      el('div', { class: 'content' }, childrenSection(), isFr() ? printSection() : '', levelSection(), timeSection(), codeSection(), voiceSection(), packsSection(), gamesSection(),
-      failuresSection(), soundSection(), dataSection()),
-    );
+    kids.replaceChildren(...childChips());
+    nav.replaceChildren(...TABS.map(([id, key, fr]) => {
+      const b = el('button', { class: id === tab ? 'on' : '', role: 'tab', 'aria-selected': String(id === tab) }, T(key, fr));
+      b.addEventListener('click', () => {
+        tab = lastTab = id;
+        render();
+        main.scrollTop = 0;
+      });
+      return b;
+    }));
+    const cards = tab === 'profile' ? [profileSection(), levelSection()]
+      : tab === 'progress' ? [summarySection(), weekSection(), failuresSection(), isFr() ? printSection() : '']
+        : tab === 'games' ? [missionsSection(), gamesSection()]
+          : [soundSection(), voiceSection(), packsSection(), codeSection(), dataSection()];
+    main.replaceChildren(el('div', { class: 'cards' }, ...cards));
   };
 
-  // ---- Enfant : âge ----
   const select = (id: string) => {
     selected = id;
     p = app.profiles.progressOf(id);
     render();
   };
 
-  /** Colonne des enfants (avec le portrait de leur dino) et bouton d'ajout. */
-  function childTabs(): Node[] {
+  /** Les enfants, en haut (portrait de leur dino), et le bouton d'ajout. */
+  function childChips(): Node[] {
     const out: Node[] = [];
     for (const id of app.profiles.ids) {
       const child = app.profiles.progressOf(id);
@@ -183,76 +235,135 @@ export function openParents(onClose: () => void) {
       b.addEventListener('click', () => select(id));
       out.push(b);
     }
-    const add = el('button', { class: 'add' }, T('addChild', '+ Ajouter un enfant'));
+    const add = el('button', { class: 'add', 'aria-label': T('addChild', '+ Ajouter un enfant') }, '+');
     add.addEventListener('click', async () => {
       const child = await childForm(T('newChild', 'Nouvel enfant'), T('newChildHelp', 'En quittant l\'espace parents, le nouvel enfant touchera son œuf pour faire éclore son propre dino.'), undefined, T('cancel', 'Annuler'));
       if (!child) return;
       added = app.profiles.add(child);
+      tab = 'profile';
       select(added);
     });
     out.push(add);
     return out;
   }
 
-  /** Fiche de l'enfant choisi : portrait, chiffres clés, modification, suppression, alternance. */
-  function childrenSection() {
-
-    const edit = el('button', { class: 'edit' }, T('edit', '✏️ Modifier la fiche'));
-    edit.addEventListener('click', async () => {
-      const s = p.settings;
-      const child = await childForm(p.name ? T('sheetOf', 'Fiche de {name}', { name: p.name }) : T('sheet', 'Fiche de l\'enfant'), T('sheetHelp', 'Prénom, âge et réglages.'), {
-        name: p.name, age: p.age, country: s.country, dailyMinutes: s.dailyMinutes, nightTime: s.nightTime,
-        chooseGames: s.chooseGames,
-      }, T('cancel', 'Annuler'));
-      if (!child) return;
-      if (child.age !== p.age) p.clearGameLevels();
-      p.name = child.name;
-      p.age = child.age;
-      p.updateSettings({ country: child.country, dailyMinutes: child.dailyMinutes, nightTime: child.nightTime,
-        chooseGames: child.chooseGames ?? s.chooseGames });
-      render();
+  // ---- Profil : la fiche de l'enfant, modifiable sur place ----
+  function profileSection() {
+    const s = p.settings;
+    const name = el('input', { type: 'text', maxlength: '20', autocomplete: 'off', 'aria-label': t('pin.firstName', {}, 'Prénom') }) as HTMLInputElement;
+    name.value = p.name;
+    name.addEventListener('change', () => {
+      const v = name.value.trim();
+      if (!v) {
+        name.value = p.name;
+        return;
+      }
+      p.name = v;
+      kids.replaceChildren(...childChips());
     });
-    const actions = el('div', { class: 'row', style: 'margin-top:12px' }, edit);
+    const age = selectBox([3, 4, 5, 6, 7].map((a): [number, string] => [a, t('pin.years', { n: a }, '{n} ans')]), p.age,
+      t('pin.age', {}, 'Âge'), (v) => {
+        if (v === p.age) return;
+        p.age = v;
+        // Âge changé : les niveaux des jeux repartent de l'âge.
+        p.clearGameLevels();
+      });
+    const country = selectBox(countryChoices(), s.country, t('pin.country', {}, 'Pays'), (v) => p.updateSettings({ country: v }));
+    const night = selectBox(NIGHT_CHOICES.map((n): [string, string] => [n, n ? n.replace(':', ' h ') : T('noNight', 'Pas de mode nuit')]),
+      s.nightTime, T('night', 'Heure du coucher (mode nuit)'), (v) => p.updateSettings({ nightTime: v }));
+    const daily = timeStepper(() => p.settings.dailyMinutes, (m) => p.updateSettings({ dailyMinutes: m }));
+    const face = p.hatched ? dinoPortrait(p.color, 160, 'happy') : undefined;
+    const dino = p.hatched ? (isFr() ? `dino ${DINO_COLORS[p.color].name}` : T('dino', 'dino')) : T('egg', 'œuf pas encore éclos');
+    const section = el('section', {},
+      el('div', { class: 'kid' }, face ? el('img', { src: face, alt: dino }) : '',
+        el('div', {}, el('b', {}, p.name || T('noName', 'Sans prénom')), el('small', {}, dino))),
+      field(t('pin.firstName', {}, 'Prénom'), name),
+      field(t('pin.age', {}, 'Âge'), age),
+      field(t('pin.country', {}, 'Pays'), country),
+      field(T('daily', 'Temps de jeu par jour'), daily, T('dailyShort', 'Ensuite, le dino va se coucher.')),
+      field(T('night', 'Heure du coucher (mode nuit)'), night),
+    );
     if (app.profiles.count > 1) {
-      const remove = el('button', { class: 'danger' }, T('removeChild', 'Supprimer {name}', { name: p.name || T('thisChild', 'cet enfant') }));
+      section.append(field(T('alternate', 'Alterner les séries entre les enfants'),
+        switchBox(app.profiles.alternate, T('alternateAria', 'Alterner les séries entre les enfants'), (on) => app.profiles.setAlternate(on))));
+      const remove = el('button', { class: 'danger', style: 'margin-top:8px' }, T('removeChild', 'Supprimer {name}', { name: p.name || T('thisChild', 'cet enfant') }));
       remove.addEventListener('click', () => {
         if (!confirm(T('removeConfirm', 'Supprimer {name}, son dino et toute sa progression ? C\'est définitif.', { name: p.name || T('thisChild', 'cet enfant') }))) return;
         app.profiles.remove(selected);
         if (added === selected) added = undefined;
         select(app.profiles.activeId);
       });
-      actions.append(remove);
+      section.append(remove);
     }
-    const country = COUNTRIES.find((c) => c.code === p.settings.country);
-    const dino = p.hatched ? (isFr() ? `dino ${DINO_COLORS[p.color].name}` : T('dino', 'dino')) : T('egg', 'œuf pas encore éclos');
+    return section;
+  }
+
+  // ---- Niveau du dino : boutons − et + (un glissement involontaire ne le change pas) ----
+  function levelSection() {
+    const out = el('output', {}, String(p.dino.level));
+    const diff = el('p', { class: 'help', style: 'margin:8px 0 0' });
+    const describe = () => {
+      const base = baseLevel(p.dino.level, p.age);
+      diff.textContent = T('difficulty', 'Difficulté de départ des jeux : {n} sur 20 ({stage}). Elle s\'ajuste ensuite toute seule selon les réussites.', { n: base, stage: base > 10 ? T('stageCP', 'niveau CP') : T('stageK', 'maternelle') });
+    };
+    const change = (delta: number) => {
+      const next = Math.max(1, Math.min(BALANCE.dinoMaxLevel, p.dino.level + delta));
+      if (next === p.dino.level) return;
+      p.setDinoLevel(next);
+      p.clearGameLevels();
+      out.textContent = String(next);
+      describe();
+    };
+    const lower = el('button', { 'aria-label': T('lower', 'Moins') }, '−');
+    lower.addEventListener('click', () => change(-1));
+    const higher = el('button', { 'aria-label': T('higher', 'Plus') }, '+');
+    higher.addEventListener('click', () => change(1));
+    describe();
+    return el('section', {},
+      el('h2', {}, T('dinoLevel', 'Niveau du dino')),
+      el('p', { class: 'help' }, T('dinoLevelHelp', 'Il monte quand l\'enfant nourrit son dino (1 à {max}). Réglez-le pour adapter la difficulté : 21 à 40 correspond au CP.', { max: BALANCE.dinoMaxLevel })),
+      el('div', { class: 'stepper' }, lower, out, higher),
+      diff,
+    );
+  }
+
+  // ---- Progrès : chiffres clés ----
+  function summarySection() {
     const answers = p.answers();
     const last100 = answers.slice(0, 100);
     const rate = last100.length ? last100.filter((a) => a.firstTrySuccess).length / last100.length : 0;
-
-    const alternate = el('input', { type: 'checkbox', 'aria-label': T('alternateAria', 'Alterner les séries entre les enfants') });
-    (alternate as HTMLInputElement).checked = app.profiles.alternate;
-    alternate.addEventListener('change', () => app.profiles.setAlternate((alternate as HTMLInputElement).checked));
-
-    const face = p.hatched ? dinoPortrait(p.color, 224, 'happy') : undefined;
     return el('section', {},
-      el('div', { class: 'kid' },
-        face ? el('img', { class: 'avatar', src: face, alt: dino }) : '',
-        el('div', {},
-          el('p', { class: 'kid-name' }, `${p.name || T('noName', 'Sans prénom')} · ${T('age', '{n} ans', { n: p.age })}`),
-          el('small', {}, `${country ? countryLabel(country.code) : T('otherCountry', 'autre pays')} · ${dino}`))),
+      el('h2', {}, T('summary', 'En bref')),
       el('div', { class: 'tiles' },
         el('div', {}, el('b', {}, String(p.seriesPlayed)), T('series', 'séries jouées')),
         el('div', {}, el('b', {}, String(answers.length)), T('answers', 'réponses')),
         el('div', {}, el('b', {}, last100.length ? percent(rate) : '—'), T('firstTry', 'de réussite du 1er coup')),
         el('div', {}, el('b', {}, `${minutes(p.playMsToday())} min`), T('today', 'de jeu aujourd\'hui')),
       ),
-      el('p', { class: 'help', style: 'margin:10px 0 0' }, T('childrenHelp', 'Chaque enfant a son dino, sa progression et ses réglages. Les réglages ci-dessous concernent l\'enfant choisi.')),
-      actions,
-      app.profiles.count > 1
-        ? el('div', { class: 'row', style: 'justify-content:space-between;margin-top:14px' },
-          el('span', {}, T('alternate', 'Alterner les séries : après chaque série, c\'est au tour de l\'enfant suivant')),
-          el('label', { class: 'switch' }, alternate, el('span')))
-        : '',
+    );
+  }
+
+  // ---- Progrès : temps de jeu de la semaine ----
+  function weekSection() {
+    const week = p.playWeek();
+    const max = Math.max(...week.map((d) => d.ms), 60_000);
+    const dayName = (d: Date) => d.toLocaleDateString(dateLocale(), { weekday: 'short' });
+    return el('section', {},
+      el('h2', {}, T('week', 'Temps de jeu des 7 derniers jours')),
+      el('div', { class: 'week' },
+        ...week.map(({ day, ms }) => el('div', { title: `${minutes(ms)} min` },
+          `${minutes(ms)}′`,
+          el('i', { style: `height:${Math.round((ms / max) * 80)}%` }),
+          dayName(new Date(`${day}T12:00:00`))))),
+    );
+  }
+
+  // ---- Jeux : le bouton « Missions » ----
+  function missionsSection() {
+    return el('section', { class: 'wide' },
+      field(T('choose', 'Bouton « Missions » sur l\'accueil'),
+        switchBox(p.settings.chooseGames, T('chooseAria', 'Bouton pour choisir son jeu'), (on) => p.updateSettings({ chooseGames: on })),
+        T('chooseHelp', 'Activé, l\'enfant peut choisir un jeu précis. Sinon, « Jouer » mélange tous les jeux de son âge.')),
     );
   }
 
@@ -280,7 +391,7 @@ export function openParents(onClose: () => void) {
       showAllPrints = true;
       render();
     });
-    return el('section', {},
+    return el('section', { class: 'wide' },
       el('h2', {}, `À imprimer${p.newPrintables ? ` (${p.newPrintables} nouvelle${p.newPrintables > 1 ? 's' : ''})` : ''}`),
       el('p', { class: 'help' }, 'À la fin du temps de jeu (ou à l\'heure du coucher), le dino offre trois enveloppes '
         + 'surprises ; l\'enfant en choisit une, une fois par jour. La fiche arrive ici, avec son dino, adaptée à son âge '
@@ -288,65 +399,6 @@ export function openParents(onClose: () => void) {
         + 'Un diplôme tous les 5 niveaux du dino.'),
       records.length ? grid : el('p', {}, 'Pas encore de fiche : la première enveloppe arrivera à la fin du temps de jeu.'),
       records.length > shown.length ? el('div', { class: 'row', style: 'margin-top:12px' }, more) : '',
-    );
-  }
-
-  // ---- Niveau du dino ----
-  function levelSection() {
-    const range = el('input', { type: 'range', min: '1', max: String(BALANCE.dinoMaxLevel), value: String(p.dino.level) });
-    const out = el('output', {}, String(p.dino.level));
-    const diff = el('p', { class: 'help' });
-    const describe = (level: number) => {
-      const base = baseLevel(level, p.age);
-      diff.textContent = T('difficulty', 'Difficulté de départ des jeux : {n} sur 20 ({stage}). Elle s\'ajuste ensuite toute seule selon les réussites.', { n: base, stage: base > 10 ? T('stageCP', 'niveau CP') : T('stageK', 'maternelle') });
-    };
-    describe(p.dino.level);
-    range.addEventListener('input', () => {
-      out.textContent = range.value;
-      describe(Number(range.value));
-    });
-    range.addEventListener('change', () => {
-      p.setDinoLevel(Number(range.value));
-      p.clearGameLevels();
-      render();
-    });
-    return el('section', {},
-      el('h2', {}, T('dinoLevel', 'Niveau du dino')),
-      el('p', { class: 'help' }, T('dinoLevelHelp', 'Le dino grandit quand l\'enfant le nourrit (niveau 1 à {max}). Vous pouvez le régler pour adapter la difficulté : les niveaux 21 à 40 correspondent au CP.', { max: BALANCE.dinoMaxLevel })),
-      el('div', { class: 'level' }, range, out),
-      diff,
-    );
-  }
-
-  // ---- Temps de jeu ----
-  function timeSection() {
-    // Le même réglage que dans la fiche de l'enfant : − et + par 5 minutes, ou illimité.
-    const choices = timeStepper(() => p.settings.dailyMinutes, (m) => p.updateSettings({ dailyMinutes: m }));
-    const nights = el('div', { class: 'row', style: 'margin-top:12px' });
-    for (const t of ['', '18:30', '19:00', '19:30', '20:00', '20:30', '21:00']) {
-      const b = el('button', { class: p.settings.nightTime === t ? 'on' : '' }, t ? t.replace(':', ' h ') : T('noNight', 'Pas de mode nuit'));
-      b.addEventListener('click', () => {
-        p.updateSettings({ nightTime: t });
-        render();
-      });
-      nights.append(b);
-    }
-    const week = p.playWeek();
-    const max = Math.max(...week.map((d) => d.ms), 60_000);
-    const dayName = (d: Date) => d.toLocaleDateString(dateLocale(), { weekday: 'short' });
-    const chart = el('div', { class: 'week', 'aria-label': T('week', 'Temps de jeu des 7 derniers jours') },
-      ...week.map(({ day, ms }) => el('div', { title: `${minutes(ms)} min` },
-        `${minutes(ms)}′`,
-        el('i', { style: `height:${Math.round((ms / max) * 80)}%` }),
-        dayName(new Date(`${day}T12:00:00`)))));
-    return el('section', {},
-      el('h2', {}, T('daily', 'Temps de jeu par jour')),
-      el('p', { class: 'help' }, T('dailyHelp', 'Quand le temps est atteint, l\'enfant finit sa série, puis le jeu se bloque jusqu\'au lendemain : le dino va se coucher. Avec votre code, vous pouvez ajouter 15 ou 30 minutes, ou débloquer la journée.')),
-      choices,
-      chart,
-      el('h2', { style: 'margin-top:16px' }, T('night', 'Heure du coucher (mode nuit)')),
-      el('p', { class: 'help' }, T('nightHelp', 'Après cette heure, le ciel devient nuit et le dino bâille : il propose une dernière série, puis il va dormir jusqu\'au matin. Votre code permet de jouer encore ce soir.')),
-      nights,
     );
   }
 
@@ -390,27 +442,19 @@ export function openParents(onClose: () => void) {
           T('mastered', '{n} / {total} questions réussies', { n: mastered, total: game.questions.length }),
           lastAt ? T('lastPlayed', 'dernière partie le {date}', { date: new Date(lastAt).toLocaleDateString(dateLocale()) }) : '',
         ].filter(Boolean).join(' · ');
+      // Une ligne par jeu : nom, suivi en petit (et sa barre), niveau, interrupteur.
       list.append(el('div', { class: `game${tooYoung || !enabled || needsVoice ? ' off' : ''}` },
-        el('div', { class: 'top' },
+        el('div', { class: 'info' },
           el('span', { class: 'name' }, gameTitle(game)),
-          el('label', { class: 'switch' }, toggle, el('span')),
-        ),
-        el('div', { class: 'meta' }, meta),
-        el('div', { class: 'bar' }, el('span', { style: `width:${(mastered / game.questions.length) * 100}%` })),
-        tooYoung ? '' : el('div', { class: 'row', style: 'margin-top:8px' }, level),
+          el('div', { class: 'meta' }, meta),
+          el('div', { class: 'bar' }, el('span', { style: `width:${(mastered / game.questions.length) * 100}%` }))),
+        tooYoung ? el('span') : level,
+        el('label', { class: 'switch' }, toggle, el('span')),
       ));
     }
-    const choose = el('input', { type: 'checkbox', 'aria-label': T('chooseAria', 'Bouton pour choisir son jeu') }) as HTMLInputElement;
-    choose.checked = p.settings.chooseGames;
-    choose.addEventListener('change', () => p.updateSettings({ chooseGames: choose.checked }));
-    return el('section', {},
+    return el('section', { class: 'wide' },
       el('h2', {}, T('games', 'Jeux')),
-      el('div', { class: 'row', style: 'justify-content:space-between' },
-        el('span', {}, T('choose', 'Bouton « choisir son jeu » sur l\'accueil')),
-        el('label', { class: 'switch' }, choose, el('span')),
-      ),
-      el('p', { class: 'help', style: 'margin-top:6px' }, T('chooseHelp', 'Désactivé, l\'enfant joue avec la planète : chaque série mélange tous les jeux de son âge. Activé, il peut aussi choisir un jeu précis (et les jeux à voix haute, qui ne se mélangent pas aux autres).')),
-      el('p', { class: 'help' }, T('gamesHelp', 'Désactivez un jeu pour qu\'il ne soit plus proposé. Le niveau (1 à 20, 11 à 20 = CP) est le point de départ de la prochaine série ; « auto » le calcule d\'après l\'âge, le dino et les réussites.')),
+      el('p', { class: 'help' }, T('gamesHelp', 'Désactivez un jeu pour qu\'il ne soit plus proposé. Le niveau (1 à 20 ; 11 à 20 = CP) est le point de départ de la prochaine série ; « auto » le calcule d\'après l\'âge, le dino et les réussites.')),
       list,
     );
   }
@@ -433,9 +477,9 @@ export function openParents(onClose: () => void) {
       return el('li', {}, text, ' ',
         el('small', {}, `— ${gameTitle(game)} · ${T('reviewN', 'révision {n} sur {total}', { n: stage + 1, total: BALANCE.reviewDays.length })} · ${when(due)}`));
     }).filter((x): x is HTMLLIElement => x !== undefined);
-    return el('section', {},
+    return el('section', { class: 'wide' },
       el('h2', {}, T('review', 'À retravailler')),
-      el('p', { class: 'help' }, T('reviewHelp', 'Une question ratée revient le lendemain, puis 3 jours plus tard, puis une semaine plus tard. Réussie les trois fois, elle est acquise ; ratée, elle recommence au lendemain.')),
+      el('p', { class: 'help' }, T('reviewHelp', 'Une question ratée revient le lendemain, puis 3 jours et 7 jours plus tard. Réussie les trois fois, elle est acquise.')),
       items.length ? el('ul', { class: 'fails' }, ...items) : el('p', {}, T('reviewNone', 'Rien à réviser pour l\'instant. Bravo !')),
     );
   }
@@ -456,7 +500,6 @@ export function openParents(onClose: () => void) {
       p.updateSettings({ music: on });
       Music.setEnabled(on);
     });
-    const voices = app.voice.voiceNames();
     const test = el('button', {}, T('testVoice', 'Tester la voix'));
     test.addEventListener('click', () => {
       void app.voice.say([{ text: T('testHello', 'Bonjour ! Je suis Dino.'), lang: lang() }, { text: second() === 'es' ? '¡Hola!' : 'Hello!', lang: second(), slow: true }]);
@@ -464,16 +507,14 @@ export function openParents(onClose: () => void) {
     return el('section', {},
       el('h2', {}, T('sound', 'Son et voix')),
       el('div', { class: 'row', style: 'justify-content:space-between' },
-        el('span', {}, T('sfx', 'Bruitages (bonnes réponses, erreurs, miam…)')),
+        el('span', {}, T('sfx', 'Bruitages')),
         el('label', { class: 'switch' }, sfx, el('span')),
       ),
       el('div', { class: 'row', style: 'justify-content:space-between;margin-top:12px' },
-        el('span', {}, T('music', 'Musique de fond douce (l\'enfant peut aussi la couper depuis l\'accueil)')),
+        el('span', {}, T('music', 'Musique de fond')),
         el('label', { class: 'switch' }, music, el('span')),
       ),
-      el('p', { class: 'help', style: 'margin-top:12px' },
-        T('phoneVoices', 'Voix française : {main} · Voix anglaise : {second}. Les voix viennent du téléphone : pour une voix plus naturelle, installez une voix « améliorée » ou « premium » dans les réglages d\'accessibilité (synthèse vocale).', { main: voices.fr ?? T('noVoice', 'aucune trouvée'), second: voices.en ?? T('noVoice', 'aucune trouvée') })),
-      test,
+      el('div', { style: 'margin-top:10px' }, test),
     );
   }
 
@@ -481,7 +522,7 @@ export function openParents(onClose: () => void) {
   function voiceSection() {
     const section = el('section', {},
       el('h2', {}, T('mic', 'Micro (jeux à voix haute)')),
-      el('p', { class: 'help' }, T('micHelp', 'Dans les jeux à voix haute, l\'enfant répond en parlant : il nomme les images, dit les mots en anglais, lit à voix haute, répond aux devinettes. Tout reste sur cet appareil : la voix n\'est ni enregistrée, ni envoyée. Le micro ne s\'allume que quand l\'enfant touche le gros bouton micro. Ces questions arrivent mélangées aux autres quand l\'enfant touche la planète.')),
+      el('p', { class: 'help' }, T('micHelp', 'L\'enfant répond en parlant (nommer une image, dire un mot, lire). Tout reste sur l\'appareil : rien n\'est enregistré ni envoyé, et le micro ne s\'allume que quand il touche le bouton micro.')),
     );
     if (!voiceSupported()) {
       section.append(el('p', {}, T('noMic', 'Ce navigateur ne permet pas d\'utiliser le micro dans le jeu.')));
@@ -529,7 +570,7 @@ export function openParents(onClose: () => void) {
   function packsSection() {
     return el('section', {},
       el('h2', {}, T('packs', 'Voix et téléchargements')),
-      el('p', { class: 'help' }, T('packsHelp', 'La langue du jeu, la voix naturelle du dino (calculée sur l\'appareil, sans Internet une fois téléchargée), la voix anglaise des jeux d\'anglais et la reconnaissance vocale. Les téléchargements se font en parallèle et continuent si vous fermez cet espace. Sans la voix du dino, le jeu utilise celle du téléphone.')),
+      el('p', { class: 'help' }, T('packsHelp', 'Langue du jeu, voix du dino, voix de la langue apprise en plus et reconnaissance vocale. Une fois téléchargé, tout marche sans Internet.')),
       packsPanel(),
     );
   }
@@ -544,7 +585,7 @@ export function openParents(onClose: () => void) {
     });
     return el('section', {},
       el('h2', {}, T('code', 'Code parent')),
-      el('p', { class: 'help' }, T('codeHelp', 'Le code ouvre cet espace et débloque le jeu quand le temps du jour est fini. En cas d\'oubli, « Code oublié ? » permet d\'en créer un nouveau après une question pour adulte.')),
+      el('p', { class: 'help' }, T('codeHelp', 'Il ouvre cet espace et débloque le jeu après le temps du jour. Oublié ? « Code oublié ? » en crée un nouveau après une question pour adulte.')),
       change,
     );
   }

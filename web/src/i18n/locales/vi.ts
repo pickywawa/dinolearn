@@ -346,6 +346,8 @@ const vi: Catalog = {
     skateboard=ván trượt; yoyo=con quay yo-yo; roller_skate=giày trượt patin; canoe=xuồng; tram=tàu điện; parachute=dù nhảy;
     satellite=vệ tinh; brain=bộ não; bone=khúc xương; tongue=cái lưỡi; leg=cái chân; tornado=lốc xoáy; lightning=tia chớp;
     comet=sao chổi; cactus=cây xương rồng; blossom=hoa anh đào; feather=chiếc lông vũ`),
+  // Espace parents : onglets.
+  'p.dailyShort': 'Sau đó khủng long đi ngủ.', 'p.tab.profile': 'Hồ sơ', 'p.tab.progress': 'Tiến bộ', 'p.tab.games': 'Trò chơi', 'p.tab.settings': 'Cài đặt', 'p.summary': 'Tóm tắt', 'p.lower': 'Giảm', 'p.higher': 'Tăng',
 };
 
 export default vi;

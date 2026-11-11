@@ -500,6 +500,8 @@ const it: Catalog = {
   "cty.neighbour": "Quale di queste bandiere è di un paese vicino di {country}?",
   "cty.neighbourYes": "Sì! Questo paese è proprio accanto a {country}!",
   "cty.neighbourHint": "i vicini sono molto vicini, sullo stesso continente",
+  // Espace parents : onglets.
+  'p.dailyShort': 'Poi il dino va a dormire.', 'p.tab.profile': 'Profilo', 'p.tab.progress': 'Progressi', 'p.tab.games': 'Giochi', 'p.tab.settings': 'Impostazioni', 'p.summary': 'In breve', 'p.lower': 'Giù', 'p.higher': 'Su',
 };
 
 export default it;

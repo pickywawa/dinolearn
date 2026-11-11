@@ -302,6 +302,8 @@ const uk: Catalog = {
     screwdriver=викрутка; paintbrush=пензлик; crayon=крейдочка; trophy=кубок; medal=медаль; ring=каблучка; skateboard=скейтборд; yoyo=йо-йо;
     roller_skate=ролик; canoe=каное; tram=трамвай; parachute=парашут; satellite=супутник; brain=мозок; bone=кістка; tongue=язик; leg=нога;
     tornado=торнадо; lightning=блискавка; comet=комета; cactus=кактус; blossom=квітуча вишня; feather=пірʼїна`),
+  // Espace parents : onglets.
+  'p.dailyShort': 'Потім дино йде спати.', 'p.tab.profile': 'Профіль', 'p.tab.progress': 'Успіхи', 'p.tab.games': 'Ігри', 'p.tab.settings': 'Налаштування', 'p.summary': 'Коротко', 'p.lower': 'Нижче', 'p.higher': 'Вище',
 };
 
 export default uk;

@@ -477,6 +477,8 @@ const id: Catalog = {
     crayon=krayon; trophy=piala; medal=medali; ring=cincin; skateboard=papan luncur; yoyo=yoyo; roller_skate=sepatu roda;
     canoe=kano; tram=trem; parachute=parasut; satellite=satelit; brain=otak; bone=tulang; tongue=lidah; leg=tungkai;
     tornado=angin puting beliung; lightning=petir; comet=komet; cactus=kaktus; blossom=bunga sakura; feather=bulu burung`),
+  // Espace parents : onglets.
+  'p.dailyShort': 'Lalu dino pergi tidur.', 'p.tab.profile': 'Profil', 'p.tab.progress': 'Kemajuan', 'p.tab.games': 'Permainan', 'p.tab.settings': 'Pengaturan', 'p.summary': 'Ringkasan', 'p.lower': 'Turunkan', 'p.higher': 'Naikkan',
 };
 
 export default id;

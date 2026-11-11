@@ -313,6 +313,8 @@ const tr: Catalog = {
     crayon=boya kalemi; trophy=kupa; medal=madalya; ring=yüzük; skateboard=kaykay; yoyo=yoyo; roller_skate=paten; canoe=kano; tram=tramvay;
     parachute=paraşüt; satellite=uydu; brain=beyin; bone=kemik; tongue=dil; leg=bacak; tornado=hortum; lightning=şimşek; comet=kuyruklu yıldız;
     cactus=kaktüs; blossom=kiraz çiçeği; feather=tüy`),
+  // Espace parents : onglets.
+  'p.dailyShort': 'Sonra dino uyumaya gider.', 'p.tab.profile': 'Profil', 'p.tab.progress': 'İlerleme', 'p.tab.games': 'Oyunlar', 'p.tab.settings': 'Ayarlar', 'p.summary': 'Özet', 'p.lower': 'Azalt', 'p.higher': 'Artır',
 };
 
 export default tr;
