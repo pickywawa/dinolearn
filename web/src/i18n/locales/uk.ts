@@ -303,7 +303,7 @@ const uk: Catalog = {
     roller_skate=ролик; canoe=каное; tram=трамвай; parachute=парашут; satellite=супутник; brain=мозок; bone=кістка; tongue=язик; leg=нога;
     tornado=торнадо; lightning=блискавка; comet=комета; cactus=кактус; blossom=квітуча вишня; feather=пірʼїна`),
   // Espace parents : onglets.
-  'p.dailyShort': 'Потім дино йде спати.', 'p.tab.profile': 'Профіль', 'p.tab.progress': 'Успіхи', 'p.tab.games': 'Ігри', 'p.tab.settings': 'Налаштування', 'p.summary': 'Коротко', 'p.lower': 'Нижче', 'p.higher': 'Вище',
+  'p.dailyShort': 'Потім дино йде спати.', 'p.credits': 'Автори та ліцензії', 'p.creditsHelp': 'DinoLearn створено за допомогою цих програм, голосів, зображень, шрифтів і звуків. Дякуємо їхнім авторам!', 'p.credits.voices': 'Голоси дино', 'p.credits.asr': 'Розпізнавання мовлення', 'p.credits.code': 'Ігровий рушій', 'p.credits.images': 'Зображення та шрифти', 'p.credits.sounds': 'Звукові ефекти', 'p.tab.profile': 'Профіль', 'p.tab.progress': 'Успіхи', 'p.tab.games': 'Ігри', 'p.tab.settings': 'Налаштування', 'p.summary': 'Коротко', 'p.lower': 'Нижче', 'p.higher': 'Вище',
 };
 
 export default uk;

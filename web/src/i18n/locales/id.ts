@@ -478,7 +478,7 @@ const id: Catalog = {
     canoe=kano; tram=trem; parachute=parasut; satellite=satelit; brain=otak; bone=tulang; tongue=lidah; leg=tungkai;
     tornado=angin puting beliung; lightning=petir; comet=komet; cactus=kaktus; blossom=bunga sakura; feather=bulu burung`),
   // Espace parents : onglets.
-  'p.dailyShort': 'Lalu dino pergi tidur.', 'p.tab.profile': 'Profil', 'p.tab.progress': 'Kemajuan', 'p.tab.games': 'Permainan', 'p.tab.settings': 'Pengaturan', 'p.summary': 'Ringkasan', 'p.lower': 'Turunkan', 'p.higher': 'Naikkan',
+  'p.dailyShort': 'Lalu dino pergi tidur.', 'p.credits': 'Kredit dan lisensi', 'p.creditsHelp': 'DinoLearn dibuat dengan program, suara, gambar, fon, dan efek suara ini. Terima kasih kepada para pembuatnya!', 'p.credits.voices': 'Suara dino', 'p.credits.asr': 'Pengenalan suara', 'p.credits.code': 'Mesin permainan', 'p.credits.images': 'Gambar dan fon', 'p.credits.sounds': 'Efek suara', 'p.tab.profile': 'Profil', 'p.tab.progress': 'Kemajuan', 'p.tab.games': 'Permainan', 'p.tab.settings': 'Pengaturan', 'p.summary': 'Ringkasan', 'p.lower': 'Turunkan', 'p.higher': 'Naikkan',
 };
 
 export default id;

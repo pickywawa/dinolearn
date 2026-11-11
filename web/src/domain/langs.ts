@@ -39,7 +39,7 @@ export const LANGS: LangInfo[] = [
     asr: { model: 'vosk-model-small-de-0.15', sizeMb: 45.3 }, second: 'en', country: 'de' },
   { code: 'pt', name: 'Português', locale: 'pt-BR', dir: 'ltr', latin: true, voice: 'pt_BR-faber-medium',
     asr: { model: 'vosk-model-small-pt-0.3', sizeMb: 31.4 }, second: 'en', country: 'br' },
-  { code: 'ru', name: 'Русский', locale: 'ru-RU', dir: 'ltr', latin: false, voice: 'ru_RU-irina-medium',
+  { code: 'ru', name: 'Русский', locale: 'ru-RU', dir: 'ltr', latin: false, voice: 'ru_RU-denis-medium',
     asr: { model: 'vosk-model-small-ru-0.22', sizeMb: 45.6 }, second: 'en', country: 'ru' },
   { code: 'zh', name: '中文', locale: 'zh-CN', dir: 'ltr', latin: false, voice: 'zh_CN-huayan-medium',
     asr: { model: 'vosk-model-small-cn-0.22', sizeMb: 42.3 }, second: 'en', country: 'cn' },
@@ -53,7 +53,7 @@ export const LANGS: LangInfo[] = [
     asr: { model: 'vosk-model-small-vn-0.4', sizeMb: 33.7 }, second: 'en', country: 'vn' },
   { code: 'tr', name: 'Türkçe', locale: 'tr-TR', dir: 'ltr', latin: true, voice: 'tr_TR-dfki-medium',
     asr: { model: 'vosk-model-small-tr-0.3', sizeMb: 36.9 }, second: 'en', country: 'tr' },
-  { code: 'fa', name: 'فارسی', locale: 'fa-IR', dir: 'rtl', latin: false, voice: 'fa_IR-gyro-medium',
+  { code: 'fa', name: 'فارسی', locale: 'fa-IR', dir: 'rtl', latin: false, voice: 'fa_IR-amir-medium',
     asr: { model: 'vosk-model-small-fa-0.5', sizeMb: 62.2 }, second: 'en', country: 'ir' },
   { code: 'pl', name: 'Polski', locale: 'pl-PL', dir: 'ltr', latin: true, voice: 'pl_PL-gosia-medium',
     asr: { model: 'vosk-model-small-pl-0.22', sizeMb: 53.0 }, second: 'en', country: 'pl' },
@@ -105,9 +105,9 @@ export const VOICE_URLS: Record<string, string> = Object.fromEntries([
 /** Tailles des voix, en Mo. */
 export const VOICE_SIZES_MB: Record<string, number> = {
   'fr_FR-upmc-medium': 76.7, 'en_GB-alba-medium': 63.2, 'es_MX-claude-high': 63.1, 'it_IT-paola-medium': 63.5,
-  'de_DE-thorsten-medium': 63.2, 'pt_BR-faber-medium': 63.2, 'ru_RU-irina-medium': 63.2, 'zh_CN-huayan-medium': 63.2,
+  'de_DE-thorsten-medium': 63.2, 'pt_BR-faber-medium': 63.2, 'ru_RU-denis-medium': 63.2, 'zh_CN-huayan-medium': 63.2,
   'hi_IN-priyamvada-medium': 63.5, 'ar_JO-kareem-medium': 63.2, 'ur_PK-aegis_female-medium': 63.5, 'bn_BD-google-medium': 76.8,
-  'id_ID-news_tts-medium': 62.9, 'vi_VN-vais1000-medium': 63.2, 'tr_TR-dfki-medium': 63.2, 'fa_IR-gyro-medium': 63.1,
+  'id_ID-news_tts-medium': 62.9, 'vi_VN-vais1000-medium': 63.2, 'tr_TR-dfki-medium': 63.2, 'fa_IR-amir-medium': 63.5,
   'pl_PL-gosia-medium': 63.2, 'uk_UA-tetiana-high': 114.2,
   'ko_KR-kss-medium': 63.2, 'ne_NP-chitwan-medium': 63.2,
 };

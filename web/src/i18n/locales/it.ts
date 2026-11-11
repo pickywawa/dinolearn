@@ -501,7 +501,7 @@ const it: Catalog = {
   "cty.neighbourYes": "Sì! Questo paese è proprio accanto a {country}!",
   "cty.neighbourHint": "i vicini sono molto vicini, sullo stesso continente",
   // Espace parents : onglets.
-  'p.dailyShort': 'Poi il dino va a dormire.', 'p.tab.profile': 'Profilo', 'p.tab.progress': 'Progressi', 'p.tab.games': 'Giochi', 'p.tab.settings': 'Impostazioni', 'p.summary': 'In breve', 'p.lower': 'Giù', 'p.higher': 'Su',
+  'p.dailyShort': 'Poi il dino va a dormire.', 'p.credits': 'Crediti e licenze', 'p.creditsHelp': 'DinoLearn è fatto con questi programmi, voci, immagini, caratteri e suoni. Grazie ai loro autori!', 'p.credits.voices': 'Voci del dino', 'p.credits.asr': 'Riconoscimento vocale', 'p.credits.code': 'Motore del gioco', 'p.credits.images': 'Immagini e caratteri', 'p.credits.sounds': 'Effetti sonori', 'p.tab.profile': 'Profilo', 'p.tab.progress': 'Progressi', 'p.tab.games': 'Giochi', 'p.tab.settings': 'Impostazioni', 'p.summary': 'In breve', 'p.lower': 'Giù', 'p.higher': 'Su',
 };
 
 export default it;

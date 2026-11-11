@@ -347,7 +347,7 @@ const vi: Catalog = {
     satellite=vệ tinh; brain=bộ não; bone=khúc xương; tongue=cái lưỡi; leg=cái chân; tornado=lốc xoáy; lightning=tia chớp;
     comet=sao chổi; cactus=cây xương rồng; blossom=hoa anh đào; feather=chiếc lông vũ`),
   // Espace parents : onglets.
-  'p.dailyShort': 'Sau đó khủng long đi ngủ.', 'p.tab.profile': 'Hồ sơ', 'p.tab.progress': 'Tiến bộ', 'p.tab.games': 'Trò chơi', 'p.tab.settings': 'Cài đặt', 'p.summary': 'Tóm tắt', 'p.lower': 'Giảm', 'p.higher': 'Tăng',
+  'p.dailyShort': 'Sau đó khủng long đi ngủ.', 'p.credits': 'Ghi công và giấy phép', 'p.creditsHelp': 'DinoLearn được làm từ các phần mềm, giọng nói, hình ảnh, phông chữ và âm thanh này. Cảm ơn các tác giả!', 'p.credits.voices': 'Giọng khủng long', 'p.credits.asr': 'Nhận dạng giọng nói', 'p.credits.code': 'Bộ máy trò chơi', 'p.credits.images': 'Hình ảnh và phông chữ', 'p.credits.sounds': 'Hiệu ứng âm thanh', 'p.tab.profile': 'Hồ sơ', 'p.tab.progress': 'Tiến bộ', 'p.tab.games': 'Trò chơi', 'p.tab.settings': 'Cài đặt', 'p.summary': 'Tóm tắt', 'p.lower': 'Giảm', 'p.higher': 'Tăng',
 };
 
 export default vi;

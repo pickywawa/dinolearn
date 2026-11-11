@@ -268,7 +268,7 @@ const ne: Catalog = {
     roller_skate=स्केट; canoe=सानो डुङ्गा; tram=ट्राम; parachute=प्यारासुट; satellite=भू-उपग्रह; brain=दिमाग; bone=हड्डी; tongue=जिब्रो;
     leg=खुट्टा; tornado=बतास; lightning=चट्याङ; comet=पुच्छ्रे तारा; cactus=सिउँडी; blossom=फूलको हाँगो; feather=प्वाँख`),
   // Espace parents : onglets.
-  'p.dailyShort': 'त्यसपछि डाइनो सुत्न जान्छ।', 'p.tab.profile': 'प्रोफाइल', 'p.tab.progress': 'प्रगति', 'p.tab.games': 'खेल', 'p.tab.settings': 'सेटिङ', 'p.summary': 'छोटकरीमा', 'p.lower': 'कम', 'p.higher': 'धेरै',
+  'p.dailyShort': 'त्यसपछि डाइनो सुत्न जान्छ।', 'p.credits': 'श्रेय र इजाजतपत्र', 'p.creditsHelp': 'DinoLearn यी प्रोग्राम, आवाज, चित्र, फन्ट र ध्वनिहरूबाट बनेको हो। यिनका सर्जकहरूलाई धन्यवाद!', 'p.credits.voices': 'डाइनोका आवाज', 'p.credits.asr': 'आवाज पहिचान', 'p.credits.code': 'खेल इन्जिन', 'p.credits.images': 'चित्र र फन्ट', 'p.credits.sounds': 'ध्वनि प्रभाव', 'p.tab.profile': 'प्रोफाइल', 'p.tab.progress': 'प्रगति', 'p.tab.games': 'खेल', 'p.tab.settings': 'सेटिङ', 'p.summary': 'छोटकरीमा', 'p.lower': 'कम', 'p.higher': 'धेरै',
 };
 
 export default ne;

@@ -1,0 +1,2 @@
+/* Pourquoi DinoLearn demande le micro (jeux à voix haute). */
+"NSMicrophoneUsageDescription" = "DinoLearn listens to your child’s answers in the speaking games. Recognition happens on the device: nothing is recorded or sent.";

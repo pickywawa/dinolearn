@@ -483,7 +483,7 @@ const zh: Catalog = {
   "cty.neighbourYes": "对！这个国家就在{country}旁边！",
   "cty.neighbourHint": "邻国离得很近，在同一个大洲",
   // Espace parents : onglets.
-  'p.dailyShort': '之后恐龙就去睡觉。', 'p.tab.profile': '资料', 'p.tab.progress': '进步', 'p.tab.games': '游戏', 'p.tab.settings': '设置', 'p.summary': '概览', 'p.lower': '降低', 'p.higher': '提高',
+  'p.dailyShort': '之后恐龙就去睡觉。', 'p.credits': '致谢与许可', 'p.creditsHelp': 'DinoLearn 使用了以下软件、语音、图片、字体和声音。感谢它们的作者！', 'p.credits.voices': '恐龙的声音', 'p.credits.asr': '语音识别', 'p.credits.code': '游戏引擎', 'p.credits.images': '图片和字体', 'p.credits.sounds': '音效', 'p.tab.profile': '资料', 'p.tab.progress': '进步', 'p.tab.games': '游戏', 'p.tab.settings': '设置', 'p.summary': '概览', 'p.lower': '降低', 'p.higher': '提高',
 };
 
 export default zh;

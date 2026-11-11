@@ -24,6 +24,9 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<!-- Uniquement du HTTPS standard : pas de déclaration d'export à chaque envoi. -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>DinoLearn écoute les réponses de l’enfant dans les jeux à voix haute. La reconnaissance se fait sur l’appareil : rien n’est enregistré ni envoyé.</string>
 	<key>UIApplicationSceneManifest</key>

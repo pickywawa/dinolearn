@@ -489,7 +489,7 @@ const ar: Catalog = {
   "cty.neighbourYes": "نعم! هذا البلد بجانب {country} تمامًا!",
   "cty.neighbourHint": "الجيران قريبون جدًا، في القارة نفسها",
   // Espace parents : onglets.
-  'p.dailyShort': 'بعدها يذهب الديناصور للنوم.', 'p.tab.profile': 'الملف', 'p.tab.progress': 'التقدّم', 'p.tab.games': 'الألعاب', 'p.tab.settings': 'الإعدادات', 'p.summary': 'باختصار', 'p.lower': 'أقل', 'p.higher': 'أعلى',
+  'p.dailyShort': 'بعدها يذهب الديناصور للنوم.', 'p.credits': 'الشكر والتراخيص', 'p.creditsHelp': 'صُنع DinoLearn بهذه البرامج والأصوات والصور والخطوط والمؤثرات الصوتية. شكرًا لأصحابها!', 'p.credits.voices': 'أصوات الديناصور', 'p.credits.asr': 'التعرّف على الكلام', 'p.credits.code': 'محرّك اللعبة', 'p.credits.images': 'الصور والخطوط', 'p.credits.sounds': 'المؤثرات الصوتية', 'p.tab.profile': 'الملف', 'p.tab.progress': 'التقدّم', 'p.tab.games': 'الألعاب', 'p.tab.settings': 'الإعدادات', 'p.summary': 'باختصار', 'p.lower': 'أقل', 'p.higher': 'أعلى',
 };
 
 export default ar;

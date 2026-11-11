@@ -308,7 +308,7 @@ const pl: Catalog = {
     canoe=kajak; tram=tramwaj; parachute=spadochron; satellite=satelita; brain=mózg; bone=kość; tongue=język; leg=noga; tornado=tornado;
     lightning=błyskawica; comet=kometa; cactus=kaktus; blossom=kwiat wiśni; feather=piórko`),
   // Espace parents : onglets.
-  'p.dailyShort': 'Potem dino idzie spać.', 'p.tab.profile': 'Profil', 'p.tab.progress': 'Postępy', 'p.tab.games': 'Gry', 'p.tab.settings': 'Ustawienia', 'p.summary': 'W skrócie', 'p.lower': 'Niżej', 'p.higher': 'Wyżej',
+  'p.dailyShort': 'Potem dino idzie spać.', 'p.credits': 'Podziękowania i licencje', 'p.creditsHelp': 'DinoLearn powstał dzięki tym programom, głosom, obrazkom, czcionkom i dźwiękom. Dziękujemy ich autorom!', 'p.credits.voices': 'Głosy dino', 'p.credits.asr': 'Rozpoznawanie mowy', 'p.credits.code': 'Silnik gry', 'p.credits.images': 'Obrazki i czcionki', 'p.credits.sounds': 'Efekty dźwiękowe', 'p.tab.profile': 'Profil', 'p.tab.progress': 'Postępy', 'p.tab.games': 'Gry', 'p.tab.settings': 'Ustawienia', 'p.summary': 'W skrócie', 'p.lower': 'Niżej', 'p.higher': 'Wyżej',
 };
 
 export default pl;

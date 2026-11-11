@@ -314,7 +314,7 @@ const tr: Catalog = {
     parachute=paraşüt; satellite=uydu; brain=beyin; bone=kemik; tongue=dil; leg=bacak; tornado=hortum; lightning=şimşek; comet=kuyruklu yıldız;
     cactus=kaktüs; blossom=kiraz çiçeği; feather=tüy`),
   // Espace parents : onglets.
-  'p.dailyShort': 'Sonra dino uyumaya gider.', 'p.tab.profile': 'Profil', 'p.tab.progress': 'İlerleme', 'p.tab.games': 'Oyunlar', 'p.tab.settings': 'Ayarlar', 'p.summary': 'Özet', 'p.lower': 'Azalt', 'p.higher': 'Artır',
+  'p.dailyShort': 'Sonra dino uyumaya gider.', 'p.credits': 'Emeği geçenler ve lisanslar', 'p.creditsHelp': 'DinoLearn bu programlar, sesler, görseller, yazı tipleri ve ses efektleriyle yapıldı. Yapımcılarına teşekkürler!', 'p.credits.voices': 'Dinonun sesleri', 'p.credits.asr': 'Konuşma tanıma', 'p.credits.code': 'Oyun motoru', 'p.credits.images': 'Görseller ve yazı tipleri', 'p.credits.sounds': 'Ses efektleri', 'p.tab.profile': 'Profil', 'p.tab.progress': 'İlerleme', 'p.tab.games': 'Oyunlar', 'p.tab.settings': 'Ayarlar', 'p.summary': 'Özet', 'p.lower': 'Azalt', 'p.higher': 'Artır',
 };
 
 export default tr;

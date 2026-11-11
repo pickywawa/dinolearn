@@ -492,7 +492,7 @@ const hi: Catalog = {
   "cty.neighbourYes": "हाँ! यह देश {country} के ठीक बगल में है!",
   "cty.neighbourHint": "पड़ोसी बहुत पास होते हैं, उसी महाद्वीप पर",
   // Espace parents : onglets.
-  'p.dailyShort': 'फिर डायनो सोने चला जाता है।', 'p.tab.profile': 'प्रोफ़ाइल', 'p.tab.progress': 'प्रगति', 'p.tab.games': 'खेल', 'p.tab.settings': 'सेटिंग्स', 'p.summary': 'एक नज़र में', 'p.lower': 'कम', 'p.higher': 'ज़्यादा',
+  'p.dailyShort': 'फिर डायनो सोने चला जाता है।', 'p.credits': 'श्रेय और लाइसेंस', 'p.creditsHelp': 'DinoLearn इन प्रोग्राम, आवाज़ों, चित्रों, फ़ॉन्ट और ध्वनियों से बना है। इनके रचनाकारों को धन्यवाद!', 'p.credits.voices': 'डायनो की आवाज़ें', 'p.credits.asr': 'आवाज़ पहचान', 'p.credits.code': 'गेम इंजन', 'p.credits.images': 'चित्र और फ़ॉन्ट', 'p.credits.sounds': 'ध्वनि प्रभाव', 'p.tab.profile': 'प्रोफ़ाइल', 'p.tab.progress': 'प्रगति', 'p.tab.games': 'खेल', 'p.tab.settings': 'सेटिंग्स', 'p.summary': 'एक नज़र में', 'p.lower': 'कम', 'p.higher': 'ज़्यादा',
 };
 
 export default hi;

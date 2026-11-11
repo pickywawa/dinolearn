@@ -1,0 +1,2 @@
+/* Pourquoi DinoLearn demande le micro (jeux à voix haute). */
+"NSMicrophoneUsageDescription" = "DinoLearn মুখে বলে খেলার খেলাগুলোতে শিশুর উত্তর শোনে। শনাক্তকরণ ডিভাইসেই হয়: কিছুই রেকর্ড বা পাঠানো হয় না।";

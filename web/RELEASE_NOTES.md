@@ -1,3 +1,10 @@
+## DinoLearn 0.24.0 — Prêt pour les stores
+
+- Nouvel écran « Crédits et licences » (espace parents → Réglages → Données) : voix, reconnaissance vocale, bibliothèques, images, polices et bruitages, avec leurs auteurs et licences.
+- Voix du dino en russe et en persan remplacées par des voix sous licence libre (CC0). Ces voix se téléchargent à nouveau au prochain lancement dans ces langues.
+- iOS : texte d'autorisation du micro traduit dans les 20 langues, déclaration de confidentialité Apple (aucun suivi, aucune donnée collectée), déclaration de chiffrement, et l'image de démarrage reste affichée derrière le jeu jusqu'à l'écran de chargement (plus de fond bleu uni entre les deux).
+- Guide de publication (web/STORES.md) : comptes, questionnaires de confidentialité, notes pour l'examinateur.
+
 ## DinoLearn 0.23.0 — Nouvel espace parents
 
 - Espace parents réorganisé en quatre onglets, plus compact et pensé pour le téléphone : **Profil**, **Progrès**, **Jeux**, **Réglages**. Les enfants sont en haut (un toucher pour changer, « + » pour en ajouter).

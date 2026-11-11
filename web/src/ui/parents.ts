@@ -17,6 +17,7 @@ import { dinoPortrait } from '../dino3d/portrait';
 import { inLanguage } from '../content/games';
 import { isFr, lang, second, t } from '../i18n';
 import { langInfo } from '../domain/langs';
+import { CREDITS } from '../content/credits';
 
 /** Texte de l'espace parents (clé « p.<nom> » des catalogues ; le français d'origine en français). */
 const T = (key: string, fr: string, params?: Record<string, string | number>) => t(`p.${key}`, params, fr);
@@ -132,6 +133,13 @@ const CSS = `
 .parents .print small { color: #6b7280; font-size: 12px; }
 .parents .print .new { position: absolute; top: 4px; right: 4px; background: #e5484d; color: #fff; font-size: 12px;
   font-weight: 700; border-radius: 10px; padding: 2px 8px; }
+.parents .parents-layer { position: fixed; inset: 0; z-index: 5; background: #fff; overflow-y: auto;
+  padding: max(12px, var(--safe-top, 0px)) max(16px, var(--safe-right, 0px)) 24px max(16px, var(--safe-left, 0px)); }
+.parents .credits { max-width: 820px; margin: 0 auto; }
+.parents .credits h3 { margin: 14px 0 4px; font-size: 15px; }
+.parents .credits ul { margin: 0; padding-left: 18px; font-size: 13px; }
+.parents .credits li { margin: 3px 0; }
+.parents .credits small { color: #6b7280; }
 @media (max-width: 560px) { .parents header h1 { display: none; } }
 `;
 
@@ -608,10 +616,23 @@ export function openParents(onClose: () => void) {
       shut.addEventListener('click', () => layer.remove());
       document.body.append(layer);
     });
+    // Crédits et licences : voix, reconnaissance, bibliothèques, images, polices, sons.
+    const credits = el('button', { type: 'button' }, T('credits', 'Crédits et licences'));
+    credits.addEventListener('click', () => {
+      const shut = el('button', { type: 'button', style: 'position:sticky;top:0;float:right' }, T('close', 'Fermer'));
+      const body = el('div', { class: 'credits' }, shut, el('h2', {}, T('credits', 'Crédits et licences')),
+        el('p', { class: 'help' }, T('creditsHelp', 'DinoLearn est construit avec ces logiciels, voix, images, polices et sons. Merci à leurs auteurs !')),
+        ...CREDITS.map((g) => el('div', {}, el('h3', {}, T(`credits.${g.id}`, g.fr)),
+          el('ul', {}, ...g.items.map((c) => el('li', {}, el('b', {}, c.name), c.author ? ` — ${c.author}` : '',
+            el('small', {}, ` · ${c.license} · ${c.source}`)))))));
+      const layer = el('div', { class: 'parents-layer' }, body);
+      shut.addEventListener('click', () => layer.remove());
+      root.append(layer);
+    });
     return el('section', {},
       el('h2', {}, T('data', 'Données')),
       el('p', { class: 'help' }, T('dataHelp', 'Tout est enregistré uniquement sur cet appareil. Aucune donnée n\'est envoyée.')),
-      reset, ' ', privacy,
+      el('div', { class: 'row' }, reset, privacy, credits),
     );
   }
 

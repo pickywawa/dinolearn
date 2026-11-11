@@ -285,7 +285,7 @@ const ko: Catalog = {
     roller_skate=롤러스케이트; canoe=카누; tram=전차; parachute=낙하산; satellite=인공위성; brain=뇌; bone=뼈; tongue=혀; leg=다리; tornado=회오리바람;
     lightning=번개; comet=혜성; cactus=선인장; blossom=벚꽃; feather=깃털`),
   // Espace parents : onglets.
-  'p.dailyShort': '그다음엔 공룡이 자러 가요.', 'p.tab.profile': '프로필', 'p.tab.progress': '성장', 'p.tab.games': '놀이', 'p.tab.settings': '설정', 'p.summary': '한눈에', 'p.lower': '낮추기', 'p.higher': '높이기',
+  'p.dailyShort': '그다음엔 공룡이 자러 가요.', 'p.credits': '만든 사람과 라이선스', 'p.creditsHelp': 'DinoLearn은 이 프로그램, 목소리, 그림, 글꼴, 소리로 만들어졌어요. 만든 분들께 감사드려요!', 'p.credits.voices': '공룡 목소리', 'p.credits.asr': '음성 인식', 'p.credits.code': '게임 엔진', 'p.credits.images': '그림과 글꼴', 'p.credits.sounds': '효과음', 'p.tab.profile': '프로필', 'p.tab.progress': '성장', 'p.tab.games': '놀이', 'p.tab.settings': '설정', 'p.summary': '한눈에', 'p.lower': '낮추기', 'p.higher': '높이기',
 };
 
 export default ko;

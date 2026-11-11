@@ -14,11 +14,15 @@
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
     <title>DinoLearn</title>
     <link rel="preload" as="image" href="/loading/splash.webp" />
+    <!-- Appli iOS : l'image de démarrage est déjà derrière la page (MainViewController) ; la page reste
+         transparente jusqu'à l'écran de chargement, pour un enchaînement sans coupure. -->
+    <script>if (window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform() === 'ios') document.documentElement.classList.add('native-ios');</script>
     <link rel="stylesheet" href="/src/loading.css" />
     <link rel="preload" as="fetch" href="/models/dino.glb" crossorigin />
     <style>
       html, body { margin: 0; height: 100%; background: #bfe6ff; overflow: hidden; touch-action: none;
         -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+      .native-ios, .native-ios body, .native-ios #loading-screen { background-color: transparent; }
       #game { position: fixed; inset: 0; width: 100%; height: 100%; padding: 0; }
       html:fullscreen, html:-webkit-full-screen { width: 100%; height: 100%; }
       :root { --safe-left: var(--app-safe-left, env(safe-area-inset-left, 0px));

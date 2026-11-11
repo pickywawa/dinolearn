@@ -1,0 +1,2 @@
+/* Pourquoi DinoLearn demande le micro (jeux à voix haute). */
+"NSMicrophoneUsageDescription" = "DinoLearn 会在口语游戏中听孩子的回答。识别在设备上完成：不会录音，也不会发送任何内容。";

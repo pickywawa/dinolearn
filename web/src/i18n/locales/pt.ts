@@ -501,7 +501,7 @@ const pt: Catalog = {
   "cty.neighbourYes": "Sim! Este país fica bem ao lado!",
   "cty.neighbourHint": "os vizinhos ficam bem perto, no mesmo continente",
   // Espace parents : onglets.
-  'p.dailyShort': 'Depois, o dino vai dormir.', 'p.tab.profile': 'Perfil', 'p.tab.progress': 'Progresso', 'p.tab.games': 'Jogos', 'p.tab.settings': 'Definições', 'p.summary': 'Em resumo', 'p.lower': 'Baixar', 'p.higher': 'Subir',
+  'p.dailyShort': 'Depois, o dino vai dormir.', 'p.credits': 'Créditos e licenças', 'p.creditsHelp': 'O DinoLearn é feito com estes programas, vozes, imagens, tipos de letra e sons. Obrigado aos seus autores!', 'p.credits.voices': 'Vozes do dino', 'p.credits.asr': 'Reconhecimento de voz', 'p.credits.code': 'Motor do jogo', 'p.credits.images': 'Imagens e tipos de letra', 'p.credits.sounds': 'Efeitos sonoros', 'p.tab.profile': 'Perfil', 'p.tab.progress': 'Progresso', 'p.tab.games': 'Jogos', 'p.tab.settings': 'Definições', 'p.summary': 'Em resumo', 'p.lower': 'Baixar', 'p.higher': 'Subir',
 };
 
 export default pt;

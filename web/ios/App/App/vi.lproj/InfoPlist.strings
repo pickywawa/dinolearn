@@ -1,0 +1,2 @@
+/* Pourquoi DinoLearn demande le micro (jeux à voix haute). */
+"NSMicrophoneUsageDescription" = "DinoLearn lắng nghe câu trả lời của bé trong các trò chơi nói. Việc nhận dạng diễn ra trên thiết bị: không có gì bị ghi âm hay gửi đi.";
