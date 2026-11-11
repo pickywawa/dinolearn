@@ -81,7 +81,7 @@ export class EndScene extends BaseScene {
       o.setScale(0);
       this.tweens.add({ targets: o, scale: 1, duration: 380, delay: 80 * i, ease: 'Back.easeOut' });
     });
-    this.again = candyButton(this, cx, H * 0.86, u * 0.4, u * 0.13, 'green', 'Rejouer', () => {
+    this.again = candyButton(this, cx, H * 0.86, u * 0.4, u * 0.13, 'green', t('ui.end.again', {}, 'Rejouer'), () => {
       // Temps de jeu du jour atteint : retour à l'accueil, où le dino va se coucher.
       if (app.progress.timeIsUp()) goTo(this, 'Home');
       else goTo(this, 'Game', data.mixed ? planetSeries() : { gameId: r.gameId });
@@ -183,8 +183,8 @@ export class EndScene extends BaseScene {
   private async afterMeal() {
     await this.wait(400);
     const burp = Math.random() < 0.5;
-    Sfx.play(burp ? 'burp' : 'fart');
     vibrate(burp ? [250] : [90, 50, 300]);
+    // Le bruit (vrai enregistrement) est joué par la réaction du dino.
     this.dino.react(burp ? 'burp' : 'fart');
     await this.wait(700);
     await this.say(burp ? 'burp' : 'fart');
@@ -214,7 +214,8 @@ export class EndScene extends BaseScene {
     const mouth = this.dino.mouthWorldPoint();
     let leveledUp = false;
     let full = false;
-    for (const fruit of [...this.fruits]) {
+    const meal = [...this.fruits];
+    for (const [i, fruit] of meal.entries()) {
       const result = feed(app.progress.dino, fruit.leftover.xp, app.progress.xpEatenToday());
       if (result.outcome === 'full' || result.outcome === 'maxLevel') {
         full = true;
@@ -233,7 +234,8 @@ export class EndScene extends BaseScene {
       app.progress.leftovers = app.progress.leftovers.filter((l) => l !== fruit.leftover);
       app.progress.saveFeeding(result.dino, result.xpEatenToday);
       this.eatenCount++;
-      Sfx.play('chomp');
+      // Un seul bruit de mastication pour tout le panier (un second au milieu d'un long repas).
+      if (chewSound(i, meal.length)) Sfx.play('chomp');
       this.dino.react('eat');
       this.dino.setBellyFill(growthProgress(result.dino));
       leveledUp ||= result.outcome === 'levelUp';
@@ -298,3 +300,6 @@ export class EndScene extends BaseScene {
     await this.say('end.again');
   }
 }
+
+/** Bruit de mastication pendant un repas de `count` fruits : au premier, et au milieu si le repas est long. */
+export const chewSound = (index: number, count: number) => index === 0 || (count >= 5 && index === Math.floor(count / 2));

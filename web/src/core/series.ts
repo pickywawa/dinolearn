@@ -83,12 +83,17 @@ export class Series {
     const count = (!this.mixed && list[0].seriesLength) || seriesLengthFor(progress.age, b);
     const picks: { game: GameDef; question: { id: string; level: number }; isReview: boolean; due?: boolean }[] = [];
     if (this.mixed) {
-      // Une question par tirage, jamais deux fois le même jeu de suite. Les memory (longs) sont
-      // tirés moins souvent que les autres jeux, et au plus une fois par série.
+      // Une question par tirage, chacune d'un jeu différent : jamais deux questions du même jeu dans
+      // la série (s'il y a moins de jeux que de questions, on ne recommence un jeu qu'une fois tous
+      // les autres passés, et jamais deux fois de suite). Les memory (longs) sont tirés moins
+      // souvent que les autres jeux, et au plus une fois par série.
       let previous: GameDef | undefined;
       let memories = 0;
+      const used = new Set<GameDef>();
       for (let i = 0; i < count; i++) {
-        const options = list.filter((g) => g !== previous && !(g.memory && memories >= 1));
+        const allowed = (g: GameDef) => g !== previous && !(g.memory && memories >= 1);
+        if (!list.some((g) => allowed(g) && !used.has(g))) used.clear();
+        const options = list.filter((g) => allowed(g) && !used.has(g));
         if (!options.length) break;
         const weight = (g: GameDef) => (g.memory ? MEMORY_WEIGHT : 1);
         let r = rng() * options.reduce((sum, g) => sum + weight(g), 0);
@@ -97,6 +102,7 @@ export class Series {
         const taken = new Set(picks.filter((p) => p.game === game).map((p) => p.question.id));
         const [pick] = this.select(game, 1, rng, taken);
         if (pick) picks.push({ game, ...pick });
+        used.add(game);
         previous = game;
       }
     } else {

@@ -87,18 +87,18 @@ export class HomeScene extends BaseScene {
       u * 0.038, false);
 
     // Le gros bouton « Jouer » : une série de jeux au hasard (le tour du monde des jeux).
-    this.play = candyButton(this, cx, H * 0.52, u * 0.5, u * 0.16, 'green', 'Jouer', () => this.playRandom(),
+    this.play = candyButton(this, cx, H * 0.52, u * 0.5, u * 0.16, 'green', t('ui.home.play', {}, 'Jouer'), () => this.playRandom(),
       arrowTexture(this, 'play'), true);
 
     // La barre de navigation du bas.
     const tiles: { icon: string; text: string; onTap: () => void; keep?: (c: Phaser.GameObjects.Container) => void }[] = [];
     if (app.progress.settings.chooseGames) {
-      tiles.push({ icon: 'ui-missions', text: 'Missions', onTap: () => this.openChoose(),
+      tiles.push({ icon: 'ui-missions', text: t('ui.home.missions', {}, 'Missions'), onTap: () => this.openChoose(),
         keep: (c) => (this.choose = c) });
     }
-    tiles.push({ icon: 'ui-mydino', text: 'Mon Dino', onTap: () => { this.clearIdle(); goTo(this, 'Wardrobe'); },
+    tiles.push({ icon: 'ui-mydino', text: t('ui.home.mydino', {}, 'Mon Dino'), onTap: () => { this.clearIdle(); goTo(this, 'Wardrobe'); },
       keep: (c) => (this.wardrobe = c) });
-    tiles.push({ icon: 'ui-settings', text: 'Paramètres', onTap: () => this.openParentSpace(),
+    tiles.push({ icon: 'ui-settings', text: t('ui.home.settings', {}, 'Paramètres'), onTap: () => this.openParentSpace(),
       keep: (c) => (this.settings = c) });
     // Les tuiles tiennent à droite du dino, centrées sous le bouton « Jouer ».
     const th = u * 0.17, gap = u * 0.03;

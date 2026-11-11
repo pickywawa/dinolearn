@@ -433,13 +433,14 @@ describe('contenus', () => {
     expect(q.hints!.length).toBeGreaterThan(0);
   });
 
-  it('série mélangée : des questions de plusieurs jeux, jamais deux fois le même jeu de suite', () => {
+  it('série mélangée : chaque question d\'un jeu différent', () => {
     const progress = new Progress(new MemoryStore());
     progress.age = 7;
     const series = new Series(GAMES, progress, mulberry32(21));
     expect(series.mixed).toBe(true);
     expect(series.items).toHaveLength(10);
-    expect(new Set(series.items.map((i) => i.game.id)).size).toBeGreaterThan(3);
+    // Chaque question vient d'un jeu différent.
+    expect(new Set(series.items.map((i) => i.game.id)).size).toBe(series.items.length);
     series.items.slice(1).forEach((item, i) => expect(item.game).not.toBe(series.items[i].game));
     while (!series.finished) {
       series.tap(series.current.answer);

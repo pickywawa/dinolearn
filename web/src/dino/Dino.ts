@@ -14,7 +14,8 @@ export type DinoReaction =
   | 'celebrate' | 'clap' | 'fistPump' | 'wink' | 'nodYes' | 'sad' | 'surprised' | 'march';
 
 /** Petites animations jouées au hasard quand le dino attend. */
-const IDLE_FUN: DinoReaction[] = ['wave', 'yawn', 'roar', 'lookAround', 'hop', 'spin', 'wink', 'march', 'clap', 'surprised'];
+/** (Le rot, de temps en temps : le vrai bruit enregistré, avec sa bulle.) */
+const IDLE_FUN: DinoReaction[] = ['wave', 'yawn', 'burp', 'lookAround', 'hop', 'spin', 'wink', 'march', 'clap', 'surprised'];
 
 /** Chaque réaction est une animation du modèle 3D (clip glTF, fait dans Blender). */
 const CLIPS: Record<DinoReaction, string> = {
@@ -545,15 +546,13 @@ export class Dino extends Phaser.GameObjects.Container {
       case 'roar':
         Sfx.play('roar');
         break;
-      case 'clap':
-        for (const f of [8.5, 15.5, 22.5, 29.5]) this.scene.time.delayedCall((f / 24) * 1000, () => this.active && Sfx.play('pop'));
-        break;
       case 'celebrate':
         this.starBurst(7);
         this.scene.time.delayedCall(900, () => this.active && this.starBurst(5));
         this.sparkle();
         break;
       case 'burp': {
+        Sfx.play('burp');
         const m = this.mouthLocal();
         const bubble = this.scene.add.circle(m.x, m.y, 18, 0xbfe6ff, 0.7).setStrokeStyle(4, 0xffffff);
         this.add(bubble);
@@ -563,6 +562,7 @@ export class Dino extends Phaser.GameObjects.Container {
         break;
       }
       case 'fart': {
+        Sfx.play('fart');
         const back = p.yaw >= 0 ? -1 : 1;
         for (let i = 0; i < 4; i++) {
           const puff = this.scene.add.circle(back * (120 + i * 12), -60 - i * 6, 26, 0xa5d36b, 0.75);
@@ -598,7 +598,6 @@ export class Dino extends Phaser.GameObjects.Container {
     this.busy = true;
     this.rig.setMouth('wide');
     this.lookAt(to.x, to.y, 400);
-    Sfx.play('slurp');
     const drawTo = (t: number) => {
       const x = from.x + (to.x - from.x) * t;
       const y = from.y + (to.y - from.y) * t;

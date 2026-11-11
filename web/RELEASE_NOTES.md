@@ -1,3 +1,10 @@
+## DinoLearn 0.22.0 — Accueil traduit, séries variées, présentation plus riche, sons plus doux
+
+- Les boutons de l'accueil (Jouer, Missions, Mon Dino, Paramètres) et « Rejouer » sont traduits dans les 20 langues.
+- Séries au hasard : chaque question vient d'un jeu différent.
+- La présentation du dino au premier lancement est plus complète (il vient de naître, les jeux, les fruits, les cadeaux, « Mon Dino », le droit à l'erreur), et un petit bouton « Passer » en bas à droite permet d'aller directement au prénom.
+- Sons : un seul bruit de mastication pour tout un panier de fruits (deux pour un long repas), un vrai bruit de rot à l'accueil au lieu du rugissement synthétique, plus de bruit avant le rire quand on chatouille le dino, un seul bruit quand il gobe une mouche, et plus de petits « pops » quand il applaudit.
+
 ## DinoLearn 0.21.2 — Packs de reconnaissance vocale sur HuggingFace
 
 - Les packs de reconnaissance vocale sont maintenant hébergés sur HuggingFace (comme les voix du dino) au lieu d'être embarqués dans le site à chaque mise en ligne : le site passe d'environ 760 Mo à environ 50 Mo par déploiement (quota de stockage GitHub).

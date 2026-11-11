@@ -2,7 +2,6 @@ import { safeArea } from './safeArea';
 import Phaser from 'phaser';
 import { Dino } from '../dino/Dino';
 import { app } from '../core/app';
-import { Sfx } from '../core/sfx';
 import { Bubble } from './Bubble';
 
 /** Le dino grandit avec son niveau (1 à 40) : facteur de taille d'affichage. */
@@ -45,7 +44,7 @@ export function makeTickable(dino: Dino) {
   zone.on('pointerup', (pointer: Phaser.Input.Pointer) => {
     const eligible = touches.delete(pointer.id);
     if (!eligible || dino.isSleeping) return;
-    Sfx.play('boing');
+    // Pas de bruit avant la phrase : le dino rit, c'est tout.
     dino.react('tickle');
     void app.voice.line('tickle');
   });

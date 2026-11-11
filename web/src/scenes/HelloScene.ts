@@ -6,6 +6,7 @@ import type { SpeechLang } from '../domain/speech';
 /** Couleur du dino dite par le dino (« vert », « green »…). */
 const dinoColorName = (i: number) => t(`dinocolor.${i}`, {}, DINO_COLORS[i].name);
 import { FIRST_NAMES } from '../content/names';
+import { itemTexture } from '../content/items';
 import { app } from '../core/app';
 import { ears, packInstalled, voiceSupported } from '../core/ears';
 import { Music } from '../core/music';
@@ -16,6 +17,7 @@ import { AGE_GRAMMAR, Heard, findAge, findName, nameGrammar } from '../domain/sp
 import { Dino } from '../dino/Dino';
 import { DINO_COLORS } from '../dino/parts';
 import { Guide } from '../ui/Guide';
+import { safeArea } from '../ui/safeArea';
 import { MicButton } from '../ui/MicButton';
 import { firstLaunchSetup } from '../ui/pin';
 import { growthFactor, unit } from '../ui/scenery';
@@ -103,63 +105,119 @@ export abstract class HelloScene extends BaseScene {
     await this.wait(400);
   }
 
+  /** L'enfant (ou le parent) a touché « Passer » : la présentation s'arrête là. */
+  private skipping = false;
+
+  /** Petit bouton discret en bas à droite, pour passer la présentation. */
+  private skipButton(): Phaser.GameObjects.Container {
+    const { width: W, height: H } = this.scale;
+    const u = unit(this);
+    const inset = safeArea(this);
+    const text = this.add.text(0, 0, t('ui.skip', {}, 'Passer') + '  ›', {
+      fontFamily: "'Baloo 2', Arial, sans-serif", fontSize: `${Math.round(u * 0.045)}px`, color: '#ffffff', fontStyle: 'bold',
+    }).setOrigin(0.5);
+    const w = text.width + u * 0.07, h = text.height + u * 0.02;
+    const bg = this.add.graphics().fillStyle(0x1e2a44, 0.45).fillRoundedRect(-w / 2, -h / 2, w, h, h / 2);
+    const button = this.add.container(W - inset.right - u * 0.04 - w / 2, H - u * 0.04 - h / 2, [bg, text])
+      .setDepth(50).setAlpha(0.8).setSize(w, h).setInteractive({ useHandCursor: true });
+    button.on('pointerup', () => {
+      if (this.skipping) return;
+      this.skipping = true;
+      app.voice.stop();
+      this.clearShown();
+      button.destroy();
+    });
+    return button;
+  }
+
   private async present() {
     const { width: W, height: H } = this.scale;
     const u = unit(this);
     const baseScale = this.dino.scale;
-    this.dino.react('wave');
-    await app.voice.say([{ text: app.voice.lines.pick('hello.1').replace('{color}', dinoColorName(app.progress.color)), lang: lang() }]);
-    if (!this.alive) return;
+    this.skipping = false;
+    const skip = this.skipButton();
+    /** Faux dès que la présentation est passée (ou la scène quittée). */
+    const go = () => this.alive && !this.skipping;
+    try {
+      this.dino.react('wave');
+      await app.voice.say([{ text: app.voice.lines.pick('hello.1').replace('{color}', dinoColorName(app.progress.color)), lang: lang() }]);
+      if (!go()) return;
 
-    // Les jeux : des bulles qui apparaissent autour du dino.
-    this.dino.react('cheer');
-    this.popIcons(['lion', 'shapes', 'letters', 'numbers', 'flag-gb'], H * 0.24);
-    await this.say('hello.4');
-    this.clearShown();
+      // Il vient de naître : il regarde autour de lui, tout étonné.
+      this.dino.react('lookAround');
+      await this.say('hello.2');
+      if (!go()) return;
 
-    // Les fruits gagnés tombent dans le panier…
-    const basket = this.add.image(W * 0.78, H * 0.62, 'ui-basket');
-    basket.setScale((u * 0.22) / basket.width);
-    this.shown.push(basket);
-    const fruits = FRUITS.slice(0, 5).map((food, i) => {
-      const fruit = this.add.image(basket.x + (i - 2) * u * 0.035, -u * 0.1, foodImage(food));
-      fruit.setScale((u * 0.08) / fruit.width);
-      this.tweens.add({ targets: fruit, y: basket.y - u * 0.07 - (i % 2) * u * 0.03, duration: 600, delay: i * 180, ease: 'Bounce.easeOut',
-        onComplete: () => Sfx.play('pop') });
-      this.shown.push(fruit);
-      return fruit;
-    });
-    await this.say('hello.5');
+      // Les jeux : des bulles qui apparaissent autour du dino.
+      this.dino.react('cheer');
+      this.popIcons(['lion', 'shapes', 'letters', 'numbers', 'flag-gb'], H * 0.24);
+      await this.say('hello.4');
+      this.clearShown();
+      if (!go()) return;
 
-    // … puis le dino les mange et grandit.
-    const mouth = this.dino.mouthWorldPoint();
-    for (const fruit of fruits) {
-      await new Promise<void>((resolve) => this.tweens.add({
-        targets: fruit, x: mouth.x, y: mouth.y, scale: fruit.scale * 0.4, duration: 260, ease: 'Quad.easeIn',
-        onComplete: () => resolve(),
-      }));
-      fruit.setVisible(false);
+      // Les fruits gagnés tombent dans le panier…
+      const basket = this.add.image(W * 0.78, H * 0.62, 'ui-basket');
+      basket.setScale((u * 0.22) / basket.width);
+      this.shown.push(basket);
+      const fruits = FRUITS.slice(0, 5).map((food, i) => {
+        const fruit = this.add.image(basket.x + (i - 2) * u * 0.035, -u * 0.1, foodImage(food));
+        fruit.setScale((u * 0.08) / fruit.width);
+        // Un seul « pop », quand le premier fruit arrive.
+        this.tweens.add({ targets: fruit, y: basket.y - u * 0.07 - (i % 2) * u * 0.03, duration: 600, delay: i * 180, ease: 'Bounce.easeOut',
+          onComplete: () => i === 0 && Sfx.play('pop') });
+        this.shown.push(fruit);
+        return fruit;
+      });
+      await this.say('hello.5');
+      if (!go()) return;
+
+      // … puis le dino les mange (un seul bruit de mastication) et grandit.
+      const mouth = this.dino.mouthWorldPoint();
       Sfx.play('chomp');
-      this.dino.react('eat');
-      await this.wait(160);
+      for (const fruit of fruits) {
+        await new Promise<void>((resolve) => this.tweens.add({
+          targets: fruit, x: mouth.x, y: mouth.y, scale: fruit.scale * 0.4, duration: 260, ease: 'Quad.easeIn',
+          onComplete: () => resolve(),
+        }));
+        fruit.setVisible(false);
+        this.dino.react('eat');
+        await this.wait(160);
+        if (!go()) return;
+      }
+      void this.say('hello.6');
+      await this.wait(600);
+      Sfx.play('levelUp');
+      this.dino.react('levelUp');
+      this.tweens.add({ targets: this.dino, scale: baseScale * 1.25, duration: 900, ease: 'Back.easeOut' });
+      await this.waitForVoice();
+      this.clearShown();
+      if (!go()) return;
+
+      // Les récompenses.
+      this.dino.react('spin');
+      this.popIcons(['ui-gift', 'ui-star', 'ui-envelope'], H * 0.24);
+      await this.say('hello.7');
+      this.clearShown();
+      if (!go()) return;
+
+      // « Mon Dino » : l'habiller.
+      this.dino.react('happy');
+      this.popIcons(['ui-mydino', itemTexture('crown'), itemTexture('glasses'), itemTexture('cape-red')], H * 0.24);
+      await this.say('hello.9');
+      this.clearShown();
+      if (!go()) return;
+
+      // Se tromper, ce n'est pas grave.
+      this.dino.react('nodYes');
+      await this.say('hello.10');
+      if (!go()) return;
+
+      this.dino.react('cheer');
+      await this.say('hello.8');
+    } finally {
+      if (skip.active) skip.destroy();
+      this.tweens.add({ targets: this.dino, scale: baseScale, duration: 600 });
     }
-    void this.say('hello.6');
-    await this.wait(600);
-    Sfx.play('levelUp');
-    this.dino.react('levelUp');
-    this.tweens.add({ targets: this.dino, scale: baseScale * 1.25, duration: 900, ease: 'Back.easeOut' });
-    await this.waitForVoice();
-    this.clearShown();
-
-    // Les récompenses (sans détailler lesquelles).
-    this.dino.react('spin');
-    this.popIcons(['ui-gift', 'ui-star', 'ui-envelope'], H * 0.24);
-    await this.say('hello.7');
-    this.clearShown();
-
-    this.dino.react('cheer');
-    await this.say('hello.8');
-    this.tweens.add({ targets: this.dino, scale: baseScale, duration: 600 });
   }
 
   /** Attend que le dino ait fini de parler. */
