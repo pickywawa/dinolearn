@@ -39,13 +39,43 @@ export interface VoicePack {
   name: string;
 }
 
-/** Packs de reconnaissance (ceux des langues qui en ont un léger), servis à côté du jeu. */
+/**
+ * Les archives des packs sont publiées sur HuggingFace (dataset public, voir
+ * .github/workflows/voice-packs.yml) : le site n'a plus à les embarquer. Les listes de
+ * mots, petites, restent servies à côté du jeu.
+ */
+export const PACKS_BASE = 'https://huggingface.co/datasets/pickywawa/dinolearn-voice-packs/resolve/main/';
+
+/** Packs de reconnaissance (ceux des langues qui en ont un léger). */
 export const VOICE_PACKS = Object.fromEntries(LANGS.filter((l) => l.asr).map((l) => [l.code, {
-  file: `voice/${l.asr!.model}.tar.gz`, words: `voice/${l.code}.words.txt`, sizeMb: l.asr!.sizeMb, name: l.name,
+  file: `${PACKS_BASE}${l.asr!.model}.tar.gz`, words: `voice/${l.code}.words.txt`, sizeMb: l.asr!.sizeMb, name: l.name,
 }])) as Record<SpeechLang, VoicePack>;
 
-/** Adresse complète : le moteur tourne dans un worker, qui ne connaît pas le dossier du jeu. */
-const packUrl = (lang: SpeechLang) => voiceAsset(VOICE_PACKS[lang].file);
+/** Adresse de l'archive sur HuggingFace. */
+const packUrl = (lang: SpeechLang) => VOICE_PACKS[lang].file;
+/** Ancienne adresse (le site du jeu) : les packs déjà installés depuis là restent valables. */
+const legacyUrl = (lang: SpeechLang) => voiceAsset(`voice/${LANGS.find((l) => l.code === lang)!.asr!.model}.tar.gz`);
+
+/**
+ * Le moteur range chaque pack sous un nom tiré de l'adresse qu'on lui donne. Le jeu télécharge
+ * l'archive lui-même (pour la barre de progression) et la lui passe en adresse locale (blob:) :
+ * un seul téléchargement. On retient ici sous quelle adresse chaque pack a été rangé.
+ */
+const INSTALLED_KEY = 'dinolearn.asr.v1';
+function installedUrls(): Partial<Record<SpeechLang, string>> {
+  try {
+    return JSON.parse(localStorage.getItem(INSTALLED_KEY) ?? '{}');
+  } catch {
+    return {};
+  }
+}
+function rememberUrl(lang: SpeechLang, url: string) {
+  try {
+    localStorage.setItem(INSTALLED_KEY, JSON.stringify({ ...installedUrls(), [lang]: url }));
+  } catch {
+    // Stockage refusé : le pack sera cherché à son adresse habituelle.
+  }
+}
 
 /** Base IndexedDB où le moteur garde les modèles décompressés (dossier `/vosk` d'Emscripten). */
 const STORE_DB = '/vosk';
@@ -93,15 +123,15 @@ export async function askMicPermission(): Promise<boolean> {
   }
 }
 
-/** Vrai si le pack est déjà décompressé dans le navigateur (aucun téléchargement à prévoir). */
-export async function packInstalled(lang: SpeechLang): Promise<boolean> {
+/** Le pack rangé sous cette adresse est-il décompressé dans le navigateur ? */
+async function extractedAt(url: string): Promise<boolean> {
   try {
     const dbs = await indexedDB.databases?.();
     if (dbs && !dbs.some((d) => d.name === STORE_DB)) return false;
   } catch {
     // `databases()` absent : on ouvre directement.
   }
-  const key = `${STORE_DB}/${packUrl(lang).replace(/[\W]/g, '_')}/extracted.ok`;
+  const key = `${STORE_DB}/${url.replace(/[\W]/g, '_')}/extracted.ok`;
   return new Promise((resolve) => {
     const req = indexedDB.open(STORE_DB);
     req.onerror = () => resolve(false);
@@ -119,6 +149,32 @@ export async function packInstalled(lang: SpeechLang): Promise<boolean> {
   });
 }
 
+/** Adresse sous laquelle le pack est installé (undefined : pas installé). */
+async function installedUrl(lang: SpeechLang): Promise<string | undefined> {
+  for (const url of [installedUrls()[lang], packUrl(lang), legacyUrl(lang)]) {
+    if (url && await extractedAt(url)) return url;
+  }
+  return undefined;
+}
+
+/** Vrai si le pack est déjà décompressé dans le navigateur (aucun téléchargement à prévoir). */
+export async function packInstalled(lang: SpeechLang): Promise<boolean> {
+  return !!await installedUrl(lang);
+}
+
+/** Charge un modèle Vosk depuis une adresse (rejette si l'archive est illisible ou absente). */
+function openModel(url: string): Promise<Model> {
+  return import('vosk-browser').then(({ Model }) => new Promise<Model>((resolve, reject) => {
+    const m = new Model(url, -1);
+    const fail = (why: string) => {
+      m.terminate();
+      reject(new Error(why));
+    };
+    m.on('load', (message) => (message.event === 'load' && message.result ? resolve(m) : fail('Modèle illisible')));
+    m.on('error', (message) => fail(message.event === 'error' ? message.error : 'Erreur du moteur'));
+  }));
+}
+
 class Ears {
   private models = new Map<SpeechLang, Promise<Model>>();
   private vocabs = new Map<SpeechLang, Promise<Set<string> | undefined>>();
@@ -133,16 +189,8 @@ class Ears {
         if (other !== lang) void m.then((x) => x.terminate()).catch(() => undefined);
       }
       this.models.clear();
-      // `createModel` ne rend jamais la main si le téléchargement échoue : on écoute aussi l'erreur.
-      model = import('vosk-browser').then(({ Model }) => new Promise<Model>((resolve, reject) => {
-        const m = new Model(packUrl(lang), -1);
-        const fail = (why: string) => {
-          m.terminate();
-          reject(new Error(why));
-        };
-        m.on('load', (message) => (message.event === 'load' && message.result ? resolve(m) : fail('Modèle illisible')));
-        m.on('error', (message) => fail(message.event === 'error' ? message.error : 'Erreur du moteur'));
-      }));
+      // Installé : depuis l'appareil ; sinon le moteur télécharge l'archive lui-même.
+      model = installedUrl(lang).then((url) => openModel(url ?? packUrl(lang)));
       model.catch(() => this.models.delete(lang));
       this.models.set(lang, model);
     }
@@ -162,31 +210,33 @@ class Ears {
   }
 
   /**
-   * Télécharge et installe un pack (décompression sur l'appareil). Le modèle en mémoire
-   * (celui qui écoute l'enfant) n'est pas délogé : le pack est chargé à part, puis libéré.
+   * Installe un pack (décompression sur l'appareil). `archive` : l'archive déjà téléchargée
+   * par le jeu (barre de progression), passée au moteur sans la retélécharger. Le modèle en
+   * mémoire (celui qui écoute l'enfant) n'est pas délogé : le pack est chargé à part, puis libéré.
    */
-  async install(lang: SpeechLang): Promise<void> {
+  async install(lang: SpeechLang, archive?: Blob): Promise<void> {
     try {
       await navigator.storage?.persist?.();
     } catch {
       // Stockage non persistant : le navigateur pourra effacer le pack s'il manque de place.
     }
-    if (this.models.size === 0 || this.models.has(lang)) {
+    if (!await packInstalled(lang)) {
+      const local = archive ? URL.createObjectURL(archive) : undefined;
+      try {
+        const model = await openModel(local ?? packUrl(lang));
+        if (local) rememberUrl(lang, local);
+        // Langue en cours (ou aucune) : on garde le modèle prêt à écouter ; sinon on le libère.
+        if (this.models.size === 0 || this.models.has(lang)) {
+          for (const [, m] of this.models) void m.then((x) => x.terminate()).catch(() => undefined);
+          this.models.set(lang, Promise.resolve(model));
+        } else {
+          model.terminate();
+        }
+      } finally {
+        if (local) URL.revokeObjectURL(local);
+      }
+    } else if (this.models.size === 0) {
       await this.load(lang);
-    } else {
-      const { Model } = await import('vosk-browser');
-      await new Promise<void>((resolve, reject) => {
-        const m = new Model(packUrl(lang), -1);
-        m.on('load', (message) => {
-          m.terminate();
-          if (message.event === 'load' && message.result) resolve();
-          else reject(new Error('Modèle illisible'));
-        });
-        m.on('error', (message) => {
-          m.terminate();
-          reject(new Error(message.event === 'error' ? message.error : 'Erreur du moteur'));
-        });
-      });
     }
     await this.vocab(lang);
   }
@@ -196,6 +246,11 @@ class Ears {
     for (const m of this.models.values()) void m.then((x) => x.terminate()).catch(() => undefined);
     this.models.clear();
     this.vocabs.clear();
+    try {
+      localStorage.removeItem(INSTALLED_KEY);
+    } catch {
+      // ignoré
+    }
     await new Promise<void>((resolve) => {
       const req = indexedDB.deleteDatabase(STORE_DB);
       req.onsuccess = req.onerror = req.onblocked = () => resolve();

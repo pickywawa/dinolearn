@@ -1,7 +1,6 @@
 import { PackId, SIZES_MB, asrLanguages, languageOf, remainingSeconds, secondLanguage, throughput } from '../domain/packs';
 import { SpeechLang } from '../domain/speech';
 import { app } from './app';
-import { voiceAsset } from './native';
 import { appLanguage } from './appSettings';
 import { VOICE_PACKS, ears, packInstalled, storageRoom, voiceSupported } from './ears';
 import { setNeuralVoice } from './neuralVoice';
@@ -172,6 +171,7 @@ class Downloads {
    */
   private async installAsr(langs: SpeechLang[], task: TaskProgress, onBytes: (n: number) => void) {
     if (!voiceSupported()) throw new Error('Ce navigateur ne permet pas la reconnaissance vocale.');
+    const archives = new Map<SpeechLang, Blob>();
     for (const l of langs) {
       if (await packInstalled(l)) {
         markAsrInstalled(l);
@@ -180,22 +180,27 @@ class Downloads {
       if (await storageRoom(l) === 'full') {
         throw new Error('Pas assez de place dans ce navigateur (en navigation privée, ouvrez une fenêtre normale).');
       }
-      const res = await fetch(voiceAsset(VOICE_PACKS[l].file));
+      const res = await fetch(VOICE_PACKS[l].file);
       if (!res.ok || !res.body || res.headers.get('content-type')?.includes('html')) {
-        throw new Error('Ce pack n\'est pas disponible sur le site pour l\'instant.');
+        throw new Error('Ce pack n\'est pas disponible pour l\'instant.');
       }
       const reader = res.body.getReader();
+      const parts: BlobPart[] = [];
       for (;;) {
         const { done, value } = await reader.read();
         if (done) break;
+        parts.push(value);
         onBytes(value.length);
       }
+      archives.set(l, new Blob(parts, { type: 'application/gzip' }));
     }
     task.state = 'installing';
     this.emit();
     for (const l of langs) {
       if (await packInstalled(l)) continue;
-      await ears.install(l);
+      // L'archive téléchargée ci-dessus est passée au moteur : pas de second téléchargement.
+      await ears.install(l, archives.get(l));
+      archives.delete(l);
       markAsrInstalled(l);
     }
   }

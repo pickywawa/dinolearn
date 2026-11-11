@@ -1,3 +1,9 @@
+## DinoLearn 0.21.2 — Packs de reconnaissance vocale sur HuggingFace
+
+- Les packs de reconnaissance vocale sont maintenant hébergés sur HuggingFace (comme les voix du dino) au lieu d'être embarqués dans le site à chaque mise en ligne : le site passe d'environ 760 Mo à environ 50 Mo par déploiement (quota de stockage GitHub).
+- Un seul téléchargement par pack : le jeu le télécharge (barre de progression) et le passe directement au moteur de reconnaissance.
+- Les packs déjà installés restent valables : rien à retélécharger après la mise à jour.
+
 ## DinoLearn 0.21.1 — Nouvelle icône, démarrage d'un seul tenant, premier lancement fluide
 
 - Nouvelle icône (Android, iOS, site) et nouvel écran de démarrage : l'écran de chargement est la grande image de DinoLearn. Sur Android, l'écran de démarrage du système reste affiché jusqu'à ce qu'elle soit prête (plus d'écran vide entre les deux) ; sur iOS, c'est la même image dès l'ouverture.

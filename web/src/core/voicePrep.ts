@@ -1,4 +1,3 @@
-import { voiceAsset } from './native';
 import { VOICE_PACKS, ears, packInstalled, voiceSupported } from './ears';
 import { downloads } from './packs';
 import { SpeechLang } from '../domain/speech';
@@ -12,7 +11,7 @@ import { SpeechLang } from '../domain/speech';
 /** Le pack est-il bien servi à côté du jeu ? (sinon certains serveurs renvoient la page du jeu à la place) */
 export async function served(lang: SpeechLang): Promise<boolean> {
   try {
-    const head = await fetch(voiceAsset(VOICE_PACKS[lang].file), { method: 'HEAD' });
+    const head = await fetch(VOICE_PACKS[lang].file, { method: 'HEAD' });
     return head.ok && !head.headers.get('content-type')?.includes('html');
   } catch {
     return false;
