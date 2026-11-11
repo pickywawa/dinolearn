@@ -1,11 +1,12 @@
 /**
  * Les cris d'animaux écrits dans les phrases du dino (« Qui fait coin coin ? ») sont joués
- * avec de vrais enregistrements (`public/sfx/animals/`, CC0, BigSoundBank / Joseph Sardin)
+ * avec de vrais enregistrements (`public/sfx/animals/`, sons libres de Pixabay)
  * au lieu d'être lus par la voix. Sans enregistrement, la voix les dit (lentement).
  */
 
 /** Animaux dont on a l'enregistrement. */
-export const RECORDED_ANIMALS = new Set(['donkey', 'duck', 'frog', 'horse', 'mouse', 'owl', 'rooster', 'sheep']);
+export const RECORDED_ANIMALS = new Set(['bee', 'cat', 'chick', 'cow', 'dog', 'donkey', 'duck', 'frog', 'hen', 'horse', 'mouse', 'owl',
+  'pig', 'rooster', 'sheep', 'snake', 'turkey']);
 
 const L = '\\p{L}';
 const cry = (body: string) => new RegExp(`(?<![${L}])(?:${body})(?![${L}])`, 'giu');
@@ -26,6 +27,9 @@ const CRIES: [RegExp, string][] = [
   [cry('cot(?:[ -]cot)*(?:[ -]codet)?'), 'hen'],
   [cry('bz{2,}'), 'bee'],
   [cry('piou(?:[ -]piou)*'), 'chick'],
+  [cry('groin(?:[ -]groin)*'), 'pig'],
+  [cry('glou(?:[ -]glou)+'), 'turkey'],
+  [cry('s{3,}'), 'snake'],
 ];
 
 export type CryPiece = { text: string } | { animal: string };

@@ -8,14 +8,15 @@ Puis ajouter l'animal à RECORDED_ANIMALS (src/domain/cries.ts) et à public/sfx
 import subprocess, sys, array, os, glob
 src = sys.argv[1]
 out = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'public', 'sfx', 'animals')
-# Longueur gardée : le cri le plus fort, sans le reste de l'enregistrement.
-WINDOW = {'donkey': 3.5, 'duck': 2.2, 'frog': 2.0, 'mouse': 2.0, 'rooster': 2.4, 'horse': 1.8, 'owl': 1.4, 'sheep': 1.0,
-          'cow': 2.5, 'dog': 1.6, 'cat': 1.6, 'hen': 2.0, 'bee': 2.0, 'chick': 2.0, 'pig': 1.8, 'turkey': 2.0, 'snake': 1.8}
+ANIMALS = {'cow', 'dog', 'cat', 'duck', 'sheep', 'pig', 'hen', 'frog', 'horse', 'owl', 'snake', 'mouse', 'bee',
+           'rooster', 'donkey', 'turkey', 'chick'}
+# Au plus 3,5 s : le cri le plus fort, sans le reste de l'enregistrement.
+MAX = 3.5
 RATE = 22050
 for f in sorted(glob.glob(os.path.join(src, '*.*'))):
     name = os.path.splitext(os.path.basename(f))[0]
-    if name not in WINDOW: continue
-    win = WINDOW[name]
+    if name not in ANIMALS: continue
+    win = MAX
     raw = subprocess.run(['ffmpeg', '-v', 'error', '-i', f, '-ac', '1', '-ar', str(RATE), '-f', 's16le', '-'], capture_output=True).stdout
     pcm = array.array('h'); pcm.frombytes(raw)
     hop = RATE // 20

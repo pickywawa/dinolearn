@@ -91,7 +91,7 @@ export const CREDITS: CreditGroup[] = [
       { name: '7 Eating Crunches', license: 'CC0', source: 'opengameart.org/content/7-eating-crunches' },
       { name: '80 CC0 creature SFX', author: 'rubberduck', license: 'CC0', source: 'opengameart.org/content/80-cc0-creature-sfx' },
       { name: '8 wet squish, slurp impacts', license: 'CC0', source: 'opengameart.org/content/8-wet-squish-slurp-impacts' },
-      { name: 'Cris d\'animaux (âne, canard, grenouille, cheval, souris, hibou, coq, mouton)', author: 'Joseph Sardin — La Sonothèque', license: 'CC0', source: 'bigsoundbank.com' },
+      { name: 'Cris d\'animaux (17 animaux)', author: 'Dragon Studio, Universfield, freesound_community, sondangsirait419, lazychillzone, gargamel10, nikin, alex_jauk, tanweraman, u_jd81cxyq22', license: 'Licence Pixabay', source: 'pixabay.com' },
     ],
   },
 ];

@@ -1,3 +1,13 @@
+## DinoLearn 0.25.0 — Programme le dino, micro automatique, vrais cris d'animaux
+
+- **Nouveau jeu : Programme le dino** (initiation au codage, dès 3 ans). Des flèches pour amener le dino jusqu'au fruit : mode direct pour les petits, programme à lancer avec le bouton vert, deux fruits à ramasser, puis la boucle (×2, ×3) au CP. Aides après les erreurs.
+- **Micro** : il s'allume tout seul quand c'est à l'enfant de parler, et gonfle avec sa voix. La voix du dino ne devient plus inaudible juste après l'écoute (le téléphone ne passe plus en mode appel).
+- **Anglais à voix haute** : le dino montre l'image et dit le mot, l'enfant le répète.
+- **Vrais cris d'animaux** pour 17 animaux (vache, chien, chat, canard, coq, âne…), à la place des cris lus par la voix.
+- Plus de rot ni de pet : après un bon repas, le ventre du dino gargouille (une fois sur deux) ; à l'accueil, il dit qu'il a faim.
+- Espace parents : nouvel onglet **Contrôle** (temps de jeu, coucher, option « Proposer des fiches à imprimer ») et onglet **Impression**.
+- Dépôt nettoyé (fichiers inutilisés retirés, démarrage un peu plus léger).
+
 ## DinoLearn 0.24.0 — Prêt pour les stores
 
 - Nouvel écran « Crédits et licences » (espace parents → Réglages → Données) : voix, reconnaissance vocale, bibliothèques, images, polices et bruitages, avec leurs auteurs et licences.

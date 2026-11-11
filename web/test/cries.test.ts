@@ -9,15 +9,16 @@ describe('cris d\'animaux enregistrés', () => {
     expect(splitCries('Qui fait hiiii, et galope ?')).toEqual([{ text: 'Qui fait' }, { animal: 'horse' }, { text: ', et galope ?' }]);
     expect(splitCries('Qui fait hi-han ?')).toEqual([{ text: 'Qui fait' }, { animal: 'donkey' }]);
     expect(splitCries('Qui fait bêêê ?')).toEqual([{ text: 'Qui fait' }, { animal: 'sheep' }]);
-    // Pas d'enregistrement : la voix dit le cri.
-    expect(splitCries('Qui fait meuh ?')).toEqual([{ text: 'Qui fait meuh ?' }]);
+    // Sans enregistrement de cet animal : la voix dit le cri.
+    expect(splitCries('Qui fait meuh ?', new Set(['duck']))).toEqual([{ text: 'Qui fait meuh ?' }]);
+    expect(splitCries('Qui fait sss, et n\'a pas de pattes ?')).toEqual([{ text: 'Qui fait' }, { animal: 'snake' }, { text: ', et n\'a pas de pattes ?' }]);
     // « coin » dans un mot, ou « hou » seul : pas un cri.
     expect(splitCries('Le coin de la table. Hou là là !')).toEqual([{ text: 'Le coin de la table. Hou là là !' }]);
   });
 
   it('chaque animal enregistré a son fichier, et ses devinettes « Qui fait… ? » utilisent l\'enregistrement', () => {
     for (const animal of RECORDED_ANIMALS) expect(existsSync(`public/sfx/animals/${animal}.mp3`), animal).toBe(true);
-    const ids = new Map([['duck', 'duck'], ['sheep', 'sheep'], ['frog', 'frog'], ['horse', 'horse'], ['owl', 'owl'], ['mouse', 'mouse'], ['rooster', 'rooster'], ['donkey', 'donkey']]);
+    const ids = new Map([...RECORDED_ANIMALS].map((a) => [a, a]));
     for (const [id, , text] of RIDDLES) {
       const animal = ids.get(id);
       if (!animal || !text.startsWith('Qui fait')) continue;

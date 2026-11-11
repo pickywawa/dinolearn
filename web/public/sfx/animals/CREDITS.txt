@@ -1,10 +1,19 @@
-Cris d'animaux : enregistrements de Joseph SARDIN — BigSoundBank.com / La Sonothèque (licence CC0, domaine public),
-découpés au cri le plus fort, normalisés et convertis en MP3 mono :
-- donkey.mp3 : « Donkey, braying #2 » — https://bigsoundbank.com/donkey-braying-2-s1550.html
-- duck.mp3 : « Ducks » — https://bigsoundbank.com/ducks-s0276.html
-- frog.mp3 : « One frog » — https://bigsoundbank.com/one-frog-s0819.html
-- horse.mp3 : « Neighing of a Horse #1 » — https://bigsoundbank.com/neighing-of-a-horse-1-s0284.html
-- mouse.mp3 : « Mouse screams » — https://bigsoundbank.com/mouse-screams-s0459.html
-- owl.mp3 : « Tawny Owl #3 » — https://bigsoundbank.com/tawny-owl-3-s3459.html
-- rooster.mp3 : « Rooster Song » — https://bigsoundbank.com/song-of-rooster-s0283.html
-- sheep.mp3 : « Sheep #2 » — https://bigsoundbank.com/sheep-2-s2344.html
+Cris d'animaux : sons gratuits de Pixabay (licence Pixabay : utilisation libre, y compris commerciale,
+sans attribution obligatoire), raccourcis à 3,5 s au plus, normalisés et convertis en MP3 mono.
+- bee.mp3 : freesound_community — « bee buzzing » (6254)
+- cat.mp3 : Dragon Studio — « cat meow » (401729)
+- chick.mp3 : nikin — « short chick sound » (171389)
+- cow.mp3 : u_jd81cxyq22 — « cow mooing » (343423)
+- dog.mp3 : Dragon Studio — « free dog bark » (419014)
+- donkey.mp3 : freesound_community — « jumento » (101690)
+- duck.mp3 : sondangsirait419 — « bebek » (220068)
+- frog.mp3 : gargamel10 — « frog sound effect » (380312)
+- hen.mp3 : alex_jauk — « chicken noise » (228106)
+- horse.mp3 : Dragon Studio — « horse neigh » (515279)
+- mouse.mp3 : sondangsirait419 — « tikus » (220067)
+- owl.mp3 : lazychillzone — « owl hooting » (223549)
+- pig.mp3 : freesound_community — « pig squeak » (47166)
+- rooster.mp3 : Dragon Studio — « rooster crowing » (364473)
+- sheep.mp3 : Universfield — « sheep bleat » (122256)
+- snake.mp3 : tanweraman — « snake rattle sound HQ » (240150)
+- turkey.mp3 : freesound_community — « albundyx mexican turkey » (106743)

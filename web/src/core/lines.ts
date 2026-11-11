@@ -332,7 +332,7 @@ export const LINES: Record<string, string[]> = {
   'end.again': ['Touche le bouton vert pour rejouer !', 'On rejoue ? Touche le bouton vert !'],
   'fly.visit': ['Tiens, une mouche !', 'J’aime bien les mouches !'],
   'home.ambient': ['Je crois que le volcan est encore en éruption.', 'J’ai un peu faim.', 'J’aimerais que tu m’aides à grandir.', 'Regarde les nuages qui passent !'],
-  'fly.caught': ['Slurp ! Une mouche !', 'Miam, croustillante !', 'Hop, attrapée !', 'Bzzz… plus de mouche !'],
+  'fly.caught': ['Slurp ! Une mouche !', 'Miam, croustillante !', 'Hop, attrapée !', 'Croc… plus de mouche !'],
   'fruit.won': ['Un fruit pour moi !', 'Miam, un fruit !'],
   eating: [
     'Miam miam !',
@@ -511,7 +511,7 @@ export const LINES: Record<string, string[]> = {
   welcome_first: ['Voilà ma maison, {name} ! On va bien s\'amuser !', 'Bienvenue chez moi, {name} !'],
   // ---- Le repas ----
   // Après un bon repas (une fois sur deux), avec le bruit du ventre.
-  tummy: ['Glou glou… Tu entends ? Mon ventre dit merci !', 'Oh, mon ventre gargouille : il est tout content !',
+  tummy: ['Blop blop… Tu entends ? Mon ventre dit merci !', 'Oh, mon ventre gargouille : il est tout content !',
     'Mon ventre fait de drôles de bruits : il est en train de digérer !'],
   // À l'accueil, de temps en temps (sans bruit).
   'home.hungry': ['Mon ventre gargouille…', 'J\'ai tellement faim !', 'Je mangerais bien une pomme !', 'Hmm, je mangerais bien une banane…'],
