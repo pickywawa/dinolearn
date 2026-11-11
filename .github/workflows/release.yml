@@ -5,7 +5,7 @@ name: Publier une release
 # ou à la main (onglet Actions → « Run workflow »).
 on:
   push:
-    branches: [main, claude/dinosaur-educational-game-fe9wof]
+    branches: [main]
     paths: ['web/RELEASE_NOTES.md', '.github/workflows/release.yml']
   workflow_dispatch:
 

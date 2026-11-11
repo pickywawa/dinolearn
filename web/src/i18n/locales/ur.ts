@@ -485,7 +485,7 @@ const ur: Catalog = {
   "cty.neighbourYes": "ہاں! یہ ملک {country} کے بالکل ساتھ ہے!",
   "cty.neighbourHint": "پڑوسی بہت قریب ہوتے ہیں، اسی براعظم پر",
   // Espace parents : onglets.
-  'p.dailyShort': 'پھر ڈائنو سونے چلا جاتا ہے۔', 'p.credits': 'اعتراف اور لائسنس', 'p.creditsHelp': 'DinoLearn ان پروگراموں، آوازوں، تصویروں، فونٹس اور آوازوں سے بنا ہے۔ ان کے بنانے والوں کا شکریہ!', 'p.credits.voices': 'ڈائنو کی آوازیں', 'p.credits.asr': 'آواز کی پہچان', 'p.credits.code': 'گیم انجن', 'p.credits.images': 'تصویریں اور فونٹس', 'p.credits.sounds': 'صوتی اثرات', 'p.tab.profile': 'پروفائل', 'p.tab.progress': 'پیش رفت', 'p.tab.games': 'کھیل', 'p.tab.settings': 'ترتیبات', 'p.summary': 'مختصراً', 'p.lower': 'کم', 'p.higher': 'زیادہ',
+  'p.dailyShort': 'پھر ڈائنو سونے چلا جاتا ہے۔', 'p.credits': 'اعتراف اور لائسنس', 'p.creditsHelp': 'DinoLearn ان پروگراموں، آوازوں، تصویروں، فونٹس اور آوازوں سے بنا ہے۔ ان کے بنانے والوں کا شکریہ!', 'p.credits.voices': 'ڈائنو کی آوازیں', 'p.credits.asr': 'آواز کی پہچان', 'p.credits.code': 'گیم انجن', 'p.credits.images': 'تصویریں اور فونٹس', 'p.credits.sounds': 'صوتی اثرات', 'p.tab.control': 'کنٹرول', 'p.tab.print': 'پرنٹ', 'p.printOffer': 'پرنٹ کرنے والی شیٹس پیش کریں', 'p.printOfferHelp': 'کھیل کا وقت ختم ہونے پر ڈائنو تین لفافے دیتا ہے؛ بچہ دن میں ایک چنتا ہے اور شیٹ پرنٹ والے ٹیب میں آ جاتی ہے۔', 'p.tab.profile': 'پروفائل', 'p.tab.progress': 'پیش رفت', 'p.tab.games': 'کھیل', 'p.tab.settings': 'ترتیبات', 'p.summary': 'مختصراً', 'p.lower': 'کم', 'p.higher': 'زیادہ',
 };
 
 export default ur;

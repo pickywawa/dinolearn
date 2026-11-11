@@ -1,5 +1,5 @@
 // Avant de copier le jeu dans l'appli : on retire les packs de reconnaissance
-// vocale (≈ 83 Mo), que l'appli télécharge depuis le site au premier lancement.
+// vocale : l'appli télécharge les archives depuis HuggingFace et les listes de mots depuis le site.
 import { rmSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';

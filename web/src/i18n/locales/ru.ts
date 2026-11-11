@@ -505,7 +505,7 @@ const ru: Catalog = {
   "cty.neighbourYes": "Да! Эта страна — соседка страны {country}!",
   "cty.neighbourHint": "соседи совсем близко, на том же континенте",
   // Espace parents : onglets.
-  'p.dailyShort': 'Потом дино ложится спать.', 'p.credits': 'Авторы и лицензии', 'p.creditsHelp': 'DinoLearn сделан с помощью этих программ, голосов, изображений, шрифтов и звуков. Спасибо их авторам!', 'p.credits.voices': 'Голоса дино', 'p.credits.asr': 'Распознавание речи', 'p.credits.code': 'Игровой движок', 'p.credits.images': 'Изображения и шрифты', 'p.credits.sounds': 'Звуковые эффекты', 'p.tab.profile': 'Профиль', 'p.tab.progress': 'Успехи', 'p.tab.games': 'Игры', 'p.tab.settings': 'Настройки', 'p.summary': 'Кратко', 'p.lower': 'Ниже', 'p.higher': 'Выше',
+  'p.dailyShort': 'Потом дино ложится спать.', 'p.credits': 'Авторы и лицензии', 'p.creditsHelp': 'DinoLearn сделан с помощью этих программ, голосов, изображений, шрифтов и звуков. Спасибо их авторам!', 'p.credits.voices': 'Голоса дино', 'p.credits.asr': 'Распознавание речи', 'p.credits.code': 'Игровой движок', 'p.credits.images': 'Изображения и шрифты', 'p.credits.sounds': 'Звуковые эффекты', 'p.tab.control': 'Контроль', 'p.tab.print': 'Печать', 'p.printOffer': 'Предлагать листы для печати', 'p.printOfferHelp': 'В конце игрового времени дино предлагает три конверта; ребёнок выбирает один (раз в день), и лист появляется во вкладке «Печать».', 'p.tab.profile': 'Профиль', 'p.tab.progress': 'Успехи', 'p.tab.games': 'Игры', 'p.tab.settings': 'Настройки', 'p.summary': 'Кратко', 'p.lower': 'Ниже', 'p.higher': 'Выше',
 };
 
 export default ru;

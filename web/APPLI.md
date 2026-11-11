@@ -2,8 +2,9 @@
 
 L'appli embarque le jeu compilé (`dist/`) avec [Capacitor](https://capacitorjs.com). Tout fonctionne hors ligne,
 moteur de voix Piper compris (`public/piper/`, copié depuis les paquets npm par `npm run piper`). Seuls les packs de
-langue se téléchargent au premier lancement : voix depuis HuggingFace, reconnaissance vocale depuis le site
-(`https://pickywawa.github.io/dinolearn/voice/`).
+langue se téléchargent au premier lancement, depuis HuggingFace : les voix (`rhasspy/piper-voices`) et la
+reconnaissance vocale (dataset `pickywawa/dinolearn-voice-packs`, publié par le workflow « Publier les packs de
+reconnaissance vocale »). Publication sur les stores : voir [STORES.md](STORES.md).
 
 ## Tester l'APK Android
 

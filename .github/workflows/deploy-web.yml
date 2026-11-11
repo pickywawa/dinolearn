@@ -2,7 +2,7 @@ name: Déployer le jeu web
 
 on:
   push:
-    branches: [main, claude/dinosaur-educational-game-fe9wof]
+    branches: [main]
     paths: ['web/**', '.github/workflows/deploy-web.yml']
   workflow_dispatch:
 

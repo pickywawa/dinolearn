@@ -30,13 +30,10 @@ const PACK: Record<string, string> = {
   'ui-mydino': 'wardrobe', 'ui-missions': 'missions', 'ui-progress': 'progress', 'ui-settings': 'settings',
   'ui-envelope': 'envelope', 'ui-gift': 'chest',
 };
-/** Toutes les images du pack, disponibles sous la clé `pk-<nom>`. */
+/** Images du pack utilisées telles quelles, sous la clé `pk-<nom>` (les autres servent via `PACK` ci-dessus). */
 export const PACK_IMAGES = [
-  'home', 'back', 'play', 'pause', 'sound-on', 'sound-off', 'fullscreen', 'info', 'help', 'close', 'missions', 'wardrobe',
-  'progress', 'settings', 'parents', 'profile', 'trophy', 'medal', 'chest', 'envelope', 'star-empty', 'star', 'star-shine',
-  'star-special', 'stars-3', 'cat-animals', 'cat-space', 'cat-nature', 'cat-daily', 'cat-maths', 'cat-reading', 'cat-world',
-  'cat-creative', 'cat-logic', 'btn-validate', 'btn-retry', 'btn-continue', 'arrow-left', 'arrow-right', 'refresh', 'lock',
-  'unlock', 'list',
+  'back', 'pause', 'sound-on', 'sound-off', 'info', 'help', 'close', 'profile', 'star-empty', 'star', 'arrow-left', 'arrow-right',
+  'refresh',
 ];
 
 /**

@@ -206,17 +206,17 @@ et les jeux d'anglais sont désactivés.
 | Polices de lecture | [Andika](https://software.sil.org/andika/) (SIL, OFL) ; [Playwrite France Moderne](https://github.com/TypeTogether/Playwrite) (TypeTogether, OFL) pour l'écriture attachée |
 
 **Le dino en 3D.** Le modèle (`public/models/dino.glb`) et ses 23 objets (`public/models/items.glb`)
-sont **fabriqués par script** avec Blender : `tools/blender/build_dino.py` (formes en métaballes,
-squelette, yeux et bouches projetés sur la tête) et `tools/blender/build_items.py`. Pour les refaire :
-`pip install bpy` puis `python3 tools/blender/build_dino.py` (ou `build_items.py`). Dans le jeu,
+viennent de Blender : le dino part d'un modèle Meshy, retopologisé, riggé et animé par les scripts de
+`tools/blender/dino_meshy/` (fichier source `rigged.blend`, export par `export_glb.py`) ; les objets sont
+fabriqués par `tools/blender/build_items.py` (`pip install bpy`, puis `python3 tools/blender/build_items.py`). Dans le jeu,
 `src/dino3d/` le rend avec Three.js dans un canvas hors écran, copié à chaque image dans une texture
 Phaser : le dino reste un objet Phaser comme un autre, animé par des tweens sur les curseurs de sa pose
 (`src/dino3d/rig.ts`). Une seule géométrie sert aux 10 couleurs : les matériaux sont recolorés.
 L'aperçu `dino3d.html?angles=0,35,90&wear=crown` (serveur de dev) montre le modèle sous plusieurs angles,
 et `tools/shots/` contient les scripts de capture (Chromium sans écran).
 
-**Le décor et l'interface** sont dessinés par le code : l'île (`src/ui/island.ts`) est peinte une fois
-au canvas 2D, seuls les éléments vivants sont animés ; le kit d'interface (`src/ui/kit.ts`) dessine
+**Le décor et l'interface** : les décors sont des images peintes (`public/bg/`, posées par
+`src/ui/backdrop.ts`, l'accueil animé par un shader dans `src/ui/homeBackdrop.ts`) ; le kit d'interface (`src/ui/kit.ts`) dessine
 boutons bonbon, tuiles, planches de bois, rubans et cartes. L'œuf et les pièces SVG du dino
 (`src/dino/parts.ts`) restent utilisés pour l'éclosion et les fiches à imprimer. Les images ne sont **pas** dans le code JavaScript : `npm run icons` extrait chaque
 illustration utilisée vers `public/img/`, et le jeu les charge à la demande.
@@ -242,7 +242,7 @@ npm install
 npm run dev        # serveur local, accessible depuis le téléphone sur le même Wi-Fi (adresse « Network »)
 npm run icons && npm test   # tests (Vitest) ; ils vérifient aussi que les images existent
 npm run build      # version de production dans dist/
-npm run voice-packs  # (facultatif) packs de reconnaissance vocale dans public/voice/ (≈ 80 Mo, non versionnés)
+npm run voice-packs  # (facultatif) packs de reconnaissance vocale dans public/voice/ (non versionnés ; le jeu les télécharge sur HuggingFace)
 ```
 
 Les packs de reconnaissance vocale ne sont pas dans le dépôt : le déploiement GitHub Pages les

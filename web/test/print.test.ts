@@ -164,6 +164,16 @@ describe('enveloppes et diplômes', () => {
     expect(p.envelopeDue(next)).toBe(true);
   });
 
+  it('pas d\'enveloppe quand les parents ont désactivé les fiches à imprimer', () => {
+    const p = new Progress(new MemoryStore());
+    const day = new Date(2026, 9, 31, 10);
+    p.updateSettings({ dailyMinutes: 20, printOffer: false });
+    p.addPlayTime(21 * 60_000, day);
+    expect(p.envelopeDue(day)).toBe(false);
+    p.updateSettings({ printOffer: true });
+    expect(p.envelopeDue(day)).toBe(true);
+  });
+
   it('le soir, quand le dino va dormir ; sans aucune limite, après quelques séries', () => {
     const p = new Progress(new MemoryStore());
     const evening = new Date(2026, 9, 31, 20, 30);

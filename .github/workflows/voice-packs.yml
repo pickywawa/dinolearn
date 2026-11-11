@@ -8,7 +8,7 @@ name: Publier les packs de reconnaissance vocale
 
 on:
   push:
-    branches: [main, claude/dinosaur-educational-game-fe9wof]
+    branches: [main]
     paths: ['web/scripts/voice-packs.mjs', '.github/workflows/voice-packs.yml']
   workflow_dispatch:
 

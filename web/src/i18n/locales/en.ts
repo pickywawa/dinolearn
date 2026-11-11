@@ -604,7 +604,7 @@ const en: Catalog = {
   "cty.neighbourYes": "Yes! This country is right next to {country}!",
   "cty.neighbourHint": "neighbours are very close, on the same continent",
   // Espace parents : onglets.
-  'p.dailyShort': 'Then the dino goes to bed.', 'p.credits': 'Credits and licences', 'p.creditsHelp': 'DinoLearn is built with these programs, voices, images, fonts and sounds. Thanks to their authors!', 'p.credits.voices': 'Dino voices', 'p.credits.asr': 'Speech recognition', 'p.credits.code': 'Game engine', 'p.credits.images': 'Images and fonts', 'p.credits.sounds': 'Sound effects', 'p.tab.profile': 'Profile', 'p.tab.progress': 'Progress', 'p.tab.games': 'Games', 'p.tab.settings': 'Settings', 'p.summary': 'At a glance', 'p.lower': 'Lower', 'p.higher': 'Higher',
+  'p.dailyShort': 'Then the dino goes to bed.', 'p.credits': 'Credits and licences', 'p.creditsHelp': 'DinoLearn is built with these programs, voices, images, fonts and sounds. Thanks to their authors!', 'p.credits.voices': 'Dino voices', 'p.credits.asr': 'Speech recognition', 'p.credits.code': 'Game engine', 'p.credits.images': 'Images and fonts', 'p.credits.sounds': 'Sound effects', 'p.tab.control': 'Controls', 'p.tab.print': 'Printing', 'p.printOffer': 'Offer printable sheets', 'p.printOfferHelp': 'At the end of play time, the dino offers three envelopes; the child picks one (once a day) and the sheet arrives in the Printing tab.', 'p.tab.profile': 'Profile', 'p.tab.progress': 'Progress', 'p.tab.games': 'Games', 'p.tab.settings': 'Settings', 'p.summary': 'At a glance', 'p.lower': 'Lower', 'p.higher': 'Higher',
 };
 
 export default en;

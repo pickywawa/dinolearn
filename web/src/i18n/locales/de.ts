@@ -501,7 +501,7 @@ const de: Catalog = {
   "cty.neighbourYes": "Ja! Dieses Land liegt direkt daneben!",
   "cty.neighbourHint": "Nachbarn sind ganz nah, auf demselben Kontinent",
   // Espace parents : onglets.
-  'p.dailyShort': 'Danach geht der Dino schlafen.', 'p.credits': 'Danksagungen und Lizenzen', 'p.creditsHelp': 'DinoLearn verwendet diese Programme, Stimmen, Bilder, Schriften und Klänge. Danke an ihre Autorinnen und Autoren!', 'p.credits.voices': 'Stimmen des Dinos', 'p.credits.asr': 'Spracherkennung', 'p.credits.code': 'Spiel-Engine', 'p.credits.images': 'Bilder und Schriften', 'p.credits.sounds': 'Geräusche', 'p.tab.profile': 'Profil', 'p.tab.progress': 'Fortschritt', 'p.tab.games': 'Spiele', 'p.tab.settings': 'Einstellungen', 'p.summary': 'Auf einen Blick', 'p.lower': 'Niedriger', 'p.higher': 'Höher',
+  'p.dailyShort': 'Danach geht der Dino schlafen.', 'p.credits': 'Danksagungen und Lizenzen', 'p.creditsHelp': 'DinoLearn verwendet diese Programme, Stimmen, Bilder, Schriften und Klänge. Danke an ihre Autorinnen und Autoren!', 'p.credits.voices': 'Stimmen des Dinos', 'p.credits.asr': 'Spracherkennung', 'p.credits.code': 'Spiel-Engine', 'p.credits.images': 'Bilder und Schriften', 'p.credits.sounds': 'Geräusche', 'p.tab.control': 'Kontrolle', 'p.tab.print': 'Drucken', 'p.printOffer': 'Druckblätter anbieten', 'p.printOfferHelp': 'Am Ende der Spielzeit bietet der Dino drei Umschläge an; das Kind wählt einen (einmal am Tag) und das Blatt erscheint unter „Drucken“.', 'p.tab.profile': 'Profil', 'p.tab.progress': 'Fortschritt', 'p.tab.games': 'Spiele', 'p.tab.settings': 'Einstellungen', 'p.summary': 'Auf einen Blick', 'p.lower': 'Niedriger', 'p.higher': 'Höher',
 };
 
 export default de;

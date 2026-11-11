@@ -1,5 +1,6 @@
 import { GAMES, GameDef } from '../content/games';
 import { app, applyChildSettings, switchChild } from '../core/app';
+import type { PrintRecord } from '../core/progress';
 import { DINO_COLORS } from '../dino/parts';
 import { Music } from '../core/music';
 import { Sfx } from '../core/sfx';
@@ -8,7 +9,7 @@ import { baseLevel } from '../domain/difficulty';
 import { mulberry32 } from '../domain/models';
 import { NIGHT_CHOICES, childForm, countryChoices, createParentCode } from './pin';
 import { VOICE_PACKS, askMicPermission, ears, voiceSupported } from '../core/ears';
-import { printKind } from '../print/catalog';
+import { PRINT_KINDS, printKind } from '../print/catalog';
 import { openPrintView, thumbnail } from './printView';
 import { timeStepper } from './timeStepper';
 import { packsPanel } from './packsPanel';
@@ -175,7 +176,7 @@ function selectBox<V extends string | number>(options: [V, string][], value: V, 
   return s;
 }
 
-type Tab = 'profile' | 'progress' | 'games' | 'settings';
+type Tab = 'profile' | 'control' | 'progress' | 'games' | 'print' | 'settings';
 /** Onglet ouvert la dernière fois (gardé pendant la partie). */
 let lastTab: Tab = 'profile';
 
@@ -202,10 +203,12 @@ export function openParents(onClose: () => void) {
   root.append(el('header', {}, el('h1', {}, T('title', 'Espace parents')), kids, close), nav, main);
   document.body.append(root);
 
-  const TABS: [Tab, string, string][] = [
-    ['profile', 'tab.profile', 'Profil'], ['progress', 'tab.progress', 'Progrès'], ['games', 'tab.games', 'Jeux'],
-    ['settings', 'tab.settings', 'Réglages'],
-  ];
+  // Les fiches à imprimer n'existent qu'en français : l'onglet Impression n'apparaît qu'en français.
+  const TABS = ([
+    ['profile', 'tab.profile', 'Profil'], ['control', 'tab.control', 'Contrôle'], ['progress', 'tab.progress', 'Progrès'],
+    ['games', 'tab.games', 'Jeux'], ['print', 'tab.print', 'Impression'], ['settings', 'tab.settings', 'Réglages'],
+  ] as [Tab, string, string][]).filter(([id]) => id !== 'print' || isFr());
+  if (!TABS.some(([id]) => id === tab)) tab = 'profile';
 
   const render = () => {
     kids.replaceChildren(...childChips());
@@ -219,9 +222,11 @@ export function openParents(onClose: () => void) {
       return b;
     }));
     const cards = tab === 'profile' ? [profileSection(), levelSection()]
-      : tab === 'progress' ? [summarySection(), weekSection(), failuresSection(), isFr() ? printSection() : '']
-        : tab === 'games' ? [missionsSection(), gamesSection()]
-          : [soundSection(), voiceSection(), packsSection(), codeSection(), dataSection()];
+      : tab === 'control' ? [controlSection()]
+        : tab === 'progress' ? [summarySection(), weekSection(), failuresSection()]
+          : tab === 'games' ? [missionsSection(), gamesSection()]
+            : tab === 'print' ? [printSection(), import.meta.env.DEV ? allPrintsSection() : '']
+              : [soundSection(), voiceSection(), packsSection(), codeSection(), dataSection()];
     main.replaceChildren(el('div', { class: 'cards' }, ...cards));
   };
 
@@ -277,9 +282,6 @@ export function openParents(onClose: () => void) {
         p.clearGameLevels();
       });
     const country = selectBox(countryChoices(), s.country, t('pin.country', {}, 'Pays'), (v) => p.updateSettings({ country: v }));
-    const night = selectBox(NIGHT_CHOICES.map((n): [string, string] => [n, n ? n.replace(':', ' h ') : T('noNight', 'Pas de mode nuit')]),
-      s.nightTime, T('night', 'Heure du coucher (mode nuit)'), (v) => p.updateSettings({ nightTime: v }));
-    const daily = timeStepper(() => p.settings.dailyMinutes, (m) => p.updateSettings({ dailyMinutes: m }));
     const face = p.hatched ? dinoPortrait(p.color, 160, 'happy') : undefined;
     const dino = p.hatched ? (isFr() ? `dino ${DINO_COLORS[p.color].name}` : T('dino', 'dino')) : T('egg', 'œuf pas encore éclos');
     const section = el('section', {},
@@ -288,8 +290,6 @@ export function openParents(onClose: () => void) {
       field(t('pin.firstName', {}, 'Prénom'), name),
       field(t('pin.age', {}, 'Âge'), age),
       field(t('pin.country', {}, 'Pays'), country),
-      field(T('daily', 'Temps de jeu par jour'), daily, T('dailyShort', 'Ensuite, le dino va se coucher.')),
-      field(T('night', 'Heure du coucher (mode nuit)'), night),
     );
     if (app.profiles.count > 1) {
       section.append(field(T('alternate', 'Alterner les séries entre les enfants'),
@@ -304,6 +304,46 @@ export function openParents(onClose: () => void) {
       section.append(remove);
     }
     return section;
+  }
+
+  // ---- Contrôle : temps de jeu, coucher, fiches à imprimer ----
+  function controlSection() {
+    const s = p.settings;
+    const night = selectBox(NIGHT_CHOICES.map((n): [string, string] => [n, n ? n.replace(':', ' h ') : T('noNight', 'Pas de mode nuit')]),
+      s.nightTime, T('night', 'Heure du coucher (mode nuit)'), (v) => p.updateSettings({ nightTime: v }));
+    const daily = timeStepper(() => p.settings.dailyMinutes, (m) => p.updateSettings({ dailyMinutes: m }));
+    const section = el('section', { class: 'wide' },
+      el('h2', {}, T('tab.control', 'Contrôle')),
+      field(T('daily', 'Temps de jeu par jour'), daily, T('dailyHelp', 'Quand le temps est atteint, l\'enfant finit sa série, puis le dino va se coucher jusqu\'au lendemain. Votre code permet d\'ajouter du temps.')),
+      field(T('night', 'Heure du coucher (mode nuit)'), night, T('nightHelp', 'Le soir, le ciel devient nuit et le dino propose une dernière série avant de dormir.')),
+    );
+    if (isFr()) {
+      section.append(field(T('printOffer', 'Proposer des fiches à imprimer'),
+        switchBox(s.printOffer, T('printOffer', 'Proposer des fiches à imprimer'), (on) => p.updateSettings({ printOffer: on })),
+        T('printOfferHelp', 'À la fin du temps de jeu, le dino offre trois enveloppes ; l\'enfant en choisit une (une fois par jour) et la fiche arrive dans l\'onglet Impression.')));
+    }
+    return section;
+  }
+
+  /** Développement seulement : toutes les fiches, à tous les âges, pour les essayer sans attendre les enveloppes. */
+  function allPrintsSection() {
+    const grid = el('div', { class: 'prints' });
+    const now = Date.now();
+    for (const kind of PRINT_KINDS) {
+      const record: PrintRecord = { id: `dev-${kind.id}`, kind: kind.id, seed: now % 100000, at: now, printed: true };
+      if (kind.id === 'diploma') record.param = 5;
+      const card = el('button', { class: 'print', type: 'button' });
+      const thumb = el('div', { class: 'thumb' });
+      const svg = thumbnail(p, record);
+      if (svg) thumb.append(svg);
+      card.append(thumb, el('b', {}, kind.title));
+      card.addEventListener('click', () => openPrintView(p, record, render));
+      grid.append(card);
+    }
+    return el('section', { class: 'wide' },
+      el('h2', {}, 'Toutes les fiches (développement)'),
+      el('p', { class: 'help' }, 'Visible seulement en local (npm run dev) : chaque fiche, pour l\'essayer et l\'imprimer.'),
+      grid);
   }
 
   // ---- Niveau du dino : boutons − et + (un glissement involontaire ne le change pas) ----
@@ -401,10 +441,9 @@ export function openParents(onClose: () => void) {
     });
     return el('section', { class: 'wide' },
       el('h2', {}, `À imprimer${p.newPrintables ? ` (${p.newPrintables} nouvelle${p.newPrintables > 1 ? 's' : ''})` : ''}`),
-      el('p', { class: 'help' }, 'À la fin du temps de jeu (ou à l\'heure du coucher), le dino offre trois enveloppes '
-        + 'surprises ; l\'enfant en choisit une, une fois par jour. La fiche arrive ici, avec son dino, adaptée à son âge '
-        + 'et à ses progrès, et des conseils pour vous. Sans limite de temps ni heure du coucher : après 4 séries. '
-        + 'Un diplôme tous les 5 niveaux du dino.'),
+      el('p', { class: 'help' }, 'Les fiches gagnées dans les enveloppes arrivent ici, avec le dino de l\'enfant, adaptées à son âge '
+        + 'et à ses progrès, et des conseils pour vous. Un diplôme tous les 5 niveaux du dino. '
+        + (p.settings.printOffer ? '' : 'Les enveloppes sont désactivées (onglet Contrôle).')),
       records.length ? grid : el('p', {}, 'Pas encore de fiche : la première enveloppe arrivera à la fin du temps de jeu.'),
       records.length > shown.length ? el('div', { class: 'row', style: 'margin-top:12px' }, more) : '',
     );

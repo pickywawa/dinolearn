@@ -105,6 +105,8 @@ export interface Settings {
   voicePacks: string[];
   /** Bouton « choisir son jeu » sur l'accueil (masqué par défaut : la planète mélange tous les jeux). */
   chooseGames: boolean;
+  /** Proposer les enveloppes (fiches à imprimer) à la fin du temps de jeu. */
+  printOffer: boolean;
 }
 
 /** Clé du premier enfant (et de la progression d'avant les profils). */
@@ -126,7 +128,7 @@ const empty = (): Data => ({
   feedLog: {},
   seriesPlayed: 0,
   seenTutorial: false,
-  settings: { disabledGames: [], dailyMinutes: 15, sfx: true, music: true, nightTime: '', country: 'fr', voice: true, voicePacks: [], chooseGames: false },
+  settings: { disabledGames: [], dailyMinutes: 15, sfx: true, music: true, nightTime: '', country: 'fr', voice: true, voicePacks: [], chooseGames: false, printOffer: true },
   playLog: {},
   bonusLog: {},
   collection: { owned: [], worn: [], pending: 0 },
@@ -440,6 +442,8 @@ export class Progress {
     if (!isFr()) return false;
     if (this.data.envelopeDay === dayKey(now)) return false;
     const s = this.data.settings;
+    // Les parents peuvent ne plus proposer de fiches (onglet « Contrôle »).
+    if (!s.printOffer) return false;
     if (this.timeIsUp(now) || this.isSleeping(now)) return true;
     return s.dailyMinutes === 0 && !s.nightTime && this.seriesToday(now) >= ENVELOPE_SERIES;
   }

@@ -502,7 +502,7 @@ const es: Catalog = {
   "cty.neighbourYes": "¡Sí! ¡Este país está justo al lado de {country}!",
   "cty.neighbourHint": "los vecinos están muy cerca, en el mismo continente",
   // Espace parents : onglets.
-  'p.dailyShort': 'Después, el dino se va a dormir.', 'p.credits': 'Créditos y licencias', 'p.creditsHelp': 'DinoLearn está hecho con estos programas, voces, imágenes, fuentes y sonidos. ¡Gracias a sus autores!', 'p.credits.voices': 'Voces del dino', 'p.credits.asr': 'Reconocimiento de voz', 'p.credits.code': 'Motor del juego', 'p.credits.images': 'Imágenes y fuentes', 'p.credits.sounds': 'Efectos de sonido', 'p.tab.profile': 'Perfil', 'p.tab.progress': 'Progreso', 'p.tab.games': 'Juegos', 'p.tab.settings': 'Ajustes', 'p.summary': 'En resumen', 'p.lower': 'Bajar', 'p.higher': 'Subir',
+  'p.dailyShort': 'Después, el dino se va a dormir.', 'p.credits': 'Créditos y licencias', 'p.creditsHelp': 'DinoLearn está hecho con estos programas, voces, imágenes, fuentes y sonidos. ¡Gracias a sus autores!', 'p.credits.voices': 'Voces del dino', 'p.credits.asr': 'Reconocimiento de voz', 'p.credits.code': 'Motor del juego', 'p.credits.images': 'Imágenes y fuentes', 'p.credits.sounds': 'Efectos de sonido', 'p.tab.control': 'Control', 'p.tab.print': 'Impresión', 'p.printOffer': 'Proponer fichas para imprimir', 'p.printOfferHelp': 'Al final del tiempo de juego, el dino ofrece tres sobres; el niño elige uno (una vez al día) y la ficha llega a la pestaña Impresión.', 'p.tab.profile': 'Perfil', 'p.tab.progress': 'Progreso', 'p.tab.games': 'Juegos', 'p.tab.settings': 'Ajustes', 'p.summary': 'En resumen', 'p.lower': 'Bajar', 'p.higher': 'Subir',
 };
 
 export default es;

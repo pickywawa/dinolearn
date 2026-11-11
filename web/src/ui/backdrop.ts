@@ -9,15 +9,14 @@ import { Sfx } from '../core/sfx';
  * - `forest` : la forêt aux rayons de soleil (choix des jeux, mémo) ;
  * - `jungle` : la jungle fraîche (questions) ;
  * - `twilight` : la forêt violette (habillage) ;
- * - `stars` : l'éclat d'étoiles (fin de série) ;
- * - `sunset` : la clairière au soleil couchant (éclosion, présentation).
+ * - `stars` : l'éclat d'étoiles (fin de série).
  *
  * L'image couvre tout l'écran (recadrée sur les côtés si besoin) et respire
  * très lentement ; quelques éléments vivants s'y ajoutent (fumée et lave du
  * volcan, écume de la cascade, poussières de lumière, étincelles).
  * Profondeur -12 : toujours derrière le reste.
  */
-export const BACKDROPS = ['volcano', 'meadow', 'forest', 'jungle', 'twilight', 'stars', 'sunset'] as const;
+export const BACKDROPS = ['volcano', 'meadow', 'forest', 'jungle', 'twilight', 'stars'] as const;
 export type Backdrop = (typeof BACKDROPS)[number];
 
 export const backdropKey = (name: string) => `bg-${name}`;
@@ -110,7 +109,6 @@ export function drawBackdrop(scene: Phaser.Scene, name: Backdrop, opts: Backdrop
       break;
     case 'stars': starsLife(scene, W, H); break;
     case 'twilight': motes(scene, W, H, [0xffc2f0, 0xd9b8ff, 0xffffff]); break;
-    case 'sunset': motes(scene, W, H, [0xffe2a8, 0xffc48a, 0xffffff]); break;
     default: motes(scene, W, H, [0xfff7c2, 0xffffff, 0xd8ffb0]); break;
   }
   return img;

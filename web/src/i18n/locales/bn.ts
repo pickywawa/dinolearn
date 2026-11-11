@@ -484,7 +484,7 @@ const bn: Catalog = {
   "cty.neighbourYes": "হ্যাঁ! এই দেশটা {country}-এর ঠিক পাশেই!",
   "cty.neighbourHint": "প্রতিবেশীরা খুব কাছে থাকে, একই মহাদেশে",
   // Espace parents : onglets.
-  'p.dailyShort': 'তারপর ডাইনো ঘুমাতে যায়।', 'p.credits': 'কৃতজ্ঞতা ও লাইসেন্স', 'p.creditsHelp': 'DinoLearn এই প্রোগ্রাম, কণ্ঠ, ছবি, ফন্ট আর শব্দ দিয়ে তৈরি। এদের নির্মাতাদের ধন্যবাদ!', 'p.credits.voices': 'ডাইনোর কণ্ঠ', 'p.credits.asr': 'কণ্ঠ শনাক্তকরণ', 'p.credits.code': 'গেম ইঞ্জিন', 'p.credits.images': 'ছবি ও ফন্ট', 'p.credits.sounds': 'শব্দ প্রভাব', 'p.tab.profile': 'প্রোফাইল', 'p.tab.progress': 'অগ্রগতি', 'p.tab.games': 'খেলা', 'p.tab.settings': 'সেটিংস', 'p.summary': 'এক নজরে', 'p.lower': 'কম', 'p.higher': 'বেশি',
+  'p.dailyShort': 'তারপর ডাইনো ঘুমাতে যায়।', 'p.credits': 'কৃতজ্ঞতা ও লাইসেন্স', 'p.creditsHelp': 'DinoLearn এই প্রোগ্রাম, কণ্ঠ, ছবি, ফন্ট আর শব্দ দিয়ে তৈরি। এদের নির্মাতাদের ধন্যবাদ!', 'p.credits.voices': 'ডাইনোর কণ্ঠ', 'p.credits.asr': 'কণ্ঠ শনাক্তকরণ', 'p.credits.code': 'গেম ইঞ্জিন', 'p.credits.images': 'ছবি ও ফন্ট', 'p.credits.sounds': 'শব্দ প্রভাব', 'p.tab.control': 'নিয়ন্ত্রণ', 'p.tab.print': 'মুদ্রণ', 'p.printOffer': 'ছাপার শিট দাও', 'p.printOfferHelp': 'খেলার সময় শেষে ডাইনো তিনটি খাম দেয়; শিশু দিনে একটি বেছে নেয়, আর শিটটি মুদ্রণ ট্যাবে চলে আসে।', 'p.tab.profile': 'প্রোফাইল', 'p.tab.progress': 'অগ্রগতি', 'p.tab.games': 'খেলা', 'p.tab.settings': 'সেটিংস', 'p.summary': 'এক নজরে', 'p.lower': 'কম', 'p.higher': 'বেশি',
 };
 
 export default bn;
