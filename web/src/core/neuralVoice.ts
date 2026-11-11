@@ -94,3 +94,19 @@ export function play(buffer: AudioBuffer): { stop: () => void; ended: Promise<vo
     ended,
   };
 }
+
+/** Cris d'animaux enregistrés (`public/sfx/animals/<animal>.mp3`), chargés une fois. */
+const cries = new Map<string, Promise<AudioBuffer>>();
+export function animalCry(animal: string): Promise<AudioBuffer> | undefined {
+  const c = audioContext();
+  if (!c) return undefined;
+  let p = cries.get(animal);
+  if (!p) {
+    p = fetch(new URL(`sfx/animals/${animal}.mp3`, document.baseURI).href)
+      .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(String(r.status)))))
+      .then((data) => c.decodeAudioData(data));
+    p.catch(() => cries.delete(animal));
+    cries.set(animal, p);
+  }
+  return p;
+}

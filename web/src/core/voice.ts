@@ -1,7 +1,8 @@
 import EasySpeech from 'easy-speech';
 import { Speech } from '../content/content';
 import { LinePicker } from './lines';
-import { neuralVoiceFor, play, render, unlockAudio } from './neuralVoice';
+import { animalCry, audioContext, neuralVoiceFor, play, render, unlockAudio } from './neuralVoice';
+import { splitCries } from '../domain/cries';
 import { LANGS, Lang, langInfo } from '../domain/langs';
 import { lang as appLang } from '../i18n';
 
@@ -86,13 +87,25 @@ export class Voice {
   }
 
   /** Dit une suite de morceaux ; une nouvelle demande coupe la précédente. */
-  async say(parts: Speech[]): Promise<void> {
+  async say(input: Speech[]): Promise<void> {
     const generation = ++this.generation;
     this.cancelEngine();
+    // Les cris d'animaux écrits (« coin coin ») deviennent de vrais enregistrements, joués entre les morceaux.
+    const parts: (Speech & { animal?: string })[] = input.flatMap((part) => part.lang !== 'fr' ? [part]
+      : splitCries(part.text).map((piece) => ('animal' in piece
+        ? { text: '', lang: part.lang, animal: piece.animal, pauseAfter: 250 }
+        : { ...part, text: piece.text })));
+    for (const part of parts) if (part.animal) void animalCry(part.animal);
     // Voix neuronale : on lance le calcul de tous les morceaux tout de suite (le 2e se prépare pendant le 1er).
     for (const part of parts) if (part.text.trim()) render(part.lang, part.text, part.slow);
     for (const part of parts) {
       if (generation !== this.generation) return;
+      if (part.animal) {
+        await this.playCry(part.animal);
+        if (generation !== this.generation) return;
+        await wait(part.pauseAfter ?? 180);
+        continue;
+      }
       if (!part.text.trim()) continue;
       await this.speak(part);
       if (generation !== this.generation) return;
@@ -117,6 +130,19 @@ export class Voice {
     } catch {
       // ignoré
     }
+  }
+
+  /** Joue un cri d'animal enregistré (on n'attend pas plus de 4 s qu'il se charge). */
+  private async playCry(animal: string): Promise<void> {
+    const pending = animalCry(animal);
+    if (!pending) return;
+    const buffer = await Promise.race([pending.catch(() => undefined), wait(4000).then(() => undefined)]);
+    // Son pas encore débloqué (aucun toucher) : on ne joue rien plutôt que d'attendre une fin qui ne viendra pas.
+    if (!buffer || audioContext()?.state !== 'running') return;
+    const sound = play(buffer);
+    this.playing = sound;
+    await Promise.race([sound.ended, wait(buffer.duration * 1000 + 1500)]);
+    if (this.playing === sound) this.playing = undefined;
   }
 
   private async speak(part: Speech): Promise<void> {
