@@ -19,6 +19,16 @@ const read = (dir, file) => (existsSync(join(dir, file)) ? readFileSync(join(dir
 const edit = await call('POST', `${API}/edits`, '{}');
 const details = await call('GET', `${API}/edits/${edit.id}/details`);
 console.log(`Modification ouverte (${edit.id}) — langue par défaut de la fiche : ${details.defaultLanguage}`);
+// Coordonnées de la fiche (site, e-mail…) : fastlane/details.json, si présent.
+const detailsFile = new URL('../fastlane/details.json', import.meta.url).pathname;
+// Google refuse ces coordonnées tant que l'e-mail de contact manque : on attend qu'il soit renseigné.
+const change = existsSync(detailsFile) ? JSON.parse(readFileSync(detailsFile, 'utf8')) : {};
+if (!change.contactEmail && !details.contactEmail) {
+  if (Object.keys(change).length) console.log('  coordonnées non envoyées : ajouter "contactEmail" dans fastlane/details.json');
+} else if (Object.keys(change).length) {
+  await call('PATCH', `${API}/edits/${edit.id}/details`, JSON.stringify(change));
+  console.log(`  coordonnées : ${Object.keys(change).join(', ')}`);
+}
 try {
   for (const language of readdirSync(ROOT).sort()) {
     const dir = join(ROOT, language);
