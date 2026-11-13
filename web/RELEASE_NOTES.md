@@ -1,3 +1,7 @@
+## DinoLearn 0.26.1 — L'anglais pour les autres langues
+
+- Sur un téléphone réglé dans une langue que le jeu ne parle pas encore (japonais, thaï, néerlandais…), DinoLearn démarre désormais en **anglais** au lieu du français (iOS aussi pour le message d'autorisation du micro). Préparation de la publication dans tous les pays.
+
 ## DinoLearn 0.26.0 — Sudoku des fruits, Partage le gâteau, Missions par matière
 
 - **Nouveau jeu : le sudoku des fruits** (dès 5 ans). On glisse les fruits dans la grille : jamais deux fois le même sur une ligne, une colonne ou un carré. 20 niveaux, de la grille 3×3 au vrai sudoku 9×9 ; un mauvais fruit revient à sa place et ce qui gêne s'allume ; aide après deux erreurs.

@@ -67,14 +67,14 @@ export const LANGS: LangInfo[] = [
 export const isLang = (code: string): code is Lang => LANGS.some((l) => l.code === code);
 export const langInfo = (code: string): LangInfo => LANGS.find((l) => l.code === code) ?? LANGS[0];
 
-/** Langue de l'appareil (« pt-BR » → pt), sinon le français. */
+/** Langue de l'appareil (« pt-BR » → pt) ; langue que le jeu ne parle pas (japonais, thaï…) : l'anglais. */
 export function deviceLang(languages: readonly string[]): Lang {
   for (const tag of languages) {
     // « in » est l'ancien code de l'indonésien (encore donné par certains Android).
     const base = tag.toLowerCase().split(/[-_]/)[0].replace(/^in$/, 'id');
     if (isLang(base)) return base;
   }
-  return 'fr';
+  return 'en';
 }
 
 /** Pays de l'appareil (« pt-BR » → br), s'il est indiqué. */

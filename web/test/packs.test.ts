@@ -55,7 +55,8 @@ describe('téléchargements', () => {
       expect(SIZES_MB.voices[l.voice], l.code).toBeGreaterThan(30);
     }
     expect(deviceLang(['pt-BR', 'en-US'])).toBe('pt');
-    expect(deviceLang(['ja-JP'])).toBe('fr');
+    expect(deviceLang(['ja-JP'])).toBe('en');
+    expect(deviceLang(['nl-NL', 'fr-FR'])).toBe('fr');
     expect(deviceCountry(['pt-BR'])).toBe('br');
   });
 

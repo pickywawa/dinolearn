@@ -12,6 +12,28 @@ VERSION = json.load(open(os.path.join(HERE, '..', 'package.json')))['version']
 
 # Pour chaque langue : les nouveautés, puis la ligne du micro (seulement là où il y a des jeux à voix haute).
 NOTES = {
+  '0.26.1': {
+    'fr': (['Sur un téléphone dans une autre langue, le jeu démarre en anglais', 'Petites corrections'], ''),
+    'en': (['On a phone set to another language, the game now starts in English', 'Small fixes'], ''),
+    'es': (['En un teléfono en otro idioma, el juego empieza en inglés', 'Pequeñas correcciones'], ''),
+    'it': (['Su un telefono in un\'altra lingua, il gioco parte in inglese', 'Piccole correzioni'], ''),
+    'de': (['Auf einem Handy in einer anderen Sprache startet das Spiel jetzt auf Englisch', 'Kleine Korrekturen'], ''),
+    'pt': (['Em um celular em outro idioma, o jogo começa em inglês', 'Pequenas correções'], ''),
+    'ru': (['На телефоне с другим языком игра теперь запускается на английском', 'Небольшие исправления'], ''),
+    'zh': (['手机使用其他语言时，游戏会以英语启动', '小修复'], ''),
+    'hi': (['किसी दूसरी भाषा वाले फ़ोन पर खेल अब अंग्रेज़ी में शुरू होता है', 'छोटे सुधार'], ''),
+    'ar': (['على هاتف بلغة أخرى، تبدأ اللعبة الآن بالإنجليزية', 'إصلاحات صغيرة'], ''),
+    'ur': (['کسی دوسری زبان والے فون پر کھیل اب انگریزی میں شروع ہوتا ہے', 'چھوٹی اصلاحات'], ''),
+    'bn': (['অন্য ভাষার ফোনে খেলাটি এখন ইংরেজিতে শুরু হয়', 'ছোটখাটো সংশোধন'], ''),
+    'id': (['Di ponsel berbahasa lain, permainan kini dimulai dalam bahasa Inggris', 'Perbaikan kecil'], ''),
+    'vi': (['Trên điện thoại dùng ngôn ngữ khác, trò chơi giờ bắt đầu bằng tiếng Anh', 'Sửa lỗi nhỏ'], ''),
+    'tr': (['Başka dildeki bir telefonda oyun artık İngilizce başlıyor', 'Küçük düzeltmeler'], ''),
+    'fa': (['در گوشی با زبان دیگر، بازی اکنون به انگلیسی شروع می‌شود', 'اصلاحات کوچک'], ''),
+    'pl': (['Na telefonie w innym języku gra uruchamia się teraz po angielsku', 'Drobne poprawki'], ''),
+    'uk': (['На телефоні з іншою мовою гра тепер запускається англійською', 'Дрібні виправлення'], ''),
+    'ne': (['अर्को भाषाको फोनमा खेल अब अंग्रेजीमा सुरु हुन्छ', 'साना सुधारहरू'], ''),
+    'ko': (['다른 언어로 설정된 휴대폰에서는 이제 영어로 시작해요', '작은 수정'], ''),
+  },
   '0.26.0': {
     'fr': (['Nouveau jeu : le sudoku des fruits (dès 5 ans)', 'Nouveau jeu : partage le gâteau, pour découvrir la moitié, le tiers et le quart',
             'Missions rangées par matière : anglais, maths, français, logique, le monde', 'Nouvelle icône'],

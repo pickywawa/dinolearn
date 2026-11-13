@@ -1,0 +1,2 @@
+• On a phone set to another language, the game now starts in English
+• Small fixes
