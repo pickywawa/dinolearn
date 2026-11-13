@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { isFr, lang, t } from '../i18n';
+import { isFr, lang, secondFlag, t } from '../i18n';
 import { asrLanguages } from '../domain/packs';
 import type { SpeechLang } from '../domain/speech';
 
@@ -150,7 +150,7 @@ export abstract class HelloScene extends BaseScene {
 
       // Les jeux : des bulles qui apparaissent autour du dino.
       this.dino.react('cheer');
-      this.popIcons(['lion', 'shapes', 'letters', 'numbers', 'flag-gb'], H * 0.24);
+      this.popIcons(['lion', 'shapes', 'letters', 'numbers', secondFlag()], H * 0.24);
       await this.say('hello.4');
       this.clearShown();
       if (!go()) return;
@@ -276,7 +276,7 @@ export abstract class HelloScene extends BaseScene {
   private async listen(grammar: string[], decisive: (h: Heard) => boolean): Promise<Heard | null> {
     const { width: W, height: H } = this.scale;
     const u = unit(this);
-    const mic = new MicButton(this, W / 2, H * 0.3, u * 0.12, () => undefined);
+    const mic = new MicButton(this, W / 2, H * 0.3, u * 0.12);
     app.voice.stop();
     ears.wake();
     // Le temps que le micro apparaisse, puis on écoute.

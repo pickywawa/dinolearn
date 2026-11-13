@@ -19,7 +19,7 @@ const FR_TITLES: Record<string, string> = {
   'VO-5': 'Voix haute — Devinettes : les métiers', 'VO-6': 'Voix haute — Devinettes : le sport',
   'VO-7': 'Voix haute — Devinettes : l\'espace', 'VO-8': 'Voix haute — Les saisons et la météo',
   'VO-9': 'Voix haute — Les formes et les couleurs', 'VO-10': 'Voix haute — Pays et peuples du monde',
-  'LO-11': 'Logique — Calcul dicté', 'LO-12': 'Logique — Programme le dino', 'VO-13': 'Voix haute — Calcul',
+  'LO-11': 'Logique — Calcul dicté', 'LO-12': 'Logique — Programme le dino', 'LO-13': 'Logique — Sudoku des fruits', 'LO-14': 'Maths — Partage le gâteau', 'VO-13': 'Voix haute — Calcul',
   'VO-11': 'Voix haute — Mon pays', 'VO-12': 'Voix haute — Devinettes : la nature',
 };
 

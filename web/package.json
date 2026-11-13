@@ -1,7 +1,7 @@
 {
   "name": "dinolearn-web",
   "private": true,
-  "version": "0.25.0",
+  "version": "0.26.0",
   "type": "module",
   "scripts": {
     "icons": "node scripts/build-icons.mjs",
@@ -13,7 +13,10 @@
     "typecheck": "tsc --noEmit",
     "piper": "node scripts/vendor-piper.mjs",
     "android": "npm run build && node scripts/app-assets.mjs && npx cap sync android",
-    "ios": "npm run build && node scripts/app-assets.mjs && npx cap sync ios"
+    "ios": "npm run build && node scripts/app-assets.mjs && npx cap sync ios",
+    "play:listings": "python3 fastlane/listings.py && NODE_USE_ENV_PROXY=1 node --no-warnings scripts/play-listings.mjs",
+    "play:release": "python3 fastlane/changelogs.py && NODE_USE_ENV_PROXY=1 node --no-warnings scripts/play-release.mjs",
+    "android:aab": "./scripts/android-aab.sh"
   },
   "dependencies": {
     "@capacitor/android": "^8.6.0",

@@ -1,3 +1,14 @@
+## DinoLearn 0.26.0 — Sudoku des fruits, Partage le gâteau, Missions par matière
+
+- **Nouveau jeu : le sudoku des fruits** (dès 5 ans). On glisse les fruits dans la grille : jamais deux fois le même sur une ligne, une colonne ou un carré. 20 niveaux, de la grille 3×3 au vrai sudoku 9×9 ; un mauvais fruit revient à sa place et ce qui gêne s'allume ; aide après deux erreurs.
+- **Nouveau jeu : partage le gâteau** (dès 3 ans, en Maths). Donner une part à chacun, couper en 2, en 4 (en croix), en 3 (en étoile), en 6 et en 8, puis la moitié, le tiers, le quart, les deux tiers et les trois quarts, et partager des cookies. 20 niveaux.
+- **Missions rangées par matière** : la langue apprise, les maths, la langue de l'enfant, la logique, le monde. Une flèche ramène à la catégorie (pendant le jeu aussi) ; correction du retour qui restait bloqué dans « À voix haute ».
+- **Micro** : il n'apparaît que quand l'enfant peut parler (plus de passage du rouge au vert), avec des ondes qui suivent la voix.
+- « Missions » activé par défaut pour un nouvel enfant.
+- Le drapeau de la langue apprise est le bon (espagnol pour les anglophones).
+- **Nouvelle icône** (Android, iOS, web).
+- Google Play : fiches du store dans 23 langues, captures téléphone et tablettes, envoi par l'API (`npm run play:listings`, `npm run play:release`) ; la release construit aussi le .aab signé.
+
 ## DinoLearn 0.25.0 — Programme le dino, micro automatique, vrais cris d'animaux
 
 - **Nouveau jeu : Programme le dino** (initiation au codage, dès 3 ans). Des flèches pour amener le dino jusqu'au fruit : mode direct pour les petits, programme à lancer avec le bouton vert, deux fruits à ramasser, puis la boucle (×2, ×3) au CP. Aides après les erreurs.

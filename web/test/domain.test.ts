@@ -144,7 +144,7 @@ describe('contenus', () => {
     const rng = mulberry32(4);
     const expectedCount = (gameId: string, id: string, level: number, refLevel: number) => {
       const expert = id.endsWith(':x');
-      if (gameId.startsWith('TR-') || gameId === 'LO-10' || gameId === 'EN-3' || gameId === 'LO-12') return 1;
+      if (gameId.startsWith('TR-') || gameId === 'LO-10' || gameId === 'EN-3' || gameId === 'LO-12' || gameId === 'LO-13' || gameId === 'LO-14') return 1;
       if (gameId === 'MO-6') return id.endsWith(':flag') ? 3 : /hard6|capital6|neighbour6/.test(id) ? 6 : 4;
       if (gameId === 'EN-1') return expert ? 4 : 2;
       if (gameId === 'EN-2') return Number(id.split(':')[1]) <= 10 ? 3 : 4;

@@ -27,6 +27,9 @@ export const isFr = () => current === 'fr';
 /** Langue apprise en plus : l'anglais, ou l'espagnol pour les anglophones. */
 export const second = (): Lang => langInfo(current).second;
 
+/** Drapeau de la langue apprise en plus (anglais : Royaume-Uni ; espagnol : Espagne). */
+export const secondFlag = () => `flag-${langInfo(second()).country}`;
+
 /** Charge le catalogue d'une langue (avant de lancer le jeu, ou quand les parents changent de langue). */
 export async function setLang(code: string) {
   const next: Lang = isLang(code) ? code : deviceLang(typeof navigator === 'undefined' ? [] : navigator.languages ?? [navigator.language]);

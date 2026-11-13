@@ -4,10 +4,12 @@ import {
   CONCEPTS, categoryHint, Concept, DistractorStrategy, Speech, conceptById, conceptsFor, foreignWord, frWithArticle, pickDistractors,
   theWord,
 } from './content';
-import { isFr, lang, num, phrase, second, t } from '../i18n';
+import { isFr, lang, num, phrase, second, secondFlag, t } from '../i18n';
 import { langInfo, type Lang } from '../domain/langs';
 import { CURRENCIES, isNote, moneyLevel, moneySaid } from '../domain/currencies';
 import { levelSpec as codeLevelSpec } from '../domain/coding';
+import { SUDOKU_LEVELS, sudokuSpec } from '../domain/sudoku';
+import { CAKE_LEVELS, cakeRound } from '../domain/cake';
 import { PAIRS, SIZES, SYLLABLES, enNumber } from './extra';
 import { frNumber } from './numbers';
 import { LETTER_LEVELS, LETTER_NAMES, LOOKALIKE_LETTERS, READ_WORDS, SYLLABLES_TO_READ } from './reading';
@@ -75,6 +77,10 @@ export type Show =
   | { kind: 'trace'; model: string; mode: TraceMode }
   /** Un plateau de « Programme le dino » (scène à part), tiré du niveau et de la graine. */
   | { kind: 'code'; level: number; seed: number }
+  /** Une grille du sudoku des fruits (scène à part), tirée du niveau et de la graine. */
+  | { kind: 'sudoku'; level: number; seed: number }
+  /** Une manche de « Partage le gâteau » (scène à part), tirée du niveau et de la graine. */
+  | { kind: 'cake'; level: number; seed: number }
   /**
    * Un calcul. Avec `image` : en images (a fruits, puis + b fruits, ou b fruits
    * barrés pour « − ») ; sans image : écrit en chiffres. `total` : « a + ? = total ».
@@ -110,6 +116,10 @@ export interface GameDef {
   memory?: boolean;
   /** « Programme le dino » : sa propre scène (dans une série de la planète, le temps d'un plateau). */
   code?: boolean;
+  /** Sudoku des fruits : sa propre scène (dans une série de la planète, le temps d'une grille). */
+  sudoku?: boolean;
+  /** « Partage le gâteau » : sa propre scène (dans une série de la planète, le temps d'une manche). */
+  cake?: boolean;
   /** Nombre de questions d'une série, s'il ne dépend pas de l'âge (un plateau de memory est long). */
   seriesLength?: number;
   /** Âge minimum de l'enfant pour que le jeu soit proposé (3 par défaut). */
@@ -200,7 +210,8 @@ const listenTap: GameDef = {
   id: 'EN-1',
   category: 'foreign_language',
   minAge: 5,
-  icon: 'flag-gb',
+  // Le drapeau de la langue apprise (espagnol pour les anglophones).
+  get icon() { return secondFlag(); },
   color: 0x3b7de9,
   introLine: 'intro.EN-1',
   homeLine: 'home.EN-1',
@@ -2345,6 +2356,92 @@ const codeGame: GameDef = {
   },
 };
 
+// ---- Sudoku des fruits (dès 5 ans) : glisser les fruits dans la grille ----
+
+const sudokuGame: GameDef = {
+  id: 'LO-13',
+  category: 'logic',
+  sudoku: true,
+  seriesLength: 3,
+  minAge: 5,
+  icon: 'sudoku',
+  color: 0xd97706,
+  introLine: 'intro.LO-13',
+  homeLine: 'home.LO-13',
+  shortLine: 'short.LO-13',
+  questions: Array.from({ length: SUDOKU_LEVELS }, (_, i) => i + 1)
+    .flatMap((level) => [0, 1, 2].map((k) => ({ id: `LO-13:${level}:${k}`, level }))),
+  build: (ref, _level, rng) => {
+    const level = Number(ref.id.split(':')[1]);
+    const spec = sudokuSpec(level);
+    const say = (fr: () => string, key: string): Speech[] => [{ text: phrase(fr, key, {}, rng), lang: lang() }];
+    return {
+      answer: { id: 'ok' },
+      distractors: [],
+      show: { kind: 'sudoku', level, seed: Math.floor(rng() * 1e9) },
+      prompt: spec.box
+        ? say(() => 'Glisse les fruits dans les cases vides. Un même fruit une seule fois par ligne, par colonne, et dans chaque carré !', 'LO-13.promptBox')
+        : say(() => 'Glisse les fruits dans les cases vides. Un même fruit une seule fois par ligne et par colonne !', 'LO-13.prompt'),
+      reinforce: say(() => oneOf(rng, ['Bravo, la grille est pleine !', 'Super, chaque fruit est à sa place !', 'Génial, tu as réussi le sudoku !']), 'LO-13.yes'),
+      hints: say(() => 'Regarde la case qui brille : un seul fruit peut aller là !', 'LO-13.hint'),
+    };
+  },
+};
+
+// ---- Partage le gâteau (dès 3 ans) : partager équitablement, la moitié, le quart ----
+
+const cakeGame: GameDef = {
+  id: 'LO-14',
+  category: 'logic',
+  cake: true,
+  seriesLength: 4,
+  icon: 'cake-share',
+  color: 0xdb2777,
+  introLine: 'intro.LO-14',
+  homeLine: 'home.LO-14',
+  shortLine: 'short.LO-14',
+  // Niveaux de difficulté 1 à 20 répartis sur les 9 niveaux du jeu (`LO-14:<niveau du jeu>:<difficulté>-<n>`).
+  questions: Array.from({ length: 20 }, (_, i) => i + 1)
+    .flatMap((level) => [0, 1, 2].map((k) => ({ id: `LO-14:${Math.ceil((level * CAKE_LEVELS) / 20)}:${level}-${k}`, level }))),
+  build: (ref, _level, rng) => {
+    const level = Number(ref.id.split(':')[1]);
+    const seed = Math.floor(rng() * 1e9);
+    const round = cakeRound(level, mulberry32(seed));
+    const say = (fr: () => string, key: string): Speech[] => [{ text: phrase(fr, key, {}, rng), lang: lang() }];
+    const prompts: Record<string, Speech[]> = {
+      give: say(() => 'Mes amis arrivent pour le goûter ! Glisse une part de gâteau dans chaque assiette.', 'LO-14.give'),
+      smallest: say(() => 'Oh, un de mes amis a une plus petite part ! Touche celui qui en a le moins.', 'LO-14.smallest'),
+      cut2: say(() => 'On est deux ! Coupe le gâteau en deux parts pareilles : glisse ton doigt bien par le milieu.', 'LO-14.cut2'),
+      cut4: say(() => 'On est quatre ! Coupe le gâteau en quatre parts pareilles : fais deux traits en croix, bien par le milieu.', 'LO-14.cut4'),
+      equalPick: say(() => 'Quel gâteau est coupé en parts toutes pareilles ? Touche-le !', 'LO-14.equalPick'),
+      half: say(() => 'Donne la moitié du gâteau à mon ami : glisse les parts dans son assiette, puis touche le bouton vert.', 'LO-14.half'),
+      quarter: say(() => 'Donne le quart du gâteau à mon ami : glisse les parts dans son assiette, puis touche le bouton vert.', 'LO-14.quarter'),
+      cookies: say(() => 'Partage les cookies : chaque ami doit en avoir autant ! Quand c\'est fini, touche le bouton vert.', 'LO-14.cookies'),
+      findHalf: say(() => 'On a mangé la moitié d\'un de ces gâteaux. Lequel ? Touche-le !', 'LO-14.findHalf'),
+      findQuarter: say(() => 'On a mangé le quart d\'un de ces gâteaux. Lequel ? Touche-le !', 'LO-14.findQuarter'),
+      cut3: say(() => 'On est trois ! Coupe le gâteau en trois parts pareilles : fais trois traits du milieu jusqu\'au bord, comme une étoile.', 'LO-14.cut3'),
+      cut6: say(() => 'On est six ! Coupe le gâteau en six parts pareilles : trois traits bien par le milieu.', 'LO-14.cut6'),
+      cut8: say(() => 'On est huit ! Coupe le gâteau en huit parts pareilles : quatre traits bien par le milieu.', 'LO-14.cut8'),
+      third: say(() => 'Donne le tiers du gâteau à mon ami : glisse les parts dans son assiette, puis touche le bouton vert.', 'LO-14.third'),
+      twoThirds: say(() => 'Donne les deux tiers du gâteau à mon ami : glisse les parts dans son assiette, puis touche le bouton vert.', 'LO-14.twoThirds'),
+      threeQuarters: say(() => 'Donne les trois quarts du gâteau à mon ami : glisse les parts dans son assiette, puis touche le bouton vert.', 'LO-14.threeQuarters'),
+      findThird: say(() => 'On a mangé le tiers d\'un de ces gâteaux. Lequel ? Touche-le !', 'LO-14.findThird'),
+    };
+    const key = round.kind === 'cut' ? `cut${round.parts}`
+      : round.kind === 'fraction' ? round.target
+        : round.kind === 'findFraction' ? ({ half: 'findHalf', third: 'findThird', quarter: 'findQuarter' } as Record<string, string>)[round.target] ?? 'findHalf'
+          : round.kind;
+    return {
+      answer: { id: 'ok' },
+      distractors: [],
+      show: { kind: 'cake', level, seed },
+      prompt: prompts[key],
+      reinforce: say(() => oneOf(rng, ['Miam ! Tout le monde a la même part, c\'est juste !', 'Bravo, c\'est bien partagé !', 'Super, personne n\'est jaloux !']), 'LO-14.yes'),
+      hints: say(() => 'Regarde bien, la main te montre !', 'LO-14.hint'),
+    };
+  },
+};
+
 /** Jeux qui n'existent encore qu'en français (lecture, sons, histoires, devinettes, Mon pays). */
 const FRENCH_ONLY = new Set(['MO-2', 'FR-1', 'FR-2', 'FR-3', 'FR-4', 'FR-5', 'FR-6', 'FR-7', 'FR-8',
   'VO-3', 'VO-4', 'VO-5', 'VO-6', 'VO-7', 'VO-8', 'VO-9', 'VO-10', 'VO-11', 'VO-12']);
@@ -2353,7 +2450,7 @@ const onlyFrench = (l: Lang) => l === 'fr';
 export const GAMES: GameDef[] = [
   listenTap, englishNumbers, showMe, riddles, shadows, together, bigger, myCountry, missingWord, missingWordRead, listenStory, sounds,
   syllables, readWord, readPicture, letters, oddOneOut, shapesGame, counting, numbers, sequence, most, calc, mentalCalc,
-  clockGame, moneyGame, memory, memoryEnglish, codeGame, traceShapes, traceLetters, ...VOICE_GAMES, mentalCalcAloud,
+  clockGame, moneyGame, memory, memoryEnglish, codeGame, sudokuGame, cakeGame, traceShapes, traceLetters, ...VOICE_GAMES, mentalCalcAloud,
 ];
 
 for (const g of GAMES) if (FRENCH_ONLY.has(g.id)) g.langs = onlyFrench;

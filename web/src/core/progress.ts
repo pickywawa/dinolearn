@@ -128,7 +128,7 @@ const empty = (): Data => ({
   feedLog: {},
   seriesPlayed: 0,
   seenTutorial: false,
-  settings: { disabledGames: [], dailyMinutes: 15, sfx: true, music: true, nightTime: '', country: 'fr', voice: true, voicePacks: [], chooseGames: false, printOffer: true },
+  settings: { disabledGames: [], dailyMinutes: 15, sfx: true, music: true, nightTime: '', country: 'fr', voice: true, voicePacks: [], chooseGames: true, printOffer: true },
   playLog: {},
   bonusLog: {},
   collection: { owned: [], worn: [], pending: 0 },

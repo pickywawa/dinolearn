@@ -7,7 +7,7 @@ import { Series, sceneOf } from '../core/series';
 import { Sfx } from '../core/sfx';
 import { foodImage } from '../domain/models';
 import { Dino, SUCCESS_REACTIONS } from '../dino/Dino';
-import { goTo, homeButton, isPortrait, unit } from '../ui/scenery';
+import { goTo, exitButton, isPortrait, unit } from '../ui/scenery';
 import { drawBackdrop } from '../ui/backdrop';
 import { card } from '../ui/kit';
 import { BaseScene } from './BaseScene';
@@ -67,10 +67,7 @@ export class MemoryScene extends BaseScene {
     const u = unit(this);
     this.series = data.series ?? new Series(game, app.progress, app.rng);
     this.cards = [];
-    homeButton(this, () => {
-      this.series.abandon();
-      goTo(this, 'Home');
-    });
+    exitButton(this, () => this.series.abandon());
     this.drawSteps();
     const portrait = isPortrait(this);
     this.dino = new Dino(this, portrait ? W * 0.17 : W * 0.1, H * 0.985, u * (portrait ? 0.26 : 0.34));

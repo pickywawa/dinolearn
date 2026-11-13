@@ -11,3 +11,7 @@ public/piper/
 *.p8
 *.p12
 *.mobileprovision
+
+# Clé du compte de service Google Play : jamais dans le dépôt.
+*play-key*.json
+*.aab

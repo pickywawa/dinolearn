@@ -44,6 +44,21 @@ function write(name, set, icon) {
   writeFileSync(new URL(`${name}.svg`, OUT), iconToHTML(svg.body, svg.attributes));
 }
 
+/** Grille de fruits (bulle du sudoku) : cases blanches arrondies, un fruit Noto par case. */
+function fruitGrid(name, rows) {
+  const n = rows.length, cell = 256 / n, pad = cell * 0.14;
+  let body = `<rect x="4" y="4" width="248" height="248" rx="36" fill="#fff4d6" stroke="#c58b3c" stroke-width="8"/>`;
+  rows.forEach((row, r) => row.forEach((fruit, c) => {
+    const x = c * cell, y = r * cell;
+    body += `<rect x="${x + 10}" y="${y + 10}" width="${cell - 20}" height="${cell - 20}" rx="14" fill="#ffffff"/>`;
+    const data = getIconData(noto, fruit);
+    if (!data) throw new Error(`Icône introuvable : ${fruit}`);
+    const svg = iconToSVG(data, { width: cell - pad * 2, height: cell - pad * 2 });
+    body += `<svg x="${x + pad}" y="${y + pad}" width="${cell - pad * 2}" height="${cell - pad * 2}" viewBox="${svg.attributes.viewBox}">${svg.body}</svg>`;
+  }));
+  writeFileSync(new URL(`${name}.svg`, OUT), `<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">${body}</svg>`);
+}
+
 /** Tache de peinture au style « plush » pour les couleurs. */
 function colorBlob(name, color) {
   const outline = color === '#2B2B33' ? '#55556a' : '#2d3354';
@@ -148,6 +163,15 @@ write('memory', noto, 'flower-playing-cards');
 write('memory-en', noto, 'joker');
 // Programme le dino : la bulle du jeu, et les obstacles du plateau.
 write('coding', noto, 'robot');
+// Partage le gâteau : la bulle du jeu, les amis du dino et les cookies.
+write('cake-share', noto, 'birthday-cake');
+write('cookie', noto, 'cookie');
+write('friend-dragon', noto, 'dragon');
+write('friend-turtle', noto, 'turtle');
+write('friend-lizard', noto, 'lizard');
+write('friend-chick', noto, 'hatching-chick');
+// Sudoku des fruits : une petite grille 3×3 de fruits (aucun fruit deux fois sur une ligne ou une colonne).
+fruitGrid('sudoku', [['red-apple', 'banana', 'grapes'], ['grapes', 'red-apple', 'banana'], ['banana', 'grapes', 'red-apple']]);
 write('code-rock', noto, 'rock');
 write('code-water', noto, 'water-wave');
 write('shapes', noto, 'artist-palette');

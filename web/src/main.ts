@@ -11,6 +11,8 @@ import { EndScene } from './scenes/EndScene';
 import { GameScene } from './scenes/GameScene';
 import { MemoryScene } from './scenes/MemoryScene';
 import { CodeScene } from './scenes/CodeScene';
+import { SudokuScene } from './scenes/SudokuScene';
+import { CakeScene } from './scenes/CakeScene';
 import { HomeScene } from './scenes/HomeScene';
 import { StartScene } from './scenes/StartScene';
 import { TraceScene } from './scenes/TraceScene';
@@ -60,7 +62,7 @@ const game = new Phaser.Game({
   // et les petits écarts (barre d'adresse, plein écran) sont rognés de quelques pixels.
   scale: { mode: Phaser.Scale.ENVELOP, autoCenter: Phaser.Scale.CENTER_BOTH },
   input: { activePointers: 2 },
-  scene: [BootScene, StartScene, HomeScene, ChooseScene, GameScene, EndScene, WardrobeScene, TraceScene, MemoryScene, CodeScene],
+  scene: [BootScene, StartScene, HomeScene, ChooseScene, GameScene, EndScene, WardrobeScene, TraceScene, MemoryScene, CodeScene, SudokuScene, CakeScene],
 });
 
 // Fullscreen and browser chrome changes can resize the drawable area without a window resize.

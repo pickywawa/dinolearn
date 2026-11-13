@@ -24,11 +24,34 @@ export function goTo(scene: Phaser.Scene, key: string, data?: object) {
   scene.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => scene.scene.start(key, data));
 }
 
-/** Petit bouton « maison » en haut à gauche. */
-export function homeButton(scene: Phaser.Scene, onTap: () => void) {
+/** Petit bouton « maison » (ou flèche de retour) en haut à gauche. */
+export function homeButton(scene: Phaser.Scene, onTap: () => void, icon = 'ui-home') {
   const r = unit(scene) * 0.07;
   const inset = safeArea(scene);
-  return new Bubble(scene, inset.left + r * 1.3, inset.top + r * 1.3, r * 0.85, 0xffffff, 'ui-home', onTap, 0.66);
+  return new Bubble(scene, inset.left + r * 1.3, inset.top + r * 1.3, r * 0.85, 0xffffff, icon, onTap, 0.66);
+}
+
+/**
+ * Catégorie des missions d'où vient la série en cours : le bouton du haut devient une flèche qui y
+ * ramène (au lieu de la maison). Effacée à l'accueil, d'où partent les séries au hasard.
+ */
+let missionCategory: string | undefined;
+export const missionOrigin = {
+  get: () => missionCategory,
+  set: (category: string | undefined) => { missionCategory = category; },
+};
+
+/**
+ * Bouton de sortie d'une série : flèche vers la catégorie des missions si l'enfant l'a choisie
+ * là, sinon la maison. `before` est appelé avant de partir (abandon de la série…).
+ */
+export function exitButton(scene: Phaser.Scene, before: () => void = () => undefined) {
+  const category = missionCategory;
+  return homeButton(scene, () => {
+    before();
+    if (category) goTo(scene, 'Choose', { category });
+    else goTo(scene, 'Home');
+  }, category ? 'pk-back' : 'ui-home');
 }
 
 /** Le dino réagit quand on le touche (chatouilles). */

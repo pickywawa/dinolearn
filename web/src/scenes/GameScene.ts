@@ -12,7 +12,7 @@ import { Heard, Verdict, canRecognize, grammarFor, judge } from '../domain/speec
 import { Dino, SUCCESS_REACTIONS } from '../dino/Dino';
 import { Guide } from '../ui/Guide';
 import { MicButton } from '../ui/MicButton';
-import { goTo, homeButton, isPortrait, unit } from '../ui/scenery';
+import { goTo, exitButton, isPortrait, unit } from '../ui/scenery';
 import { drawBackdrop } from '../ui/backdrop';
 import { card } from '../ui/kit';
 import { BaseScene } from './BaseScene';
@@ -104,6 +104,14 @@ export class GameScene extends BaseScene {
       this.scene.start('Code', data);
       return;
     }
+    if (!data.series && data.gameId && gameById(data.gameId).sudoku) {
+      this.scene.start('Sudoku', data);
+      return;
+    }
+    if (!data.series && data.gameId && gameById(data.gameId).cake) {
+      this.scene.start('Cake', data);
+      return;
+    }
     this.initBase();
     this.playMs = 0;
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.savePlayTime());
@@ -140,7 +148,7 @@ export class GameScene extends BaseScene {
     });
     this.tutorial = !this.resumed && !this.voiceOn && !lang && !app.progress.seenTutorial && this.series.items.length > 1;
 
-    homeButton(this, () => this.leave());
+    exitButton(this, () => this.series.abandon());
     this.drawSteps();
 
     this.dino = new Dino(this, W * 0.115, H * 0.985, u * 0.44);
@@ -549,11 +557,6 @@ export class GameScene extends BaseScene {
     });
   }
 
-  private leave() {
-    this.series.abandon();
-    goTo(this, 'Home');
-  }
-
   // ---- Affichage ----
 
   /** Barre de progression : un fruit différent par question, gagné au premier essai. */
@@ -631,7 +634,7 @@ export class GameScene extends BaseScene {
       const x = (left + right) / 2;
       const y = (top + bottom) / 2;
       this.answerSpot = { x, y, size: Math.min(right - left, bottom - top, Math.min(W, H) * 0.42) * 0.8 };
-      this.mic = new MicButton(this, x, y, Math.min(W, H) * 0.13, () => this.onMic());
+      this.mic = new MicButton(this, x, y, Math.min(W, H) * 0.13);
       this.shown.push(this.mic);
       return;
     }
@@ -747,7 +750,7 @@ export class GameScene extends BaseScene {
       this.drawSum(show, area, pop);
       return;
     }
-    if (show.kind === 'trace' || show.kind === 'memory' || show.kind === 'code') return;
+    if (show.kind === 'trace' || show.kind === 'memory' || show.kind === 'code' || show.kind === 'sudoku' || show.kind === 'cake') return;
 
     // Objets à compter : on mélange les groupes (aux niveaux difficiles, il y a des intrus).
     const items = Phaser.Utils.Array.Shuffle(show.groups.flatMap((g, gi) =>

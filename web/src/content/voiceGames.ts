@@ -4,7 +4,7 @@ import { SayTarget, withoutArticle } from '../domain/speech';
 import {
   CONCEPTS, categoryHint, Concept, Speech, conceptById, conceptsFor, foreignWord, frWithArticle, pickDistractors, theWord,
 } from './content';
-import { isFr, lang, second, t } from '../i18n';
+import { isFr, lang, second, secondFlag, t } from '../i18n';
 import { CELEBRATIONS, Country, FAR_FLAGS, FOREIGN_FOODS, OTHER_ANIMALS, currencyCards, currentCountry } from './countries';
 import {
   COUNTRY_NAMES, JOBS, NATURE, OralCard, OralRiddle, SEASONS, SHAPES_COLORS, SPACE, SPORTS, WORLD,
@@ -113,7 +113,7 @@ const sayEnglish: GameDef = {
   // Reconnaissance dans la langue apprise (anglais, ou espagnol pour les anglophones).
   get voice() { return second(); },
   minAge: 5,
-  icon: 'flag-gb',
+  get icon() { return secondFlag(); },
   color: 0x3b7de9,
   introLine: 'intro.VO-2',
   homeLine: 'home.VO-2',

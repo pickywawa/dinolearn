@@ -44,11 +44,7 @@ jobs:
       - name: Appli Android (APK)
         env:
           # Clés de signature : uniquement dans les secrets du dépôt, jamais dans les fichiers.
-          # Clé Google Play (facultative) ; sinon clé des APK de test.
-          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          # L'APK de test garde toujours la clé de test (pour se mettre à jour d'une version à l'autre).
           ANDROID_TEST_KEYSTORE_BASE64: ${{ secrets.ANDROID_TEST_KEYSTORE_BASE64 }}
           ANDROID_TEST_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_TEST_KEYSTORE_PASSWORD }}
         run: |
@@ -56,14 +52,32 @@ jobs:
             echo "$ANDROID_TEST_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/test.keystore"
             export ANDROID_TEST_KEYSTORE_FILE="$RUNNER_TEMP/test.keystore"
           fi
-          if [ -n "$ANDROID_KEYSTORE_BASE64" ]; then
-            echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.keystore"
-            export ANDROID_KEYSTORE_FILE="$RUNNER_TEMP/release.keystore"
-          fi
           node scripts/app-assets.mjs
           npx cap sync android
           cd android && ./gradlew assembleRelease --no-daemon
           cp app/build/outputs/apk/release/app-release.apk ../dinolearn-${{ steps.version.outputs.tag }}.apk
+      - name: Appli Google Play (AAB)
+        id: aab
+        env:
+          # Clé d'envoi Google Play (créée par scripts/android-upload-key.sh) ; sans elle, pas de .aab.
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -z "$ANDROID_KEYSTORE_BASE64" ]; then echo "Pas de clé d'envoi : pas de .aab."; exit 0; fi
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.keystore"
+          export ANDROID_KEYSTORE_FILE="$RUNNER_TEMP/release.keystore"
+          cd android && ./gradlew bundleRelease --no-daemon
+          cp app/build/outputs/bundle/release/app-release.aab ../dinolearn-${{ steps.version.outputs.tag }}.aab
+          echo "built=true" >> "$GITHUB_OUTPUT"
+      # Le .aab n'est pas joint à la release publique : il est gardé 14 jours (stockage limité).
+      - uses: actions/upload-artifact@v4
+        if: steps.aab.outputs.built == 'true'
+        with:
+          name: dinolearn-${{ steps.version.outputs.tag }}-aab
+          path: web/dinolearn-${{ steps.version.outputs.tag }}.aab
+          retention-days: 14
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.tag }}

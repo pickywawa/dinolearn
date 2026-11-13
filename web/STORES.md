@@ -27,7 +27,7 @@ Ce qu'il faut savoir et répondre pour publier DinoLearn. L'appli ne contient ni
 - Tranches d'âge : *5 ans et moins* et *6 à 8 ans*. L'appli entre donc dans le programme **Familles**.
 - Publicités : **non**. Achats intégrés : **non**.
 - Catégorie : *Éducation* (ou *Jeux > Éducatif*).
-- Classification du contenu (questionnaire IARC) : pas de violence, pas de contenu sexuel, pas de jeux d'argent, pas d'échanges entre utilisateurs, pas d'achat. Seul l'humour « rot / prout » du dino peut être mentionné : il ne change rien à la note.
+- Classification du contenu (questionnaire IARC) : pas de violence, pas de contenu sexuel, pas de jeux d'argent, pas d'échanges entre utilisateurs, pas d'achat.
 
 **Sécurité des données**
 - Données collectées : **aucune**. Données partagées : **aucune**.
@@ -37,6 +37,11 @@ Ce qu'il faut savoir et répondre pour publier DinoLearn. L'appli ne contient ni
 **Permissions à justifier**
 - `RECORD_AUDIO` : jeux à voix haute, reconnaissance vocale sur l'appareil, uniquement quand l'enfant touche le bouton micro.
 - `INTERNET` : téléchargement des voix et de la reconnaissance vocale au premier lancement.
+
+**Fiches du store** (titre, descriptions, icône 512, image de présentation 1024×500)
+- Textes des 20 langues : `fastlane/listings.py` → `fastlane/metadata/android/<langue>/`. Les fiches ne promettent que ce qui existe dans la langue (lecture et fiches à imprimer : français seulement ; jeux à voix haute : seulement avec une reconnaissance vocale).
+- Envoi direct : `npm run play:listings` (vérifie), puis `node scripts/play-listings.mjs --commit` (enregistre). Il faut une clé de compte de service dans `~/.config/dinolearn/play-key.json` (jamais dans le dépôt), et un premier .aab envoyé à la main dans la Play Console.
+- Captures d'écran : à placer dans `fastlane/metadata/android/en-US/images/phoneScreenshots/` (langue par défaut de la fiche : en-US) (et `tenInchScreenshots/` pour les tablettes).
 
 ## App Store
 

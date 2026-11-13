@@ -12,7 +12,7 @@ import { Guide } from '../ui/Guide';
 import { buzzingFlies } from '../ui/flies';
 import { arrowTexture, candyButton, navTile, setHighlight, starTexture, woodSign } from '../ui/kit';
 import { drawSkyLife } from '../ui/sky';
-import { goTo, growthFactor, makeTickable, unit } from '../ui/scenery';
+import { goTo, growthFactor, makeTickable, unit, missionOrigin } from '../ui/scenery';
 import { backdropPoint, drawBackdrop, VOLCANO_MOUND } from '../ui/backdrop';
 import { Music } from '../core/music';
 import { ears } from '../core/ears';
@@ -53,6 +53,8 @@ export class HomeScene extends BaseScene {
       return;
     }
     this.initBase(!data?.seamless);
+    // Les séries lancées d'ici (au hasard) reviennent à l'accueil, pas aux missions.
+    missionOrigin.set(undefined);
     // Voix et reconnaissance de la langue apprise en plus : en arrière-plan, maintenant que l'éclosion est passée.
     void prepareSecondPacks();
     // Après l'heure du coucher : ciel de nuit.
@@ -252,7 +254,7 @@ export class HomeScene extends BaseScene {
   private openChoose() {
     this.clearIdle();
     this.guide.hide();
-    goTo(this, 'Choose');
+    goTo(this, 'Choose', {});
   }
 
   private playRandom() {

@@ -252,8 +252,8 @@ export class Series {
 export const traceLevelCap = (age: number) => ({ 3: 5, 4: 8, 5: 12 } as Record<number, number>)[age] ?? 20;
 
 /** Scène qui affiche une question de ce jeu : cartes (et voix), tracé, memory, ou « Programme le dino ». */
-export type SeriesScene = 'Game' | 'Trace' | 'Memory' | 'Code';
-export const sceneOf = (game: GameDef): SeriesScene => (game.trace ? 'Trace' : game.memory ? 'Memory' : game.code ? 'Code' : 'Game');
+export type SeriesScene = 'Game' | 'Trace' | 'Memory' | 'Code' | 'Sudoku' | 'Cake';
+export const sceneOf = (game: GameDef): SeriesScene => (game.trace ? 'Trace' : game.memory ? 'Memory' : game.code ? 'Code' : game.sudoku ? 'Sudoku' : game.cake ? 'Cake' : 'Game');
 
 /**
  * Série de la planète : les questions de tous les modes se suivent. On met en

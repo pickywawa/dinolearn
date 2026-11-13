@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Icônes et écran de démarrage de DinoLearn, à partir des deux images de référence :
-  brand/icon.webp   (1254 × 1254, cadre jaune arrondi, coins noirs)
+  brand/icon.webp   (1254 × 1254, illustration carrée pleine, fond bleu, sans transparence)
   brand/splash.webp (1672 × 941, paysage)
 Usage :
   python3 -m venv /tmp/brand && /tmp/brand/bin/pip install pillow
@@ -25,30 +25,28 @@ def rounded(size, inset, radius, feather=0):
     return m.filter(ImageFilter.GaussianBlur(feather)) if feather else m
 
 
-# L'icône telle quelle, coins transparents (cadre jaune compris).
+# L'icône aux coins arrondis (web, anciens Android, démarrage Android 12).
 framed = icon.convert('RGBA')
-framed.putalpha(rounded(N, 4, 250, 1.2))
-# L'illustration sans le cadre (coins arrondis, bord adouci).
-art_mask = rounded(N, 46, 215, 6)
+framed.putalpha(rounded(N, 0, round(N * 0.2), 1.2))
 
 
 def blurred(size):
-    """Fond : l'illustration agrandie et floutée, pour remplir les coins sans cassure."""
-    big = icon.crop((140, 140, N - 140, N - 140)).resize((size, size), Image.LANCZOS)
-    return big.filter(ImageFilter.GaussianBlur(size / 40))
+    """Fond : l'illustration agrandie et floutée, pour prolonger les bords sans cassure."""
+    return icon.resize((size, size), Image.LANCZOS).filter(ImageFilter.GaussianBlur(size / 30))
 
 
 def full_bleed(size):
-    """Carré plein (iOS arrondit lui-même) : l'illustration sur son fond flou."""
-    bg = blurred(N)
-    bg.paste(icon, (0, 0), art_mask)
-    return bg.resize((size, size), Image.LANCZOS)
+    """Carré plein, opaque (iOS et les stores arrondissent eux-mêmes ; pas de transparence)."""
+    return icon.resize((size, size), Image.LANCZOS)
 
 
 def out(im, *path):
     os.makedirs(os.path.dirname(P(*path)), exist_ok=True)
     im.save(P(*path), optimize=True)
 
+
+# ---- Store (Google Play : 512 × 512, carré plein) ----
+out(full_bleed(512), 'fastlane/metadata/android/en-US/images/icon.png')
 
 # ---- Web ----
 out(framed.resize((512, 512), Image.LANCZOS), 'public/icons/icon-512.png')
@@ -66,28 +64,24 @@ for name in ('splash-2732x2732.png', 'splash-2732x2732-1.png', 'splash-2732x2732
 DPI = {'mdpi': 1, 'hdpi': 1.5, 'xhdpi': 2, 'xxhdpi': 3, 'xxxhdpi': 4}
 for dpi, k in DPI.items():
     layer = round(108 * k)
-    # Icône adaptative : fond flou plein + illustration (70 dp sur 108) au premier plan.
-    out(blurred(layer), RES, f'mipmap-{dpi}', 'ic_launcher_background.png')
+    # Icône adaptative : l'illustration (76 dp sur 108, le lanceur en montre 72) sur son
+    # prolongement flou ; le premier plan est vide (l'illustration n'a pas de détourage).
+    s = round(layer * 76 / 108)
+    bg = blurred(layer)
+    bg.paste(icon.resize((s, s), Image.LANCZOS), ((layer - s) // 2, (layer - s) // 2))
+    out(bg, RES, f'mipmap-{dpi}', 'ic_launcher_background.png')
     fg = Image.new('RGBA', (layer, layer), (0, 0, 0, 0))
-    s = round(layer * 70 / 108)
-    art = icon.resize((s, s), Image.LANCZOS).convert('RGBA')
-    art.putalpha(art_mask.resize((s, s), Image.LANCZOS))
-    fg.alpha_composite(art, ((layer - s) // 2, (layer - s) // 2))
     out(fg, RES, f'mipmap-{dpi}', 'ic_launcher_foreground.png')
     # Anciennes versions d'Android : l'icône encadrée, et sa version ronde.
     px = round(48 * k)
     out(framed.resize((px, px), Image.LANCZOS), RES, f'mipmap-{dpi}', 'ic_launcher.png')
-    comp = blurred(layer).convert('RGBA')
-    comp.alpha_composite(fg)
-    v = round(layer * 72 / 108)
-    o = (layer - v) // 2
-    disc = comp.crop((o, o, o + v, o + v)).resize((px * 4, px * 4), Image.LANCZOS)
+    disc = icon.resize((px * 4, px * 4), Image.LANCZOS)
     m = Image.new('L', (px * 4, px * 4), 0)
     ImageDraw.Draw(m).ellipse((0, 0, px * 4 - 1, px * 4 - 1), fill=255)
     disc.putalpha(m)
     out(disc.resize((px, px), Image.LANCZOS), RES, f'mipmap-{dpi}', 'ic_launcher_round.png')
 
-# Écran de démarrage Android 12+ : l'icône encadrée entière dans le cercle de 160 dp (sur 240 dp).
+# Écran de démarrage Android 12+ : l'icône arrondie entière dans le cercle de 160 dp (sur 240 dp).
 canvas = Image.new('RGBA', (960, 960), (0, 0, 0, 0))
 s = round(960 * 0.52)
 canvas.alpha_composite(framed.resize((s, s), Image.LANCZOS), ((960 - s) // 2, (960 - s) // 2))

@@ -569,7 +569,7 @@ export function openParents(onClose: () => void) {
   function voiceSection() {
     const section = el('section', {},
       el('h2', {}, T('mic', 'Micro (jeux à voix haute)')),
-      el('p', { class: 'help' }, T('micHelp', 'L\'enfant répond en parlant (nommer une image, répéter un mot, lire, calculer). Tout reste sur l\'appareil : rien n\'est enregistré ni envoyé. Le micro ne s\'allume que quand c\'est à l\'enfant de répondre (il devient vert).')),
+      el('p', { class: 'help' }, T('micHelp', 'L\'enfant répond en parlant (nommer une image, répéter un mot, lire, calculer). Tout reste sur l\'appareil : rien n\'est enregistré ni envoyé. Le gros micro n\'apparaît que quand c\'est à l\'enfant de parler.')),
     );
     if (!voiceSupported()) {
       section.append(el('p', {}, T('noMic', 'Ce navigateur ne permet pas d\'utiliser le micro dans le jeu.')));

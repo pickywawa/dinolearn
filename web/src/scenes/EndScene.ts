@@ -12,7 +12,7 @@ import { foodXp } from '../domain/rewards';
 import { Dino, DinoReaction } from '../dino/Dino';
 import { arrowTexture, candyButton, card, INK, label, ribbonBanner, setHighlight, starTexture } from '../ui/kit';
 import { Guide } from '../ui/Guide';
-import { goTo, homeButton, unit } from '../ui/scenery';
+import { goTo, exitButton, unit } from '../ui/scenery';
 import { drawBackdrop } from '../ui/backdrop';
 import { BaseScene } from './BaseScene';
 import { t } from '../i18n';
@@ -66,7 +66,7 @@ export class EndScene extends BaseScene {
     this.feeding = false;
     this.eatenCount = 0;
 
-    homeButton(this, () => goTo(this, 'Home'));
+    exitButton(this);
     // Le dino à gauche ; à droite, la carte « Bravo ! » avec les étoiles de la série.
     this.dino = new Dino(this, W * 0.25, H * 0.95, u * 0.56);
     this.dino.setBellyFill(growthProgress(app.progress.dino));

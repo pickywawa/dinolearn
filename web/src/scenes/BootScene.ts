@@ -11,8 +11,8 @@ import { PackId, languageOf, secondLanguage } from '../domain/packs';
 import { t } from '../i18n';
 
 export const UI_IMAGES = [...new Set([
-  'ui-play', 'ui-home', 'ui-star', 'ui-sparkles', 'ui-globe', 'ui-cloud', 'ui-cake', 'flag-gb',
-  'decor-palm-tree', 'decor-sauropod', 'decor-t-rex', 'decor-butterfly', 'decor-fly', 'decor-bird', 'decor-sun', 'decor-rainbow', 'ui-lock', 'riddle', 'oddoneout', 'counting', 'shadow', 'sequence', 'most', 'calc', 'calc-listen', 'flag-fr', 'numbers', 'together', 'bigger', 'en-numbers', 'syllables', 'read', 'letters', 'ui-parents', 'read-picture', 'missing-word', 'missing-word-read', 'story', 'memory', 'memory-en', 'coding', 'code-rock', 'code-water', 'shapes', 'clock', 'money', 'ui-music', 'ui-music-off', 'ui-moon', 'trace-shapes', 'trace-letters', 'ui-eraser', 'my-country', 'ui-basket',
+  'ui-play', 'ui-home', 'ui-star', 'ui-sparkles', 'ui-globe', 'ui-cloud', 'ui-cake', 'flag-gb', 'flag-es',
+  'decor-palm-tree', 'decor-sauropod', 'decor-t-rex', 'decor-butterfly', 'decor-fly', 'decor-bird', 'decor-sun', 'decor-rainbow', 'ui-lock', 'riddle', 'oddoneout', 'counting', 'shadow', 'sequence', 'most', 'calc', 'calc-listen', 'flag-fr', 'numbers', 'together', 'bigger', 'en-numbers', 'syllables', 'read', 'letters', 'ui-parents', 'read-picture', 'missing-word', 'missing-word-read', 'story', 'memory', 'memory-en', 'coding', 'sudoku', 'cake-share', 'cookie', 'friend-dragon', 'friend-turtle', 'friend-lizard', 'friend-chick', 'code-rock', 'code-water', 'shapes', 'clock', 'money', 'ui-music', 'ui-music-off', 'ui-moon', 'trace-shapes', 'trace-letters', 'ui-eraser', 'my-country', 'ui-basket',
   ...[...FRUITS, 'cake'].map((f) => `food-${f}`),
   'ui-wardrobe', 'ui-gift', 'ui-missions', 'ui-mydino', 'ui-progress', 'ui-settings', ...ITEMS.map((i) => itemTexture(i.id)),
   'ui-envelope', ...PRINT_KINDS.map((k) => k.icon),
@@ -200,7 +200,10 @@ export class BootScene extends Phaser.Scene {
     this.drawProgress();
     // Lien de test d'un jeu à un niveau donné (« ?jeu=LO-12&niveau=7 ») : directement le jeu.
     const query = new URLSearchParams(location.search);
-    if (query.get('jeu') === 'LO-12') this.scene.start('Code', { testLevel: Math.max(1, Math.min(20, Number(query.get('niveau')) || 1)) });
+    const testLevel = Math.max(1, Math.min(20, Number(query.get('niveau')) || 1));
+    if (query.get('jeu') === 'LO-12') this.scene.start('Code', { testLevel });
+    else if (query.get('jeu') === 'LO-13') this.scene.start('Sudoku', { testLevel });
+    else if (query.get('jeu') === 'LO-14') this.scene.start('Cake', { testLevel });
     else this.scene.start('Start');
     const screen = document.getElementById('loading-screen');
     screen?.classList.add('done');

@@ -1,0 +1,5 @@
+• Yeni oyun: meyve sudokusu (5 yaştan itibaren)
+• Yeni oyun: pastayı paylaş — yarım, üçte bir ve çeyrek
+• Sesli oyunlar: mikrofon, konuşma sırası çocuğa gelince görünür
+• Görevler derse göre sıralandı: İngilizce, matematik, Türkçe, mantık, dünya
+• Yeni simge

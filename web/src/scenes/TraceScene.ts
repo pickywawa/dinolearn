@@ -8,7 +8,7 @@ import { foodImage } from '../domain/models';
 import { Point, resample, scoreTrace } from '../domain/trace';
 import { Dino, SUCCESS_REACTIONS } from '../dino/Dino';
 import { Bubble } from '../ui/Bubble';
-import { goTo, homeButton, isPortrait, unit } from '../ui/scenery';
+import { goTo, exitButton, isPortrait, unit } from '../ui/scenery';
 import { drawBackdrop } from '../ui/backdrop';
 import { card } from '../ui/kit';
 import { BaseScene } from './BaseScene';
@@ -62,10 +62,7 @@ export class TraceScene extends BaseScene {
     const portrait = isPortrait(this);
     this.series = data.series ?? new Series(game, app.progress, app.rng);
     this.phase = 'asking';
-    homeButton(this, () => {
-      this.series.abandon();
-      goTo(this, 'Home');
-    });
+    exitButton(this, () => this.series.abandon());
     this.drawSteps();
 
     const size = portrait ? Math.min(W * 0.88, H * 0.52) : H * 0.74;

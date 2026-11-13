@@ -11,7 +11,7 @@ import { Dino, SUCCESS_REACTIONS } from '../dino/Dino';
 import { lang, phrase } from '../i18n';
 import { drawBackdrop } from '../ui/backdrop';
 import { FONT, INK, card } from '../ui/kit';
-import { goTo, homeButton, unit } from '../ui/scenery';
+import { goTo, exitButton, unit } from '../ui/scenery';
 import { safeArea } from '../ui/safeArea';
 import { BaseScene } from './BaseScene';
 
@@ -90,10 +90,7 @@ export class CodeScene extends BaseScene {
     }
     const game = gameById('LO-12');
     this.series = this.testLevel ? undefined : data.series ?? new Series(game, app.progress, app.rng);
-    homeButton(this, () => {
-      this.series?.abandon();
-      goTo(this, 'Home');
-    });
+    exitButton(this, () => this.series?.abandon());
     if (this.series) this.drawSteps();
     else this.levelPicker();
     // Images du plateau : chargées si besoin (elles le sont d'habitude au démarrage).
