@@ -1,3 +1,4 @@
+import { fixPhonemes, idsFor, respell } from '../domain/pronunciation';
 import { store } from './voiceStore';
 import { pitchShift } from './pitch';
 import { spokenSegments } from '../domain/sayable';
@@ -34,6 +35,7 @@ interface PiperConfig {
   espeak: { voice: string };
   inference: { noise_scale: number; length_scale: number; noise_w: number };
   speaker_id_map?: Record<string, number>;
+  phoneme_id_map?: Record<string, number[]>;
 }
 interface Phonemizer { callMain(args: string[]): void }
 
@@ -63,13 +65,17 @@ function getPhonemizer(): Promise<Phonemizer> {
   return phonemizer;
 }
 
-async function phonemeIds(text: string, espeakVoice: string): Promise<number[]> {
+async function phonemeIds(text: string, espeakVoice: string, idMap?: Record<string, number[]>): Promise<number[]> {
   const run = async () => {
     const module = await getPhonemizer();
     return new Promise<number[]>((resolve, reject) => {
       onPrint = (line) => {
         try {
-          resolve(JSON.parse(line).phoneme_ids);
+          const out = JSON.parse(line) as { phoneme_ids: number[]; phonemes?: string[] };
+          // Prononciation corrigée (voyelles longues, « kiwi »…) ; sans correction possible, les sons d'origine.
+          const fixed = out.phonemes && idMap ? fixPhonemes(espeakVoice, out.phonemes) : undefined;
+          const same = !fixed || (fixed.length === out.phonemes!.length && fixed.every((p, i) => p === out.phonemes![i]));
+          resolve((!same && idMap && fixed && idsFor(fixed, idMap)) || out.phoneme_ids);
         } catch (e) {
           reject(e);
         }
@@ -115,7 +121,7 @@ export function loadVoice(voiceId: string) {
 /** Calcule un morceau de phrase : le son (−1 à 1) et sa fréquence d'échantillonnage. `slow` : débit ralenti (× durée). */
 export async function synthesize(voiceId: string, text: string, slow = 1): Promise<{ pcm: Float32Array; sampleRate: number }> {
   const [{ session, config }, lib] = await Promise.all([loadVoice(voiceId), ort()]);
-  const ids = await phonemeIds(text.trim(), config.espeak.voice);
+  const ids = await phonemeIds(respell(config.espeak.voice, text).trim(), config.espeak.voice, config.phoneme_id_map);
   const { noise_scale: noise, length_scale: length, noise_w: noiseW } = config.inference;
   const feeds: Record<string, unknown> = {
     input: new lib.Tensor('int64', BigInt64Array.from(ids.map((i) => BigInt(i))), [1, ids.length]),

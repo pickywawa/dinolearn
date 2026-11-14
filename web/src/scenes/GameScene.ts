@@ -134,6 +134,13 @@ export class GameScene extends BaseScene {
       this.series = new Series(this.mixed ? games : games[0], app.progress, app.rng);
       if (this.mixed) startWithCards(this.series);
     }
+    // Garde-fou : une question qui n'est pas à cartes (programmation, sudoku, gâteau, memory, tracé) ne s'affiche
+    // jamais ici (on n'y verrait qu'un cadre blanc vide) : on ouvre la scène qui la joue.
+    const owner = sceneOf(this.series.current.game);
+    if (owner !== 'Game') {
+      this.scene.start(owner, { series: this.series });
+      return;
+    }
     const lang = this.mixed ? undefined : games[0].voice;
     // Langues des questions à voix haute de la série (micro autorisé et pack téléchargé).
     const langs = [...new Set(this.series.items.filter((i) => i.game.voice && voiceAvailable(i.game)).map((i) => i.game.voice!))];
@@ -610,10 +617,10 @@ export class GameScene extends BaseScene {
     this.mic = undefined;
     const item = this.series.current;
     const voice = this.voiceActive();
-    // Voix haute sans image à nommer (devinettes) : l'emblème du jeu ; aux cartes, l'image qui donnerait la réponse est cachée.
+    // Voix haute sans image à nommer (devinettes) : un « ? » (l'emblème du jeu laissait croire que c'était la réponse) ; aux cartes, l'image qui donnerait la réponse est cachée.
     const show: Show | undefined = this.cardMode && item.fallback?.hideShow
       ? undefined
-      : item.show ?? (voice ? { kind: 'image', image: item.game.icon } : undefined);
+      : item.show ?? (voice ? { kind: 'sequence', images: [null] } : undefined);
     const { width: W, height: H } = this.scale;
     const portrait = isPortrait(this);
     let top = H * (portrait ? 0.17 : 0.2);

@@ -206,3 +206,18 @@ describe('présentation à voix haute', () => {
     expect(withName('Et toi, {name}, tu as quel âge ?', '')).toBe('Et toi, tu as quel âge ?');
   });
 });
+
+import { normalize as peakNormalize } from '../src/core/neuralVoice';
+describe('volume des voix', () => {
+  it('amène le plus fort passage près du maximum', () => {
+    const out = peakNormalize(Float32Array.of(0, 0.2, -0.3, 0.1));
+    expect(Math.max(...Array.from(out).map(Math.abs))).toBeCloseTo(0.97, 2);
+  });
+  it('ne monte pas à l\'infini un presque-silence, ni ne touche une voix déjà forte', () => {
+    const quiet = Float32Array.of(0.0001, -0.0002);
+    expect(peakNormalize(quiet)).toBe(quiet);
+    const loud = Float32Array.of(0.97, -0.5);
+    expect(peakNormalize(loud)).toBe(loud);
+    expect(Math.max(...Array.from(peakNormalize(Float32Array.of(0.05, 0.01))).map(Math.abs))).toBeLessThanOrEqual(0.3 + 1e-6);
+  });
+});

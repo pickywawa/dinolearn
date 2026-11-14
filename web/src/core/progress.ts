@@ -260,7 +260,11 @@ export class Progress {
 
   playMsToday(now = new Date()) { return this.data.playLog[dayKey(now)] ?? 0; }
 
+  /** Appelé à chaque enregistrement de temps de jeu (compteur de l'invitation à donner un avis). */
+  static onPlayTime?: (ms: number) => void;
+
   addPlayTime(ms: number, now = new Date()) {
+    Progress.onPlayTime?.(ms);
     const day = dayKey(now);
     // On ne garde que les 30 derniers jours.
     const days = Object.keys(this.data.playLog).sort().slice(-29).filter((d) => d !== day);

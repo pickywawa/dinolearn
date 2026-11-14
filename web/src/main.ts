@@ -5,6 +5,7 @@ import '@fontsource/playwrite-fr-moderne/400.css';
 import Phaser from 'phaser';
 import { app } from './core/app';
 import { enableInstalledVoices } from './core/packs';
+import './core/review';
 import { BootScene } from './scenes/BootScene';
 import { ChooseScene } from './scenes/ChooseScene';
 import { EndScene } from './scenes/EndScene';

@@ -421,6 +421,12 @@ const vi: Catalog = {
   'LO-14.findThird': 'Chúng tớ đã ăn một phần ba của một trong những cái bánh này. Cái nào? Chạm vào nó!',
   'LO-14.fromCenter': 'Bắt đầu ngay chính giữa bánh, rồi kéo ra tận mép nhé!',
   'LO-14.unfairEven': 'Không công bằng! Các miếng không bằng nhau: chia các đường thật đều nhé!',
+  'p.yourOpinion': 'Ý kiến của bạn',
+  'p.rateHelp': 'Bạn có thích DinoLearn không? Một lượt đánh giá hoặc nhận xét ngắn trên cửa hàng giúp các phụ huynh khác tìm thấy ứng dụng. Việc này miễn phí và hoàn toàn tự nguyện.',
+  'p.rateBtn': 'Đánh giá DinoLearn',
+  'p.rateAsk': 'Bạn có thích DinoLearn không?',
+  'p.rateLater': 'Để sau',
+  'p.rateNever': 'Đừng hỏi lại',
 };
 
 export default vi;

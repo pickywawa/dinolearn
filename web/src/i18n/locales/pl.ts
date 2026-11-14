@@ -382,6 +382,12 @@ const pl: Catalog = {
   'LO-14.findThird': 'Zjedliśmy jedną trzecią jednego z tych tortów. Którego? Dotknij go!',
   'LO-14.fromCenter': 'Zacznij dokładnie od środka tortu i prowadź aż do brzegu!',
   'LO-14.unfairEven': 'Niesprawiedliwie! Kawałki nie są równe: rozłóż linie równo!',
+  'p.yourOpinion': 'Twoja opinia',
+  'p.rateHelp': 'Podoba Ci się DinoLearn? Ocena lub krótka opinia w sklepie pomaga innym rodzicom znaleźć aplikację. To bezpłatne i całkowicie dobrowolne.',
+  'p.rateBtn': 'Oceń DinoLearn',
+  'p.rateAsk': 'Podoba Ci się DinoLearn?',
+  'p.rateLater': 'Później',
+  'p.rateNever': 'Nie pytaj więcej',
 };
 
 export default pl;

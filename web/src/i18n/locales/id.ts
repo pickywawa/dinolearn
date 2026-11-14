@@ -550,6 +550,12 @@ const id: Catalog = {
   'LO-14.findThird': 'Kami sudah makan sepertiga dari salah satu kue ini. Yang mana? Sentuh!',
   'LO-14.fromCenter': 'Mulai tepat dari tengah kue, lalu tarik sampai ke tepi!',
   'LO-14.unfairEven': 'Tidak adil! Potongannya tidak sama: beri jarak yang sama antara garis-garismu!',
+  'p.yourOpinion': 'Pendapat Anda',
+  'p.rateHelp': 'Suka DinoLearn? Penilaian atau ulasan singkat di toko membantu orang tua lain menemukannya. Gratis dan sepenuhnya sukarela.',
+  'p.rateBtn': 'Beri nilai DinoLearn',
+  'p.rateAsk': 'Suka DinoLearn?',
+  'p.rateLater': 'Nanti',
+  'p.rateNever': 'Jangan tanya lagi',
 };
 
 export default id;

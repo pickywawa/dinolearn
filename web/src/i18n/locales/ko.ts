@@ -360,6 +360,12 @@ const ko: Catalog = {
   'LO-14.findThird': '이 케이크 중 하나를 3분의 1 먹었어. 어느 거야? 눌러 봐!',
   'LO-14.fromCenter': '케이크 한가운데에서 시작해서 가장자리까지 그어 봐!',
   'LO-14.unfairEven': '불공평해! 조각이 똑같지 않아: 선 사이를 똑같이 벌려 봐!',
+  'p.yourOpinion': '여러분의 의견',
+  'p.rateHelp': 'DinoLearn이 마음에 드시나요? 스토어에 남기는 별점이나 짧은 후기는 다른 부모님이 앱을 찾는 데 도움이 됩니다. 무료이며 전적으로 자유입니다.',
+  'p.rateBtn': 'DinoLearn 평가하기',
+  'p.rateAsk': 'DinoLearn이 마음에 드시나요?',
+  'p.rateLater': '나중에',
+  'p.rateNever': '다시 묻지 않기',
 };
 
 export default ko;

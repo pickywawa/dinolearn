@@ -555,6 +555,12 @@ const zh: Catalog = {
   'LO-14.findThird': '我们吃掉了其中一个蛋糕的三分之一。是哪个？点一点它！',
   'LO-14.fromCenter': '要从蛋糕正中间开始，一直划到边上！',
   'LO-14.unfairEven': '不公平！蛋糕块不一样大：线要分得均匀，一样宽！',
+  'p.yourOpinion': '您的评价',
+  'p.rateHelp': '喜欢 DinoLearn 吗？在应用商店留下评分或简短评价，可以帮助其他家长找到它。完全免费，自愿参与。',
+  'p.rateBtn': '给 DinoLearn 评分',
+  'p.rateAsk': '喜欢 DinoLearn 吗？',
+  'p.rateLater': '以后再说',
+  'p.rateNever': '不再提醒',
 };
 
 export default zh;

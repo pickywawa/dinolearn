@@ -63,7 +63,7 @@ export function render(lang: Lang, text: string, slow = false): Promise<AudioBuf
   // Calculée dans un worker (voix aiguë et pauses comprises) : le jeu reste fluide pendant ce temps.
   p = speech(voiceId, text, slow).then(({ pcm: samples, sampleRate }) => {
     const buffer = c.createBuffer(1, Math.max(1, samples.length), sampleRate);
-    buffer.getChannelData(0).set(samples);
+    buffer.getChannelData(0).set(normalize(samples));
     return buffer;
   });
   p.catch(() => rendered.delete(key));
@@ -72,12 +72,54 @@ export function render(lang: Lang, text: string, slow = false): Promise<AudioBuf
   return p;
 }
 
+/**
+ * Les voix Piper sortent faibles (le plus fort passage reste souvent sous la moitié de l'échelle) : sur iPhone,
+ * même avec le volume à fond, on les entendait à peine. On amène le plus fort passage tout près du maximum.
+ */
+const PEAK = 0.97;
+const MAX_BOOST = 6;
+export function normalize(samples: Float32Array): Float32Array {
+  let peak = 0;
+  for (let i = 0; i < samples.length; i++) {
+    const v = Math.abs(samples[i]);
+    if (v > peak) peak = v;
+  }
+  if (peak < 0.001) return samples;
+  const gain = Math.min(MAX_BOOST, PEAK / peak);
+  if (Math.abs(gain - 1) < 0.02) return samples;
+  const out = new Float32Array(samples.length);
+  for (let i = 0; i < samples.length; i++) out[i] = samples[i] * gain;
+  return out;
+}
+
+/**
+ * Sortie commune des voix et des cris : un compresseur serre les écarts de volume (les voyelles fortes ne
+ * saturent plus), puis un gain rend le tout nettement plus fort, sans craquer.
+ */
+let output: AudioNode | undefined;
+let outputCtx: AudioContext | undefined;
+function destination(c: AudioContext): AudioNode {
+  if (output && outputCtx === c) return output;
+  const compressor = c.createDynamicsCompressor();
+  compressor.threshold.value = -20;
+  compressor.knee.value = 12;
+  compressor.ratio.value = 6;
+  compressor.attack.value = 0.003;
+  compressor.release.value = 0.2;
+  const makeup = c.createGain();
+  makeup.gain.value = 2;
+  compressor.connect(makeup).connect(c.destination);
+  output = compressor;
+  outputCtx = c;
+  return output;
+}
+
 /** Joue un son ; renvoie de quoi l'arrêter et une promesse de fin. */
 export function play(buffer: AudioBuffer): { stop: () => void; ended: Promise<void> } {
   const c = audioContext()!;
   const src = c.createBufferSource();
   src.buffer = buffer;
-  src.connect(c.destination);
+  src.connect(destination(c));
   let resolveEnd: () => void = () => undefined;
   const ended = new Promise<void>((resolve) => { resolveEnd = resolve; });
   src.onended = () => resolveEnd();

@@ -389,6 +389,12 @@ const tr: Catalog = {
   'LO-14.findThird': 'Bu pastalardan birinin üçte birini yedik. Hangisi? Ona dokun!',
   'LO-14.fromCenter': 'Pastanın tam ortasından başla ve kenarına kadar git!',
   'LO-14.unfairEven': 'Adil değil! Dilimler eşit değil: çizgilerini eşit aralıklarla çiz!',
+  'p.yourOpinion': 'Görüşünüz',
+  'p.rateHelp': 'DinoLearn\'ü beğendiniz mi? Mağazada bir puan ya da kısa bir yorum, diğer ebeveynlerin uygulamayı bulmasına yardımcı olur. Ücretsizdir ve tamamen size kalmıştır.',
+  'p.rateBtn': 'DinoLearn\'ü değerlendir',
+  'p.rateAsk': 'DinoLearn\'ü beğendiniz mi?',
+  'p.rateLater': 'Sonra',
+  'p.rateNever': 'Bir daha sorma',
 };
 
 export default tr;

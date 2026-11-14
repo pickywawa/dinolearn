@@ -561,6 +561,12 @@ const ar: Catalog = {
   'LO-14.findThird': 'أكلنا ثلث إحدى هذه الكعكات. أيّها؟ المسها!',
   'LO-14.fromCenter': 'ابدأ من منتصف الكعكة تمامًا، واذهب حتى الحافة!',
   'LO-14.unfairEven': 'ليس عدلًا! القطع غير متساوية: باعد بين الخطوط بالتساوي!',
+  'p.yourOpinion': 'رأيك',
+  'p.rateHelp': 'هل يعجبك DinoLearn؟ تقييم أو تعليق قصير في المتجر يساعد الأهل الآخرين على العثور عليه. الأمر مجاني وبمحض اختيارك.',
+  'p.rateBtn': 'قيّم DinoLearn',
+  'p.rateAsk': 'هل يعجبك DinoLearn؟',
+  'p.rateLater': 'لاحقًا',
+  'p.rateNever': 'لا تسأل مرة أخرى',
 };
 
 export default ar;

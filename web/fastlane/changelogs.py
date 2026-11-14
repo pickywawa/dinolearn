@@ -12,6 +12,28 @@ VERSION = json.load(open(os.path.join(HERE, '..', 'package.json')))['version']
 
 # Pour chaque langue : les nouveautés, puis la ligne du micro (seulement là où il y a des jeux à voix haute).
 NOTES = {
+  '0.27.0': {
+    'fr': (['Voix du dino plus forte, surtout sur iPhone', 'Mots mieux prononcés (kiwi, accents circonflexes…)', 'Devinettes à voix haute : un point d\'interrogation remplace l\'image', 'Espace parents : invitation à donner son avis sur le store', 'Petites corrections'], ''),
+    'en': (['Louder dino voice, especially on iPhone', 'Parents\' area: an invitation to leave a review on the store', 'Small fixes'], ''),
+    'es': (['La voz del dino suena más fuerte, sobre todo en iPhone', 'Espacio para padres: invitación a dejar una opinión en la tienda', 'Pequeñas correcciones'], ''),
+    'it': (['Voce del dino più forte, soprattutto su iPhone', 'Area genitori: invito a lasciare una recensione sullo store', 'Piccole correzioni'], ''),
+    'de': (['Lautere Dino-Stimme, besonders auf dem iPhone', 'Elternbereich: Einladung, eine Bewertung im Store abzugeben', 'Kleine Korrekturen'], ''),
+    'pt': (['Voz do dino mais alta, principalmente no iPhone', 'Área dos pais: convite para deixar uma avaliação na loja', 'Pequenas correções'], ''),
+    'ru': (['Голос динозавра стал громче, особенно на iPhone', 'Раздел для родителей: приглашение оставить отзыв в магазине', 'Небольшие исправления'], ''),
+    'zh': (['小恐龙的声音更大了，尤其是在 iPhone 上', '家长区：邀请您在应用商店留下评价', '小修复'], ''),
+    'hi': (['डिनो की आवाज़ अब तेज़ है, ख़ासकर iPhone पर', 'अभिभावक क्षेत्र: स्टोर पर समीक्षा देने का निमंत्रण', 'छोटे सुधार'], ''),
+    'ar': (['صوت الديناصور أعلى، خاصة على iPhone', 'ركن الأهل: دعوة لترك تقييم في المتجر', 'إصلاحات صغيرة'], ''),
+    'ur': (['ڈینو کی آواز اب زیادہ بلند ہے، خاص طور پر iPhone پر', 'والدین کا حصہ: اسٹور پر رائے دینے کی دعوت', 'چھوٹی اصلاحات'], ''),
+    'bn': (['ডিনোর কণ্ঠ এখন আরও জোরালো, বিশেষ করে iPhone-এ', 'অভিভাবক অংশ: স্টোরে রিভিউ দেওয়ার আমন্ত্রণ', 'ছোটখাটো সংশোধন'], ''),
+    'id': (['Suara dino lebih keras, terutama di iPhone', 'Area orang tua: ajakan memberi ulasan di toko', 'Perbaikan kecil'], ''),
+    'vi': (['Giọng khủng long to hơn, nhất là trên iPhone', 'Khu vực phụ huynh: lời mời để lại đánh giá trên cửa hàng', 'Sửa lỗi nhỏ'], ''),
+    'tr': (['Dino\'nun sesi daha yüksek, özellikle iPhone\'da', 'Ebeveyn alanı: mağazada yorum bırakma daveti', 'Küçük düzeltmeler'], ''),
+    'fa': (['صدای دینو بلندتر شد، به‌ویژه روی iPhone', 'بخش والدین: دعوت به ثبت نظر در فروشگاه', 'اصلاحات کوچک'], ''),
+    'pl': (['Głośniejszy głos dino, zwłaszcza na iPhonie', 'Strefa rodzica: zaproszenie do wystawienia opinii w sklepie', 'Drobne poprawki'], ''),
+    'uk': (['Голос динозавра гучніший, особливо на iPhone', 'Розділ для батьків: запрошення залишити відгук у магазині', 'Дрібні виправлення'], ''),
+    'ne': (['डिनोको आवाज चर्को भयो, विशेष गरी iPhone मा', 'अभिभावक क्षेत्र: स्टोरमा समीक्षा दिन निमन्त्रणा', 'साना सुधारहरू'], ''),
+    'ko': (['디노 목소리가 더 커졌어요, 특히 iPhone에서', '부모님 공간: 스토어에 후기를 남겨 달라는 초대', '작은 수정'], ''),
+  },
   '0.26.1': {
     'fr': (['Sur un téléphone dans une autre langue, le jeu démarre en anglais', 'Petites corrections'], ''),
     'en': (['On a phone set to another language, the game now starts in English', 'Small fixes'], ''),

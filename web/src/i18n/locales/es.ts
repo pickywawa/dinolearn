@@ -574,6 +574,12 @@ const es: Catalog = {
   'LO-14.findThird': 'Nos comimos un tercio de uno de estos pasteles. ¿Cuál? ¡Tócalo!',
   'LO-14.fromCenter': '¡Empieza justo en el medio del pastel y llega hasta el borde!',
   'LO-14.unfairEven': '¡No es justo! Los trozos no son iguales: separa bien las rayas, ¡todas igual!',
+  'p.yourOpinion': 'Tu opinión',
+  'p.rateHelp': '¿Te gusta DinoLearn? Una valoración o una breve reseña en la tienda ayuda a otros padres a encontrarlo. Es gratis y totalmente voluntario.',
+  'p.rateBtn': 'Valorar DinoLearn',
+  'p.rateAsk': '¿Te gusta DinoLearn?',
+  'p.rateLater': 'Más tarde',
+  'p.rateNever': 'No volver a preguntar',
 };
 
 export default es;

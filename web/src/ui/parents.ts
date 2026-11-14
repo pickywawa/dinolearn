@@ -19,6 +19,7 @@ import { inLanguage } from '../content/games';
 import { isFr, lang, second, t } from '../i18n';
 import { langInfo } from '../domain/langs';
 import { CREDITS } from '../content/credits';
+import { canReview, markReviewAsked, muteReview, openReview, shouldInviteReview } from '../core/review';
 
 /** Texte de l'espace parents (clé « p.<nom> » des catalogues ; le français d'origine en français). */
 const T = (key: string, fr: string, params?: Record<string, string | number>) => t(`p.${key}`, params, fr);
@@ -75,6 +76,11 @@ const CSS = `
 .parents .help { margin: 0 0 8px; color: #6b7280; font-size: 13px; }
 .parents button { font: inherit; border: 0; border-radius: 10px; padding: 8px 12px; cursor: pointer; background: #eef0f5;
   color: #1f2937; min-height: 40px; }
+.parents .invite { position: fixed; inset: 0; z-index: 6; display: flex; align-items: center; justify-content: center; padding: 16px;
+  background: rgba(30,40,80,.55); }
+.parents .invite > div { max-width: 460px; background: #fff; border-radius: 16px; padding: 18px 20px; box-shadow: 0 10px 30px rgba(0,0,0,.3); }
+.parents .invite h2 { margin: 0 0 6px; }
+.parents button.primary { background: #2d3354; color: #fff; font-weight: 700; }
 .parents button.danger { background: #fee2e2; color: #b91c1c; }
 .parents button.on { background: #2d3354; color: #fff; }
 .parents .row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
@@ -226,7 +232,7 @@ export function openParents(onClose: () => void) {
         : tab === 'progress' ? [summarySection(), weekSection(), failuresSection()]
           : tab === 'games' ? [missionsSection(), gamesSection()]
             : tab === 'print' ? [printSection(), import.meta.env.DEV ? allPrintsSection() : '']
-              : [soundSection(), voiceSection(), packsSection(), codeSection(), dataSection()];
+              : [soundSection(), voiceSection(), packsSection(), codeSection(), reviewSection(), dataSection()];
     main.replaceChildren(el('div', { class: 'cards' }, ...cards));
   };
 
@@ -637,6 +643,34 @@ export function openParents(onClose: () => void) {
     );
   }
 
+  // ---- Avis sur le store (aucune récompense : Apple et Google l'interdisent) ----
+  function reviewSection() {
+    if (!canReview()) return '';
+    const rate = el('button', { type: 'button', class: 'primary' }, T('rateBtn', 'Donner mon avis'));
+    rate.addEventListener('click', () => void openReview());
+    return el('section', {},
+      el('h2', {}, T('yourOpinion', 'Votre avis')),
+      el('p', { class: 'help' }, T('rateHelp', 'DinoLearn vous plaît ? Une note ou un petit avis sur le store aide d\'autres parents à le trouver. C\'est gratuit et entièrement libre.')),
+      rate,
+    );
+  }
+
+  /** Invitation, après un certain temps de jeu : « Donner mon avis », « Plus tard » ou « Ne plus demander ». */
+  function inviteReview() {
+    markReviewAsked();
+    const rate = el('button', { type: 'button', class: 'primary' }, T('rateBtn', 'Donner mon avis'));
+    const later = el('button', { type: 'button' }, T('rateLater', 'Plus tard'));
+    const never = el('button', { type: 'button' }, T('rateNever', 'Ne plus demander'));
+    const layer = el('div', { class: 'invite', role: 'dialog', 'aria-label': T('rateAsk', 'DinoLearn vous plaît ?') },
+      el('div', {}, el('h2', {}, T('rateAsk', 'DinoLearn vous plaît ?')),
+        el('p', { class: 'help' }, T('rateHelp', 'DinoLearn vous plaît ? Une note ou un petit avis sur le store aide d\'autres parents à le trouver. C\'est gratuit et entièrement libre.')),
+        el('div', { class: 'row', style: 'margin-top:12px' }, rate, later, never)));
+    rate.addEventListener('click', () => { layer.remove(); void openReview(); });
+    later.addEventListener('click', () => layer.remove());
+    never.addEventListener('click', () => { muteReview(); layer.remove(); });
+    root.append(layer);
+  }
+
   // ---- Données ----
   function dataSection() {
     const reset = el('button', { class: 'danger' }, T('reset', 'Tout recommencer'));
@@ -676,4 +710,5 @@ export function openParents(onClose: () => void) {
   }
 
   render();
+  if (shouldInviteReview()) inviteReview();
 }

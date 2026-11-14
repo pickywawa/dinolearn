@@ -48,6 +48,9 @@ Ce qu'il faut savoir et répondre pour publier DinoLearn. L'appli ne contient ni
 - Catégorie : **Enfants**, tranches *5 ans et moins* et *6 à 8 ans* (ou *Éducation*, sans la catégorie Enfants).
 - Confidentialité de l'appli (« étiquette nutritionnelle ») : **Aucune donnée collectée**.
 - Achats intégrés : aucun. Connexion : aucune.
+- Fiches (nom, sous-titre, description, mots-clés) : `python3 fastlane/appstore.py` → `fastlane/metadata/ios/<langue>/`. Apple n'a pas de fiche pour l'ourdou, le persan ni le népalais (anglais par défaut).
+- Captures : `fastlane/metadata/ios/<langue>/screenshots/{iphone,ipad}/` (iPhone 16 Pro Max 2868×1320, iPad Pro 13" 2752×2064, prises sur simulateur).
+- Envoi : `NODE_USE_ENV_PROXY=1 node scripts/asc-listings.mjs` (vérifie), puis `--commit` (enregistre, ne soumet pas). Clé d'API App Store Connect : `~/.config/dinolearn/AuthKey_<ID>.p8` + `asc.env` (ASC_KEY_ID, ASC_ISSUER_ID), jamais dans le dépôt. Équipe : `DEVELOPMENT_TEAM` dans le projet Xcode.
 - Version : renseigner `MARKETING_VERSION` (= version du jeu, ex. 0.23.0) et augmenter `CURRENT_PROJECT_VERSION` à chaque envoi, dans Xcode.
 
 ## Notes pour l'examinateur (à copier)

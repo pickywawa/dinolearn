@@ -1,7 +1,7 @@
 {
   "name": "dinolearn-web",
   "private": true,
-  "version": "0.26.1",
+  "version": "0.27.0",
   "type": "module",
   "scripts": {
     "icons": "node scripts/build-icons.mjs",
@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@capacitor/android": "^8.6.0",
+    "@capacitor/app-launcher": "^8.0.1",
     "@capacitor/core": "^8.6.0",
     "@capacitor/filesystem": "^8.1.5",
     "@capacitor/ios": "^8.6.0",

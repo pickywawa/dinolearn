@@ -1,3 +1,11 @@
+## DinoLearn 0.27.0 — Voix plus forte, mots mieux dits, avis des parents
+
+- **Voix du dino beaucoup plus forte**, surtout sur iPhone : le son des voix est ramené au maximum et lissé, sans saturer.
+- **Meilleure prononciation en français** : « kiwi » (qui se disait « kyoui »), les voyelles à accent circonflexe (« bientôt », « âne », « mûre »…) qui étaient trop longues, et quelques mots lus à l'anglaise (mammouth, skateboard, tee-shirt, pizza).
+- **Devinettes à voix haute** : un point d'interrogation remplace l'image du thème, qui pouvait faire croire que c'était la réponse.
+- **Espace parents : donner son avis sur le store** (App Store, Google Play). Une invitation apparaît dans l'espace parents après environ deux heures de jeu, puis de temps en temps (au plus 4 fois) ; un bouton « Donner mon avis » reste dans les Réglages. Aucune récompense en échange d'un avis (interdit par les stores).
+- Une question qui n'est pas à cartes ne peut plus s'afficher sur un cadre blanc vide dans une série mélangée.
+
 ## DinoLearn 0.26.1 — L'anglais pour les autres langues
 
 - Sur un téléphone réglé dans une langue que le jeu ne parle pas encore (japonais, thaï, néerlandais…), DinoLearn démarre désormais en **anglais** au lieu du français (iOS aussi pour le message d'autorisation du micro). Préparation de la publication dans tous les pays.

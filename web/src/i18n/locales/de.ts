@@ -573,6 +573,12 @@ const de: Catalog = {
   'LO-14.findThird': 'Wir haben ein Drittel von einem dieser Kuchen gegessen. Von welchem? Tippe ihn an!',
   'LO-14.fromCenter': 'Fang genau in der Mitte des Kuchens an und zieh bis zum Rand!',
   'LO-14.unfairEven': 'Nicht gerecht! Die Stücke sind nicht gleich: Verteil deine Striche schön gleichmäßig!',
+  'p.yourOpinion': 'Ihre Meinung',
+  'p.rateHelp': 'Gefällt Ihnen DinoLearn? Eine Bewertung oder eine kurze Rezension im Store hilft anderen Eltern, die App zu finden. Das ist kostenlos und ganz freiwillig.',
+  'p.rateBtn': 'DinoLearn bewerten',
+  'p.rateAsk': 'Gefällt Ihnen DinoLearn?',
+  'p.rateLater': 'Später',
+  'p.rateNever': 'Nicht mehr fragen',
 };
 
 export default de;

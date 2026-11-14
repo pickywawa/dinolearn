@@ -573,6 +573,12 @@ const pt: Catalog = {
   'LO-14.findThird': 'Comemos um terço de um destes bolos. Qual? Toque nele!',
   'LO-14.fromCenter': 'Comece bem no meio do bolo e vá até a borda!',
   'LO-14.unfairEven': 'Não é justo! Os pedaços não são iguais: espalhe bem os traços, todos iguais!',
+  'p.yourOpinion': 'A sua opinião',
+  'p.rateHelp': 'Gosta do DinoLearn? Uma avaliação ou um pequeno comentário na loja ajuda outros pais a encontrá-lo. É grátis e totalmente opcional.',
+  'p.rateBtn': 'Avaliar o DinoLearn',
+  'p.rateAsk': 'Gosta do DinoLearn?',
+  'p.rateLater': 'Mais tarde',
+  'p.rateNever': 'Não perguntar novamente',
 };
 
 export default pt;

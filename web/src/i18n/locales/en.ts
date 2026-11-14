@@ -672,6 +672,12 @@ const en: Catalog = {
   'LO-14.findThird': 'We ate a third of one of these cakes. Which one? Touch it!',
   'LO-14.fromCenter': 'Start right from the middle of the cake, and go all the way to the edge!',
   'LO-14.unfairEven': 'Not fair! The pieces aren\'t the same: space your lines out evenly!',
+  'p.yourOpinion': 'Your opinion',
+  'p.rateHelp': 'Do you like DinoLearn? A rating or a short review in the store helps other parents find it. It is free and entirely up to you.',
+  'p.rateBtn': 'Rate DinoLearn',
+  'p.rateAsk': 'Enjoying DinoLearn?',
+  'p.rateLater': 'Later',
+  'p.rateNever': 'Don\'t ask again',
 };
 
 export default en;
