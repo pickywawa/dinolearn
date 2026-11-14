@@ -6,7 +6,7 @@ name: Publier une release
 on:
   push:
     branches: [main]
-    paths: ['web/RELEASE_NOTES.md', '.github/workflows/release.yml']
+    paths: ['CHANGELOG.md', 'web/scripts/release-body.mjs', '.github/workflows/release.yml']
   workflow_dispatch:
 
 permissions:
@@ -78,12 +78,16 @@ jobs:
           name: dinolearn-${{ steps.version.outputs.tag }}-aab
           path: web/dinolearn-${{ steps.version.outputs.tag }}.aab
           retention-days: 14
+      # Texte de la release : les fichiers à télécharger d'abord, puis un lien vers le journal des versions
+      # (CHANGELOG.md), et non tout l'historique.
+      - name: Texte de la release
+        run: node scripts/release-body.mjs "${{ steps.version.outputs.tag }}" "${{ github.repository }}" "dinolearn-${{ steps.version.outputs.tag }}.apk,dinolearn-web-${{ steps.version.outputs.tag }}.zip" > release-body.md
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.tag }}
           target_commitish: ${{ github.sha }}
           name: DinoLearn ${{ steps.version.outputs.tag }}
-          body_path: web/RELEASE_NOTES.md
+          body_path: web/release-body.md
           files: |
             web/dinolearn-web-${{ steps.version.outputs.tag }}.zip
             web/dinolearn-${{ steps.version.outputs.tag }}.apk

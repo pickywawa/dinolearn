@@ -253,7 +253,8 @@ jouent au doigt.
 - `.github/workflows/deploy-web.yml` publie le jeu sur **GitHub Pages** à chaque push, avec les packs
   de reconnaissance vocale (à activer une fois : *Settings → Pages → Source : GitHub Actions*).
 - `.github/workflows/release.yml` crée la release (tag `v<version>` et archive du jeu) quand
-  `web/RELEASE_NOTES.md` change.
+  `CHANGELOG.md` change ; le texte de la release (fichiers à télécharger et lien vers le journal des
+  versions) est écrit par `web/scripts/release-body.mjs`.
 
 ## Limites connues
 - La voix dépend des voix installées sur l'appareil (excellente sur iPhone et Android récents ;

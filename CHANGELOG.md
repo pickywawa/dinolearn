@@ -1,3 +1,7 @@
+# Journal des versions · Changelog
+
+Les nouveautés de chaque version de DinoLearn (en français). Les fichiers à télécharger sont sur la page des [releases](https://github.com/pickywawa/dinolearn/releases).
+
 ## DinoLearn 0.27.0 — Voix plus forte, mots mieux dits, avis des parents
 
 - **Voix du dino beaucoup plus forte**, surtout sur iPhone : le son des voix est ramené au maximum et lissé, sans saturer.
