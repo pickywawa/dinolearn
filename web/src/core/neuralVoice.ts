@@ -1,4 +1,5 @@
 import { loadVoice, speech } from './piper';
+import type { VoiceTune } from './piperEngine';
 
 /**
  * Lecture des voix neuronales (Piper) : un seul AudioContext, débloqué au
@@ -22,6 +23,28 @@ export function setNeuralVoice(lang: Lang, voiceId: string | undefined) {
   } else {
     delete voices[lang];
   }
+}
+
+/** Vitesse et aigus de la voix, réglés par les parents (commun à tous les enfants de l'appareil). */
+export const TUNE_RANGE = { speed: { min: 0.7, max: 1.4 }, pitch: { min: 0.7, max: 1.3 } };
+const TUNE_KEY = 'dinolearn.voiceTune.v1';
+const clamp = (v: unknown, r: { min: number; max: number }) => {
+  const n = typeof v === 'number' && isFinite(v) ? v : 1;
+  return Math.round(Math.min(r.max, Math.max(r.min, n)) * 20) / 20;
+};
+let tune: VoiceTune | undefined;
+export function voiceTune(): VoiceTune {
+  if (!tune) {
+    let saved: Partial<VoiceTune> = {};
+    try { saved = JSON.parse(localStorage.getItem(TUNE_KEY) ?? '{}'); } catch { /* réglage d'origine */ }
+    tune = { speed: clamp(saved.speed, TUNE_RANGE.speed), pitch: clamp(saved.pitch, TUNE_RANGE.pitch) };
+  }
+  return tune;
+}
+export function setVoiceTune(next: Partial<VoiceTune>) {
+  const cur = voiceTune();
+  tune = { speed: clamp(next.speed ?? cur.speed, TUNE_RANGE.speed), pitch: clamp(next.pitch ?? cur.pitch, TUNE_RANGE.pitch) };
+  try { localStorage.setItem(TUNE_KEY, JSON.stringify(tune)); } catch { /* pas de stockage : valable jusqu'à la fermeture */ }
 }
 
 export const neuralVoiceFor = (lang: Lang) => voices[lang];
@@ -52,7 +75,8 @@ export function render(lang: Lang, text: string, slow = false): Promise<AudioBuf
   const voiceId = voices[lang];
   const c = audioContext();
   if (!voiceId || !c) return undefined;
-  const key = `${voiceId}|${slow}|${text}`;
+  const tune = voiceTune();
+  const key = `${voiceId}|${slow}|${tune.speed}|${tune.pitch}|${text}`;
   let p = rendered.get(key);
   if (p) {
     // Plus récent : on le remet à la fin (le plus ancien part en premier).
@@ -61,7 +85,7 @@ export function render(lang: Lang, text: string, slow = false): Promise<AudioBuf
     return p;
   }
   // Calculée dans un worker (voix aiguë et pauses comprises) : le jeu reste fluide pendant ce temps.
-  p = speech(voiceId, text, slow).then(({ pcm: samples, sampleRate }) => {
+  p = speech(voiceId, text, slow, tune).then(({ pcm: samples, sampleRate }) => {
     const buffer = c.createBuffer(1, Math.max(1, samples.length), sampleRate);
     buffer.getChannelData(0).set(normalize(samples));
     return buffer;

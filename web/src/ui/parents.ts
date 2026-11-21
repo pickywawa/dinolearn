@@ -1,5 +1,6 @@
 import { GAMES, GameDef } from '../content/games';
 import { app, applyChildSettings, switchChild } from '../core/app';
+import { TUNE_RANGE, setVoiceTune, voiceTune } from '../core/neuralVoice';
 import type { PrintRecord } from '../core/progress';
 import { DINO_COLORS } from '../dino/parts';
 import { Music } from '../core/music';
@@ -557,6 +558,22 @@ export function openParents(onClose: () => void) {
     test.addEventListener('click', () => {
       void app.voice.say([{ text: T('testHello', 'Bonjour ! Je suis Dino.'), lang: lang() }, { text: second() === 'es' ? '¡Hola!' : 'Hello!', lang: second(), slow: true }]);
     });
+    const slider = (label: string, key: 'speed' | 'pitch', lo: string, hi: string) => {
+      const range = TUNE_RANGE[key];
+      const input = el('input', { type: 'range', min: String(range.min), max: String(range.max), step: '0.05', 'aria-label': label, style: 'width:100%' }) as HTMLInputElement;
+      input.value = String(voiceTune()[key]);
+      input.addEventListener('change', () => {
+        setVoiceTune({ [key]: Number(input.value) });
+        test.click();
+      });
+      return el('div', { style: 'margin-top:12px' }, el('div', {}, label),
+        input, el('div', { class: 'help', style: 'display:flex;justify-content:space-between' }, el('span', {}, lo), el('span', {}, hi)));
+    };
+    const reset = el('button', {}, T('voiceReset', 'Voix d\'origine'));
+    reset.addEventListener('click', () => {
+      setVoiceTune({ speed: 1, pitch: 1 });
+      for (const input of reset.closest('section')!.querySelectorAll<HTMLInputElement>('input[type=range]')) input.value = '1';
+    });
     return el('section', {},
       el('h2', {}, T('sound', 'Son et voix')),
       el('div', { class: 'row', style: 'justify-content:space-between' },
@@ -567,7 +584,9 @@ export function openParents(onClose: () => void) {
         el('span', {}, T('music', 'Musique de fond')),
         el('label', { class: 'switch' }, music, el('span')),
       ),
-      el('div', { style: 'margin-top:10px' }, test),
+      slider(T('voiceSpeed', 'Vitesse de la voix du dino'), 'speed', T('slower', 'Plus lent'), T('faster', 'Plus rapide')),
+      slider(T('voicePitch', 'Aigus de la voix du dino'), 'pitch', T('lower', 'Plus grave'), T('higher', 'Plus aigu')),
+      el('div', { class: 'row', style: 'margin-top:12px;gap:8px' }, test, reset),
     );
   }
 

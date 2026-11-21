@@ -1,7 +1,7 @@
 import EasySpeech from 'easy-speech';
 import { Speech } from '../content/content';
 import { LinePicker } from './lines';
-import { animalCry, audioContext, neuralVoiceFor, play, render, unlockAudio } from './neuralVoice';
+import { animalCry, audioContext, neuralVoiceFor, play, render, unlockAudio, voiceTune } from './neuralVoice';
 import { splitCries } from '../domain/cries';
 import { LANGS, Lang, langInfo } from '../domain/langs';
 import { lang as appLang } from '../i18n';
@@ -155,12 +155,13 @@ export class Voice {
       return;
     }
     const settings = part.lang === appLang() ? Voice.DINO : Voice.WORD;
-    const rate = part.slow ? settings.rate * 0.85 : settings.rate;
+    const tune = voiceTune();
+    const rate = (part.slow ? settings.rate * 0.85 : settings.rate) * tune.speed;
     const generation = this.generation;
     const speaking = EasySpeech.speak({
       text: part.text,
       voice: this.voices[part.lang],
-      pitch: settings.pitch,
+      pitch: Math.min(2, settings.pitch * tune.pitch),
       rate,
       volume: 1,
       // La bouche ne s'ouvre qu'une fois le son vraiment parti.
@@ -217,7 +218,7 @@ export class Voice {
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 /** Les mots d'une phrase (pour faire bouger la bouche mot par mot). */
-const WORDS = /[\p{L}\p{N}'’-]+/gu;
+export const WORDS = /[\p{L}\p{N}'’-]+/gu;
 
 /** Préférences : voix « naturelles » et connues pour bien sonner. */
 const PREFERRED: Partial<Record<Lang, RegExp[]>> = {

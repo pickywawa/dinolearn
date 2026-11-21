@@ -17,6 +17,9 @@ const engineFile = (name: string) => new URL(`piper/${name}`, base).href;
 
 /** Voix du dino plus aiguë, à la même vitesse (choisie à l'écoute : 1,40), en français comme en anglais. */
 export const DINO_PITCH = 1.4;
+/** Réglages des parents : vitesse et aigus de la voix (1 = réglage d'origine). */
+export interface VoiceTune { speed: number; pitch: number }
+export const DEFAULT_TUNE: VoiceTune = { speed: 1, pitch: 1 };
 
 const voiceUrls = (voiceId: string) => {
   const b = VOICE_URLS[voiceId];
@@ -140,16 +143,16 @@ export async function synthesize(voiceId: string, text: string, slow = 1): Promi
  * Une réplique entière, prête à jouer : morceau par morceau (fins de phrase, « … ») avec de
  * vrais silences entre eux, puis rendue plus aiguë (voix du dino).
  */
-export async function speech(voiceId: string, text: string, slow: boolean): Promise<{ pcm: Float32Array; sampleRate: number }> {
+export async function speech(voiceId: string, text: string, slow: boolean, tune: VoiceTune = DEFAULT_TUNE): Promise<{ pcm: Float32Array; sampleRate: number }> {
   const pieces: Float32Array[] = [];
   let sampleRate = 22050;
   for (const segment of spokenSegments(text)) {
-    const out = await synthesize(voiceId, segment.text, (segment.slow ?? 1) * (slow ? 1.2 : 1));
+    const out = await synthesize(voiceId, segment.text, (segment.slow ?? 1) * (slow ? 1.2 : 1) / tune.speed);
     sampleRate = out.sampleRate;
     pieces.push(out.pcm, new Float32Array(Math.round((segment.pauseMs / 1000) * sampleRate)));
   }
   const pcm = new Float32Array(pieces.reduce((n, p) => n + p.length, 0));
   let at = 0;
   for (const p of pieces) { pcm.set(p, at); at += p.length; }
-  return { pcm: pitchShift(pcm, sampleRate, DINO_PITCH), sampleRate };
+  return { pcm: pitchShift(pcm, sampleRate, DINO_PITCH * tune.pitch), sampleRate };
 }

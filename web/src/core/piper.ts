@@ -1,5 +1,6 @@
 import { VOICE_URLS } from '../domain/langs';
 import { store } from './voiceStore';
+import type { VoiceTune } from './piperEngine';
 /**
  * Moteur de voix neuronale Piper, dans le navigateur (aucune voix enregistrée :
  * chaque phrase est calculée sur l'appareil).
@@ -126,7 +127,7 @@ function pageEngine() {
   return inPage;
 }
 
-async function call(msg: { kind: 'load' | 'speech'; voiceId: string; text?: string; slow?: boolean }) {
+async function call(msg: { kind: 'load' | 'speech'; voiceId: string; text?: string; slow?: boolean; tune?: VoiceTune }) {
   const w = engineWorker();
   if (w) {
     const id = nextId++;
@@ -142,7 +143,7 @@ async function call(msg: { kind: 'load' | 'speech'; voiceId: string; text?: stri
     await engine.loadVoice(msg.voiceId);
     return { id: 0, ok: true as const };
   }
-  return { id: 0, ok: true as const, ...await engine.speech(msg.voiceId, msg.text ?? '', !!msg.slow) };
+  return { id: 0, ok: true as const, ...await engine.speech(msg.voiceId, msg.text ?? '', !!msg.slow, msg.tune) };
 }
 
 /** Prépare une voix (lecture depuis l'appareil et chargement dans le moteur, quelques secondes, hors de la page). */
@@ -151,7 +152,7 @@ export async function loadVoice(voiceId: string): Promise<void> {
 }
 
 /** Une réplique calculée, prête à jouer (voix du dino : pauses et voix aiguë comprises). */
-export async function speech(voiceId: string, text: string, slow = false): Promise<{ pcm: Float32Array; sampleRate: number }> {
-  const r = await call({ kind: 'speech', voiceId, text, slow });
+export async function speech(voiceId: string, text: string, slow = false, tune?: VoiceTune): Promise<{ pcm: Float32Array; sampleRate: number }> {
+  const r = await call({ kind: 'speech', voiceId, text, slow, tune });
   return { pcm: r.pcm!, sampleRate: r.sampleRate! };
 }
